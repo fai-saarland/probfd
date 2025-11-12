@@ -1,6 +1,7 @@
 #include "downward/cli/plugins/doc_printer.h"
 
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/utils/strings.h"
 
@@ -19,26 +20,24 @@ DocPrinter::DocPrinter(ostream& out, Registry& registry)
 
 void DocPrinter::print_all() const
 {
-    FeatureTypes feature_types = registry.get_feature_types();
-    ranges::sort(
-        feature_types,
-        [](const FeatureType* t1, const FeatureType* t2) {
-            return t1->name() < t2->name();
-        });
-    for (const FeatureType* type : feature_types) {
-        print_category(*type, true);
+    for (const auto categories = registry.get_categories();
+         const auto& category : categories) {
+        print_category(*category, true);
     }
 }
 
 void DocPrinter::print_category(const string& name, bool recursive) const
 {
-    FeatureTypes feature_types = registry.get_feature_types();
-    const auto it =
-        ranges::find_if(feature_types, [&name](const FeatureType* t) {
-            return t->name() == name;
+    const auto categories = registry.get_categories();
+    const auto it = std::ranges::lower_bound(
+        categories,
+        name,
+        {},
+        [](const auto& category_plugin) {
+            return category_plugin->get_category_name();
         });
 
-    if (it == feature_types.end()) {
+    if (it == categories.end() || (*it)->get_category_name() != name) {
         throw MissingCategoryError(
             "could not find a category named '" + name + "' in the registry");
     }
@@ -51,11 +50,15 @@ void DocPrinter::print_feature(const string& name) const
     print_feature(*registry.get_feature(name));
 }
 
-void DocPrinter::print_category(const FeatureType& type, bool recursive) const
+void DocPrinter::print_category(const CategoryPlugin& category, bool recursive)
+    const
 {
     map<string, vector<const Feature*>> subcategories;
-    for (const shared_ptr<const Feature>& feature : registry.get_features()) {
-        if (feature->get_type() == type) {
+    for (const auto& feature : registry.get_features()) {
+        if (const Type& type = feature->get_type();
+            type.is_feature_type() &&
+            static_cast<const FeatureType&>(type).get_type_index() ==
+                category.get_pointer_type()) {
             subcategories[feature->get_subcategory()].push_back(feature.get());
         }
     }
@@ -64,9 +67,9 @@ void DocPrinter::print_category(const FeatureType& type, bool recursive) const
         std::ranges::sort(features, {}, &Feature::get_key);
     }
 
-    print_category_header(type);
-    print_category_synopsis(type.get_synopsis());
-    print_category_members(type, subcategories);
+    print_category_header(category);
+    print_category_synopsis(category.get_synopsis());
+    print_category_members(category, subcategories);
 
     if (recursive) {
         /*
@@ -207,9 +210,10 @@ void Txt2TagsPrinter::print_properties(const Feature& feature) const
     }
 }
 
-void Txt2TagsPrinter::print_category_header(const FeatureType& type) const
+void Txt2TagsPrinter::print_category_header(
+    const CategoryPlugin& category) const
 {
-    os << ">>>>CATEGORY: " << type.name() << "<<<<" << endl;
+    os << ">>>>CATEGORY: " << category.get_category_name() << "<<<<" << endl;
 }
 
 void Txt2TagsPrinter::print_category_synopsis(const string& synopsis) const
@@ -308,9 +312,9 @@ void PlainPrinter::print_properties(const Feature& feature) const
     }
 }
 
-void PlainPrinter::print_category_header(const FeatureType& type) const
+void PlainPrinter::print_category_header(const CategoryPlugin& category) const
 {
-    os << "Help for " << type.name() << endl << endl;
+    os << "Help for " << category.get_category_name() << endl << endl;
 }
 
 void PlainPrinter::print_category_synopsis(const string& synopsis) const

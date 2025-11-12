@@ -1,7 +1,7 @@
 #include "probfd/cli/solvers/interval_iteration.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/cli/solvers/mdp_solver_options.h"
 
@@ -56,7 +56,7 @@ public:
 class IntervalIterationSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     IntervalIterationSolverFeature()
-        : SharedTypedFeature("interval_iteration")
+        : TypedFeature("interval_iteration")
     {
         document_title("Interval Iteration");
 
@@ -82,7 +82,7 @@ protected:
 
 namespace probfd::cli::solvers {
 
-void add_interval_iteration_solver_feature(RawRegistry& raw_registry)
+void add_interval_iteration_solver_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<IntervalIterationSolverFeature>();
 }

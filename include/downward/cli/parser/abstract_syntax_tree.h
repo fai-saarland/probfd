@@ -3,7 +3,7 @@
 
 #include "downward/cli/parser/decorated_abstract_syntax_tree.h"
 #include "downward/cli/parser/token_stream.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include <cassert>
 #include <memory>

@@ -1,7 +1,7 @@
 #include "downward/cli/pdbs/subcategory.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 using namespace downward::cli::plugins;
 
@@ -20,7 +20,7 @@ public:
 
 namespace downward::cli::pdbs {
 
-void add_pdb_heuristic_subcategory(RawRegistry& raw_registry)
+void add_pdb_heuristic_subcategory(Registry& raw_registry)
 {
     raw_registry.insert_subcategory_plugin<PDBGroupPlugin>();
 }

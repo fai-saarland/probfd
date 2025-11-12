@@ -5,7 +5,6 @@
 #include "downward/cli/parser/syntax_analyzer.h"
 
 #include "downward/cli/plugins/doc_printer.h"
-#include "downward/cli/plugins/raw_registry.h"
 #include "downward/cli/plugins/registry.h"
 
 #include "downward/utils/system.h"
@@ -278,9 +277,9 @@ protected:
         }
     }
 
-    void print_category_header(const FeatureType& type) const override
+    void print_category_header(const CategoryPlugin& category) const override
     {
-        os << "##### Type " << type.name() << " #####\n\n";
+        os << "##### Type " << category.get_category_name() << " #####\n\n";
     }
 
     void print_category_synopsis(const string& synopsis) const override
@@ -293,7 +292,7 @@ protected:
     }
 
     void print_category_members(
-        const FeatureType&,
+        const CategoryPlugin&,
         const std::map<std::string, std::vector<const Feature*>>& subcategories)
         const override
     {
@@ -332,10 +331,9 @@ protected:
 
 static int list_features(argparse::ArgumentParser& parser)
 {
-    RawRegistry raw_registry;
-    register_definitions(raw_registry);
+    Registry registry;
+    register_definitions(registry);
 
-    Registry registry = raw_registry.construct_registry();
     unique_ptr<DocPrinter> doc_printer;
     if (parser.get<bool>("--txt2tags")) {
         doc_printer = std::make_unique<Txt2TagsPrinter>(cout, registry);

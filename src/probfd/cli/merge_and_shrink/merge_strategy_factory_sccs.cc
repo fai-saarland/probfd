@@ -1,7 +1,7 @@
 #include "probfd/cli/merge_and_shrink/merge_strategy_factory_sccs.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/utils/logging_options.h"
 
@@ -28,7 +28,7 @@ class MergeStrategyFactorySCCsFeature
     : public SharedTypedFeature<MergeStrategyFactory> {
 public:
     MergeStrategyFactorySCCsFeature()
-        : SharedTypedFeature("pmerge_sccs")
+        : TypedFeature("pmerge_sccs")
     {
         document_title("Merge strategy SSCs");
         document_synopsis(
@@ -93,10 +93,8 @@ public:
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_merge_strategy_factory_sccs_feature(RawRegistry& raw_registry)
+void add_merge_strategy_factory_sccs_feature(Registry& raw_registry)
 {
-    raw_registry.insert_feature_plugin<MergeStrategyFactorySCCsFeature>();
-
     raw_registry.insert_enum_plugin<OrderOfSCCs>(
         {{"topological",
           "according to the topological ordering of the directed graph "
@@ -108,6 +106,8 @@ void add_merge_strategy_factory_sccs_feature(RawRegistry& raw_registry)
           "biggest SCCs first, using 'topological' as tie-breaker"},
          {"increasing",
           "smallest SCCs first, using 'topological' as tie-breaker"}});
+
+    raw_registry.insert_feature_plugin<MergeStrategyFactorySCCsFeature>();
 }
 
 } // namespace probfd::cli::merge_and_shrink

@@ -1,7 +1,7 @@
 #include "probfd/cli/merge_and_shrink/merge_tree_factory_category.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/merge_and_shrink/merge_tree_factory.h"
 
@@ -14,7 +14,7 @@ using namespace probfd::merge_and_shrink;
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_merge_tree_factory_category(RawRegistry& raw_registry)
+void add_merge_tree_factory_category(Registry& raw_registry)
 {
     auto& category =
         raw_registry.insert_shared_category_plugin<MergeTreeFactory>("PMergeTree");

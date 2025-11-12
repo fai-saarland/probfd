@@ -1,7 +1,7 @@
 #include "downward/cli/merge_and_shrink/merge_scoring_function_miasm_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/merge_and_shrink/merge_and_shrink_algorithm_options.h"
 
@@ -29,7 +29,7 @@ class MergeScoringFunctionMIASMFeature
     : public SharedTypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionMIASMFeature()
-        : SharedTypedFeature("sf_miasm")
+        : TypedFeature("sf_miasm")
     {
         document_title("MIASM");
         document_synopsis(
@@ -140,7 +140,7 @@ public:
 
 namespace downward::cli::merge_and_shrink {
 
-void add_merge_scoring_function_miasm_feature(RawRegistry& raw_registry)
+void add_merge_scoring_function_miasm_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<MergeScoringFunctionMIASMFeature>();
 }

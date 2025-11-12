@@ -1,7 +1,7 @@
 #include "downward/cli/open_lists/tiebreaking_open_list_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/open_lists/open_list_options.h"
 
@@ -26,13 +26,15 @@ class TieBreakingOpenListFeature
 public:
     TieBreakingOpenListFeature()
         requires(std::same_as<T, downward::StateOpenListEntry>)
-        : TieBreakingOpenListFeature::SharedTypedFeature("state_tiebreaking")
+        : TieBreakingOpenListFeature::TypedFeature("state_tiebreaking")
     {
         this->document_title("Tie-breaking state open list");
         this->document_synopsis("");
 
         this->template add_required_list_argument<
-            shared_ptr<downward::Evaluator>>("evals", "evaluators");
+            shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>>(
+            "evals",
+            "evaluators");
         this->template add_optional_argument_with_default<bool>(
             "unsafe_pruning",
             "true",
@@ -43,13 +45,15 @@ public:
 
     TieBreakingOpenListFeature()
         requires(std::same_as<T, downward::EdgeOpenListEntry>)
-        : TieBreakingOpenListFeature::SharedTypedFeature("edge_tiebreaking")
+        : TieBreakingOpenListFeature::TypedFeature("edge_tiebreaking")
     {
         this->document_title("Tie-breaking edge open list");
         this->document_synopsis("");
 
         this->template add_required_list_argument<
-            shared_ptr<downward::Evaluator>>("evals", "evaluators");
+            shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>>(
+            "evals",
+            "evaluators");
         this->template add_optional_argument_with_default<bool>(
             "unsafe_pruning",
             "true",
@@ -66,7 +70,8 @@ public:
             opts,
             "evals");
         return make_shared_from_arg_tuples<TieBreakingOpenListFactory<T>>(
-            opts.get_list<shared_ptr<downward::Evaluator>>("evals"),
+            opts.get_list<shared_ptr<
+                downward::TaskDependentFactory<downward::Evaluator>>>("evals"),
             opts.get<bool>("unsafe_pruning"),
             get_open_list_arguments_from_options(opts));
     }
@@ -75,7 +80,7 @@ public:
 
 namespace downward::cli::open_lists {
 
-void add_tiebreaking_open_list_features(RawRegistry& raw_registry)
+void add_tiebreaking_open_list_features(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<
         TieBreakingOpenListFeature<downward::StateOpenListEntry>>();

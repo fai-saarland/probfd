@@ -1,7 +1,7 @@
 #include "probfd/cli/merge_and_shrink/merge_scoring_function_single_random.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -19,7 +19,7 @@ class MergeScoringFunctionSingleRandomFeature
     : public SharedTypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionSingleRandomFeature()
-        : SharedTypedFeature("psingle_random")
+        : TypedFeature("psingle_random")
     {
         document_title("Single random");
         document_synopsis(
@@ -43,7 +43,7 @@ protected:
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_merge_scoring_function_single_random_feature(RawRegistry& raw_registry)
+void add_merge_scoring_function_single_random_feature(Registry& raw_registry)
 {
     raw_registry
         .insert_feature_plugin<MergeScoringFunctionSingleRandomFeature>();

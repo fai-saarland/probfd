@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/zero_one_pdbs_heuristic_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/heuristics/heuristic_options.h"
 
@@ -61,7 +61,7 @@ class ZeroOnePDBsHeuristicFeature
     : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     ZeroOnePDBsHeuristicFeature()
-        : SharedTypedFeature("zopdbs")
+        : TypedFeature("zopdbs")
     {
         document_subcategory("heuristics_pdb");
         document_title("Zero-One PDB");
@@ -111,7 +111,7 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_zero_one_pdbs_heuristic_features(RawRegistry& raw_registry)
+void add_zero_one_pdbs_heuristic_features(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<ZeroOnePDBsHeuristicFeature>();
 }

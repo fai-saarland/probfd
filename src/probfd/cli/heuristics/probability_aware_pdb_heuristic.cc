@@ -1,7 +1,7 @@
 #include "probfd/cli/heuristics/probability_aware_pdb_heuristic.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/cli/heuristics/task_dependent_heuristic_options.h"
 
@@ -21,7 +21,7 @@ class ProbabilityAwarePDBHeuristicFactoryFeature
     : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     ProbabilityAwarePDBHeuristicFactoryFeature()
-        : SharedTypedFeature("ppdbs")
+        : TypedFeature("ppdbs")
     {
         document_title("Probability-aware Pattern database heuristic");
         document_synopsis(
@@ -61,7 +61,7 @@ public:
 
 namespace probfd::cli::heuristics {
 
-void add_pdb_heuristic_feature(RawRegistry& raw_registry)
+void add_pdb_heuristic_feature(Registry& raw_registry)
 {
     raw_registry
         .insert_feature_plugin<ProbabilityAwarePDBHeuristicFactoryFeature>();

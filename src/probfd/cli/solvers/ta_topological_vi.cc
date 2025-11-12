@@ -1,7 +1,7 @@
 #include "probfd/cli/solvers/ta_topological_vi.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/cli/solvers/mdp_solver_options.h"
 
@@ -49,7 +49,7 @@ public:
 class TATopologicalVISolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     TATopologicalVISolverFeature()
-        : SharedTypedFeature("ta_topological_value_iteration")
+        : TypedFeature("ta_topological_value_iteration")
     {
         document_title("Trap-Aware Topological Value Iteration");
         add_base_solver_options_except_algorithm_to_feature(*this);
@@ -75,7 +75,7 @@ protected:
 
 namespace probfd::cli::solvers {
 
-void add_ta_topological_value_iteration_feature(RawRegistry& raw_registry)
+void add_ta_topological_value_iteration_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<TATopologicalVISolverFeature>();
 }

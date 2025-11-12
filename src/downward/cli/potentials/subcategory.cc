@@ -1,7 +1,7 @@
 #include "downward/cli/potentials/subcategory.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 namespace {
 
@@ -19,7 +19,7 @@ public:
 
 namespace downward::cli::potentials {
 
-void add_potential_heuristics_subcategory(plugins::RawRegistry& raw_registry)
+void add_potential_heuristics_subcategory(plugins::Registry& raw_registry)
 {
     raw_registry.insert_subcategory_plugin<PotentialHeuristicsGroupPlugin>();
 }

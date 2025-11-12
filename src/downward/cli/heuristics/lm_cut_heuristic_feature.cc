@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/lm_cut_heuristic_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/heuristics/heuristic_options.h"
 
@@ -58,7 +58,7 @@ class LandmarkCutHeuristicFeature
     : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     LandmarkCutHeuristicFeature()
-        : SharedTypedFeature("lmcut")
+        : TypedFeature("lmcut")
     {
         document_title("Landmark-cut heuristic");
 
@@ -85,7 +85,7 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_landmark_cut_heuristic_feature(RawRegistry& raw_registry)
+void add_landmark_cut_heuristic_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<LandmarkCutHeuristicFeature>();
 }

@@ -131,11 +131,9 @@ size_t BasicType::get_hash() const
 
 FeatureType::FeatureType(
     type_index pointer_type,
-    const string& type_name,
-    const string& synopsis)
+    const string& type_name)
     : pointer_type(pointer_type)
     , type_name(type_name)
-    , synopsis(synopsis)
 {
 }
 
@@ -150,11 +148,6 @@ bool FeatureType::is_feature_type() const
     return true;
 }
 
-string FeatureType::get_synopsis() const
-{
-    return synopsis;
-}
-
 string FeatureType::name() const
 {
     return type_name;
@@ -164,6 +157,11 @@ size_t FeatureType::get_hash() const
 {
     return hash<type_index>()(typeid(FeatureType)) ^
            hash<type_index>()(pointer_type);
+}
+
+std::type_index FeatureType::get_type_index() const
+{
+    return pointer_type;
 }
 
 ListType::ListType(const Type& nested_type)
@@ -368,7 +366,6 @@ std::any convert(
 
 SymbolType TypeRegistry::SYMBOL_TYPE;
 EmptyListType TypeRegistry::EMPTY_LIST_TYPE;
-BasicType TypeRegistry::NO_TYPE = BasicType(typeid(void), "<no type>");
 
 TypeRegistry::TypeRegistry()
 {
@@ -405,38 +402,38 @@ void TypeRegistry::insert_basic_type()
 const FeatureType&
 TypeRegistry::create_feature_type(const CategoryPlugin& plugin)
 {
-    type_index type = plugin.get_pointer_type();
-    if (registered_types.count(type)) {
+    auto [it, inserted] = registered_types.emplace(
+        plugin.get_pointer_type(),
+        std::make_unique<FeatureType>(
+            plugin.get_pointer_type(),
+            plugin.get_category_name()));
+
+    if (!inserted) {
         throw utils::CriticalError(
             "Creating the FeatureType '{}' but the type '{}' already exists "
             "and has the same type_index.",
             plugin.get_class_name(),
-            registered_types[type]->name());
+            it->second->name());
     }
-    unique_ptr<FeatureType> type_ptr = std::make_unique<FeatureType>(
-        plugin.get_pointer_type(),
-        plugin.get_category_name(),
-        plugin.get_synopsis());
-    const FeatureType& type_ref = *type_ptr;
-    registered_types[type] = move(type_ptr);
-    return type_ref;
+
+    return static_cast<const FeatureType&>(*it->second);
 }
 
 const EnumType& TypeRegistry::create_enum_type(const EnumPlugin& plugin)
 {
-    type_index type = plugin.get_type();
-    const EnumInfo& values = plugin.get_enum_info();
-    if (registered_types.count(type)) {
+    auto [it, inserted] = registered_types.emplace(
+        plugin.get_type(),
+        std::make_unique<EnumType>(plugin.get_type(), plugin.get_enum_info()));
+
+    if (!inserted) {
         throw utils::CriticalError(
             "Creating the EnumType '{}' but the type '{}' already exists and "
             "has the same type_index.",
             plugin.get_class_name(),
-            registered_types[type]->name());
+            it->second->name());
     }
-    unique_ptr<EnumType> type_ptr = std::make_unique<EnumType>(type, values);
-    const EnumType& type_ref = *type_ptr;
-    registered_types[type] = move(type_ptr);
-    return type_ref;
+
+    return static_cast<const EnumType&>(*it->second);
 }
 
 const ListType& TypeRegistry::create_list_type(const Type& element_type)
@@ -460,9 +457,11 @@ const FunctionType& TypeRegistry::create_function_type(
 
 const Type& TypeRegistry::get_nonlist_type(type_index type) const
 {
-    if (!registered_types.count(type)) {
-        return NO_TYPE;
+    if (const auto it = registered_types.find(type);
+        it != registered_types.end()) {
+        return *it->second;
     }
-    return *registered_types.at(type);
+
+    throw utils::CriticalError("Missing type {}", type.name());
 }
 } // namespace downward::cli::plugins

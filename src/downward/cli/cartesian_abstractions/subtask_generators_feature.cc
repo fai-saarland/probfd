@@ -1,7 +1,7 @@
 #include "downward/cli/cartesian_abstractions/subtask_generators_features.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -44,7 +44,7 @@ tuple<FactOrder, int> get_fact_order_arguments_from_options(const Options& opts)
 class TaskDuplicatorFeature : public SharedTypedFeature<SubtaskGenerator> {
 public:
     TaskDuplicatorFeature()
-        : SharedTypedFeature("original")
+        : TypedFeature("original")
     {
         add_optional_argument_with_default<int>(
             "copies",
@@ -63,7 +63,7 @@ public:
 class GoalDecompositionFeature : public SharedTypedFeature<SubtaskGenerator> {
 public:
     GoalDecompositionFeature()
-        : SharedTypedFeature("goals")
+        : TypedFeature("goals")
     {
         add_fact_order_option(*this);
     }
@@ -80,7 +80,7 @@ class LandmarkDecompositionFeature
     : public SharedTypedFeature<SubtaskGenerator> {
 public:
     LandmarkDecompositionFeature()
-        : SharedTypedFeature("landmarks")
+        : TypedFeature("landmarks")
     {
         add_optional_argument_with_default<
             std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
@@ -107,17 +107,11 @@ public:
 
 namespace downward::cli::cartesian_abstractions {
 
-void add_subtask_generators_features(RawRegistry& raw_registry)
+void add_subtask_generators_features(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<TaskDuplicatorFeature>();
     raw_registry.insert_feature_plugin<GoalDecompositionFeature>();
     raw_registry.insert_feature_plugin<LandmarkDecompositionFeature>();
-
-    raw_registry.insert_enum_plugin<FactOrder>(
-        {{"original", "according to their (internal) variable index"},
-         {"random", "according to a random permutation"},
-         {"hadd_up", "according to their h^add value, lowest first"},
-         {"hadd_down", "according to their h^add value, highest first "}});
 }
 
 } // namespace downward::cli::cartesian_abstractions

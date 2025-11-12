@@ -1,7 +1,7 @@
 #include "downward/cli/landmarks/landmark_factory_rpg_sasp_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/landmarks/landmark_factory_options.h"
 
@@ -24,7 +24,7 @@ class LandmarkFactoryRpgSaspFeature
     : public SharedTypedFeature<LandmarkFactory> {
 public:
     LandmarkFactoryRpgSaspFeature()
-        : SharedTypedFeature("lm_rhw")
+        : TypedFeature("lm_rhw")
     {
         document_title("RHW Landmarks");
         document_synopsis(
@@ -54,7 +54,7 @@ public:
 
 namespace downward::cli::landmarks {
 
-void add_landmark_factory_rpg_sasp_feature(RawRegistry& raw_registry)
+void add_landmark_factory_rpg_sasp_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<LandmarkFactoryRpgSaspFeature>();
 }

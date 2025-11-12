@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/landmark_sum_heuristic_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/landmarks/landmark_heuristic_options.h"
 
@@ -78,7 +78,7 @@ class LandmarkSumHeuristicFeature
     : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     LandmarkSumHeuristicFeature()
-        : SharedTypedFeature("landmark_sum")
+        : TypedFeature("landmark_sum")
     {
         document_title("Landmark sum heuristic");
         document_synopsis(
@@ -176,7 +176,7 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_landmark_sum_heuristic_feature(RawRegistry& raw_registry)
+void add_landmark_sum_heuristic_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<LandmarkSumHeuristicFeature>();
 }

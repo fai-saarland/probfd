@@ -3,7 +3,7 @@
 #include "downward/cli/pdbs/pattern_generator_options.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/pdbs/pattern_generator_manual.h"
 
@@ -18,7 +18,7 @@ namespace {
 class PatternGeneratorManualFeature : public SharedTypedFeature<PatternGenerator> {
 public:
     PatternGeneratorManualFeature()
-        : SharedTypedFeature("manual_pattern")
+        : TypedFeature("manual_pattern")
     {
         add_required_list_argument<int>(
             "pattern",
@@ -39,7 +39,7 @@ public:
 
 namespace downward::cli::pdbs {
 
-void add_pattern_generator_manual_feature(RawRegistry& raw_registry)
+void add_pattern_generator_manual_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<PatternGeneratorManualFeature>();
 }

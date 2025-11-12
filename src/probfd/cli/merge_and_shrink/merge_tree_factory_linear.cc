@@ -1,7 +1,7 @@
 #include "probfd/cli/merge_and_shrink/merge_tree_factory_linear.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/cli/merge_and_shrink/merge_tree_factory_options.h"
 
@@ -24,7 +24,7 @@ class MergeTreeFactoryLinearFeature
     : public SharedTypedFeature<MergeTreeFactory> {
 public:
     MergeTreeFactoryLinearFeature()
-        : SharedTypedFeature("plinear")
+        : TypedFeature("plinear")
     {
         document_title("Linear merge trees");
         document_synopsis(
@@ -65,7 +65,7 @@ protected:
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_merge_tree_factory_linear_feature(RawRegistry& raw_registry)
+void add_merge_tree_factory_linear_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<MergeTreeFactoryLinearFeature>();
 }

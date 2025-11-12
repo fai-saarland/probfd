@@ -1,7 +1,7 @@
 #include "downward/cli/evaluators/const_evaluator_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/evaluators/evaluator_options.h"
 
@@ -51,7 +51,7 @@ class ConstEvaluatorFeature
     : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     ConstEvaluatorFeature()
-        : SharedTypedFeature("const")
+        : TypedFeature("const")
     {
         document_subcategory("evaluators_basic");
         document_title("Constant evaluator");
@@ -76,7 +76,7 @@ public:
 
 namespace downward::cli::evaluators {
 
-void add_const_evaluator_feature(RawRegistry& raw_registry)
+void add_const_evaluator_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<ConstEvaluatorFeature>();
 }

@@ -127,7 +127,7 @@
 #include "downward/cli/utils/verbosity_enum.h"
 
 #include "downward/cli/operator_cost_category.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 #include "downward/utils/math.h"
 
 #include "probfd/cli/cartesian_abstractions/adaptive_flaw_generator.h"
@@ -293,8 +293,7 @@ public:
         : ConstructInfiniteFeature::TypedFeature(
               static_cast<std::string>(static_cast<std::string_view>(S)))
     {
-        this->document_synopsis(
-            "Returns a maximum / infinite duration.");
+        this->document_synopsis("Returns a maximum / infinite duration.");
     }
 
     R create_component(const plugins::Options&, const downward::utils::Context&)
@@ -308,7 +307,7 @@ public:
 
 namespace probfd {
 
-static void register_fast_downward_types(plugins::RawRegistry& raw_registry)
+static void register_fast_downward_types(plugins::Registry& raw_registry)
 {
     // Duration types
     raw_registry
@@ -333,6 +332,11 @@ static void register_fast_downward_types(plugins::RawRegistry& raw_registry)
     // Evaluators
     evaluators::add_evaluator_category(raw_registry);
     evaluators::add_evaluator_subcategory(raw_registry);
+
+    // Heuristics
+    heuristics::add_additive_cartesian_heuristic_categories(raw_registry);
+    heuristics::add_landmark_cost_partitioning_heuristic_categories(
+        raw_registry);
 
     // Landmarks
     landmarks::add_landmark_factory_category(raw_registry);
@@ -382,7 +386,7 @@ static void register_fast_downward_types(plugins::RawRegistry& raw_registry)
 }
 
 static void
-register_fast_downward_definitions(plugins::RawRegistry& raw_registry)
+register_fast_downward_definitions(plugins::Registry& raw_registry)
 {
     using namespace downward::utils::string_literals;
 
@@ -596,7 +600,7 @@ register_fast_downward_definitions(plugins::RawRegistry& raw_registry)
     tasks::add_identity_task_transformation_features(raw_registry);
 }
 
-static void register_probfd_types(plugins::RawRegistry& raw_registry)
+static void register_probfd_types(plugins::Registry& raw_registry)
 {
     // Cartesian Abstractions
     probfd::cli::cartesian_abstractions::add_flaw_generator_category(
@@ -654,7 +658,7 @@ static void register_probfd_types(plugins::RawRegistry& raw_registry)
     probfd::cli::add_task_state_space_factory_category(raw_registry);
 }
 
-static void register_probfd_definitions(plugins::RawRegistry& raw_registry)
+static void register_probfd_definitions(plugins::Registry& raw_registry)
 {
     // Cartesian Abstractions
     probfd::cli::cartesian_abstractions::add_adaptive_flaw_generator_feature(
@@ -780,7 +784,7 @@ static void register_probfd_definitions(plugins::RawRegistry& raw_registry)
     probfd::cli::add_task_state_space_factory_features(raw_registry);
 }
 
-void register_definitions(plugins::RawRegistry& raw_registry)
+void register_definitions(plugins::Registry& raw_registry)
 {
     register_fast_downward_types(raw_registry);
     register_probfd_types(raw_registry);

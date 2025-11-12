@@ -8,7 +8,7 @@
 
 #include "downward/cli/plugins/options.h"
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -25,7 +25,7 @@ class LabelReductionFeature
     : public SharedTypedFeature<LabelReduction> {
 public:
     LabelReductionFeature()
-        : SharedTypedFeature("pexact")
+        : TypedFeature("pexact")
     {
         document_title("Exact generalized label reduction");
         document_synopsis(
@@ -98,7 +98,7 @@ public:
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_label_reduction_category(RawRegistry& raw_registry)
+void add_label_reduction_category(Registry& raw_registry)
 {
     auto& category =
         raw_registry.insert_shared_category_plugin<LabelReduction>("PLabelReduction");
@@ -107,10 +107,8 @@ void add_label_reduction_category(RawRegistry& raw_registry)
         "label reduction.");
 }
 
-void add_label_reduction_features(RawRegistry& raw_registry)
+void add_label_reduction_features(Registry& raw_registry)
 {
-    raw_registry.insert_feature_plugin<LabelReductionFeature>();
-
     raw_registry.insert_enum_plugin<LabelReductionMethod>(
         {{"two_transition_systems",
           "compute the 'combinable relation' only for the two transition "
@@ -128,6 +126,8 @@ void add_label_reduction_features(RawRegistry& raw_registry)
           "input if atomic and in the order of their creation if composite."},
          {"reverse", "inverse of regular"},
          {"random", "random order"}});
+
+    raw_registry.insert_feature_plugin<LabelReductionFeature>();
 }
 
 } // namespace probfd::cli::merge_and_shrink

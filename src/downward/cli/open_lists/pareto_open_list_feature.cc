@@ -1,7 +1,7 @@
 #include "downward/cli/open_lists/pareto_open_list_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/open_lists/open_list_options.h"
 
@@ -33,7 +33,7 @@ class ParetoOpenListFeature
 public:
     ParetoOpenListFeature()
         requires(std::same_as<T, downward::StateOpenListEntry>)
-        : ParetoOpenListFeature::SharedTypedFeature("state_pareto")
+        : ParetoOpenListFeature::TypedFeature("state_pareto")
     {
         this->document_title("Pareto state open list");
         this->document_synopsis(
@@ -57,7 +57,7 @@ public:
 
     ParetoOpenListFeature()
         requires(std::same_as<T, downward::EdgeOpenListEntry>)
-        : ParetoOpenListFeature::SharedTypedFeature("edge_pareto")
+        : ParetoOpenListFeature::TypedFeature("edge_pareto")
     {
         this->document_title("Pareto edge open list");
         this->document_synopsis(
@@ -94,7 +94,7 @@ public:
 
 namespace downward::cli::open_lists {
 
-void add_pareto_open_list_features(RawRegistry& raw_registry)
+void add_pareto_open_list_features(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<
         ParetoOpenListFeature<downward::StateOpenListEntry>>();

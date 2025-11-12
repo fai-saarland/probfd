@@ -1,7 +1,7 @@
 #include "probfd/cli/merge_and_shrink/prune_strategy_solvable.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/merge_and_shrink/prune_strategy_solvable.h"
 
@@ -13,7 +13,7 @@ namespace {
 class PruneStrategySolvableFeature : public SharedTypedFeature<PruneStrategy> {
 public:
     PruneStrategySolvableFeature()
-        : SharedTypedFeature("prune_solvable")
+        : TypedFeature("prune_solvable")
     {
         document_title("Solvable states prune strategy");
         document_synopsis("This prune strategy keeps only solvable states.");
@@ -29,7 +29,7 @@ public:
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_prune_strategy_solvable_feature(RawRegistry& raw_registry)
+void add_prune_strategy_solvable_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<PruneStrategySolvableFeature>();
 }

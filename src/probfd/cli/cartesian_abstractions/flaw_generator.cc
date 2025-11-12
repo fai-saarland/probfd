@@ -1,7 +1,7 @@
 #include "probfd/cli/cartesian_abstractions/flaw_generator_category.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/cartesian_abstractions/flaw_generator.h"
 
@@ -11,7 +11,7 @@ using namespace probfd::cartesian_abstractions;
 
 namespace probfd::cli::cartesian_abstractions {
 
-void add_flaw_generator_category(RawRegistry& raw_registry)
+void add_flaw_generator_category(Registry& raw_registry)
 {
     auto& category = raw_registry.insert_shared_category_plugin<FlawGeneratorFactory>(
         "FlawGeneratorFactory");

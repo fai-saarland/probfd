@@ -5,7 +5,7 @@
 #include "downward/cli/pdbs/pattern_generator_options.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/heuristics/heuristic_options.h"
 
@@ -62,7 +62,7 @@ class PatternCollectionGeneratorHillclimbingFeature
     : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorHillclimbingFeature()
-        : SharedTypedFeature("hillclimbing")
+        : TypedFeature("hillclimbing")
     {
         document_title("Hill climbing");
         document_synopsis(
@@ -95,7 +95,7 @@ public:
 namespace downward::cli::pdbs {
 
 void add_pattern_collection_generator_hillclimbing_feature(
-    RawRegistry& raw_registry)
+    Registry& raw_registry)
 {
     raw_registry
         .insert_feature_plugin<PatternCollectionGeneratorHillclimbingFeature>();

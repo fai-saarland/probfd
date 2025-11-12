@@ -1,7 +1,7 @@
 #include "downward/cli/evaluators/g_evaluator_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/evaluators/evaluator_options.h"
 
@@ -41,7 +41,7 @@ public:
 class GEvaluatorFeature : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     GEvaluatorFeature()
-        : SharedTypedFeature("g")
+        : TypedFeature("g")
     {
         document_subcategory("evaluators_basic");
         document_title("g-value evaluator");
@@ -62,7 +62,7 @@ public:
 
 namespace downward::cli::evaluators {
 
-void add_g_evaluator_feature(RawRegistry& raw_registry)
+void add_g_evaluator_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<GEvaluatorFeature>();
 }

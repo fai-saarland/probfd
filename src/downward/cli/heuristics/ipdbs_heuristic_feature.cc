@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/ipdbs_heuristic_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/heuristics/heuristic_options.h"
 
@@ -127,7 +127,7 @@ public:
 class IPDBFeature : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     IPDBFeature()
-        : SharedTypedFeature("ipdb")
+        : TypedFeature("ipdb")
     {
         document_subcategory("heuristics_pdb");
         document_title("iPDB");
@@ -191,7 +191,7 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_ipdbs_heuristic_features(RawRegistry& raw_registry)
+void add_ipdbs_heuristic_features(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<IPDBFeature>();
 }

@@ -1,7 +1,7 @@
 #include "downward/cli/evaluators/subcategory.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 using namespace downward::cli::plugins;
 
@@ -18,7 +18,7 @@ public:
 
 namespace downward::cli::evaluators {
 
-void add_evaluator_subcategory(RawRegistry& raw_registry)
+void add_evaluator_subcategory(Registry& raw_registry)
 {
     raw_registry.insert_subcategory_plugin<EvaluatorGroupPlugin>();
 }

@@ -1,7 +1,7 @@
 #include "probfd/cli/heuristics/additive_cartesian_heuristic.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/cli/heuristics/task_dependent_heuristic_options.h"
 
@@ -21,7 +21,7 @@ class AdditiveCartesianHeuristicFactoryFeature
     : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     AdditiveCartesianHeuristicFactoryFeature()
-        : SharedTypedFeature("pcegar")
+        : TypedFeature("pcegar")
     {
         document_title("Additive Cartesian CEGAR heuristic");
 
@@ -88,7 +88,7 @@ public:
 
 namespace probfd::cli::heuristics {
 
-void add_additive_cartesian_heuristic_feature(RawRegistry& raw_registry)
+void add_additive_cartesian_heuristic_feature(Registry& raw_registry)
 {
     raw_registry
         .insert_feature_plugin<AdditiveCartesianHeuristicFactoryFeature>();

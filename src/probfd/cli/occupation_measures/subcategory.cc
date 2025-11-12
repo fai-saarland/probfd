@@ -1,7 +1,7 @@
 #include "probfd/cli/occupation_measures/subcategory.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/utils/logging_options.h"
 
@@ -43,7 +43,7 @@ namespace {
 class HROCFactoryFeature : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     HROCFactoryFeature()
-        : SharedTypedFeature("hroc")
+        : TypedFeature("hroc")
     {
         document_title("Regrouped operator-counting heuristic");
         document_synopsis(
@@ -81,7 +81,7 @@ public:
 class HPOMFactoryFeature : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     HPOMFactoryFeature()
-        : SharedTypedFeature("hpom")
+        : TypedFeature("hpom")
     {
         document_title("Projection Occupation Measure Heuristic");
 
@@ -121,7 +121,7 @@ public:
 class HOHPOMFactoryFeature : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     HOHPOMFactoryFeature()
-        : SharedTypedFeature("ho_hpom")
+        : TypedFeature("ho_hpom")
     {
         document_title("Higher-Order Projection Occupation Measure Heuristic");
         document_synopsis(
@@ -168,7 +168,7 @@ public:
 class HPHOFactoryFeature : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     HPHOFactoryFeature()
-        : SharedTypedFeature("pho")
+        : TypedFeature("pho")
     {
         document_title("Post-hoc Optimization Heuristic");
 
@@ -203,7 +203,7 @@ public:
 
 namespace probfd::cli::occupation_measures {
 
-void add_occupation_measure_heuristics_features(RawRegistry& raw_registry)
+void add_occupation_measure_heuristics_features(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<HROCFactoryFeature>();
     raw_registry.insert_feature_plugin<HPOMFactoryFeature>();

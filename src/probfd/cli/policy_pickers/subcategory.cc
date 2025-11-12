@@ -1,7 +1,7 @@
 #include "probfd/cli/policy_pickers/subcategory.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -21,6 +21,7 @@
 
 #include "downward/operator_id.h"
 #include "downward/state.h"
+#include "downward/tuple_utils.h"
 
 #include "downward/utils/rng_options.h"
 
@@ -59,25 +60,13 @@ template <bool Bisimulation, bool Fret>
 using PolicyPicker = Wrapper<algorithms::PolicyPicker, Bisimulation, Fret>;
 
 template <bool Bisimulation, bool Fret>
-class PolicyPickerCategoryPlugin
-    : public SharedTypedCategoryPlugin<PolicyPicker<Bisimulation, Fret>> {
-public:
-    PolicyPickerCategoryPlugin()
-        : PolicyPickerCategoryPlugin::SharedTypedCategoryPlugin(
-              add_mdp_type_to_category<Bisimulation, Fret>("PolicyPicker"))
-    {
-        this->document_synopsis("Tiebreaker for greedy actions.");
-    }
-};
-
-template <bool Bisimulation, bool Fret>
 class ArbitraryTieBreakerFeature
     : public SharedTypedFeature<PolicyPicker<Bisimulation, Fret>> {
     using R = Wrapper<ArbitraryTiebreaker, Bisimulation, Fret>;
 
 public:
     ArbitraryTieBreakerFeature()
-        : ArbitraryTieBreakerFeature::SharedTypedFeature(
+        : ArbitraryTieBreakerFeature::TypedFeature(
               add_mdp_type_to_option<Bisimulation, Fret>(
                   "arbitrary_policy_tiebreaker"))
     {
@@ -96,7 +85,7 @@ public:
 class OperatorIDTieBreakerFeature : public SharedTypedFeature<FDRPolicyPicker> {
 public:
     OperatorIDTieBreakerFeature()
-        : SharedTypedFeature("operator_id_policy_tiebreaker")
+        : TypedFeature("operator_id_policy_tiebreaker")
     {
         add_optional_argument_with_default<bool>("stable_policy", "true");
         add_optional_argument_with_default<bool>("prefer_smaller", "true");
@@ -119,7 +108,7 @@ class RandomTieBreakerFeature
 
 public:
     RandomTieBreakerFeature()
-        : RandomTieBreakerFeature::SharedTypedFeature(
+        : RandomTieBreakerFeature::TypedFeature(
               add_mdp_type_to_option<Bisimulation, Fret>(
                   "random_policy_tiebreaker"))
     {
@@ -145,7 +134,7 @@ class ValueGapTieBreakerFeature
 
 public:
     ValueGapTieBreakerFeature()
-        : ValueGapTieBreakerFeature::SharedTypedFeature(
+        : ValueGapTieBreakerFeature::TypedFeature(
               add_mdp_type_to_option<Bisimulation, Fret>(
                   "value_gap_policy_tiebreaker"))
     {
@@ -169,12 +158,19 @@ public:
 
 namespace probfd::cli::policy_pickers {
 
-void add_policy_picker_category(RawRegistry& raw_registry)
+void add_policy_picker_category(Registry& raw_registry)
 {
-    raw_registry.insert_category_plugins<PolicyPickerCategoryPlugin>();
+    auto t = raw_registry.insert_shared_category_plugins<PolicyPicker>(
+        []<bool Bisimulation, bool Fret> {
+            return add_mdp_type_to_category<Bisimulation, Fret>("PolicyPicker");
+        });
+
+    tuple_transform(t, [](auto& c) {
+        c.document_synopsis("Tiebreaker for greedy actions.");
+    });
 }
 
-void add_policy_picker_features(RawRegistry& raw_registry)
+void add_policy_picker_features(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<OperatorIDTieBreakerFeature>();
     raw_registry.insert_feature_plugins<ArbitraryTieBreakerFeature>();

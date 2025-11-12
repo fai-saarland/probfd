@@ -1,7 +1,7 @@
 #include "downward/cli/mutexes/from_file_mutex_factory_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/mutexes/from_file_mutex_factory.h"
 
@@ -18,7 +18,7 @@ class FromFileMutexFactoryFeature
     : public SharedTypedFeature<TaskDependentFactory<MutexInformation>> {
 public:
     FromFileMutexFactoryFeature()
-        : SharedTypedFeature("mutexes_from_file")
+        : TypedFeature("mutexes_from_file")
     {
         document_title("Mutexes from a mutex file");
         document_synopsis("Produces pre-computed mutexes as read from a file.");
@@ -43,7 +43,7 @@ public:
 
 namespace downward::cli::mutexes {
 
-void add_from_file_mutex_factory_feature(RawRegistry& raw_registry)
+void add_from_file_mutex_factory_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<FromFileMutexFactoryFeature>();
 }

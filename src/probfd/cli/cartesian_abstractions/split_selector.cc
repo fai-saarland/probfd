@@ -1,7 +1,7 @@
 #include "probfd/cli/cartesian_abstractions/split_selector.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -25,7 +25,7 @@ class SplitSelectorRandomFactoryFeature
     : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorRandomFactoryFeature()
-        : SharedTypedFeature("random")
+        : TypedFeature("random")
     {
         document_synopsis(
             "select a random variable (among all eligible variables)");
@@ -45,7 +45,7 @@ class SplitSelectorMinUnwantedFactoryFeature
     : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMinUnwantedFactoryFeature()
-        : SharedTypedFeature("min_unwanted")
+        : TypedFeature("min_unwanted")
     {
         document_synopsis(
             "select an eligible variable which has the least unwanted values "
@@ -64,7 +64,7 @@ class SplitSelectorMaxUnwantedFactoryFeature
     : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMaxUnwantedFactoryFeature()
-        : SharedTypedFeature("max_unwanted")
+        : TypedFeature("max_unwanted")
     {
         document_synopsis(
             "select an eligible variable which has the most unwanted values "
@@ -83,7 +83,7 @@ class SplitSelectorMinRefinedFactoryFeature
     : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMinRefinedFactoryFeature()
-        : SharedTypedFeature("min_refined")
+        : TypedFeature("min_refined")
     {
         document_synopsis(
             "select an eligible variable which is the least refined "
@@ -102,7 +102,7 @@ class SplitSelectorMaxRefinedFactoryFeature
     : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMaxRefinedFactoryFeature()
-        : SharedTypedFeature("max_refined")
+        : TypedFeature("max_refined")
     {
         document_synopsis(
             "select an eligible variable which is the most refined "
@@ -121,7 +121,7 @@ class SplitSelectorMinHAddFactoryFeature
     : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMinHAddFactoryFeature()
-        : SharedTypedFeature("min_hadd")
+        : TypedFeature("min_hadd")
     {
         document_synopsis(
             "select an eligible variable with minimal h^add(s_0) value "
@@ -139,7 +139,7 @@ class SplitSelectorMaxHAddFactoryFeature
     : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMaxHAddFactoryFeature()
-        : SharedTypedFeature("max_hadd")
+        : TypedFeature("max_hadd")
     {
         document_synopsis(
             "Select an eligible variable with maximal h^add(s_0) value "
@@ -157,7 +157,7 @@ public:
 
 namespace probfd::cli::cartesian_abstractions {
 
-void add_split_selector_category(RawRegistry& raw_registry)
+void add_split_selector_category(Registry& raw_registry)
 {
     auto& category = raw_registry.insert_shared_category_plugin<SplitSelectorFactory>(
         "SplitSelectorFactory");
@@ -166,7 +166,7 @@ void add_split_selector_category(RawRegistry& raw_registry)
         "cartesian abstraction refinement loop");
 }
 
-void add_split_selector_features(RawRegistry& raw_registry)
+void add_split_selector_features(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<SplitSelectorRandomFactoryFeature>();
     raw_registry

@@ -1,7 +1,7 @@
 #include "downward/cli/open_lists/epsilon_greedy_open_list_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/open_lists/open_list_options.h"
 
@@ -33,7 +33,7 @@ class EpsilonGreedyOpenListFeature
 public:
     EpsilonGreedyOpenListFeature()
         requires(std::same_as<T, downward::StateOpenListEntry>)
-        : EpsilonGreedyOpenListFeature::SharedTypedFeature(
+        : EpsilonGreedyOpenListFeature::TypedFeature(
               "state_epsilon_greedy")
     {
         this->document_title("Epsilon-greedy state open list");
@@ -70,7 +70,7 @@ public:
 
     EpsilonGreedyOpenListFeature()
         requires(std::same_as<T, downward::EdgeOpenListEntry>)
-        : EpsilonGreedyOpenListFeature::SharedTypedFeature(
+        : EpsilonGreedyOpenListFeature::TypedFeature(
               "edge_epsilon_greedy")
     {
         this->document_title("Epsilon-greedy edge open list");
@@ -120,7 +120,7 @@ public:
 
 namespace downward::cli::open_lists {
 
-void add_epsilon_greedy_open_list_features(RawRegistry& raw_registry)
+void add_epsilon_greedy_open_list_features(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<
         EpsilonGreedyOpenListFeature<downward::StateOpenListEntry>>();

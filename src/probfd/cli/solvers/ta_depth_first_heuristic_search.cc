@@ -1,7 +1,7 @@
 #include "probfd/cli/solvers/ta_depth_first_heuristic_search.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/cli/naming_conventions.h"
 
@@ -89,7 +89,7 @@ class TrapAwareDFHSSolverFeature
     : public SharedTypedFeature<TaskSolverFactory> {
 public:
     TrapAwareDFHSSolverFeature()
-        : SharedTypedFeature("tadfhs")
+        : TypedFeature("tadfhs")
     {
         document_title("Trap-aware depth-first heuristic search family");
         document_synopsis(
@@ -153,7 +153,7 @@ class TrapAwareILAOSolverFeature
     : public SharedTypedFeature<TaskSolverFactory> {
 public:
     TrapAwareILAOSolverFeature()
-        : SharedTypedFeature("tailao")
+        : TypedFeature("tailao")
     {
         document_title(
             "iLAO* variant of trap-aware depth-first heuristic search");
@@ -194,7 +194,7 @@ class TrapAwareLILAOSolverFeature
     : public SharedTypedFeature<TaskSolverFactory> {
 public:
     TrapAwareLILAOSolverFeature()
-        : SharedTypedFeature("talilao")
+        : TypedFeature("talilao")
     {
         document_title(
             "Labelled iLAO* variant of trap-aware depth-first "
@@ -237,7 +237,7 @@ public:
 class TrapAwareHDPSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     TrapAwareHDPSolverFeature()
-        : SharedTypedFeature("tahdp")
+        : TypedFeature("tahdp")
     {
         document_title(
             "HDP variant of trap-aware depth-first heuristic search");
@@ -278,13 +278,8 @@ public:
 
 namespace probfd::cli::solvers {
 
-void add_ta_depth_first_heuristic_search_feature(RawRegistry& raw_registry)
+void add_ta_depth_first_heuristic_search_feature(Registry& raw_registry)
 {
-    raw_registry.insert_feature_plugin<TrapAwareDFHSSolverFeature>();
-    raw_registry.insert_feature_plugin<TrapAwareILAOSolverFeature>();
-    raw_registry.insert_feature_plugin<TrapAwareLILAOSolverFeature>();
-    raw_registry.insert_feature_plugin<TrapAwareHDPSolverFeature>();
-
     raw_registry.insert_enum_plugin<BacktrackingUpdateType>(
         {{"disabled",
           "No update is performed when backtracking from a state during the "
@@ -302,6 +297,11 @@ void add_ta_depth_first_heuristic_search_feature(RawRegistry& raw_registry)
           "An update is always performed when backtracking from a state during "
           "the "
           "dfs exploration."}});
+
+    raw_registry.insert_feature_plugin<TrapAwareDFHSSolverFeature>();
+    raw_registry.insert_feature_plugin<TrapAwareILAOSolverFeature>();
+    raw_registry.insert_feature_plugin<TrapAwareLILAOSolverFeature>();
+    raw_registry.insert_feature_plugin<TrapAwareHDPSolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

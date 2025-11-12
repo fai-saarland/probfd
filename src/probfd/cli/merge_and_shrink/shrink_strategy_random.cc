@@ -1,7 +1,7 @@
 #include "probfd/cli/merge_and_shrink/shrink_strategy_random.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/merge_and_shrink/shrink_strategy_random.h"
 
@@ -20,7 +20,7 @@ namespace {
 class ShrinkRandomFeature : public SharedTypedFeature<ShrinkStrategy> {
 public:
     ShrinkRandomFeature()
-        : SharedTypedFeature("pshrink_random")
+        : TypedFeature("pshrink_random")
     {
         document_title("Random Shrink Strategy");
         document_synopsis(
@@ -42,7 +42,7 @@ protected:
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_shrink_strategy_random_feature(RawRegistry& raw_registry)
+void add_shrink_strategy_random_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<ShrinkRandomFeature>();
 }

@@ -1,7 +1,7 @@
 #include "probfd/cli/pdbs/pattern_generator_category.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/pdbs/pattern_generator.h"
 
@@ -11,7 +11,7 @@ using namespace downward::cli::plugins;
 
 namespace probfd::cli::pdbs {
 
-void add_pattern_generator_category(RawRegistry& raw_registry)
+void add_pattern_generator_category(Registry& raw_registry)
 {
     auto& category = raw_registry.insert_shared_category_plugin<PatternGenerator>(
         "PPDBPatternGenerator");

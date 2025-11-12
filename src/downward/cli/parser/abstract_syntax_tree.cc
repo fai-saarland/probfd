@@ -5,7 +5,6 @@
 #include "downward/cli/parser/token_stream.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
 #include "downward/cli/plugins/types.h"
 
 #include "downward/utils/logging.h"
@@ -97,7 +96,7 @@ public:
 };
 
 class VariableEnvironment {
-    const plugins::Registry registry;
+    const plugins::Registry& registry;
     std::unique_ptr<Scope> scope;
 
 public:

@@ -1,7 +1,7 @@
 #include "probfd/cli/successor_samplers/subcategory.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -46,22 +46,11 @@ template <bool Fret>
 using SuccessorSampler = Wrapper<algorithms::SuccessorSampler, Fret>;
 
 template <bool Fret>
-class SuccessorSamplerCategoryPlugin
-    : public SharedTypedCategoryPlugin<SuccessorSampler<Fret>> {
-public:
-    SuccessorSamplerCategoryPlugin()
-        : SharedTypedCategoryPlugin<SuccessorSampler<Fret>>(
-              add_mdp_type_to_category<false, Fret>("SuccessorSampler"))
-    {
-    }
-};
-
-template <bool Fret>
 class ArbitrarySuccessorSamplerFeature
     : public SharedTypedFeature<SuccessorSampler<Fret>> {
 public:
     ArbitrarySuccessorSamplerFeature()
-        : ArbitrarySuccessorSamplerFeature::SharedTypedFeature(
+        : ArbitrarySuccessorSamplerFeature::TypedFeature(
               add_mdp_type_to_option<false, Fret>(
                   "arbitrary_successor_sampler"))
     {
@@ -80,7 +69,7 @@ class MostLikelySuccessorSamplerFeature
     : public SharedTypedFeature<SuccessorSampler<Fret>> {
 public:
     MostLikelySuccessorSamplerFeature()
-        : MostLikelySuccessorSamplerFeature::SharedTypedFeature(
+        : MostLikelySuccessorSamplerFeature::TypedFeature(
               add_mdp_type_to_option<false, Fret>(
                   "most_likely_successor_Sampler"))
     {
@@ -99,7 +88,7 @@ class UniformSuccessorSamplerFeature
     : public SharedTypedFeature<SuccessorSampler<Fret>> {
 public:
     UniformSuccessorSamplerFeature()
-        : UniformSuccessorSamplerFeature::SharedTypedFeature(
+        : UniformSuccessorSamplerFeature::TypedFeature(
               add_mdp_type_to_option<false, Fret>(
                   "uniform_random_successor_sampler"))
     {
@@ -120,7 +109,7 @@ class RandomSuccessorSamplerFeature
     : public SharedTypedFeature<SuccessorSampler<Fret>> {
 public:
     RandomSuccessorSamplerFeature()
-        : RandomSuccessorSamplerFeature::SharedTypedFeature(
+        : RandomSuccessorSamplerFeature::TypedFeature(
               add_mdp_type_to_option<false, Fret>("random_successor_sampler"))
     {
         add_rng_options_to_feature(*this);
@@ -140,7 +129,7 @@ class VBiasedSuccessorSamplerFeature
     : public SharedTypedFeature<SuccessorSampler<Fret>> {
 public:
     VBiasedSuccessorSamplerFeature()
-        : VBiasedSuccessorSamplerFeature::SharedTypedFeature(
+        : VBiasedSuccessorSamplerFeature::TypedFeature(
               add_mdp_type_to_option<false, Fret>("vbiased_successor_sampler"))
     {
         add_rng_options_to_feature(*this);
@@ -160,7 +149,7 @@ class VDiffSuccessorSamplerFeature
     : public SharedTypedFeature<SuccessorSampler<Fret>> {
 public:
     VDiffSuccessorSamplerFeature()
-        : VDiffSuccessorSamplerFeature::SharedTypedFeature(
+        : VDiffSuccessorSamplerFeature::TypedFeature(
               add_mdp_type_to_option<false, Fret>(
                   "value_gap_successor_sampler"))
     {
@@ -183,12 +172,15 @@ public:
 
 namespace probfd::cli::successor_samplers {
 
-void add_successor_sampler_category(RawRegistry& raw_registry)
+void add_successor_sampler_category(Registry& raw_registry)
 {
-    raw_registry.insert_category_plugins<SuccessorSamplerCategoryPlugin>();
+    raw_registry.insert_shared_category_plugins<SuccessorSampler>(
+        []<bool Fret> {
+            return add_mdp_type_to_category<false, Fret>("SuccessorSampler");
+        });
 }
 
-void add_successor_sampler_features(RawRegistry& raw_registry)
+void add_successor_sampler_features(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugins<ArbitrarySuccessorSamplerFeature>();
     raw_registry.insert_feature_plugins<MostLikelySuccessorSamplerFeature>();

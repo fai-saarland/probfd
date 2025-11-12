@@ -1,7 +1,7 @@
 #include "downward/cli/merge_and_shrink/merge_scoring_function_total_order_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -24,7 +24,7 @@ class MergeScoringFunctionTotalOrderFeature
     : public SharedTypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionTotalOrderFeature()
-        : SharedTypedFeature("total_order")
+        : TypedFeature("total_order")
     {
         document_title("Total order");
         document_synopsis(
@@ -88,10 +88,8 @@ public:
 
 namespace downward::cli::merge_and_shrink {
 
-void add_merge_scoring_function_total_order_feature(RawRegistry& raw_registry)
+void add_merge_scoring_function_total_order_feature(Registry& raw_registry)
 {
-    raw_registry.insert_feature_plugin<MergeScoringFunctionTotalOrderFeature>();
-
     raw_registry.insert_enum_plugin<AtomicTSOrder>(
         {{"reverse_level", "the variable order of Fast Downward"},
          {"level", "opposite of reverse_level"},
@@ -102,6 +100,8 @@ void add_merge_scoring_function_total_order_feature(RawRegistry& raw_registry)
           "consider composite transition systems from oldest to most recent"},
          {"new_to_old", "opposite of old_to_new"},
          {"random", "a randomized order"}});
+
+    raw_registry.insert_feature_plugin<MergeScoringFunctionTotalOrderFeature>();
 }
 
 } // namespace downward::cli::merge_and_shrink

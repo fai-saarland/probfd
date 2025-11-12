@@ -7,7 +7,6 @@ create_library(
         downward/cli/plugins/options
         downward/cli/plugins/plugin
         downward/cli/plugins/plugin_info
-        downward/cli/plugins/raw_registry
         downward/cli/plugins/registry
         downward/cli/plugins/registry_types
         downward/cli/plugins/types

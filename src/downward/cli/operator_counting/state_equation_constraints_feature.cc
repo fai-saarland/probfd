@@ -1,7 +1,7 @@
 #include "downward/cli/operator_counting/state_equation_constraints_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/utils/logging_options.h"
 
@@ -24,7 +24,7 @@ class StateEquationConstraintsFeature
     : public SharedTypedFeature<ConstraintGenerator> {
 public:
     StateEquationConstraintsFeature()
-        : SharedTypedFeature("state_equation_constraints")
+        : TypedFeature("state_equation_constraints")
     {
         document_title("State equation constraints");
         document_synopsis(
@@ -86,7 +86,7 @@ public:
 
 namespace downward::cli::operator_counting {
 
-void add_state_equation_constraints_feature(RawRegistry& raw_registry)
+void add_state_equation_constraints_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<StateEquationConstraintsFeature>();
 }

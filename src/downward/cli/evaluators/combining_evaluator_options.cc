@@ -18,7 +18,8 @@ void add_combining_evaluator_options_to_feature(
     Feature& feature,
     const string& description)
 {
-    feature.add_required_list_argument<shared_ptr<Evaluator>>(
+    feature.add_required_list_argument<
+        shared_ptr<TaskDependentFactory<Evaluator>>>(
         "evals",
         "at least one evaluator");
     add_evaluator_options_to_feature(feature, description);

@@ -5,7 +5,7 @@
 #include "downward/cli/pdbs/utils.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -25,7 +25,7 @@ namespace {
 class PatternGeneratorRandomFeature : public SharedTypedFeature<PatternGenerator> {
 public:
     PatternGeneratorRandomFeature()
-        : SharedTypedFeature("random_pattern")
+        : TypedFeature("random_pattern")
     {
         document_title("Random Pattern");
         document_synopsis(
@@ -70,7 +70,7 @@ public:
 
 namespace downward::cli::pdbs {
 
-void add_pattern_generator_random_feature(RawRegistry& raw_registry)
+void add_pattern_generator_random_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<PatternGeneratorRandomFeature>();
 }

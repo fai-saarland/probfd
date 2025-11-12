@@ -1,7 +1,7 @@
 #include "downward/cli/pdbs/pattern_collection_generator_category.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/pdbs/pattern_generator.h"
 
@@ -11,7 +11,7 @@ using namespace downward::cli::plugins;
 
 namespace downward::cli::pdbs {
 
-void add_pattern_collection_generator_category(RawRegistry& raw_registry)
+void add_pattern_collection_generator_category(Registry& raw_registry)
 {
     auto& category =
         raw_registry.insert_shared_category_plugin<PatternCollectionGenerator>(

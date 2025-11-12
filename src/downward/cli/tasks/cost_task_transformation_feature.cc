@@ -1,7 +1,7 @@
 #include "downward/cli/tasks/cost_task_transformation_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/operator_cost_options.h"
 
@@ -50,7 +50,7 @@ class CostAdaptedTaskTransformationFeature
     : public SharedTypedFeature<TaskTransformation> {
 public:
     CostAdaptedTaskTransformationFeature()
-        : SharedTypedFeature("adapt_costs")
+        : TypedFeature("adapt_costs")
     {
         document_title("Cost-adapted task");
         document_synopsis("A cost-adapting transformation of the root task.");
@@ -69,7 +69,7 @@ public:
 
 namespace downward::cli::tasks {
 
-void add_cost_task_transformation_features(RawRegistry& raw_registry)
+void add_cost_task_transformation_features(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<CostAdaptedTaskTransformationFeature>();
 }

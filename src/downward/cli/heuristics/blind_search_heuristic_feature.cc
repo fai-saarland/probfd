@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/blind_search_heuristic_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/heuristics/heuristic_options.h"
 
@@ -58,7 +58,7 @@ class BlindSearchHeuristicFeature
     : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     BlindSearchHeuristicFeature()
-        : SharedTypedFeature("blind")
+        : TypedFeature("blind")
     {
         document_title("Blind heuristic");
         document_synopsis(
@@ -88,7 +88,7 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_blind_heuristic_feature(RawRegistry& raw_registry)
+void add_blind_heuristic_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<BlindSearchHeuristicFeature>();
 }

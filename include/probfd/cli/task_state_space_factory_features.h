@@ -2,13 +2,13 @@
 #define PROBFD_CLI_TASK_STATE_SPACE_FACTORY_FEATURES_H
 
 namespace downward::cli::plugins {
-class RawRegistry;
+class Registry;
 }
 
 namespace probfd::cli {
 
 void add_task_state_space_factory_features(
-    downward::cli::plugins::RawRegistry& raw_registry);
+    downward::cli::plugins::Registry& raw_registry);
 
 }
 

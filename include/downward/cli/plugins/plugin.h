@@ -93,13 +93,18 @@ public:
     const std::vector<PropertyInfo>& get_properties() const;
     const std::vector<LanguageSupportInfo>& get_language_support() const;
     const std::vector<NoteInfo>& get_notes() const;
+
+private:
+    void add_argument(ArgumentInfo info, const std::string& help);
 };
 
 template <typename ReturnType>
 class TypedFeature : public Feature {
 public:
     explicit TypedFeature(std::string key)
-        : Feature(TypeRegistry::instance()->get_type<ReturnType>(), std::move(key))
+        : Feature(
+              TypeRegistry::instance()->get_type<ReturnType>(),
+              std::move(key))
     {
     }
 
@@ -115,10 +120,7 @@ public:
 };
 
 template <typename ReturnType>
-class SharedTypedFeature : public TypedFeature<std::shared_ptr<ReturnType>> {
-public:
-    using TypedFeature<std::shared_ptr<ReturnType>>::TypedFeature;
-};
+using SharedTypedFeature = TypedFeature<std::shared_ptr<ReturnType>>;
 
 /*
   Expects constructor arguments of T. Consecutive arguments may be
@@ -162,7 +164,6 @@ public:
 */
 class CategoryPlugin {
     std::type_index pointer_type;
-    std::string class_name;
 
     /*
       The category name should be "user-friendly". It is for example used
@@ -181,7 +182,6 @@ class CategoryPlugin {
 protected:
     CategoryPlugin(
         std::type_index pointer_type,
-        const std::string& class_name,
         const std::string& category_name);
 
 public:
@@ -196,20 +196,17 @@ public:
 };
 
 template <typename T>
+    requires std::is_class_v<T>
 class TypedCategoryPlugin : public CategoryPlugin {
 public:
     explicit TypedCategoryPlugin(const std::string& category_name)
-        : CategoryPlugin(typeid(T), typeid(T).name(), category_name)
+        : CategoryPlugin(typeid(T), category_name)
     {
     }
 };
 
 template <typename T>
-class SharedTypedCategoryPlugin
-    : public TypedCategoryPlugin<std::shared_ptr<T>> {
-public:
-    using TypedCategoryPlugin<std::shared_ptr<T>>::TypedCategoryPlugin;
-};
+using SharedTypedCategoryPlugin = TypedCategoryPlugin<std::shared_ptr<T>>;
 
 class SubcategoryPlugin {
     std::string subcategory_name;
@@ -245,6 +242,7 @@ public:
 };
 
 template <typename T>
+    requires std::is_enum_v<T>
 class TypedEnumPlugin : public EnumPlugin {
 public:
     TypedEnumPlugin(
@@ -254,16 +252,30 @@ public:
     }
 };
 
+inline void Feature::add_argument(ArgumentInfo info, const std::string& help)
+{
+    if (const auto cmp = &ArgumentInfo::key;
+        std::ranges::contains(arguments, info.key, cmp)) {
+        throw downward::utils::CriticalError(
+            "Duplicate argument keyword argument '{}' of feature {}.",
+            info.key,
+            key);
+    }
+
+    arguments.emplace_back(std::move(info));
+    argument_docs.emplace_back(help);
+}
+
 template <typename T>
 void Feature::add_optional_argument(
     const std::string& key,
     const std::string& help)
 {
-    arguments.emplace_back(
+    add_argument(
         ArgumentInfo::make_optional(
             key,
-            TypeRegistry::instance()->get_type<T>()));
-    argument_docs.emplace_back(help);
+            TypeRegistry::instance()->get_type<T>()),
+        help);
 }
 
 template <typename T>
@@ -272,12 +284,12 @@ void Feature::add_optional_argument_with_default(
     const std::string& default_value,
     const std::string& help)
 {
-    arguments.emplace_back(
+    add_argument(
         ArgumentInfo::make_optional(
             key,
             TypeRegistry::instance()->get_type<T>(),
-            default_value));
-    argument_docs.emplace_back(help);
+            default_value),
+        help);
 }
 
 template <typename T>
@@ -285,11 +297,11 @@ void Feature::add_required_argument(
     const std::string& key,
     const std::string& help)
 {
-    arguments.emplace_back(
+    add_argument(
         ArgumentInfo::make_required(
             key,
-            TypeRegistry::instance()->get_type<T>()));
-    argument_docs.emplace_back(help);
+            TypeRegistry::instance()->get_type<T>()),
+        help);
 }
 
 template <typename T>

@@ -1,7 +1,7 @@
 #include "probfd/cli/solvers/aostar.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/cli/naming_conventions.h"
 
@@ -59,7 +59,7 @@ class AOStarSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 
 public:
     AOStarSolverFeature()
-        : SharedTypedFeature(add_wrapper_algo_suffix<Bisimulation, false>("aostar"))
+        : TypedFeature(add_wrapper_algo_suffix<Bisimulation, false>("aostar"))
     {
         this->document_title("AO* algorithm");
 
@@ -87,7 +87,7 @@ protected:
 
 namespace probfd::cli::solvers {
 
-void add_aostar_solver_features(RawRegistry& raw_registry)
+void add_aostar_solver_features(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugins<AOStarSolverFeature>();
 }

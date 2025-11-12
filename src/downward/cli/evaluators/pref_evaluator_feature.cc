@@ -1,7 +1,7 @@
 #include "downward/cli/evaluators/pref_evaluator_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/evaluators/evaluator_options.h"
 
@@ -44,7 +44,7 @@ class PrefEvaluatorFeature
     : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     PrefEvaluatorFeature()
-        : SharedTypedFeature("pref")
+        : TypedFeature("pref")
     {
         document_subcategory("evaluators_basic");
         document_title("Preference evaluator");
@@ -65,7 +65,7 @@ public:
 
 namespace downward::cli::evaluators {
 
-void add_pref_evaluator_feature(RawRegistry& raw_registry)
+void add_pref_evaluator_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<PrefEvaluatorFeature>();
 }

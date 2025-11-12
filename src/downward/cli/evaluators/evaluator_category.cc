@@ -1,7 +1,7 @@
 #include "downward/cli/evaluators/evaluator_category.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/evaluator.h"
 #include "downward/task_dependent_factory.h"
@@ -10,7 +10,7 @@ using namespace downward::cli;
 
 namespace downward::cli::evaluators {
 
-void add_evaluator_category(plugins::RawRegistry& raw_registry)
+void add_evaluator_category(plugins::Registry& raw_registry)
 {
     auto& category =
         raw_registry.insert_shared_category_plugin<TaskDependentFactory<Evaluator>>(

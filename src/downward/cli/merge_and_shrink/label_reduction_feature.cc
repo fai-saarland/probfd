@@ -1,7 +1,7 @@
 #include "downward/cli/merge_and_shrink/label_reduction_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -25,7 +25,7 @@ namespace {
 class LabelReductionFeature : public SharedTypedFeature<LabelReduction> {
 public:
     LabelReductionFeature()
-        : SharedTypedFeature("exact")
+        : TypedFeature("exact")
     {
         document_title("Exact generalized label reduction");
         document_synopsis(
@@ -94,18 +94,13 @@ public:
 
 namespace downward::cli::merge_and_shrink {
 
-void add_label_reduction_category(RawRegistry& raw_registry)
+void add_label_reduction_category(Registry& raw_registry)
 {
     auto& category = raw_registry.insert_shared_category_plugin<LabelReduction>(
         "LabelReduction");
     category.document_synopsis(
         "This page describes the current single 'option' for "
         "label reduction.");
-}
-
-void add_label_reduction_features(RawRegistry& raw_registry)
-{
-    raw_registry.insert_feature_plugin<LabelReductionFeature>();
 
     raw_registry.insert_enum_plugin<LabelReductionMethod>(
         {{"two_transition_systems",
@@ -124,6 +119,11 @@ void add_label_reduction_features(RawRegistry& raw_registry)
           "input if atomic and in the order of their creation if composite."},
          {"reverse", "inverse of regular"},
          {"random", "random order"}});
+}
+
+void add_label_reduction_features(Registry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<LabelReductionFeature>();
 }
 
 } // namespace downward::cli::merge_and_shrink

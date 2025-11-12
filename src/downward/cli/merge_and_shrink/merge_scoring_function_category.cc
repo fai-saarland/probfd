@@ -1,7 +1,7 @@
 #include "downward/cli/merge_and_shrink/merge_scoring_function_category.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/merge_and_shrink/merge_scoring_function.h"
 
@@ -11,7 +11,7 @@ using namespace downward::cli::plugins;
 
 namespace downward::cli::merge_and_shrink {
 
-void add_merge_scoring_function_category(RawRegistry& raw_registry)
+void add_merge_scoring_function_category(Registry& raw_registry)
 {
     auto& category = raw_registry.insert_shared_category_plugin<MergeScoringFunction>(
         "MergeScoringFunction");

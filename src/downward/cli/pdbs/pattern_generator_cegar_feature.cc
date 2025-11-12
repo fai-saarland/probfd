@@ -5,7 +5,7 @@
 #include "downward/cli/pdbs/utils.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -27,7 +27,7 @@ namespace {
 class PatternGeneratorCEGARFeature : public SharedTypedFeature<PatternGenerator> {
 public:
     PatternGeneratorCEGARFeature()
-        : SharedTypedFeature("cegar_pattern")
+        : TypedFeature("cegar_pattern")
     {
         document_title("CEGAR");
         document_synopsis(
@@ -70,7 +70,7 @@ public:
 
 namespace downward::cli::pdbs {
 
-void add_pattern_generator_cegar_feature(RawRegistry& raw_registry)
+void add_pattern_generator_cegar_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<PatternGeneratorCEGARFeature>();
 }

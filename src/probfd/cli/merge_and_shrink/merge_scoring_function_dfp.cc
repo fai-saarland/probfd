@@ -1,7 +1,7 @@
 #include "probfd/cli/merge_and_shrink/merge_scoring_function_dfp.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/merge_and_shrink/merge_scoring_function_dfp.h"
 
@@ -20,7 +20,7 @@ class MergeScoringFunctionDFPFeature
     : public SharedTypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionDFPFeature()
-        : SharedTypedFeature("pdfp")
+        : TypedFeature("pdfp")
     {
         document_title("DFP scoring");
         document_synopsis(
@@ -70,7 +70,7 @@ public:
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_merge_scoring_function_dfp_feature(RawRegistry& raw_registry)
+void add_merge_scoring_function_dfp_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<MergeScoringFunctionDFPFeature>();
 }

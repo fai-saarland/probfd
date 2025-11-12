@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/pdb_heuristic_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/heuristics/heuristic_options.h"
 
@@ -61,7 +61,7 @@ class PDBHeuristicFeature
     : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     PDBHeuristicFeature()
-        : SharedTypedFeature("pdb")
+        : TypedFeature("pdb")
     {
         document_subcategory("heuristics_pdb");
         document_title("Pattern database heuristic");
@@ -95,7 +95,7 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_pdb_heuristic_feature(RawRegistry& raw_registry)
+void add_pdb_heuristic_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<PDBHeuristicFeature>();
 }

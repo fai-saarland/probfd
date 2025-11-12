@@ -1,7 +1,7 @@
 #include "downward/cli/merge_and_shrink/shrink_bisimulation_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/merge_and_shrink/shrink_bisimulation.h"
 
@@ -19,7 +19,7 @@ namespace {
 class ShrinkBisimulationFeature : public SharedTypedFeature<ShrinkStrategy> {
 public:
     ShrinkBisimulationFeature()
-        : SharedTypedFeature("shrink_bisimulation")
+        : TypedFeature("shrink_bisimulation")
     {
         document_title("Bismulation based shrink strategy");
         document_synopsis(
@@ -87,15 +87,15 @@ public:
 
 namespace downward::cli::merge_and_shrink {
 
-void add_shrink_bisimulation_feature(RawRegistry& raw_registry)
+void add_shrink_bisimulation_feature(Registry& raw_registry)
 {
-    raw_registry.insert_feature_plugin<ShrinkBisimulationFeature>();
-
     raw_registry.insert_enum_plugin<AtLimit>(
         {{"return", "stop without refining the equivalence class further"},
          {"use_up",
           "continue refining the equivalence class until "
           "the size limit is hit"}});
+
+    raw_registry.insert_feature_plugin<ShrinkBisimulationFeature>();
 }
 
 } // namespace downward::cli::merge_and_shrink

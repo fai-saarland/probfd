@@ -1,5 +1,5 @@
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/open_lists/open_list_options.h"
 
@@ -26,7 +26,7 @@ class BestFirstOpenListFeature
 public:
     BestFirstOpenListFeature()
         requires(std::same_as<T, downward::StateOpenListEntry>)
-        : BestFirstOpenListFeature::SharedTypedFeature("state_single")
+        : BestFirstOpenListFeature::TypedFeature("state_single")
     {
         this->document_title("Best-first state open list");
         this->document_synopsis(
@@ -52,7 +52,7 @@ public:
 
     BestFirstOpenListFeature()
         requires(std::same_as<T, downward::EdgeOpenListEntry>)
-        : BestFirstOpenListFeature::SharedTypedFeature("edge_single")
+        : BestFirstOpenListFeature::TypedFeature("edge_single")
     {
         this->document_title("Best-first edge open list");
         this->document_synopsis(
@@ -89,7 +89,7 @@ public:
 
 namespace downward::cli::open_lists {
 
-void add_best_first_open_list_features(RawRegistry& raw_registry)
+void add_best_first_open_list_features(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<
         BestFirstOpenListFeature<downward::StateOpenListEntry>>();

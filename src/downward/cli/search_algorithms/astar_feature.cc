@@ -2,7 +2,7 @@
 #include "downward/cli/search_algorithms/eager_search_options.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/search_algorithms/eager_search.h"
 #include "downward/search_algorithms/search_common.h"
@@ -83,7 +83,7 @@ class AStarSearchFeature
     : public SharedTypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     AStarSearchFeature()
-        : SharedTypedFeature("astar")
+        : TypedFeature("astar")
     {
         document_title("A* search (eager)");
         document_synopsis(
@@ -134,7 +134,7 @@ public:
 
 namespace downward::cli::search_algorithms {
 
-void add_astar_feature(RawRegistry& raw_registry)
+void add_astar_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<AStarSearchFeature>();
 }

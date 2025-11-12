@@ -1,7 +1,7 @@
 #include "downward/cli/open_lists/open_list_factory_category.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/open_list.h"
 
@@ -11,7 +11,7 @@ using namespace std;
 
 namespace downward::cli::open_lists {
 
-void add_open_list_factory_category(plugins::RawRegistry& raw_registry)
+void add_open_list_factory_category(plugins::Registry& raw_registry)
 {
     raw_registry.insert_shared_category_plugin<
         TaskDependentFactory<OpenList<StateOpenListEntry>>>("StateOpenList");

@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/merge_and_shrink_heuristic_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/merge_and_shrink/merge_and_shrink_algorithm_options.h"
 
@@ -104,7 +104,7 @@ class MergeAndShrinkHeuristicFeature
     : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     MergeAndShrinkHeuristicFeature()
-        : SharedTypedFeature("merge_and_shrink")
+        : TypedFeature("merge_and_shrink")
     {
         document_title("Merge-and-shrink heuristic");
         document_synopsis(
@@ -258,7 +258,7 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_merge_and_shrink_heuristic_feature(RawRegistry& raw_registry)
+void add_merge_and_shrink_heuristic_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<MergeAndShrinkHeuristicFeature>();
 }

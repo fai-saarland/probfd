@@ -1,7 +1,7 @@
 #include "probfd/cli/solvers/i2dual.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/lp/lp_solver_options.h"
 
@@ -65,7 +65,7 @@ public:
 class I2DualSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     I2DualSolverFeature()
-        : SharedTypedFeature("i2dual")
+        : TypedFeature("i2dual")
     {
         document_title("i^2-dual");
 
@@ -101,7 +101,7 @@ protected:
 
 namespace probfd::cli::solvers {
 
-void add_i2dual_feature(RawRegistry& raw_registry)
+void add_i2dual_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<I2DualSolverFeature>();
 }

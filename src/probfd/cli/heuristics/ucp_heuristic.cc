@@ -1,7 +1,7 @@
 #include "probfd/cli/heuristics/ucp_heuristic.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/cli/heuristics/task_dependent_heuristic_options.h"
 
@@ -23,7 +23,7 @@ class UCPHeuristicFactoryFeature
     : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     UCPHeuristicFactoryFeature()
-        : SharedTypedFeature("ucp_heuristic")
+        : TypedFeature("ucp_heuristic")
     {
         document_title("Uniform Cost Partitioning Heuristic");
         document_synopsis(
@@ -57,7 +57,7 @@ public:
 
 namespace probfd::cli::heuristics {
 
-void add_ucp_heuristic_feature(RawRegistry& raw_registry)
+void add_ucp_heuristic_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<UCPHeuristicFactoryFeature>();
 }

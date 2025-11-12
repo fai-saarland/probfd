@@ -1,7 +1,7 @@
 #include "probfd/cli/cartesian_abstractions/subtask_generators.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -22,7 +22,7 @@ namespace {
 class TaskDuplicatorFeature : public SharedTypedFeature<SubtaskGenerator> {
 public:
     TaskDuplicatorFeature()
-        : SharedTypedFeature("pcegar_original")
+        : TypedFeature("pcegar_original")
     {
         add_optional_argument_with_default<int>(
             "copies",
@@ -41,7 +41,7 @@ public:
 class GoalDecompositionFeature : public SharedTypedFeature<SubtaskGenerator> {
 public:
     GoalDecompositionFeature()
-        : SharedTypedFeature("pcegar_goals")
+        : TypedFeature("pcegar_goals")
     {
         add_optional_argument_with_default<FactOrder>(
             "order",
@@ -63,7 +63,7 @@ class LandmarkDecompositionFeature
     : public SharedTypedFeature<SubtaskGenerator> {
 public:
     LandmarkDecompositionFeature()
-        : SharedTypedFeature("pcegar_landmarks")
+        : TypedFeature("pcegar_landmarks")
     {
         add_optional_argument_with_default<
             std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
@@ -96,7 +96,7 @@ public:
 
 namespace probfd::cli::cartesian_abstractions {
 
-void add_subtask_generator_category(RawRegistry& raw_registry)
+void add_subtask_generator_category(Registry& raw_registry)
 {
     auto& category = raw_registry.insert_shared_category_plugin<SubtaskGenerator>(
         "PSubtaskGenerator");
@@ -104,17 +104,17 @@ void add_subtask_generator_category(RawRegistry& raw_registry)
         "Subtask generator (used by the CEGAR heuristic).");
 }
 
-void add_subtask_generator_features(RawRegistry& raw_registry)
+void add_subtask_generator_features(Registry& raw_registry)
 {
-    raw_registry.insert_feature_plugin<TaskDuplicatorFeature>();
-    raw_registry.insert_feature_plugin<GoalDecompositionFeature>();
-    raw_registry.insert_feature_plugin<LandmarkDecompositionFeature>();
-
     raw_registry.insert_enum_plugin<FactOrder>(
         {{"original", "according to their (internal) variable index"},
          {"random", "according to a random permutation"},
          {"hadd_up", "according to their h^add value, lowest first"},
          {"hadd_down", "according to their h^add value, highest first "}});
+
+    raw_registry.insert_feature_plugin<TaskDuplicatorFeature>();
+    raw_registry.insert_feature_plugin<GoalDecompositionFeature>();
+    raw_registry.insert_feature_plugin<LandmarkDecompositionFeature>();
 }
 
 } // namespace probfd::cli::cartesian_abstractions

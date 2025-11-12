@@ -1,7 +1,7 @@
 #include "probfd/cli/cartesian_abstractions/adaptive_flaw_generator.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/cartesian_abstractions/adaptive_flaw_generator.h"
 
@@ -17,7 +17,7 @@ class AdaptiveFlawGeneratorFactoryFeature
     : public SharedTypedFeature<FlawGeneratorFactory> {
 public:
     AdaptiveFlawGeneratorFactoryFeature()
-        : SharedTypedFeature("flaws_adaptive")
+        : TypedFeature("flaws_adaptive")
     {
         add_optional_list_argument_with_default<
             std::shared_ptr<FlawGeneratorFactory>>(
@@ -39,7 +39,7 @@ protected:
 
 namespace probfd::cli::cartesian_abstractions {
 
-void add_adaptive_flaw_generator_feature(RawRegistry& raw_registry)
+void add_adaptive_flaw_generator_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<AdaptiveFlawGeneratorFactoryFeature>();
 }

@@ -1,7 +1,7 @@
 #include "probfd/cli/pdbs/cegar/flaw_finding_strategy_category.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/pdbs/cegar/flaw_finding_strategy.h"
 
@@ -11,7 +11,7 @@ using namespace downward::cli::plugins;
 
 namespace probfd::cli::pdbs::cegar {
 
-void add_flaw_finding_strategy_category(RawRegistry& raw_registry)
+void add_flaw_finding_strategy_category(Registry& raw_registry)
 {
     auto& category = raw_registry.insert_shared_category_plugin<FlawFindingStrategy>(
         "FlawFindingStrategy");

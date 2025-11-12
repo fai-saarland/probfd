@@ -1,7 +1,7 @@
 #include "probfd/cli/heuristics/constant_heuristic.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/heuristics/constant_heuristic.h"
 
@@ -17,7 +17,7 @@ namespace {
 class BlindHeuristicFactoryFeature : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     BlindHeuristicFactoryFeature()
-        : SharedTypedFeature("blind_heuristic")
+        : TypedFeature("blind_heuristic")
     {
         document_title("Blind Heuristic");
         document_synopsis(
@@ -35,7 +35,7 @@ public:
 
 namespace probfd::cli::heuristics {
 
-void add_blind_heuristic_factory_feature(RawRegistry& raw_registry)
+void add_blind_heuristic_factory_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<BlindHeuristicFactoryFeature>();
 }

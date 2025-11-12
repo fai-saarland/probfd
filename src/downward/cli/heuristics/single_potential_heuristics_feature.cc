@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/single_potential_heuristics_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/potentials/potential_options.h"
 
@@ -101,7 +101,7 @@ class InitialStatePotentialHeuristicFeature
     : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     InitialStatePotentialHeuristicFeature()
-        : SharedTypedFeature("initial_state_potential")
+        : TypedFeature("initial_state_potential")
     {
         document_subcategory("heuristics_potentials");
         document_title("Potential heuristic optimized for initial state");
@@ -130,7 +130,7 @@ class AllStatesPotentialHeuristicFeature
     : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     AllStatesPotentialHeuristicFeature()
-        : SharedTypedFeature("all_states_potential")
+        : TypedFeature("all_states_potential")
     {
         document_subcategory("heuristics_potentials");
         document_title("Potential heuristic optimized for all states");
@@ -158,7 +158,7 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_single_potential_heuristics_features(RawRegistry& raw_registry)
+void add_single_potential_heuristics_features(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<InitialStatePotentialHeuristicFeature>();
     raw_registry.insert_feature_plugin<AllStatesPotentialHeuristicFeature>();

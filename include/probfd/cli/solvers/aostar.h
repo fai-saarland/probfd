@@ -2,13 +2,13 @@
 #define PROBFD_CLI_SOLVERS_AOSTAR_H
 
 namespace downward::cli::plugins {
-class RawRegistry;
+class Registry;
 }
 
 namespace probfd::cli::solvers {
 
 void add_aostar_solver_features(
-    downward::cli::plugins::RawRegistry& raw_registry);
+    downward::cli::plugins::Registry& raw_registry);
 
 }
 

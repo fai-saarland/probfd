@@ -149,26 +149,31 @@ bool TieBreakingOpenList<Entry>::is_reliable_dead_end(
 
 template <typename T>
 class TieBreakingOpenListFactory : public TaskDependentFactory<OpenList<T>> {
-    std::vector<std::shared_ptr<Evaluator>> evals;
+    std::vector<std::shared_ptr<TaskDependentFactory<Evaluator>>> factories;
     bool unsafe_pruning;
     bool pref_only;
 
 public:
     TieBreakingOpenListFactory(
-        const std::vector<std::shared_ptr<Evaluator>>& evals,
+        const std::vector<std::shared_ptr<TaskDependentFactory<Evaluator>>>&
+            factories,
         bool unsafe_pruning,
         bool pref_only)
-        : evals(evals)
+        : factories(std::move(factories))
         , unsafe_pruning(unsafe_pruning)
         , pref_only(pref_only)
     {
     }
 
     std::unique_ptr<OpenList<T>>
-    create_object(const SharedAbstractTask&) override
+    create_object(const SharedAbstractTask& task) override
     {
+        auto f = [&task](const auto& f_ptr) -> std::shared_ptr<Evaluator> {
+            return f_ptr->create_object(task);
+        };
+
         return std::make_unique<TieBreakingOpenList<T>>(
-            evals,
+            factories | std::views::transform(f) | std::ranges::to<std::vector>(),
             unsafe_pruning,
             pref_only);
     }
