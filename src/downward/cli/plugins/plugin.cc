@@ -11,11 +11,6 @@ Feature::Feature(const Type& type, string key)
 {
 }
 
-void Feature::document_subcategory(const string& subcategory)
-{
-    this->subcategory = subcategory;
-}
-
 void Feature::document_title(const string& title)
 {
     this->title = title;
@@ -64,11 +59,6 @@ string Feature::get_title() const
 string Feature::get_synopsis() const
 {
     return synopsis;
-}
-
-string Feature::get_subcategory() const
-{
-    return subcategory;
 }
 
 const vector<ArgumentInfo>& Feature::get_arguments() const
@@ -139,6 +129,21 @@ void SubcategoryPlugin::document_title(const string& title)
 void SubcategoryPlugin::document_synopsis(const string& synopsis)
 {
     this->synopsis = synopsis;
+}
+
+void SubcategoryPlugin::add_category(const CategoryPlugin& category)
+{
+    member_types.push_back(&category);
+}
+
+void SubcategoryPlugin::add_enum(const EnumPlugin& enum_plugin)
+{
+    enum_types.push_back(&enum_plugin);
+}
+
+void SubcategoryPlugin::add_feature(const Feature& feature)
+{
+    features.push_back(&feature);
 }
 
 string SubcategoryPlugin::get_subcategory_name() const

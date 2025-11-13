@@ -46,7 +46,6 @@ public:
     PrefEvaluatorFeature()
         : TypedFeature("pref")
     {
-        document_subcategory("evaluators_basic");
         document_title("Preference evaluator");
         document_synopsis("Returns 0 if preferred is true and 1 otherwise.");
 
@@ -68,7 +67,10 @@ namespace downward::cli::evaluators {
 void add_pref_evaluator_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<PrefEvaluatorFeature>();
+    const Feature& f = n.insert_feature_plugin<PrefEvaluatorFeature>();
+    SubcategoryPlugin& subcategory =
+        registry.get_subcategory_plugin("evaluators_basic");
+    subcategory.add_feature(f);
 }
 
 } // namespace downward::cli::evaluators

@@ -104,7 +104,6 @@ public:
     DiversePotentialMaxHeuristicFeature()
         : TypedFeature("diverse_potentials")
     {
-        document_subcategory("heuristics_potentials");
         document_title("Diverse potential heuristics");
         document_synopsis(get_admissible_potentials_reference());
 
@@ -144,7 +143,11 @@ namespace downward::cli::heuristics {
 void add_diverse_potential_heuristics_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<DiversePotentialMaxHeuristicFeature>();
+    const Feature& f =
+        n.insert_feature_plugin<DiversePotentialMaxHeuristicFeature>();
+    SubcategoryPlugin& subcategory =
+        registry.get_subcategory_plugin("heuristics_potentials");
+    subcategory.add_feature(f);
 }
 
 } // namespace downward::cli::heuristics

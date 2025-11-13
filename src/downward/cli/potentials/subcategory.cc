@@ -21,8 +21,7 @@ namespace downward::cli::potentials {
 
 void add_potential_heuristics_subcategory(plugins::Registry& registry)
 {
-    plugins::Namespace& n = registry.get_global_name_space();
-    n.insert_subcategory_plugin<PotentialHeuristicsGroupPlugin>();
+    registry.insert_subcategory_plugin<PotentialHeuristicsGroupPlugin>();
 }
 
 }

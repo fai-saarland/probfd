@@ -293,10 +293,9 @@ protected:
 
     void print_category_members(
         const CategoryPlugin&,
-        const std::map<std::string, std::vector<const Feature*>>& subcategories)
-        const override
+        const std::vector<const Feature*> features) const override
     {
-        if (subcategories.empty()) {
+        if (features.empty()) {
             os << "This type has no members.\n" << std::endl;
             return;
         }
@@ -305,20 +304,42 @@ protected:
 
         std::size_t max_width = 0;
 
-        for (const auto& features : subcategories | views::values) {
-            for (const auto& feature : features) {
-                if (const auto& name = feature->get_key();
-                    name.size() > max_width)
-                    max_width = name.size();
-            }
+        for (const auto& feature : features) {
+            if (const auto& name = feature->get_key(); name.size() > max_width)
+                max_width = name.size();
         }
 
-        for (const auto& features : subcategories | views::values) {
-            for (const auto& feature : features) {
-                const auto& name = feature->get_key();
-                const auto& synopsis = feature->get_title();
-                std::print(os, "  {:{}}  {}\n", name, max_width, synopsis);
-            }
+        for (const auto& feature : features) {
+            const auto& name = feature->get_key();
+            const auto& synopsis = feature->get_title();
+            std::print(os, "  {:{}}  {}\n", name, max_width, synopsis);
+        }
+
+        std::println(os);
+    }
+
+    void print_subcategory_members(
+        const SubcategoryPlugin&,
+        const std::vector<const Feature*> features) const override
+    {
+        if (features.empty()) {
+            os << "This topic has no members.\n" << std::endl;
+            return;
+        }
+
+        os << "Members:\n";
+
+        std::size_t max_width = 0;
+
+        for (const auto& feature : features) {
+            if (const auto& name = feature->get_key(); name.size() > max_width)
+                max_width = name.size();
+        }
+
+        for (const auto& feature : features) {
+            const auto& name = feature->get_key();
+            const auto& synopsis = feature->get_title();
+            std::print(os, "  {:{}}  {}\n", name, max_width, synopsis);
         }
 
         std::println(os);
@@ -341,26 +362,45 @@ static int list_features(argparse::ArgumentParser& parser)
         doc_printer = std::make_unique<FeaturePrinter>(cout, registry);
     }
 
-    auto ids = parser.get<std::vector<std::string>>("identifiers");
+    int exitcode = 0;
 
-    for (const string& name : ids) {
-        try {
-            doc_printer->print_category(name, parser.get<bool>("full"));
-        } catch (const MissingCategoryError&) {
+    if (parser.present("--types")) {
+        const auto types = parser.get<std::vector<std::string>>("--types");
+        for (const string& name : types) {
             try {
-                doc_printer->print_feature(name);
-            } catch (const MissingFeatureError&) {
-                std::println(
-                    std::cerr,
-                    "Neither an expression type, nor a pre-definition "
-                    "named '{}' exists.",
-                    name);
-                return 1;
+                doc_printer->print_category(name);
+            } catch (const MissingCategoryError&) {
+                std::println(std::cerr, "Type '{}' does not exist.", name);
+                exitcode = 1;
             }
         }
     }
 
-    return 0;
+    if (parser.present("--features")) {
+        const auto features = parser.get<std::vector<std::string>>("--features");
+        for (const string& name : features) {
+            try {
+                doc_printer->print_feature(name);
+            } catch (const MissingFeatureError&) {
+                std::println(std::cerr, "Feature '{}' does not exist.", name);
+                exitcode = 1;
+            }
+        }
+    }
+
+    if (parser.present("--topics")) {
+        const auto topics = parser.get<std::vector<std::string>>("--topics");
+        for (const string& name : topics) {
+            try {
+                doc_printer->print_subcategory(name);
+            } catch (const MissingSubCategoryError&) {
+                std::println(std::cerr, "Topic '{}' does not exist.", name);
+                exitcode = 1;
+            }
+        }
+    }
+
+    return exitcode;
 }
 
 void add_list_features_subcommand(argparse::ArgumentParser& arg_parser)
@@ -382,17 +422,21 @@ void add_list_features_subcommand(argparse::ArgumentParser& arg_parser)
     feature_list_parser.add_argument("--txt2tags")
         .help("Emit output in txt2tags format.")
         .flag();
-    feature_list_parser.add_argument("--full", "-f")
+    feature_list_parser.add_argument("--features")
         .help(
-            "If specified, full detailed descriptions of all members of "
-            "all specified types will be listed explicitly as well.")
-        .flag();
-    feature_list_parser.add_argument("identifiers")
+            "One or more identifiers of pre-defined variables that should be "
+            "listed.")
+        .nargs(argparse::nargs_pattern::at_least_one);
+    feature_list_parser.add_argument("--types")
         .help(
-            "One or more identifiers of pre-defined types or variables that "
-            "should be listed.")
-        .remaining()
-        .default_value(std::vector<std::string>({"TaskSolverFactory"}));
+            "One or more identifiers of pre-defined types that should be "
+            "listed.")
+        .nargs(argparse::nargs_pattern::at_least_one);
+    feature_list_parser.add_argument("--topics")
+        .help(
+            "One or more identifiers of documentation groups that should be "
+            "listed.")
+        .nargs(argparse::nargs_pattern::at_least_one);
 }
 
 } // namespace probfd

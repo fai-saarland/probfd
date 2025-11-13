@@ -63,7 +63,6 @@ public:
     ZeroOnePDBsHeuristicFeature()
         : TypedFeature("zopdbs")
     {
-        document_subcategory("heuristics_pdb");
         document_title("Zero-One PDB");
         document_synopsis(
             "The zero/one pattern database heuristic is simply the sum of the "
@@ -114,7 +113,10 @@ namespace downward::cli::heuristics {
 void add_zero_one_pdbs_heuristic_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<ZeroOnePDBsHeuristicFeature>();
+    const Feature& f = n.insert_feature_plugin<ZeroOnePDBsHeuristicFeature>();
+    SubcategoryPlugin& subcategory =
+        registry.get_subcategory_plugin("heuristics_pdb");
+    subcategory.add_feature(f);
 }
 
 } // namespace downward::cli::heuristics

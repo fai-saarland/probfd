@@ -20,8 +20,7 @@ namespace downward::cli::evaluators {
 
 void add_evaluator_subcategory(Registry& registry)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_subcategory_plugin<EvaluatorGroupPlugin>();
+    registry.insert_subcategory_plugin<EvaluatorGroupPlugin>();
 }
 
 } // namespace

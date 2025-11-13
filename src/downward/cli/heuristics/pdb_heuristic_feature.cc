@@ -63,7 +63,6 @@ public:
     PDBHeuristicFeature()
         : TypedFeature("pdb")
     {
-        document_subcategory("heuristics_pdb");
         document_title("Pattern database heuristic");
         document_synopsis("TODO");
 
@@ -98,7 +97,10 @@ namespace downward::cli::heuristics {
 void add_pdb_heuristic_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<PDBHeuristicFeature>();
+    const Feature& f = n.insert_feature_plugin<PDBHeuristicFeature>();
+    SubcategoryPlugin& subcategory =
+        registry.get_subcategory_plugin("heuristics_pdb");
+    subcategory.add_feature(f);
 }
 
 } // namespace downward::cli::heuristics
