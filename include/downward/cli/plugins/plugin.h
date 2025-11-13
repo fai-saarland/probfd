@@ -26,7 +26,6 @@ class Feature {
     std::string key;
     std::string title;
     std::string synopsis;
-    std::string subcategory;
     std::vector<PropertyInfo> properties;
     std::vector<LanguageSupportInfo> language_support;
     std::vector<NoteInfo> notes;
@@ -70,7 +69,6 @@ public:
         const std::string& key,
         const std::string& help = "");
 
-    void document_subcategory(const std::string& subcategory);
     void document_title(const std::string& title);
     void document_synopsis(const std::string& note);
     void
@@ -87,7 +85,6 @@ public:
     std::string get_key() const;
     std::string get_title() const;
     std::string get_synopsis() const;
-    std::string get_subcategory() const;
     const std::vector<ArgumentInfo>& get_arguments() const;
     const std::vector<std::string>& get_argument_docs() const;
     const std::vector<PropertyInfo>& get_properties() const;
@@ -224,11 +221,31 @@ class SubcategoryPlugin {
     std::string title;
     std::string synopsis;
 
+    std::vector<const CategoryPlugin*> member_types;
+    std::vector<const EnumPlugin*> enum_types;
+    std::vector<const Feature*> features;
+
 public:
     explicit SubcategoryPlugin(const std::string& subcategory);
 
     void document_title(const std::string& title);
     void document_synopsis(const std::string& synopsis);
+
+    void add_category(const CategoryPlugin& category);
+    void add_enum(const EnumPlugin& enum_plugin);
+    void add_feature(const Feature& feature);
+
+    auto get_types() { return std::views::all(member_types); }
+
+    auto get_types() const { return std::views::all(member_types); }
+
+    auto get_enums() { return std::views::all(enum_types); }
+
+    auto get_enums() const { return std::views::all(enum_types); }
+
+    auto get_features() { return std::views::all(features); }
+
+    auto get_features() const { return std::views::all(features); }
 
     std::string get_subcategory_name() const;
     std::string get_title() const;

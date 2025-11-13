@@ -129,7 +129,6 @@ public:
     IPDBFeature()
         : TypedFeature("ipdb")
     {
-        document_subcategory("heuristics_pdb");
         document_title("iPDB");
         document_synopsis(
             "This approach is a combination of using the "
@@ -194,7 +193,10 @@ namespace downward::cli::heuristics {
 void add_ipdbs_heuristic_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<IPDBFeature>();
+    const Feature& f = n.insert_feature_plugin<IPDBFeature>();
+    SubcategoryPlugin& subcategory =
+        registry.get_subcategory_plugin("heuristics_pdb");
+    subcategory.add_feature(f);
 }
 
 } // namespace downward::cli::heuristics

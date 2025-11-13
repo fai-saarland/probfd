@@ -65,7 +65,6 @@ public:
     MaxEvaluatorFeature()
         : TypedFeature("max")
     {
-        document_subcategory("evaluators_basic");
         document_title("Max evaluator");
         document_synopsis("Calculates the maximum of the sub-evaluators.");
         add_combining_evaluator_options_to_feature(*this, "max");
@@ -87,7 +86,10 @@ namespace downward::cli::evaluators {
 void add_max_evaluator_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<MaxEvaluatorFeature>();
+    const Feature& f = n.insert_feature_plugin<MaxEvaluatorFeature>();
+    SubcategoryPlugin& subcategory =
+        registry.get_subcategory_plugin("evaluators_basic");
+    subcategory.add_feature(f);
 }
 
 } // namespace downward::cli::evaluators

@@ -122,7 +122,6 @@ public:
     SampleBasedPotentialMaxHeuristicFeature()
         : TypedFeature("sample_based_potentials")
     {
-        document_subcategory("heuristics_potentials");
         document_title("Sample-based potential heuristics");
         document_synopsis(
             "Maximum over multiple potential heuristics optimized for "
@@ -164,7 +163,11 @@ namespace downward::cli::heuristics {
 void add_sample_based_potential_heuristics_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<SampleBasedPotentialMaxHeuristicFeature>();
+    SubcategoryPlugin& subcategory =
+        registry.get_subcategory_plugin("heuristics_potentials");
+    const Feature& f =
+        n.insert_feature_plugin<SampleBasedPotentialMaxHeuristicFeature>();
+    subcategory.add_feature(f);
 }
 
 } // namespace downward::cli::heuristics

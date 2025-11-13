@@ -125,6 +125,31 @@ Namespace& Registry::get_namespace(const std::vector<std::string>& name)
     return *n;
 }
 
+SubcategoryPlugin& Registry::get_subcategory_plugin(const string& subcategory)
+{
+    if (const auto it = subcategories_by_name.find(subcategory);
+        it != subcategories_by_name.end()) {
+        return *it->second;
+    }
+
+    throw MissingSubCategoryError(
+        "attempt to retrieve non-existing group info from registry: " +
+        subcategory);
+}
+
+const SubcategoryPlugin&
+Registry::get_subcategory_plugin(const string& subcategory) const
+{
+    if (const auto it = subcategories_by_name.find(subcategory);
+        it != subcategories_by_name.end()) {
+        return *it->second;
+    }
+
+    throw MissingSubCategoryError(
+        "attempt to retrieve non-existing group info from registry: " +
+        subcategory);
+}
+
 const Namespace&
 Registry::get_namespace(const std::vector<std::string>& name) const
 {
@@ -182,19 +207,6 @@ const Feature& Namespace::get_feature(const string& name) const
 
     throw MissingFeatureError(
         "could not find a feature named '" + name + "' in the registry");
-}
-
-const SubcategoryPlugin&
-Namespace::get_subcategory_plugin(const string& subcategory) const
-{
-    if (const auto it = subcategory_plugins.find(subcategory);
-        it != subcategory_plugins.end()) {
-        return *it;
-    }
-
-    throw MissingSubCategoryError(
-        "attempt to retrieve non-existing group info from registry: " +
-        subcategory);
 }
 
 bool Namespace::has_feature(const string& name) const

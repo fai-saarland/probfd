@@ -72,7 +72,6 @@ public:
     CanonicalPDBsHeuristicFeature()
         : TypedFeature("cpdbs")
     {
-        document_subcategory("heuristics_pdb");
         document_title("Canonical PDB");
         document_synopsis(
             "The canonical pattern database heuristic is calculated as "
@@ -83,7 +82,8 @@ public:
             "S in A is the sum of the heuristic values for all patterns in S "
             "for a given state.");
 
-        add_optional_argument_with_default<shared_ptr<PatternCollectionGenerator>>(
+        add_optional_argument_with_default<
+            shared_ptr<PatternCollectionGenerator>>(
             "patterns",
             "systematic(1)",
             "pattern generation method");
@@ -116,7 +116,10 @@ namespace downward::cli::heuristics {
 void add_canonical_pdbs_heuristic_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<CanonicalPDBsHeuristicFeature>();
+    const Feature& f = n.insert_feature_plugin<CanonicalPDBsHeuristicFeature>();
+    SubcategoryPlugin& subcategory =
+        registry.get_subcategory_plugin("heuristics_pdb");
+    subcategory.add_feature(f);
 }
 
 } // namespace downward::cli::heuristics

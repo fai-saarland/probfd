@@ -1,9 +1,9 @@
-#ifndef PLUGINS_registry_H
-#define PLUGINS_registry_H
+#ifndef PLUGINS_REGISTRY_H
+#define PLUGINS_REGISTRY_H
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry_types.h"
 
+#include <deque>
 #include <map>
 #include <set>
 #include <vector>
@@ -108,6 +108,9 @@ class Namespace;
 class Registry {
     std::unique_ptr<Namespace> global_namespace;
 
+    std::deque<SubcategoryPlugin> subcategory_plugins;
+    std::map<std::string, SubcategoryPlugin*> subcategories_by_name;
+
 public:
     Registry();
 
@@ -148,6 +151,33 @@ public:
     {
         return get_namespace(std::vector<std::string>{name_parts...});
     }
+
+    template <std::derived_from<SubcategoryPlugin> T>
+    SubcategoryPlugin& insert_subcategory_plugin()
+    {
+        auto& s = subcategory_plugins.emplace_back(T());
+        auto [it, inserted] =
+            subcategories_by_name.emplace(s.get_subcategory_name(), &s);
+
+        if (!inserted) {
+            throw downward::utils::CriticalError(
+                "Sub-category with name {} already exists.",
+                s.get_subcategory_name());
+        }
+
+        return s;
+    }
+
+    SubcategoryPlugin&
+    get_subcategory_plugin(const std::string& subcategory);
+
+    const SubcategoryPlugin&
+    get_subcategory_plugin(const std::string& subcategory) const;
+
+    auto get_subcategory_plugins() const
+    {
+        return std::views::all(subcategory_plugins);
+    }
 };
 
 class Namespace {
@@ -155,7 +185,6 @@ class Namespace {
 
     std::set<CategoryPlugin, CategoryComparator> category_plugins;
     std::vector<EnumPlugin> enum_plugins;
-    std::set<SubcategoryPlugin, SubCategoryComparator> subcategory_plugins;
     std::set<std::unique_ptr<Feature>, FeatureComparator> features;
 
 public:
@@ -165,18 +194,6 @@ public:
 
     Namespace& get_nested_namespace(const std::string& name);
     const Namespace& get_nested_namespace(const std::string& name) const;
-
-    template <std::derived_from<SubcategoryPlugin> T>
-    void insert_subcategory_plugin()
-    {
-        auto [it, inserted] = subcategory_plugins.insert(T());
-
-        if (!inserted) {
-            throw downward::utils::CriticalError(
-                "Sub-category with name {} already exists.",
-                it->get_subcategory_name());
-        }
-    }
 
     template <typename T>
     const CategoryPlugin&
@@ -262,7 +279,7 @@ public:
     }
 
     template <std::derived_from<Feature> T>
-    void insert_feature_plugin()
+    const Feature& insert_feature_plugin()
     {
         const auto [it, inserted] = features.insert(std::make_unique<T>());
 
@@ -272,15 +289,7 @@ public:
                 (*it)->get_key());
         }
 
-        if (const auto subcategory = (*it)->get_subcategory();
-            !subcategory.empty() &&
-            !subcategory_plugins.contains(subcategory)) {
-            throw downward::utils::CriticalError(
-                "Missing SubcategoryPlugin '{}' for Plugin '{}' of type {}",
-                subcategory,
-                (*it)->get_key(),
-                (*it)->get_type().name());
-        }
+        return **it;
     }
 
     template <template <bool...> typename T, bool... b>
@@ -297,17 +306,14 @@ public:
 
     bool has_feature(const std::string& name) const;
     const Feature& get_feature(const std::string& name) const;
-    const SubcategoryPlugin&
-    get_subcategory_plugin(const std::string& subcategory) const;
-
-    auto get_subcategory_plugins() const
-    {
-        return std::views::all(subcategory_plugins);
-    }
 
     auto get_features() const { return std::views::all(features); }
 
     auto get_categories() const { return std::views::all(category_plugins); }
+
+    auto get_nested_namespaces() { return std::views::all(children); }
+
+    auto get_nested_namespaces() const { return std::views::all(children); }
 };
 } // namespace downward::cli::plugins
 

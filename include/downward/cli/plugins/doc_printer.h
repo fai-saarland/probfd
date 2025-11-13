@@ -1,6 +1,8 @@
 #ifndef PLUGINS_DOC_PRINTER_H
 #define PLUGINS_DOC_PRINTER_H
 
+#include "plugin.h"
+
 #include <iostream>
 #include <map>
 #include <regex>
@@ -16,11 +18,8 @@ class Feature;
 class Registry;
 
 class DocPrinter {
-    virtual void
-    print_category(const CategoryPlugin& category, bool recursive) const;
-    virtual void print_subcategory(
-        const std::string& subcategory_name,
-        const std::vector<const Feature*>& plugins) const;
+    virtual void print_category(const CategoryPlugin& category) const;
+    virtual void print_subcategory(const SubcategoryPlugin& subcategory) const;
     virtual void print_feature(const Feature& plugin) const;
 
 protected:
@@ -41,7 +40,13 @@ protected:
 
     virtual void print_category_members(
         const CategoryPlugin&,
-        const std::map<std::string, std::vector<const Feature*>>&) const
+        const std::vector<const Feature*>) const
+    {
+    }
+
+    virtual void print_subcategory_members(
+        const SubcategoryPlugin&,
+        const std::vector<const Feature*>) const
     {
     }
 
@@ -52,7 +57,8 @@ public:
     virtual ~DocPrinter() = default;
 
     void print_all() const;
-    void print_category(const std::string& name, bool recursive) const;
+    void print_subcategory(const std::string& name) const;
+    void print_category(const std::string& name) const;
     void print_feature(const std::string& name) const;
 };
 
@@ -94,10 +100,7 @@ protected:
     virtual void print_category_footer() const override;
 
 public:
-    PlainPrinter(
-        std::ostream& out,
-        Registry& registry,
-        bool print_all = false);
+    PlainPrinter(std::ostream& out, Registry& registry, bool print_all = false);
 };
 } // namespace downward::cli::plugins
 

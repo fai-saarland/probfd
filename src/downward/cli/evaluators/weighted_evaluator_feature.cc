@@ -59,7 +59,6 @@ public:
     WeightedEvaluatorFeature()
         : TypedFeature("weight")
     {
-        document_subcategory("evaluators_basic");
         document_title("Weighted evaluator");
         document_synopsis(
             "Multiplies the value of the evaluator with the given weight.");
@@ -88,7 +87,10 @@ namespace downward::cli::evaluators {
 void add_weighted_evaluator_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<WeightedEvaluatorFeature>();
+    const Feature& f = n.insert_feature_plugin<WeightedEvaluatorFeature>();
+    SubcategoryPlugin& subcategory =
+        registry.get_subcategory_plugin("evaluators_basic");
+    subcategory.add_feature(f);
 }
 
 } // namespace downward::cli::evaluators

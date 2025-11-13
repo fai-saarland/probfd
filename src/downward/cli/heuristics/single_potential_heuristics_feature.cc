@@ -103,7 +103,6 @@ public:
     InitialStatePotentialHeuristicFeature()
         : TypedFeature("initial_state_potential")
     {
-        document_subcategory("heuristics_potentials");
         document_title("Potential heuristic optimized for initial state");
         document_synopsis(get_admissible_potentials_reference());
 
@@ -132,7 +131,6 @@ public:
     AllStatesPotentialHeuristicFeature()
         : TypedFeature("all_states_potential")
     {
-        document_subcategory("heuristics_potentials");
         document_title("Potential heuristic optimized for all states");
         document_synopsis(get_admissible_potentials_reference());
 
@@ -161,8 +159,14 @@ namespace downward::cli::heuristics {
 void add_single_potential_heuristics_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<InitialStatePotentialHeuristicFeature>();
-    n.insert_feature_plugin<AllStatesPotentialHeuristicFeature>();
+    SubcategoryPlugin& subcategory =
+        registry.get_subcategory_plugin("heuristics_potentials");
+    const Feature& f =
+        n.insert_feature_plugin<InitialStatePotentialHeuristicFeature>();
+    const Feature& f2 =
+        n.insert_feature_plugin<AllStatesPotentialHeuristicFeature>();
+    subcategory.add_feature(f);
+    subcategory.add_feature(f2);
 }
 
 } // namespace downward::cli::heuristics

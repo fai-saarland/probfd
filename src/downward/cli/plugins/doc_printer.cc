@@ -8,6 +8,7 @@
 #include <iostream>
 #include <map>
 #include <print>
+#include <stack>
 
 using namespace std;
 
@@ -22,15 +23,30 @@ void DocPrinter::print_all() const
 {
     const Namespace& n = registry.get_global_name_space();
 
+    for (const auto& subcategory : registry.get_subcategory_plugins()) {
+        print_subcategory(subcategory);
+    }
+
     for (const auto categories = n.get_categories();
          const auto& category : categories) {
-        print_category(category, true);
+        print_category(category);
     }
 }
 
-void DocPrinter::print_category(const string& name, bool recursive) const
+void DocPrinter::print_subcategory(const string& name) const
 {
-    const Namespace& n = registry.get_global_name_space();
+    const SubcategoryPlugin& s = registry.get_subcategory_plugin(name);
+    print_subcategory(s);
+}
+
+void DocPrinter::print_category(const string& qname) const
+{
+    auto parts = std::views::split(qname, ".") |
+                 std::ranges::to<std::vector<std::string>>();
+    const auto name = std::move(parts.back());
+    parts.pop_back();
+
+    const Namespace& n = registry.get_namespace(parts);
     const auto categories = n.get_categories();
     const auto it = std::ranges::lower_bound(
         categories,
@@ -45,79 +61,83 @@ void DocPrinter::print_category(const string& name, bool recursive) const
             "could not find a category named '" + name + "' in the registry");
     }
 
-    print_category(*it, recursive);
+    print_category(*it);
 }
 
-void DocPrinter::print_feature(const string& name) const
+void DocPrinter::print_feature(const string& qname) const
 {
-    const Namespace& n = registry.get_global_name_space();
+    auto parts = std::views::split(qname, ".") |
+                 std::ranges::to<std::vector<std::string>>();
+    const auto name = std::move(parts.back());
+    parts.pop_back();
+    const auto& n = registry.get_namespace(parts);
     print_feature(n.get_feature(name));
 }
 
-void DocPrinter::print_category(const CategoryPlugin& category, bool recursive)
-    const
+void DocPrinter::print_category(const CategoryPlugin& category) const
 {
-    const Namespace& n = registry.get_global_name_space();
+    const auto& subcategories = registry.get_subcategory_plugins();
 
-    map<string, vector<const Feature*>> subcategories;
-    for (const auto& feature : n.get_features()) {
-        if (const Type& type = feature->get_type();
-            type.is_feature_type() &&
-            static_cast<const FeatureType&>(type).get_type_index() ==
-                category.get_pointer_type()) {
-            subcategories[feature->get_subcategory()].push_back(feature.get());
-        }
-    }
-
-    for (auto& features : subcategories | views::values) {
-        std::ranges::sort(features, {}, &Feature::get_key);
-    }
+    std::vector sorted_subcategories(std::from_range, subcategories);
+    std::ranges::sort(
+        sorted_subcategories,
+        {},
+        &SubcategoryPlugin::get_subcategory_name);
 
     print_category_header(category);
     print_category_synopsis(category.get_synopsis());
-    print_category_members(category, subcategories);
 
-    if (recursive) {
-        /*
-          Note on sorting: Because we use a map keyed on the subcategory names,
-          the subcategories are sorted by these names. For the time being, this
-          seems as good as any other order. For the future, we might
-          consider influencing the sort order by adding a sort priority
-          item to SubcategoryPlugin.
+    vector<const Feature*> features;
 
-          Note on empty subcategories: if a subcategory is not used (i.e., has
-          no plug-ins inside it), then it does not appear in the documentation.
-          This is intentional. For example, it means that we could introduce
-          groups in "core code" that may or may not be used by plug-ins, and if
-          they are not used, they do not clutter the documentation.
-         */
-        for (auto& [subcategory_name, features] : subcategories) {
-            ranges::sort(features, [](const Feature* p1, const Feature* p2) {
-                return p1->get_key() < p2->get_key();
-            });
-            print_subcategory(subcategory_name, features);
+    std::stack<const Namespace*> s;
+    s.push(&registry.get_global_name_space());
+
+    while (!s.empty()) {
+        const auto* n = s.top();
+        s.pop();
+
+        for (const auto& feature : n->get_features()) {
+            if (const Type& type = feature->get_type();
+                type.is_feature_type() &&
+                static_cast<const FeatureType&>(type).get_type_index() ==
+                    category.get_pointer_type()) {
+                features.push_back(feature.get());
+            }
+        }
+
+        for (const auto& [name, nested] : n->get_nested_namespaces()) {
+            s.push(nested.get());
         }
     }
+
+    std::vector sorted_features(std::from_range, features);
+    std::ranges::sort(sorted_features, {}, [](const Feature* f) {
+        return f->get_key();
+    });
+
+    print_category_members(category, sorted_features);
 
     print_category_footer();
 }
 
-void DocPrinter::print_subcategory(
-    const string& subcategory_name,
-    const vector<const Feature*>& features) const
+void DocPrinter::print_subcategory(const SubcategoryPlugin& subcategory) const
 {
-    const Namespace& n = registry.get_global_name_space();
-
-    if (!subcategory_name.empty()) {
-        const SubcategoryPlugin& subcategory_plugin =
-            n.get_subcategory_plugin(subcategory_name);
-        os << endl << "= " << subcategory_plugin.get_title() << " =" << endl;
-        if (!subcategory_plugin.get_synopsis().empty()) {
-            os << subcategory_plugin.get_synopsis() << endl;
+    if (const auto& subcategory_name = subcategory.get_subcategory_name();
+        !subcategory_name.empty()) {
+        os << endl << "===== Topic " << subcategory.get_title() << " =====" << endl;
+        if (!subcategory.get_synopsis().empty()) {
+            os << subcategory.get_synopsis() << endl;
         }
         os << endl;
     }
-    for (const Feature* feature : features) { print_feature(*feature); }
+
+    std::vector features(std::from_range, subcategory.get_features());
+
+    std::ranges::sort(features, {}, [](const Feature* f) {
+        return f->get_key();
+    });
+
+    print_subcategory_members(subcategory, features);
 }
 
 void DocPrinter::print_feature(const Feature& feature) const
