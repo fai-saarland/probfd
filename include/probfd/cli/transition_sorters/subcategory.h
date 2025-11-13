@@ -8,10 +8,10 @@ class Registry;
 namespace probfd::cli::transiton_sorters {
 
 void add_transition_sorter_category(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 void add_transition_sorter_features(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 } // namespace probfd::cli::transiton_sorters
 

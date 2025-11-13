@@ -9,10 +9,12 @@ using namespace downward::cli::plugins;
 
 namespace probfd::cli::heuristics {
 
-void add_task_heuristic_factory_category(Registry& raw_registry)
+void add_task_heuristic_factory_category(Registry& registry)
 {
-    raw_registry.insert_shared_category_plugin<TaskHeuristicFactory>(
-        "TaskHeuristicFactory", "");
+    Namespace& n = registry.get_global_name_space();
+    n.insert_shared_category_plugin<TaskHeuristicFactory>(
+        "TaskHeuristicFactory",
+        "");
 }
 
 } // namespace probfd::cli::heuristics

@@ -11,9 +11,10 @@ using namespace downward::cli::plugins;
 
 namespace downward::cli::merge_and_shrink {
 
-void add_merge_selector_category(Registry& raw_registry)
+void add_merge_selector_category(Registry& registry)
 {
-    raw_registry.insert_shared_category_plugin<MergeSelector>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_shared_category_plugin<MergeSelector>(
         "MergeSelector",
         "This page describes the available merge selectors. They are used "
         "to "

@@ -8,7 +8,7 @@ class Registry;
 namespace downward::cli {
 
 void add_operator_cost_category(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

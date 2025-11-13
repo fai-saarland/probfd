@@ -9,9 +9,10 @@ using namespace downward::cli::plugins;
 
 namespace downward::cli::tasks {
 
-void add_task_transformation_category(Registry& raw_registry)
+void add_task_transformation_category(Registry& registry)
 {
-    raw_registry.insert_shared_category_plugin<TaskTransformation>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_shared_category_plugin<TaskTransformation>(
         "TaskTransformation",
         "");
 }

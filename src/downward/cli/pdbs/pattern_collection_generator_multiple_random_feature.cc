@@ -54,10 +54,10 @@ public:
 namespace downward::cli::pdbs {
 
 void add_pattern_collection_generator_multiple_random_feature(
-    Registry& raw_registry)
+    Registry& registry)
 {
-    raw_registry.insert_feature_plugin<
-        PatternCollectionGeneratorMultipleRandomFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<PatternCollectionGeneratorMultipleRandomFeature>();
 }
 
 } // namespace downward::cli::pdbs

@@ -11,13 +11,14 @@ using namespace std;
 
 namespace downward::cli::open_lists {
 
-void add_open_list_factory_category(plugins::Registry& raw_registry)
+void add_open_list_factory_category(plugins::Registry& registry)
 {
-    raw_registry.insert_shared_category_plugin<
+    plugins::Namespace& n = registry.get_global_name_space();
+    n.insert_shared_category_plugin<
         TaskDependentFactory<OpenList<StateOpenListEntry>>>(
         "StateOpenList",
         "");
-    raw_registry.insert_shared_category_plugin<
+    n.insert_shared_category_plugin<
         TaskDependentFactory<OpenList<EdgeOpenListEntry>>>("EdgeOpenList", "");
 }
 

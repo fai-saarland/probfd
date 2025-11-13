@@ -8,7 +8,7 @@ class Registry;
 namespace probfd::cli::occupation_measures {
 
 void add_constraint_generator_factory_category(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

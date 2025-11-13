@@ -8,7 +8,7 @@ class Registry;
 namespace probfd::cli::pdbs::cegar {
 
 void add_bfs_flaw_finder_feature(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

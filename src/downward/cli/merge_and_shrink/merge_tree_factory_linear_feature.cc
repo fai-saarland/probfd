@@ -62,9 +62,10 @@ public:
 
 namespace downward::cli::merge_and_shrink {
 
-void add_merge_tree_factory_linear_feature(Registry& raw_registry)
+void add_merge_tree_factory_linear_feature(Registry& registry)
 {
-    raw_registry.insert_enum_plugin<
+    Namespace& n = registry.get_global_name_space();
+    n.insert_enum_plugin<
         downward::variable_order_finder::VariableOrderType>(
         {{"cg_goal_level",
           "variables are prioritized first if they have an arc to a previously "
@@ -84,7 +85,7 @@ void add_merge_tree_factory_linear_feature(Registry& raw_registry)
          {"reverse_level",
           "variables are ordered reverse to their level in the causal graph"}});
 
-    raw_registry.insert_feature_plugin<MergeTreeFactoryLinearFeature>();
+    n.insert_feature_plugin<MergeTreeFactoryLinearFeature>();
 }
 
 } // namespace downward::cli::merge_and_shrink

@@ -53,9 +53,10 @@ public:
 
 namespace downward::cli::operator_counting {
 
-void add_pho_constraints_feature(Registry& raw_registry)
+void add_pho_constraints_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<PhOConstraintsFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<PhOConstraintsFeature>();
 }
 
 } // namespace downward::cli::operator_counting

@@ -20,9 +20,10 @@ public:
 
 namespace downward::cli::pdbs {
 
-void add_pdb_heuristic_subcategory(Registry& raw_registry)
+void add_pdb_heuristic_subcategory(Registry& registry)
 {
-    raw_registry.insert_subcategory_plugin<PDBGroupPlugin>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_subcategory_plugin<PDBGroupPlugin>();
 }
 
 } // namespace downward::cli::pdbs

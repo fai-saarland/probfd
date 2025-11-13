@@ -104,6 +104,7 @@ string token_type_name(TokenType token_type)
     case TokenType::OPENING_BRACKET: return "[";
     case TokenType::CLOSING_BRACKET: return "]";
     case TokenType::COMMA: return ",";
+    case TokenType::DOT: return ".";
     case TokenType::COLON: return ":";
     case TokenType::EQUALS: return "=";
     case TokenType::PLUS: return "+";

@@ -77,19 +77,21 @@ namespace probfd::cli::open_lists {
 template <bool Fret>
 using OpenList = Wrapped<probfd::algorithms::OpenList, Fret>;
 
-void add_open_list_categories(Registry& raw_registry)
+void add_open_list_categories(Registry& registry)
 {
-    raw_registry.insert_shared_category_plugins<open_lists::OpenList>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_shared_category_plugins<open_lists::OpenList>(
         []<bool Fret>() {
             return add_mdp_type_to_category<false, Fret>("ProbFDOpenList");
         },
         []<bool>() { return "Open list."; });
 }
 
-void add_open_list_features(Registry& raw_registry)
+void add_open_list_features(Registry& registry)
 {
-    raw_registry.insert_feature_plugins<FifoOpenListFeature>();
-    raw_registry.insert_feature_plugins<LifoOpenListFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugins<FifoOpenListFeature>();
+    n.insert_feature_plugins<LifoOpenListFeature>();
 }
 
 } // namespace probfd::cli::open_lists

@@ -8,7 +8,7 @@ class Registry;
 namespace downward::cli::merge_and_shrink {
 
 void add_merge_selector_score_based_filtering_feature(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

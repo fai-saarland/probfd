@@ -89,11 +89,12 @@ public:
 
 namespace downward::cli::open_lists {
 
-void add_best_first_open_list_features(Registry& raw_registry)
+void add_best_first_open_list_features(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<
         BestFirstOpenListFeature<downward::StateOpenListEntry>>();
-    raw_registry.insert_feature_plugin<
+    n.insert_feature_plugin<
         BestFirstOpenListFeature<downward::EdgeOpenListEntry>>();
 }
 

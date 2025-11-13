@@ -709,31 +709,69 @@ LiteralNode::LiteralNode(const Token& value)
 {
 }
 
-TypedDecoratedAstNodePtr
-LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
+IdentifierNode::IdentifierNode(
+    std::vector<std::string> qualification,
+    std::string name)
+    : qualification(std::move(qualification))
+    , name(std::move(name))
 {
-    utils::TraceBlock block(context, "Checking Literal: " + value.content);
-    if (env.has_variable(value.content)) {
-        if (value.type != TokenType::IDENTIFIER) {
-            throw utils::CriticalError(
-                "A non-identifier token was defined as variable.");
-        }
-        string variable_name = value.content;
-        auto& def = env.get_variable_definition(variable_name);
+}
+
+TypedDecoratedAstNodePtr
+IdentifierNode::decorate(utils::Context& context, VariableEnvironment& env)
+    const
+{
+    utils::TraceBlock block(
+        context,
+        "Checking Literal: {}.{}",
+        utils::join_view(qualification, "."),
+        name);
+
+    if (qualification.empty() && env.has_variable(name)) {
+        auto& def = env.get_variable_definition(name);
         auto n = std::make_unique<VariableNode>(def);
         def.usages.push_back(n.get());
-        return {std::move(n), &env.get_variable_type(variable_name)};
+        return {std::move(n), &env.get_variable_type(name)};
     }
 
-    if (const auto& reg = env.get_registry(); reg.has_feature(value.content)) {
-        const auto& f = reg.get_feature(value.content);
-        auto n = std::make_unique<FeatureLiteralNode>(f);
+    std::print(cout, "{}.{}", utils::join_view(qualification, "."), name);
+
+    if (const auto& n = env.get_registry().get_namespace(qualification);
+        n.has_feature(name)) {
+        const auto& f = n.get_feature(name);
+        auto node = std::make_unique<FeatureLiteralNode>(f);
         const auto& t = plugins::TypeRegistry::instance()->create_function_type(
             f.get_type(),
             f.get_arguments());
-        return {std::move(n), &t};
+        return {std::move(node), &t};
     }
 
+    if (!qualification.empty()) {
+        context.error(
+            "Undefined variable {}.{}",
+            utils::join_view(qualification, "."),
+            name);
+    }
+
+    return {
+        std::make_unique<SymbolNode>(name),
+        &plugins::TypeRegistry::SYMBOL_TYPE};
+}
+
+void IdentifierNode::dump(string indent) const
+{
+    std::print(cout, "{}", std::string(indent, ' '));
+    std::println(
+        cout,
+        "{}: {}.{}",
+        token_type_name(TokenType::IDENTIFIER),
+        utils::join_view(qualification, "."),
+        name);
+}
+
+TypedDecoratedAstNodePtr
+LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
+{
     switch (value.type) {
     case TokenType::TRUE: {
         return {
@@ -802,18 +840,18 @@ LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
                     &plugins::TypeRegistry::instance()->get_type<int>()};
             }
 
-            const auto& registry = env.get_registry();
+            const auto& n = env.get_registry().get_global_name_space();
             const auto operator_fname = std::format(
                 "__operator_int_{}__",
                 std::string_view{data, sv.end()});
 
-            if (!registry.has_feature(operator_fname)) {
+            if (!n.has_feature(operator_fname)) {
                 context.error(
                     "User-defined int literal function '{}' not found.",
                     operator_fname);
             }
 
-            const auto& feature = registry.get_feature(operator_fname);
+            const auto& feature = n.get_feature(operator_fname);
 
             std::vector<std::pair<std::string, FunctionArgument>> arguments;
             arguments.emplace_back(
@@ -848,18 +886,18 @@ LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
                     &plugins::TypeRegistry::instance()->get_type<int>()};
             }
 
-            const auto& registry = env.get_registry();
+            const auto& n = env.get_registry().get_global_name_space();
             const auto operator_fname = std::format(
                 "__operator_float_{}__",
                 string_view{data, sv.end()});
 
-            if (!registry.has_feature(operator_fname)) {
+            if (!n.has_feature(operator_fname)) {
                 context.error(
                     "User-defined float literal function '{}' not found.",
                     operator_fname);
             }
 
-            const auto& feature = registry.get_feature(operator_fname);
+            const auto& feature = n.get_feature(operator_fname);
 
             std::vector<std::pair<std::string, FunctionArgument>> arguments;
             arguments.emplace_back(
@@ -874,10 +912,6 @@ LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
                 &feature.get_type()};
         }
     }
-    case TokenType::IDENTIFIER:
-        return {
-            std::make_unique<SymbolNode>(value.content),
-            &plugins::TypeRegistry::SYMBOL_TYPE};
     default:
         throw utils::CriticalError(
             "LiteralNode has unexpected token type '{}'.",

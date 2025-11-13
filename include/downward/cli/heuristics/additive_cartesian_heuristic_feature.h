@@ -8,10 +8,10 @@ class Registry;
 namespace downward::cli::heuristics {
 
 void add_additive_cartesian_heuristic_categories(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 void add_additive_cartesian_heuristic_feature(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 } // namespace downward::cli::heuristics
 

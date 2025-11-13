@@ -157,25 +157,25 @@ public:
 
 namespace probfd::cli::cartesian_abstractions {
 
-void add_split_selector_category(Registry& raw_registry)
+void add_split_selector_category(Registry& registry)
 {
-    raw_registry.insert_shared_category_plugin<SplitSelectorFactory>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_shared_category_plugin<SplitSelectorFactory>(
         "SplitSelectorFactory",
         "Factory for split selection algorithms used in the "
         "cartesian abstraction refinement loop");
 }
 
-void add_split_selector_features(Registry& raw_registry)
+void add_split_selector_features(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<SplitSelectorRandomFactoryFeature>();
-    raw_registry
-        .insert_feature_plugin<SplitSelectorMinUnwantedFactoryFeature>();
-    raw_registry
-        .insert_feature_plugin<SplitSelectorMaxUnwantedFactoryFeature>();
-    raw_registry.insert_feature_plugin<SplitSelectorMinRefinedFactoryFeature>();
-    raw_registry.insert_feature_plugin<SplitSelectorMaxRefinedFactoryFeature>();
-    raw_registry.insert_feature_plugin<SplitSelectorMinHAddFactoryFeature>();
-    raw_registry.insert_feature_plugin<SplitSelectorMaxHAddFactoryFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<SplitSelectorRandomFactoryFeature>();
+    n.insert_feature_plugin<SplitSelectorMinUnwantedFactoryFeature>();
+    n.insert_feature_plugin<SplitSelectorMaxUnwantedFactoryFeature>();
+    n.insert_feature_plugin<SplitSelectorMinRefinedFactoryFeature>();
+    n.insert_feature_plugin<SplitSelectorMaxRefinedFactoryFeature>();
+    n.insert_feature_plugin<SplitSelectorMinHAddFactoryFeature>();
+    n.insert_feature_plugin<SplitSelectorMaxHAddFactoryFeature>();
 }
 
 } // namespace probfd::cli::cartesian_abstractions

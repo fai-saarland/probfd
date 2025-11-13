@@ -88,20 +88,21 @@ public:
 
 namespace downward::cli::merge_and_shrink {
 
-void add_merge_scoring_function_total_order_feature(Registry& raw_registry)
+void add_merge_scoring_function_total_order_feature(Registry& registry)
 {
-    raw_registry.insert_enum_plugin<AtomicTSOrder>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_enum_plugin<AtomicTSOrder>(
         {{"reverse_level", "the variable order of Fast Downward"},
          {"level", "opposite of reverse_level"},
          {"random", "a randomized order"}});
 
-    raw_registry.insert_enum_plugin<ProductTSOrder>(
+    n.insert_enum_plugin<ProductTSOrder>(
         {{"old_to_new",
           "consider composite transition systems from oldest to most recent"},
          {"new_to_old", "opposite of old_to_new"},
          {"random", "a randomized order"}});
 
-    raw_registry.insert_feature_plugin<MergeScoringFunctionTotalOrderFeature>();
+    n.insert_feature_plugin<MergeScoringFunctionTotalOrderFeature>();
 }
 
 } // namespace downward::cli::merge_and_shrink

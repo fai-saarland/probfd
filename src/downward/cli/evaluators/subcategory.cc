@@ -18,9 +18,10 @@ public:
 
 namespace downward::cli::evaluators {
 
-void add_evaluator_subcategory(Registry& raw_registry)
+void add_evaluator_subcategory(Registry& registry)
 {
-    raw_registry.insert_subcategory_plugin<EvaluatorGroupPlugin>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_subcategory_plugin<EvaluatorGroupPlugin>();
 }
 
 } // namespace

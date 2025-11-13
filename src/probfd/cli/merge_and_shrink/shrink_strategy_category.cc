@@ -10,9 +10,10 @@ using namespace probfd::merge_and_shrink;
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_shrink_strategy_category(Registry& raw_registry)
+void add_shrink_strategy_category(Registry& registry)
 {
-    raw_registry.insert_shared_category_plugin<ShrinkStrategy>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_shared_category_plugin<ShrinkStrategy>(
         "PShrinkStrategy",
         "This page describes the various shrink strategies supported "
         "by the planner.");

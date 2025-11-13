@@ -47,10 +47,10 @@ public:
 
 namespace probfd::cli::heuristics {
 
-void add_determinization_cost_heuristic_feature(Registry& raw_registry)
+void add_determinization_cost_heuristic_feature(Registry& registry)
 {
-    raw_registry
-        .insert_feature_plugin<DeterminizationHeuristicFactoryFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<DeterminizationHeuristicFactoryFeature>();
 }
 
 } // namespace probfd::cli::heuristics

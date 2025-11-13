@@ -65,9 +65,10 @@ protected:
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_merge_tree_factory_linear_feature(Registry& raw_registry)
+void add_merge_tree_factory_linear_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<MergeTreeFactoryLinearFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<MergeTreeFactoryLinearFeature>();
 }
 
 } // namespace probfd::cli::merge_and_shrink

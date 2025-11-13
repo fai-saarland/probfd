@@ -29,9 +29,10 @@ public:
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_prune_strategy_alive_feature(Registry& raw_registry)
+void add_prune_strategy_alive_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<PruneStrategyAliveFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<PruneStrategyAliveFeature>();
 }
 
 } // namespace probfd::cli::merge_and_shrink

@@ -8,7 +8,7 @@ class Registry;
 namespace downward::cli::operator_counting {
 
 void add_state_equation_constraints_feature(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

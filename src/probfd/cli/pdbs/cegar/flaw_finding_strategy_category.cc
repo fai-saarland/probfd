@@ -11,9 +11,10 @@ using namespace downward::cli::plugins;
 
 namespace probfd::cli::pdbs::cegar {
 
-void add_flaw_finding_strategy_category(Registry& raw_registry)
+void add_flaw_finding_strategy_category(Registry& registry)
 {
-    raw_registry.insert_shared_category_plugin<FlawFindingStrategy>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_shared_category_plugin<FlawFindingStrategy>(
         "FlawFindingStrategy",
         "Policy CEGAR flaw finding strategy.");
 }

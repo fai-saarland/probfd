@@ -8,7 +8,7 @@ class Registry;
 namespace downward::cli::pdbs {
 
 void add_pdb_heuristic_subcategory(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

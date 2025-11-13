@@ -8,7 +8,7 @@ class Registry;
 namespace downward::cli::operator_counting {
 
 void add_delete_relaxation_if_constraints_feature(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

@@ -66,9 +66,10 @@ public:
 
 namespace downward::cli::pruning {
 
-void add_stubborn_sets_ec_feature(Registry& raw_registry)
+void add_stubborn_sets_ec_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<StubbornSetsECFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<StubbornSetsECFeature>();
 }
 
 } // namespace downward::cli::pruning

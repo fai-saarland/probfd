@@ -8,7 +8,7 @@ class Registry;
 namespace downward::cli::tasks {
 
 void add_cost_task_transformation_features(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

@@ -46,11 +46,11 @@ public:
 
 namespace probfd::cli::pdbs {
 
-void add_max_orthogonal_finder_factory_feature(Registry& raw_registry)
+void add_max_orthogonal_finder_factory_feature(Registry& registry)
 {
-    raw_registry
-        .insert_feature_plugin<AdditiveMaxOrthogonalityFinderFactoryFeature>();
-    raw_registry.insert_feature_plugin<
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<AdditiveMaxOrthogonalityFinderFactoryFeature>();
+    n.insert_feature_plugin<
         MultiplicativeMaxOrthogonalityFinderFactoryFeature>();
 }
 

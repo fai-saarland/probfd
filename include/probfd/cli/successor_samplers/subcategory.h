@@ -8,10 +8,10 @@ class Registry;
 namespace probfd::cli::successor_samplers {
 
 void add_successor_sampler_category(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 void add_successor_sampler_features(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

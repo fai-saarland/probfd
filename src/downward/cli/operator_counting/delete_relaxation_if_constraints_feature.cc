@@ -94,9 +94,10 @@ public:
 
 namespace downward::cli::operator_counting {
 
-void add_delete_relaxation_if_constraints_feature(Registry& raw_registry)
+void add_delete_relaxation_if_constraints_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<DeleteRelaxationIFConstraintsFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<DeleteRelaxationIFConstraintsFeature>();
 }
 
 } // namespace downward::cli::operator_counting

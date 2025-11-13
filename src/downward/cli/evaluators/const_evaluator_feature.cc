@@ -76,9 +76,10 @@ public:
 
 namespace downward::cli::evaluators {
 
-void add_const_evaluator_feature(Registry& raw_registry)
+void add_const_evaluator_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<ConstEvaluatorFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<ConstEvaluatorFeature>();
 }
 
 } // namespace downward::cli::evaluators

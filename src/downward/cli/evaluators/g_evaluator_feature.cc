@@ -62,9 +62,10 @@ public:
 
 namespace downward::cli::evaluators {
 
-void add_g_evaluator_feature(Registry& raw_registry)
+void add_g_evaluator_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<GEvaluatorFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<GEvaluatorFeature>();
 }
 
 } // namespace downward::cli::evaluators

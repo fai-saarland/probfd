@@ -8,7 +8,7 @@ class Registry;
 namespace probfd::cli::occupation_measures {
 
 void add_occupation_measure_heuristics_features(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

@@ -31,9 +31,10 @@ public:
 
 namespace probfd::cli::pdbs {
 
-void add_trivial_finder_factory_feature(Registry& raw_registry)
+void add_trivial_finder_factory_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<TrivialFinderFactoryFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<TrivialFinderFactoryFeature>();
 }
 
 } // namespace probfd::cli::pdbs

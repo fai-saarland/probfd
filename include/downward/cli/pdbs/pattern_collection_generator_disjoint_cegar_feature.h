@@ -8,7 +8,7 @@ class Registry;
 namespace downward::cli::pdbs {
 
 void add_pattern_collection_generator_disjoint_cegar_feature(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

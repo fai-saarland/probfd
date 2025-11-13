@@ -62,11 +62,10 @@ public:
 
 namespace probfd::cli::pdbs {
 
-void add_pattern_collection_generator_classical_feature(
-    Registry& raw_registry)
+void add_pattern_collection_generator_classical_feature(Registry& registry)
 {
-    raw_registry
-        .insert_feature_plugin<PatternCollectionGeneratorClassicalFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<PatternCollectionGeneratorClassicalFeature>();
 }
 
 } // namespace probfd::cli::pdbs

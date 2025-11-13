@@ -55,13 +55,14 @@ protected:
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_shrink_strategy_equal_distance_feature(Registry& raw_registry)
+void add_shrink_strategy_equal_distance_feature(Registry& registry)
 {
-    raw_registry.insert_enum_plugin<ShrinkStrategyEqualDistance::Priority>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_enum_plugin<ShrinkStrategyEqualDistance::Priority>(
         {{"high", "prefer shrinking states with high value"},
          {"low", "prefer shrinking states with low value"}});
 
-    raw_registry.insert_feature_plugin<ShrinkStrategyEqualDistanceFeature>();
+    n.insert_feature_plugin<ShrinkStrategyEqualDistanceFeature>();
 }
 
 } // namespace probfd::cli::merge_and_shrink

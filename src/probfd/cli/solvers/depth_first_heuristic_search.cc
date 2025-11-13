@@ -231,9 +231,10 @@ public:
 
 namespace probfd::cli::solvers {
 
-void add_depth_first_heuristic_search_features(Registry& raw_registry)
+void add_depth_first_heuristic_search_features(Registry& registry)
 {
-    raw_registry.insert_enum_plugin<BacktrackingUpdateType>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_enum_plugin<BacktrackingUpdateType>(
         {{"disabled",
           "No update is performed when backtracking from a state during the "
           "dfs "
@@ -251,10 +252,10 @@ void add_depth_first_heuristic_search_features(Registry& raw_registry)
           "the "
           "dfs exploration."}});
 
-    raw_registry.insert_feature_plugins<DFHSSolverFeature>();
-    raw_registry.insert_feature_plugins<ILAOSolverFeature>();
-    raw_registry.insert_feature_plugins<LILAOSolverFeature>();
-    raw_registry.insert_feature_plugins<HDPSolverFeature>();
+    n.insert_feature_plugins<DFHSSolverFeature>();
+    n.insert_feature_plugins<ILAOSolverFeature>();
+    n.insert_feature_plugins<LILAOSolverFeature>();
+    n.insert_feature_plugins<HDPSolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

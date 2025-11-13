@@ -88,9 +88,10 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_blind_heuristic_feature(Registry& raw_registry)
+void add_blind_heuristic_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<BlindSearchHeuristicFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<BlindSearchHeuristicFeature>();
 }
 
 } // namespace downward::cli::heuristics

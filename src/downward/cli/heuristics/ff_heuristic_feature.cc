@@ -89,9 +89,10 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_ff_heuristic_features(Registry& raw_registry)
+void add_ff_heuristic_features(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<FFHeuristicFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<FFHeuristicFeature>();
 }
 
 } // namespace downward::cli::heuristics

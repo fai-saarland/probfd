@@ -8,7 +8,7 @@ class Registry;
 namespace probfd::cli::pdbs::cegar {
 
 void add_flaw_finding_strategy_category(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

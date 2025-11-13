@@ -115,16 +115,17 @@ public:
 
 namespace downward::cli::search_algorithms {
 
-void add_enforce_hill_climbing_search_feature(Registry& raw_registry)
+void add_enforce_hill_climbing_search_feature(Registry& registry)
 {
-    raw_registry.insert_enum_plugin<PreferredUsage>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_enum_plugin<PreferredUsage>(
         {{"prune_by_preferred",
           "prune successors achieved by non-preferred operators"},
          {"rank_preferred_first",
           "first insert successors achieved by preferred operators, "
           "then those by non-preferred operators"}});
 
-    raw_registry.insert_feature_plugin<EnforcedHillClimbingSearchFeature>();
+    n.insert_feature_plugin<EnforcedHillClimbingSearchFeature>();
 }
 
 } // namespace downward::cli::search_algorithms

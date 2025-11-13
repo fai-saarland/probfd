@@ -87,15 +87,16 @@ public:
 
 namespace downward::cli::merge_and_shrink {
 
-void add_shrink_bisimulation_feature(Registry& raw_registry)
+void add_shrink_bisimulation_feature(Registry& registry)
 {
-    raw_registry.insert_enum_plugin<AtLimit>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_enum_plugin<AtLimit>(
         {{"return", "stop without refining the equivalence class further"},
          {"use_up",
           "continue refining the equivalence class until "
           "the size limit is hit"}});
 
-    raw_registry.insert_feature_plugin<ShrinkBisimulationFeature>();
+    n.insert_feature_plugin<ShrinkBisimulationFeature>();
 }
 
 } // namespace downward::cli::merge_and_shrink

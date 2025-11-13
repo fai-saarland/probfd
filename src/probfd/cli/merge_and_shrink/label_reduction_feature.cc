@@ -97,17 +97,19 @@ public:
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_label_reduction_category(Registry& raw_registry)
+void add_label_reduction_category(Registry& registry)
 {
-    raw_registry.insert_shared_category_plugin<LabelReduction>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_shared_category_plugin<LabelReduction>(
         "PLabelReduction",
         "This page describes the current single 'option' for "
         "label reduction.");
 }
 
-void add_label_reduction_features(Registry& raw_registry)
+void add_label_reduction_features(Registry& registry)
 {
-    raw_registry.insert_enum_plugin<LabelReductionMethod>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_enum_plugin<LabelReductionMethod>(
         {{"two_transition_systems",
           "compute the 'combinable relation' only for the two transition "
           "systems being merged next"},
@@ -118,14 +120,14 @@ void add_label_reduction_features(Registry& raw_registry)
           "keep computing the 'combinable relation' for labels iteratively "
           "for all transition systems until no more labels can be reduced"}});
 
-    raw_registry.insert_enum_plugin<LabelReductionSystemOrder>(
+    n.insert_enum_plugin<LabelReductionSystemOrder>(
         {{"regular",
           "transition systems are considered in the order given in the planner "
           "input if atomic and in the order of their creation if composite."},
          {"reverse", "inverse of regular"},
          {"random", "random order"}});
 
-    raw_registry.insert_feature_plugin<LabelReductionFeature>();
+    n.insert_feature_plugin<LabelReductionFeature>();
 }
 
 } // namespace probfd::cli::merge_and_shrink

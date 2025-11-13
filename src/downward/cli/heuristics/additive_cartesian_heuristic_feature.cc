@@ -195,9 +195,10 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_additive_cartesian_heuristic_categories(Registry& raw_registry)
+void add_additive_cartesian_heuristic_categories(Registry& registry)
 {
-    raw_registry.insert_enum_plugin<PickSplit>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_enum_plugin<PickSplit>(
         {{"random", "select a random variable (among all eligible variables)"},
          {"min_unwanted",
           "select an eligible variable which has the least unwanted values "
@@ -223,9 +224,10 @@ void add_additive_cartesian_heuristic_categories(Registry& raw_registry)
           "over all facts that need to be removed from the flaw state"}});
 }
 
-void add_additive_cartesian_heuristic_feature(Registry& raw_registry)
+void add_additive_cartesian_heuristic_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<AdditiveCartesianHeuristicFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<AdditiveCartesianHeuristicFeature>();
 }
 
 } // namespace downward::cli::heuristics

@@ -8,7 +8,7 @@ class Registry;
 namespace downward::cli::landmarks {
 
 void add_landmark_factory_zhu_givan_feature(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

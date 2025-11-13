@@ -37,9 +37,10 @@ protected:
 
 namespace probfd::cli::pdbs::cegar {
 
-void add_pucs_flaw_finder_feature(Registry& raw_registry)
+void add_pucs_flaw_finder_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<PUCSFlawFinderFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<PUCSFlawFinderFeature>();
 }
 
 } // namespace probfd::cli::pdbs::cegar

@@ -96,24 +96,26 @@ public:
 
 namespace probfd::cli::cartesian_abstractions {
 
-void add_subtask_generator_category(Registry& raw_registry)
+void add_subtask_generator_category(Registry& registry)
 {
-    raw_registry.insert_shared_category_plugin<SubtaskGenerator>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_shared_category_plugin<SubtaskGenerator>(
         "PSubtaskGenerator",
         "Subtask generator (used by the CEGAR heuristic).");
 }
 
-void add_subtask_generator_features(Registry& raw_registry)
+void add_subtask_generator_features(Registry& registry)
 {
-    raw_registry.insert_enum_plugin<FactOrder>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_enum_plugin<FactOrder>(
         {{"original", "according to their (internal) variable index"},
          {"random", "according to a random permutation"},
          {"hadd_up", "according to their h^add value, lowest first"},
          {"hadd_down", "according to their h^add value, highest first "}});
 
-    raw_registry.insert_feature_plugin<TaskDuplicatorFeature>();
-    raw_registry.insert_feature_plugin<GoalDecompositionFeature>();
-    raw_registry.insert_feature_plugin<LandmarkDecompositionFeature>();
+    n.insert_feature_plugin<TaskDuplicatorFeature>();
+    n.insert_feature_plugin<GoalDecompositionFeature>();
+    n.insert_feature_plugin<LandmarkDecompositionFeature>();
 }
 
 } // namespace probfd::cli::cartesian_abstractions

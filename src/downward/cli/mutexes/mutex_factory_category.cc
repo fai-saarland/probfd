@@ -12,13 +12,13 @@ using namespace std;
 
 namespace downward::cli::mutexes {
 
-void add_mutex_factory_category(plugins::Registry& raw_registry)
+void add_mutex_factory_category(plugins::Registry& registry)
 {
-    raw_registry
-        .insert_shared_category_plugin<TaskDependentFactory<MutexInformation>>(
-            "MutexFactory",
-            "A mutex factory computes mutually exclusive facts for a given "
-            "planning task.");
+    plugins::Namespace& n = registry.get_global_name_space();
+    n.insert_shared_category_plugin<TaskDependentFactory<MutexInformation>>(
+        "MutexFactory",
+        "A mutex factory computes mutually exclusive facts for a given "
+        "planning task.");
 }
 
 } // namespace downward::cli::mutexes

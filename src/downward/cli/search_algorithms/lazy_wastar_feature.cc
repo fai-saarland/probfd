@@ -207,9 +207,10 @@ public:
 
 namespace downward::cli::search_algorithms {
 
-void add_lazy_wastar_feature(Registry& raw_registry)
+void add_lazy_wastar_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<LazyWAstarSearchFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<LazyWAstarSearchFeature>();
 }
 
 } // namespace downward::cli::search_algorithms

@@ -71,9 +71,10 @@ public:
 
 namespace downward::cli::landmarks {
 
-void add_landmark_factory_hm_feature(Registry& raw_registry)
+void add_landmark_factory_hm_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<LandmarkFactoryHMFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<LandmarkFactoryHMFeature>();
 }
 
 } // namespace downward::cli::landmarks

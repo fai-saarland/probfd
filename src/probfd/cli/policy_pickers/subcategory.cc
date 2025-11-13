@@ -158,21 +158,23 @@ public:
 
 namespace probfd::cli::policy_pickers {
 
-void add_policy_picker_category(Registry& raw_registry)
+void add_policy_picker_category(Registry& registry)
 {
-    raw_registry.insert_shared_category_plugins<PolicyPicker>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_shared_category_plugins<PolicyPicker>(
         []<bool Bisimulation, bool Fret> {
             return add_mdp_type_to_category<Bisimulation, Fret>("PolicyPicker");
         },
         []<bool, bool>{ return "Tiebreaker for greedy actions."; });
 }
 
-void add_policy_picker_features(Registry& raw_registry)
+void add_policy_picker_features(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<OperatorIDTieBreakerFeature>();
-    raw_registry.insert_feature_plugins<ArbitraryTieBreakerFeature>();
-    raw_registry.insert_feature_plugins<RandomTieBreakerFeature>();
-    raw_registry.insert_feature_plugins<ValueGapTieBreakerFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<OperatorIDTieBreakerFeature>();
+    n.insert_feature_plugins<ArbitraryTieBreakerFeature>();
+    n.insert_feature_plugins<RandomTieBreakerFeature>();
+    n.insert_feature_plugins<ValueGapTieBreakerFeature>();
 }
 
 } // namespace probfd::cli::policy_pickers

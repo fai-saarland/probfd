@@ -71,9 +71,10 @@ public:
 
 namespace downward::cli::pruning {
 
-void add_limited_pruning_feature(Registry& raw_registry)
+void add_limited_pruning_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<LimitedPruningFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<LimitedPruningFeature>();
 }
 
 } // namespace downward::cli::pruning

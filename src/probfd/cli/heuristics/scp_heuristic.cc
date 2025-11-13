@@ -77,9 +77,10 @@ public:
 
 namespace probfd::cli::heuristics {
 
-void add_scp_heuristic_feature(Registry& raw_registry)
+void add_scp_heuristic_feature(Registry& registry)
 {
-    raw_registry.insert_enum_plugin<SCPHeuristicFactory::OrderingStrategy>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_enum_plugin<SCPHeuristicFactory::OrderingStrategy>(
         {{"random", "the order is random"},
          {"size_asc", "orders the PDBs by increasing size"},
          {"size_desc", "orders the PDBs by decreasing size"},
@@ -87,7 +88,7 @@ void add_scp_heuristic_feature(Registry& raw_registry)
           "inherits the order from the underlying pattern generation "
           "algorithm"}});
 
-    raw_registry.insert_feature_plugin<SCPHeuristicFactoryFeature>();
+    n.insert_feature_plugin<SCPHeuristicFactoryFeature>();
 }
 
 } // namespace probfd::cli::heuristics

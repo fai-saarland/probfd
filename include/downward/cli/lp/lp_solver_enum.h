@@ -8,7 +8,7 @@ class Registry;
 namespace downward::cli::lp {
 
 void add_lp_solver_enum(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

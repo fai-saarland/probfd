@@ -8,7 +8,7 @@ class Registry;
 namespace probfd::cli::solvers {
 
 void add_i2dual_feature(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

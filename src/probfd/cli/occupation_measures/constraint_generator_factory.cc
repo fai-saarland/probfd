@@ -11,10 +11,12 @@ using namespace downward::cli::plugins;
 
 namespace probfd::cli::occupation_measures {
 
-void add_constraint_generator_factory_category(Registry& raw_registry)
+void add_constraint_generator_factory_category(Registry& registry)
 {
-    raw_registry.insert_shared_category_plugin<ConstraintGenerator>(
-        "OMConstraintGeneratorFactory", "");
+    Namespace& n = registry.get_global_name_space();
+    n.insert_shared_category_plugin<ConstraintGenerator>(
+        "OMConstraintGeneratorFactory",
+        "");
 }
 
 } // namespace probfd::cli::occupation_measures

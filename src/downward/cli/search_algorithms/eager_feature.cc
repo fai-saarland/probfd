@@ -129,9 +129,10 @@ public:
 
 namespace downward::cli::search_algorithms {
 
-void add_eager_feature(Registry& raw_registry)
+void add_eager_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<EagerSearchFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<EagerSearchFeature>();
 }
 
 } // namespace downward::cli::search_algorithms

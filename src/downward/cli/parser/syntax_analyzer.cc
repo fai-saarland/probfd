@@ -337,8 +337,7 @@ static constexpr std::array literal_tokens{
     TokenType::FALSE,
     TokenType::STRING,
     TokenType::INTEGER,
-    TokenType::FLOAT,
-    TokenType::IDENTIFIER};
+    TokenType::FLOAT};
 
 static ASTNodePtr
 parse_literal(TokenStream& tokens, SyntaxAnalyzerContext& context)
@@ -346,6 +345,21 @@ parse_literal(TokenStream& tokens, SyntaxAnalyzerContext& context)
     utils::TraceBlock block(context, "Parsing Literal");
 
     Token token = tokens.pop(context);
+
+    if (token.type == TokenType::IDENTIFIER) {
+        std::vector<std::string> qualification;
+        while (tokens.has_tokens(1) &&
+               tokens.peek(context).type == TokenType::DOT) {
+            qualification.push_back(token.content);
+            tokens.pop(context);
+            token = tokens.pop(context, TokenType::IDENTIFIER);
+        }
+
+        return std::make_unique<IdentifierNode>(
+            std::move(qualification),
+            token.content);
+    }
+
     if (!std::ranges::binary_search(literal_tokens, token.type)) {
         context.error("Token {} cannot be parsed as literal", token);
     }

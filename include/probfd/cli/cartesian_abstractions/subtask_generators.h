@@ -8,10 +8,10 @@ class Registry;
 namespace probfd::cli::cartesian_abstractions {
 
 void add_subtask_generator_category(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 void add_subtask_generator_features(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

@@ -151,10 +151,10 @@ public:
 
 namespace downward::cli::pdbs {
 
-void add_pattern_collection_generator_genetic_feature(Registry& raw_registry)
+void add_pattern_collection_generator_genetic_feature(Registry& registry)
 {
-    raw_registry
-        .insert_feature_plugin<PatternCollectionGeneratorGeneticFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<PatternCollectionGeneratorGeneticFeature>();
 }
 
 } // namespace downward::cli::pdbs

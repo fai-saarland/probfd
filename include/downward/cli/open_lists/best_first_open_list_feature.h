@@ -8,7 +8,7 @@ class Registry;
 namespace downward::cli::open_lists {
 
 void add_best_first_open_list_features(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

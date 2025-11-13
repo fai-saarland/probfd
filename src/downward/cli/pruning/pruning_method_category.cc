@@ -9,9 +9,10 @@ using namespace std;
 
 namespace downward::cli::pruning {
 
-void add_pruning_method_category(plugins::Registry& raw_registry)
+void add_pruning_method_category(plugins::Registry& registry)
 {
-    raw_registry.insert_shared_category_plugin<PruningMethod>(
+    plugins::Namespace& n = registry.get_global_name_space();
+    n.insert_shared_category_plugin<PruningMethod>(
         "PruningMethod",
         "Prune or reorder applicable operators.");
 }

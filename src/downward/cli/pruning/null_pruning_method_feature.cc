@@ -43,9 +43,10 @@ public:
 
 namespace downward::cli::pruning {
 
-void add_null_pruning_method_feature(Registry& raw_registry)
+void add_null_pruning_method_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<NullPruningMethodFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<NullPruningMethodFeature>();
 }
 
 } // namespace downward::cli::pruning

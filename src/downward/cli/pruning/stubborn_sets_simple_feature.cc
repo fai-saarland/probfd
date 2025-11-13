@@ -72,9 +72,10 @@ public:
 
 namespace downward::cli::pruning {
 
-void add_stubborn_sets_simple_feature(Registry& raw_registry)
+void add_stubborn_sets_simple_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<StubbornSetsSimpleFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<StubbornSetsSimpleFeature>();
 }
 
 } // namespace downward::cli::pruning

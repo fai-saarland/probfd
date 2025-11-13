@@ -136,10 +136,11 @@ public:
 
 namespace probfd::cli {
 
-void add_task_state_space_factory_features(Registry& raw_registry)
+void add_task_state_space_factory_features(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<DefaultTaskStateSpaceFactoryFeature>();
-    raw_registry.insert_feature_plugin<CachingTaskStateSpaceFactoryFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<DefaultTaskStateSpaceFactoryFeature>();
+    n.insert_feature_plugin<CachingTaskStateSpaceFactoryFeature>();
 }
 
 } // namespace probfd::cli

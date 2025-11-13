@@ -34,16 +34,19 @@ public:
         document_property("safe", "yes");
         document_property("preferred operators", "no");
 
-        add_optional_list_argument_with_default<std::shared_ptr<SubtaskGenerator>>(
+        add_optional_list_argument_with_default<
+            std::shared_ptr<SubtaskGenerator>>(
             "subtasks",
             "[pcegar_landmarks(), pcegar_goals()]",
             "subtask generators");
-        add_optional_argument_with_default<std::shared_ptr<FlawGeneratorFactory>>(
+        add_optional_argument_with_default<
+            std::shared_ptr<FlawGeneratorFactory>>(
             "flaw_generator_factory",
             "flaws_ilao()",
             "factory for the flaw generation algorithm used in the refinement "
             "loop");
-        add_optional_argument_with_default<std::shared_ptr<SplitSelectorFactory>>(
+        add_optional_argument_with_default<
+            std::shared_ptr<SplitSelectorFactory>>(
             "split_selector_factory",
             "max_refined()",
             "factory for the split selection algorithm used in the refinement "
@@ -73,10 +76,8 @@ public:
     {
         return make_shared_from_arg_tuples<AdditiveCartesianHeuristicFactory>(
             opts.get_list<std::shared_ptr<SubtaskGenerator>>("subtasks"),
-            opts.get_shared<FlawGeneratorFactory>(
-                "flaw_generator_factory"),
-            opts.get_shared<SplitSelectorFactory>(
-                "split_selector_factory"),
+            opts.get_shared<FlawGeneratorFactory>("flaw_generator_factory"),
+            opts.get_shared<SplitSelectorFactory>("split_selector_factory"),
             opts.get<int>("max_states"),
             opts.get<int>("max_transitions"),
             opts.get<utils::FSeconds>("max_time"),
@@ -88,10 +89,10 @@ public:
 
 namespace probfd::cli::heuristics {
 
-void add_additive_cartesian_heuristic_feature(Registry& raw_registry)
+void add_additive_cartesian_heuristic_feature(Registry& registry)
 {
-    raw_registry
-        .insert_feature_plugin<AdditiveCartesianHeuristicFactoryFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<AdditiveCartesianHeuristicFactoryFeature>();
 }
 
 } // namespace probfd::cli::heuristics

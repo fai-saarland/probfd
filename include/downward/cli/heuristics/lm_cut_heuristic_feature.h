@@ -8,7 +8,7 @@ class Registry;
 namespace downward::cli::heuristics {
 
 void add_landmark_cut_heuristic_feature(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

@@ -8,7 +8,7 @@ class Registry;
 namespace downward::cli::cartesian_abstractions {
 
 void add_subtask_generators_features(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 } // namespace downward::cli::cartesian_abstractions
 

@@ -29,6 +29,7 @@ static vector<pair<TokenType, regex>> construct_token_type_expressions()
         {TokenType::OPENING_BRACKET, R"(\[)"},
         {TokenType::CLOSING_BRACKET, R"(\])"},
         {TokenType::COMMA, R"(,)"},
+        {TokenType::DOT, R"(\.)"},
         {TokenType::COLON, R"(:)"},
         {TokenType::EQUALS, R"(=)"},
         {TokenType::PLUS, R"(\+)"},

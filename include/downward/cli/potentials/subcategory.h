@@ -8,7 +8,7 @@ class Registry;
 namespace downward::cli::potentials {
 
 void add_potential_heuristics_subcategory(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

@@ -111,9 +111,10 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_zero_one_pdbs_heuristic_features(Registry& raw_registry)
+void add_zero_one_pdbs_heuristic_features(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<ZeroOnePDBsHeuristicFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<ZeroOnePDBsHeuristicFeature>();
 }
 
 } // namespace downward::cli::heuristics
