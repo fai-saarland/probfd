@@ -1,19 +1,17 @@
 #ifndef DOWNWARD_PLUGINS_MERGE_AND_SHRINK_SHRINK_BUCKET_BASED_H
 #define DOWNWARD_PLUGINS_MERGE_AND_SHRINK_SHRINK_BUCKET_BASED_H
 
-#include <tuple>
+#include <cstddef>
 
 namespace downward::cli::plugins {
 class Feature;
-class Options;
 } // namespace downward::cli::plugins
 
 namespace downward::cli::merge_and_shrink {
 
-extern void add_shrink_bucket_options_to_feature(plugins::Feature& feature);
-
-extern std::tuple<int>
-get_shrink_bucket_arguments_from_options(const plugins::Options& opts);
+extern std::size_t add_shrink_bucket_options_to_feature(
+    plugins::Feature& feature,
+    std::size_t start_index);
 
 } // namespace downward::cli::merge_and_shrink
 

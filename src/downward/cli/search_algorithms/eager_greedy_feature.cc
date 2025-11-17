@@ -90,28 +90,23 @@ public:
 };
 
 class EagerGreedySearchFeature
-    : public SharedTypedFeature<TaskDependentFactory<SearchAlgorithm>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<SearchAlgorithm>,
+          std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
+          std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
+          int,
+          std::shared_ptr<PruningMethod>,
+          OperatorCost,
+          int,
+          utils::FSeconds,
+          const std::string&,
+          utils::Verbosity> {
 public:
     EagerGreedySearchFeature()
-        : TypedFeature("eager_greedy")
+        : TypedFeature("eager_greedy", &EagerGreedySearchFeature::func)
     {
         document_title("Greedy search (eager)");
         document_synopsis("");
-
-        add_optional_argument<shared_ptr<TaskDependentFactory<Evaluator>>>(
-            "evals",
-            "evaluators");
-        add_optional_list_argument_with_default<
-            shared_ptr<TaskDependentFactory<Evaluator>>>(
-            "preferred",
-            "[]",
-            "use preferred operators of these evaluators");
-        add_optional_argument_with_default<int>(
-            "boost",
-            "0",
-            "boost value for preferred operator open lists");
-        add_eager_search_options_to_feature(*this, "eager_greedy");
-
         document_note(
             "Open list",
             "In most cases, eager greedy best first search uses "
@@ -151,20 +146,48 @@ public:
             "is equivalent to\n"
             "```\n--search eager(single(eval1))\n```\n",
             true);
+
+        make_required_argument(0, "evals", "evaluators");
+        make_optional_argument_with_default(
+            1,
+            "preferred",
+            "[]",
+            "use preferred operators of these evaluators");
+        make_optional_argument_with_default(
+            2,
+            "boost",
+            "0",
+            "boost value for preferred operator open lists");
+        add_eager_search_options_to_feature(*this, "eager_greedy", 3);
     }
 
-    shared_ptr<TaskDependentFactory<SearchAlgorithm>>
-    create_component(const Options& opts, const utils::Context& context)
-        const override
+    static shared_ptr<TaskDependentFactory<SearchAlgorithm>> func(
+        const utils::Context& context,
+        std::vector<shared_ptr<TaskDependentFactory<Evaluator>>> eval_factories,
+        std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>
+            preferred_factories,
+        int boost,
+        std::shared_ptr<PruningMethod> pruning,
+        OperatorCost cost_type,
+        int bound,
+        utils::FSeconds max_time,
+        const std::string& description,
+        utils::Verbosity verbosity)
     {
-        verify_list_non_empty<shared_ptr<Evaluator>>(context, opts, "evals");
+        if (eval_factories.empty()) {
+            context.error("List of evaluators may not be empty.");
+        }
 
         return make_shared_from_arg_tuples<EagerGreedySearchFactory>(
-            opts.get_list<shared_ptr<TaskDependentFactory<Evaluator>>>("evals"),
-            opts.get_list<shared_ptr<TaskDependentFactory<Evaluator>>>(
-                "preferred"),
-            opts.get<int>("boost"),
-            get_eager_search_arguments_from_options(opts));
+            std::move(eval_factories),
+            std::move(preferred_factories),
+            boost,
+            std::move(pruning),
+            cost_type,
+            bound,
+            max_time,
+            description,
+            verbosity);
     }
 };
 } // namespace

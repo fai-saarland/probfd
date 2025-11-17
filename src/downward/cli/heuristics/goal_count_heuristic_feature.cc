@@ -20,7 +20,6 @@ using namespace downward;
 using namespace downward::cli::plugins;
 
 using downward::cli::add_heuristic_options_to_feature;
-using downward::cli::get_heuristic_arguments_from_options;
 
 namespace {
 class GoalCountHeuristicFactory : public TaskDependentFactory<Evaluator> {
@@ -55,14 +54,17 @@ public:
 };
 
 class GoalCountHeuristicFeature
-    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<Evaluator>,
+          shared_ptr<TaskTransformation>,
+          bool,
+          string,
+          utils::Verbosity> {
 public:
     GoalCountHeuristicFeature()
-        : TypedFeature("goalcount")
+        : TypedFeature("goalcount", &GoalCountHeuristicFeature::func)
     {
         document_title("Goal count heuristic");
-
-        add_heuristic_options_to_feature(*this, "goalcount");
 
         document_language_support("action costs", "ignored by design");
         document_language_support("conditional effects", "supported");
@@ -72,13 +74,22 @@ public:
         document_property("consistent", "no");
         document_property("safe", "yes");
         document_property("preferred operators", "no");
+
+        add_heuristic_options_to_feature(*this, "goalcount", 0);
     }
 
-    shared_ptr<TaskDependentFactory<Evaluator>>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<TaskDependentFactory<Evaluator>> func(
+        const Context&,
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        utils::Verbosity verbosity)
     {
-        return make_shared_from_arg_tuples<GoalCountHeuristicFactory>(
-            get_heuristic_arguments_from_options(opts));
+        return make_shared<GoalCountHeuristicFactory>(
+            std::move(transformation),
+            cache_estimates,
+            std::move(description),
+            verbosity);
     }
 };
 } // namespace

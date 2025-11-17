@@ -19,7 +19,6 @@ using namespace downward::enforced_hill_climbing_search;
 using namespace downward::cli::plugins;
 
 using downward::cli::add_search_algorithm_options_to_feature;
-using downward::cli::get_search_algorithm_arguments_from_options;
 
 namespace {
 class EnforcedHillClimbingSearchFactory
@@ -77,38 +76,57 @@ public:
 };
 
 class EnforcedHillClimbingSearchFeature
-    : public SharedTypedFeature<TaskDependentFactory<SearchAlgorithm>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<SearchAlgorithm>,
+          shared_ptr<TaskDependentFactory<Evaluator>>,
+          PreferredUsage,
+          vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
+          OperatorCost,
+          int,
+          utils::FSeconds,
+          const std::string&,
+          utils::Verbosity> {
 public:
     EnforcedHillClimbingSearchFeature()
-        : TypedFeature("ehc")
+        : TypedFeature("ehc", &EnforcedHillClimbingSearchFeature::func)
     {
         document_title("Lazy enforced hill-climbing");
         document_synopsis("");
 
-        add_optional_argument<shared_ptr<TaskDependentFactory<Evaluator>>>(
-            "h",
-            "heuristic");
-        add_optional_argument_with_default<PreferredUsage>(
+        make_required_argument(0, "h", "heuristic");
+        make_optional_argument_with_default(
+            1,
             "preferred_usage",
             "prune_by_preferred",
             "preferred operator usage");
-        add_optional_list_argument_with_default<
-            shared_ptr<TaskDependentFactory<Evaluator>>>(
+        make_optional_argument_with_default(
+            2,
             "preferred",
             "[]",
             "use preferred operators of these evaluators");
-        add_search_algorithm_options_to_feature(*this, "ehc");
+        add_search_algorithm_options_to_feature(*this, "ehc", 3);
     }
 
-    shared_ptr<TaskDependentFactory<SearchAlgorithm>>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<TaskDependentFactory<SearchAlgorithm>> func(
+        const Context&,
+        shared_ptr<TaskDependentFactory<Evaluator>> h_factory,
+        PreferredUsage preferred_usage,
+        vector<shared_ptr<TaskDependentFactory<Evaluator>>> preferred_factories,
+        OperatorCost cost_type,
+        int bound,
+        utils::FSeconds max_time,
+        const std::string& description,
+        utils::Verbosity verbosity)
     {
-        return make_shared_from_arg_tuples<EnforcedHillClimbingSearchFactory>(
-            opts.get<shared_ptr<TaskDependentFactory<Evaluator>>>("h"),
-            opts.get<PreferredUsage>("preferred_usage"),
-            opts.get_list<shared_ptr<TaskDependentFactory<Evaluator>>>(
-                "preferred"),
-            get_search_algorithm_arguments_from_options(opts));
+        return make_shared<EnforcedHillClimbingSearchFactory>(
+            std::move(h_factory),
+            preferred_usage,
+            std::move(preferred_factories),
+            cost_type,
+            bound,
+            max_time,
+            description,
+            verbosity);
     }
 };
 } // namespace

@@ -19,10 +19,23 @@ using namespace downward::cli::plugins;
 
 namespace {
 class PatternCollectionGeneratorMultipleCegarFeature
-    : public SharedTypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<
+          PatternCollectionGenerator,
+          bool,
+          int,
+          int,
+          FSeconds,
+          FSeconds,
+          FSeconds,
+          double,
+          bool,
+          int,
+          Verbosity> {
 public:
     PatternCollectionGeneratorMultipleCegarFeature()
-        : TypedFeature("multiple_cegar")
+        : TypedFeature(
+              "multiple_cegar",
+              &PatternCollectionGeneratorMultipleCegarFeature::func)
     {
         document_title("Multiple CEGAR");
         document_synopsis(
@@ -36,28 +49,45 @@ public:
             "of "
             "the algorithms.");
 
-        add_cegar_wildcard_option_to_feature(*this);
-        add_multiple_options_to_feature(*this);
-
         add_cegar_implementation_notes_to_feature(*this);
         add_multiple_algorithm_implementation_notes_to_feature(*this);
+
+        const auto n = add_cegar_wildcard_option_to_feature(*this, 0);
+        add_multiple_options_to_feature(*this, n);
     }
 
-    virtual shared_ptr<PatternCollectionGenerator>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<PatternCollectionGenerator> func(
+        const Context&,
+        bool use_wildcard_plans,
+        int max_pdb_size,
+        int max_collection_size,
+        FSeconds pattern_generation_max_time,
+        FSeconds total_max_time,
+        FSeconds stagnation_limit,
+        double blacklist_trigger_percentage,
+        bool enable_blacklist_on_stagnation,
+        int random_seed,
+        Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<
             PatternCollectionGeneratorMultipleCegar>(
-            get_cegar_wildcard_arguments_from_options(opts),
-            get_multiple_arguments_from_options(opts));
+            use_wildcard_plans,
+            max_pdb_size,
+            max_collection_size,
+            pattern_generation_max_time,
+            total_max_time,
+            stagnation_limit,
+            blacklist_trigger_percentage,
+            enable_blacklist_on_stagnation,
+            random_seed,
+            verbosity);
     }
 };
 } // namespace
 
 namespace downward::cli::pdbs {
 
-void add_pattern_collection_generator_multiple_cegar_feature(
-    Registry& registry)
+void add_pattern_collection_generator_multiple_cegar_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
     n.insert_feature_plugin<PatternCollectionGeneratorMultipleCegarFeature>();

@@ -14,17 +14,19 @@ using namespace probfd::cartesian_abstractions;
 
 namespace {
 class ILAOFlawGeneratorFactoryFeature
-    : public SharedTypedFeature<FlawGeneratorFactory> {
+    : public SharedTypedFeature<FlawGeneratorFactory, probfd::value_t, int> {
 public:
     ILAOFlawGeneratorFactoryFeature()
-        : TypedFeature("flaws_ilao")
+        : TypedFeature("flaws_ilao", &ILAOFlawGeneratorFactoryFeature::func)
     {
-        add_optional_argument_with_default<probfd::value_t>(
+        make_optional_argument_with_default(
+            0,
             "convergence_epsilon",
             "10e-4",
             "The tolerance for convergence checks.");
 
-        add_optional_argument_with_default<int>(
+        make_optional_argument_with_default(
+            1,
             "max_search_states",
             "infinity()",
             "maximum number of concrete states allowed to be generated during "
@@ -32,12 +34,14 @@ public:
             "search before giving up");
     }
 
-    std::shared_ptr<FlawGeneratorFactory>
-    create_component(const Options& opts, const Context&) const override
+    static std::shared_ptr<FlawGeneratorFactory> func(
+        const Context&,
+        probfd::value_t convergence_epsilon,
+        int max_search_states)
     {
         return std::make_shared<ILAOFlawGeneratorFactory>(
-            opts.get<probfd::value_t>("convergence_epsilon"),
-            opts.get<int>("max_search_states"));
+            convergence_epsilon,
+            max_search_states);
     }
 };
 } // namespace

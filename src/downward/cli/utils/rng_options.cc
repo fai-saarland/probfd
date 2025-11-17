@@ -6,19 +6,17 @@ using namespace std;
 
 namespace downward::cli::utils {
 
-void add_rng_options_to_feature(plugins::Feature& feature)
+std::size_t
+add_rng_options_to_feature(plugins::Feature& feature, std::size_t start_index)
 {
-    feature.add_optional_argument_with_default<int>(
+    feature.make_optional_argument_with_default(
+        start_index,
         "random_seed",
         "-1",
         "Set to -1 (default) to use the global random number generator. "
         "Set to any other value to use a local random number generator with "
         "the given seed.");
-}
-
-tuple<int> get_rng_arguments_from_options(const plugins::Options& opts)
-{
-    return make_tuple(opts.get<int>("random_seed"));
+    return 1;
 }
 
 } // namespace downward::cli::utils

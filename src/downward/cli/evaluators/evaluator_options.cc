@@ -10,23 +10,19 @@ using namespace std;
 
 namespace downward::cli {
 
-void add_evaluator_options_to_feature(
+std::size_t add_evaluator_options_to_feature(
     plugins::Feature& feature,
-    const string& description)
+    const string& description,
+    std::size_t start_index)
 {
-    feature.add_optional_argument_with_default<string>(
+    feature.make_optional_argument_with_default(
+        start_index,
         "description",
         "\"" + description + "\"",
         "description used to identify evaluator in logs");
-    utils::add_log_options_to_feature(feature);
-}
+    const auto n = utils::add_log_options_to_feature(feature, start_index + 1);
 
-tuple<string, downward::utils::Verbosity>
-get_evaluator_arguments_from_options(const plugins::Options& opts)
-{
-    return tuple_cat(
-        make_tuple(opts.get<string>("description")),
-        utils::get_log_arguments_from_options(opts));
+    return n + 1;
 }
 
 } // namespace downward::cli

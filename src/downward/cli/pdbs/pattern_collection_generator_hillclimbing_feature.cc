@@ -22,10 +22,8 @@ using namespace downward::cli::pdbs;
 using namespace downward::cli::plugins;
 
 using downward::cli::pdbs::add_generator_options_to_feature;
-using downward::cli::pdbs::get_generator_arguments_from_options;
 
 using downward::cli::add_heuristic_options_to_feature;
-using downward::cli::get_heuristic_arguments_from_options;
 
 namespace {
 std::string paper_references()
@@ -59,10 +57,20 @@ std::string paper_references()
 }
 
 class PatternCollectionGeneratorHillclimbingFeature
-    : public SharedTypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<
+          PatternCollectionGenerator,
+          int,
+          int,
+          int,
+          int,
+          FSeconds,
+          int,
+          Verbosity> {
 public:
     PatternCollectionGeneratorHillclimbingFeature()
-        : TypedFeature("hillclimbing")
+        : TypedFeature(
+              "hillclimbing",
+              &PatternCollectionGeneratorHillclimbingFeature::func)
     {
         document_title("Hill climbing");
         document_synopsis(
@@ -71,14 +79,21 @@ public:
             "described "
             "in the following paper:" +
             paper_references());
-        add_hillclimbing_options_to_feature(*this);
-        add_generator_options_to_feature(*this);
+        const auto n = add_hillclimbing_options_to_feature(*this, 0);
+        add_generator_options_to_feature(*this, n);
     }
 
-    virtual shared_ptr<PatternCollectionGenerator>
-    create_component(const Options& opts, const Context& context) const override
+    static shared_ptr<PatternCollectionGenerator> func(
+        const Context& context,
+        int pdb_max_size,
+        int collection_max_size,
+        int num_samples,
+        int min_improvement,
+        FSeconds max_time,
+        int random_seed,
+        Verbosity verbosity)
     {
-        if (opts.get<int>("min_improvement") > opts.get<int>("num_samples")) {
+        if (min_improvement > num_samples) {
             context.error(
                 "Minimum improvement must not be higher than number "
                 "of samples");
@@ -86,16 +101,20 @@ public:
 
         return make_shared_from_arg_tuples<
             PatternCollectionGeneratorHillclimbing>(
-            get_hillclimbing_arguments_from_options(opts),
-            get_generator_arguments_from_options(opts));
+            pdb_max_size,
+            collection_max_size,
+            num_samples,
+            min_improvement,
+            max_time,
+            random_seed,
+            verbosity);
     }
 };
 } // namespace
 
 namespace downward::cli::pdbs {
 
-void add_pattern_collection_generator_hillclimbing_feature(
-    Registry& registry)
+void add_pattern_collection_generator_hillclimbing_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
     n.insert_feature_plugin<PatternCollectionGeneratorHillclimbingFeature>();

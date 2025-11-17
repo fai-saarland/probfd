@@ -14,13 +14,12 @@ class IdentityTaskTransformationFeature
     : public SharedTypedFeature<TaskTransformation> {
 public:
     IdentityTaskTransformationFeature()
-        : TypedFeature("no_transform")
+        : TypedFeature("no_transform", &IdentityTaskTransformationFeature::func)
     {
     }
 
     [[nodiscard]]
-    shared_ptr<TaskTransformation>
-    create_component(const Options&, const utils::Context&) const override
+    static shared_ptr<TaskTransformation> func(const utils::Context&)
     {
         return std::make_shared<IdentityTaskTransformation>();
     }

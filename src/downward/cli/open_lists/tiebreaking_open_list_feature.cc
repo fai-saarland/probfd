@@ -7,8 +7,6 @@
 
 #include "downward/open_lists/tiebreaking_open_list.h"
 
-#include "downward/utils/memory.h"
-
 using namespace std;
 using namespace downward::utils;
 using namespace downward::tiebreaking_open_list;
@@ -16,64 +14,71 @@ using namespace downward::tiebreaking_open_list;
 using namespace downward::cli::plugins;
 
 using downward::cli::add_open_list_options_to_feature;
-using downward::cli::get_open_list_arguments_from_options;
 
 namespace {
 template <typename T>
 class TieBreakingOpenListFeature
     : public SharedTypedFeature<
-          downward::TaskDependentFactory<downward::OpenList<T>>> {
+          downward::TaskDependentFactory<downward::OpenList<T>>,
+          const std::vector<std::shared_ptr<
+              downward::TaskDependentFactory<downward::Evaluator>>>&,
+          bool,
+          bool> {
 public:
     TieBreakingOpenListFeature()
         requires(std::same_as<T, downward::StateOpenListEntry>)
-        : TieBreakingOpenListFeature::TypedFeature("state_tiebreaking")
+        : TieBreakingOpenListFeature::TypedFeature(
+              "state_tiebreaking",
+              &TieBreakingOpenListFeature::func)
     {
         this->document_title("Tie-breaking state open list");
         this->document_synopsis("");
 
-        this->template add_required_list_argument<
-            shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>>(
-            "evals",
-            "evaluators");
-        this->template add_optional_argument_with_default<bool>(
+        this->make_required_argument(0, "evals", "evaluators");
+        this->make_optional_argument_with_default(
+            1,
             "unsafe_pruning",
             "true",
             "allow unsafe pruning when the main evaluator regards a state a "
             "dead end");
-        add_open_list_options_to_feature(*this);
+        add_open_list_options_to_feature(*this, 2);
     }
 
     TieBreakingOpenListFeature()
         requires(std::same_as<T, downward::EdgeOpenListEntry>)
-        : TieBreakingOpenListFeature::TypedFeature("edge_tiebreaking")
+        : TieBreakingOpenListFeature::TypedFeature(
+              "edge_tiebreaking",
+              &TieBreakingOpenListFeature::func)
     {
         this->document_title("Tie-breaking edge open list");
         this->document_synopsis("");
 
-        this->template add_required_list_argument<
-            shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>>(
-            "evals",
-            "evaluators");
-        this->template add_optional_argument_with_default<bool>(
+        this->make_required_argument(0, "evals", "evaluators");
+        this->make_optional_argument_with_default(
+            1,
             "unsafe_pruning",
             "true",
             "allow unsafe pruning when the main evaluator regards a state a "
             "dead end");
-        add_open_list_options_to_feature(*this);
+        add_open_list_options_to_feature(*this, 2);
     }
 
-    virtual shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
-    create_component(const Options& opts, const Context& context) const override
+    static shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
+    func(
+        const Context& context,
+        const std::vector<std::shared_ptr<
+            downward::TaskDependentFactory<downward::Evaluator>>>& factories,
+        bool unsafe_pruning,
+        bool pref_only)
     {
-        verify_list_non_empty<shared_ptr<downward::Evaluator>>(
-            context,
-            opts,
-            "evals");
+        if (factories.empty()) {
+            context.error("List of evaluators may not be empty.");
+        }
+
         return make_shared_from_arg_tuples<TieBreakingOpenListFactory<T>>(
-            opts.get_list<shared_ptr<
-                downward::TaskDependentFactory<downward::Evaluator>>>("evals"),
-            opts.get<bool>("unsafe_pruning"),
-            get_open_list_arguments_from_options(opts));
+            std::move(factories),
+            unsafe_pruning,
+            pref_only);
     }
 };
 } // namespace

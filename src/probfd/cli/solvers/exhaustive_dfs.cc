@@ -89,44 +89,78 @@ public:
 };
 
 class ExhaustiveDFSSolverFeature
-    : public SharedTypedFeature<TaskSolverFactory> {
+    : public SharedTypedFeature<
+          TaskSolverFactory,
+          std::shared_ptr<TaskStateSpaceFactory>,
+          std::shared_ptr<TaskHeuristicFactory>,
+          std::string,
+          bool,
+          value_t,
+          bool,
+          utils::Verbosity,
+          value_t,
+          std::shared_ptr<FDRTransitionSorter>,
+          bool,
+          bool,
+          bool> {
 public:
     ExhaustiveDFSSolverFeature()
-        : TypedFeature("exhaustive_dfs")
+        : TypedFeature("exhaustive_dfs", &ExhaustiveDFSSolverFeature::func)
     {
         document_title("Exhaustive Depth-First Search");
 
-        add_optional_argument_with_default<value_t>(
+        const auto n =
+            add_base_solver_options_except_algorithm_to_feature(*this, 0);
+
+        make_optional_argument_with_default(
+            n,
             "convergence_epsilon",
             "10e-4",
             "The tolerance for convergence checks.");
 
-        add_required_argument<std::shared_ptr<FDRTransitionSorter>>("order");
+        make_required_argument(n + 1, "order");
 
-        add_optional_argument_with_default<bool>("dual_bounds", "false");
-        add_optional_argument_with_default<bool>(
+        make_optional_argument_with_default(n + 2, "dual_bounds", "false");
+        make_optional_argument_with_default(
+            n + 3,
             "reverse_path_updates",
             "true");
-        add_optional_argument_with_default<bool>(
+        make_optional_argument_with_default(
+            n + 4,
             "only_propagate_when_changed",
             "true");
-
-        add_base_solver_options_except_algorithm_to_feature(*this);
     }
 
 protected:
-    std::shared_ptr<TaskSolverFactory>
-    create_component(const Options& options, const utils::Context&)
-        const override
+    static std::shared_ptr<TaskSolverFactory> func(
+        const utils::Context&,
+        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+        std::string policy_filename,
+        bool print_fact_names,
+        value_t report_epsilon,
+        bool report_enabled,
+        utils::Verbosity verbosity,
+        value_t convergence_epsilon,
+        std::shared_ptr<FDRTransitionSorter> order,
+        bool dual_bounds,
+        bool reverse_path_updates,
+        bool only_propagate_when_changed)
     {
         return make_shared_from_arg_tuples<MDPSolver>(
             make_shared_from_arg_tuples<ExhaustiveDFSSolver>(
-                options.get<value_t>("convergence_epsilon"),
-                options.get_shared<FDRTransitionSorter>("order", nullptr),
-                options.get<bool>("dual_bounds"),
-                options.get<bool>("reverse_path_updates"),
-                options.get<bool>("only_propagate_when_changed")),
-            get_base_solver_args_no_algorithm_from_options(options));
+                convergence_epsilon,
+                std::move(order),
+                dual_bounds,
+                reverse_path_updates,
+                only_propagate_when_changed),
+            std::move(task_state_space_factory),
+            std::move(heuristic_factory),
+            std::move(policy_filename),
+            print_fact_names,
+            report_epsilon,
+            report_enabled,
+            verbosity);
     }
 };
 } // namespace

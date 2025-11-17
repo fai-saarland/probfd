@@ -22,10 +22,16 @@ using namespace probfd::cli::merge_and_shrink;
 
 namespace {
 class MergeScoringFunctionMIASMFeature
-    : public SharedTypedFeature<MergeScoringFunction> {
+    : public SharedTypedFeature<
+          MergeScoringFunction,
+          bool,
+          std::shared_ptr<ShrinkStrategy>,
+          int,
+          int,
+          int> {
 public:
     MergeScoringFunctionMIASMFeature()
-        : TypedFeature("psf_miasm")
+        : TypedFeature("psf_miasm", &MergeScoringFunctionMIASMFeature::func)
     {
         document_title("MIASM");
         document_synopsis(
@@ -58,16 +64,6 @@ public:
                 "AAAI Press",
                 "2016"));
 
-        // TODO: use shrink strategy and limit options from
-        // MergeAndShrinkHeuristic instead of having the identical options here
-        // again.
-        add_required_argument<shared_ptr<ShrinkStrategy>>(
-            "shrink_strategy",
-            "We recommend setting this to match the shrink strategy "
-            "configuration "
-            "given to {{{merge_and_shrink}}}, see note below.");
-        add_transition_system_size_limit_options_to_feature(*this);
-
         document_note(
             "Note",
             "To obtain the configurations called dyn-MIASM described in the "
@@ -98,7 +94,11 @@ public:
             "use full pruning, i.e. {{{prune_unreachable_states=true}}} and {{{"
             "prune_irrelevant_states=true}}} (the default).");
 
-        add_optional_list_argument_with_default<bool>(
+        // TODO: use shrink strategy and limit options from
+        // MergeAndShrinkHeuristic instead of having the identical options here
+        // again.
+        make_optional_argument_with_default(
+            0,
             "use_caching",
             "true",
             "Cache scores for merge candidates. IMPORTANT! This only works "
@@ -108,29 +108,37 @@ public:
             "In this setting, the MIASM score of a merge candidate is constant "
             "over merge-and-shrink iterations. If caching is enabled, only the "
             "scores for the new merge candidates need to be computed.");
+
+        make_required_argument(
+            1,
+            "shrink_strategy",
+            "We recommend setting this to match the shrink strategy "
+            "configuration "
+            "given to {{{merge_and_shrink}}}, see note below.");
+
+        add_transition_system_size_limit_options_to_feature(*this, 2);
     }
 
-    shared_ptr<MergeScoringFunction>
-    create_component(const Options& options, const utils::Context& context)
-        const override
+    static shared_ptr<MergeScoringFunction> func(
+        const utils::Context& context,
+        bool use_caching,
+        std::shared_ptr<ShrinkStrategy> shrink_strategy,
+        int max_states,
+        int max_states_before_merge,
+        int threshold_before_merge)
     {
-        auto size_args =
-            get_transition_system_size_limit_arguments_from_options(options);
-
-        int& max_states = std::get<0>(size_args);
-        int& max_states_before_merge = std::get<1>(size_args);
-        int& threshold = std::get<2>(size_args);
-
         handle_shrink_limit_options_defaults(
             max_states,
             max_states_before_merge,
-            threshold,
+            threshold_before_merge,
             context);
 
         return make_shared_from_arg_tuples<MergeScoringFunctionMIASM>(
-            options.get<bool>("use_caching"),
-            options.get<shared_ptr<ShrinkStrategy>>("shrink_strategy"),
-            size_args);
+            use_caching,
+            std::move(shrink_strategy),
+            max_states,
+            max_states_before_merge,
+            threshold_before_merge);
     }
 };
 } // namespace

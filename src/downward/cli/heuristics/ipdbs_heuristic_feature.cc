@@ -27,7 +27,6 @@ using namespace downward::cli::plugins;
 using namespace downward::cli::pdbs;
 
 using downward::cli::add_heuristic_options_to_feature;
-using downward::cli::get_heuristic_arguments_from_options;
 
 namespace {
 std::string paper_references()
@@ -124,10 +123,23 @@ public:
     }
 };
 
-class IPDBFeature : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
+class IPDBFeature
+    : public SharedTypedFeature<
+          TaskDependentFactory<Evaluator>,
+          shared_ptr<TaskTransformation>,
+          bool,
+          string,
+          utils::Verbosity,
+          int,
+          int,
+          int,
+          int,
+          FSeconds,
+          int,
+          FSeconds> {
 public:
     IPDBFeature()
-        : TypedFeature("ipdb")
+        : TypedFeature("ipdb", &IPDBFeature::func)
     {
         document_title("iPDB");
         document_synopsis(
@@ -144,18 +156,6 @@ public:
             "See also Heuristic#Canonical_PDB and "
             "PatternCollectionGenerator#Hill_climbing for more details.");
 
-        add_hillclimbing_options_to_feature(*this);
-        /*
-          Add, possibly among others, the options for dominance pruning.
-          Note that using dominance pruning during hill climbing could lead to
-          fewer discovered patterns and pattern collections. A dominated pattern
-          (or pattern collection) might no longer be dominated after more
-          patterns are added. We thus only use dominance pruning on the
-          resulting collection.
-        */
-        add_canonical_pdbs_options_to_feature(*this);
-        add_heuristic_options_to_feature(*this, "cpdbs");
-
         document_language_support("action costs", "supported");
         document_language_support("conditional effects", "not supported");
         document_language_support("axioms", "not supported");
@@ -164,26 +164,52 @@ public:
         document_property("consistent", "yes");
         document_property("safe", "yes");
         document_property("preferred operators", "no");
+
+        const auto n = add_hillclimbing_options_to_feature(*this, 0);
+        /*
+          Add, possibly among others, the options for dominance pruning.
+          Note that using dominance pruning during hill climbing could lead to
+          fewer discovered patterns and pattern collections. A dominated pattern
+          (or pattern collection) might no longer be dominated after more
+          patterns are added. We thus only use dominance pruning on the
+          resulting collection.
+        */
+        const auto n2 = add_canonical_pdbs_options_to_feature(*this, n);
+        add_heuristic_options_to_feature(*this, "cpdbs", n + n2);
     }
 
-    shared_ptr<TaskDependentFactory<Evaluator>>
-    create_component(const Options& opts, const Context& context) const override
+    static shared_ptr<TaskDependentFactory<Evaluator>> func(
+        const Context& context,
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        utils::Verbosity verbosity,
+        int pdb_max_size,
+        int collection_max_size,
+        int num_samples,
+        int min_improvement,
+        FSeconds max_time,
+        int random_seed,
+        FSeconds max_time_dominance_pruning)
     {
-        if (opts.get<int>("min_improvement") > opts.get<int>("num_samples")) {
+        if (min_improvement > num_samples) {
             context.error(
                 "Minimum improvement must not be higher than number "
                 "of samples");
         }
 
         return make_shared_from_arg_tuples<IPDBsHeuristicFactory>(
-            get_heuristic_arguments_from_options(opts),
-            opts.get<int>("pdb_max_size"),
-            opts.get<int>("collection_max_size"),
-            opts.get<int>("num_samples"),
-            opts.get<int>("min_improvement"),
-            opts.get<FSeconds>("max_time"),
-            cli::utils::get_rng_arguments_from_options(opts),
-            opts.get<FSeconds>("max_time_dominance_pruning"));
+            std::move(transformation),
+            cache_estimates,
+            std::move(description),
+            verbosity,
+            pdb_max_size,
+            collection_max_size,
+            num_samples,
+            min_improvement,
+            max_time,
+            random_seed,
+            max_time_dominance_pruning);
     }
 };
 } // namespace

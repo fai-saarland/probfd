@@ -18,10 +18,15 @@ using namespace probfd::cli::merge_and_shrink;
 
 namespace {
 class MergeStrategyFactoryStatelessFeature
-    : public SharedTypedFeature<MergeStrategyFactory> {
+    : public SharedTypedFeature<
+          MergeStrategyFactory,
+          utils::Verbosity,
+          std::shared_ptr<MergeSelector>> {
 public:
     MergeStrategyFactoryStatelessFeature()
-        : TypedFeature("pmerge_stateless")
+        : TypedFeature(
+              "pmerge_stateless",
+              &MergeStrategyFactoryStatelessFeature::func)
     {
         document_title("Stateless merge strategy");
         document_synopsis(
@@ -29,12 +34,6 @@ public:
             "merge only depending on the current state of the factored "
             "transition "
             "system, not requiring any additional information.");
-
-        add_required_argument<shared_ptr<MergeSelector>>(
-            "merge_selector",
-            "The merge selector to be used.");
-
-        add_merge_strategy_options_to_feature(*this);
 
         document_note(
             "Note",
@@ -55,16 +54,23 @@ public:
             "scoring_functions=[sf_miasm(<shrinking_options>),total_order(<"
             "order_option>)]"
             "\n}}}");
+
+        const auto n = add_merge_strategy_options_to_feature(*this, 0);
+        make_required_argument(
+            n,
+            "merge_selector",
+            "The merge selector to be used.");
     }
 
 protected:
-    shared_ptr<MergeStrategyFactory>
-    create_component(const Options& options, const utils::Context&)
-        const override
+    static shared_ptr<MergeStrategyFactory> func(
+        const utils::Context&,
+        utils::Verbosity verbosity,
+        std::shared_ptr<MergeSelector> merge_selector)
     {
         return make_shared_from_arg_tuples<MergeStrategyFactoryStateless>(
-            get_merge_strategy_args_from_options(options),
-            options.get<shared_ptr<MergeSelector>>("merge_selector"));
+            verbosity,
+            std::move(merge_selector));
     }
 };
 } // namespace

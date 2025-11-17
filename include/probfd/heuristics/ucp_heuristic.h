@@ -38,13 +38,11 @@ protected:
 };
 
 class UCPHeuristicFactory final : public TaskHeuristicFactory {
-    const downward::utils::Verbosity verbosity_;
     const std::shared_ptr<pdbs::PatternCollectionGenerator>
         pattern_collection_generator_;
 
 public:
-    UCPHeuristicFactory(
-        downward::utils::Verbosity verbosity,
+    explicit UCPHeuristicFactory(
         std::shared_ptr<pdbs::PatternCollectionGenerator> generator);
 
     std::unique_ptr<FDRHeuristic>

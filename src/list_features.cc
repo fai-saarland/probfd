@@ -115,7 +115,10 @@ protected:
     {
         os << "Type:\n  ";
 
-        const auto& args = feature.get_arguments();
+        const auto& args_infos = feature.get_arguments();
+        const auto& arg_types = feature.get_type().get_argument_types();
+
+        const auto args = std::views::zip(args_infos, arg_types);
 
         auto it = args.begin();
         const auto end = args.end();
@@ -127,8 +130,8 @@ protected:
 
         if (it != end) {
             {
-                const ArgumentInfo& arg_info = *it;
-                os << arg_info.type.name();
+                const auto& [arg_info, arg_type] = *it;
+                os << arg_type->name();
                 if (arg_info.has_default()) {
                     os << "*";
                     has_optional = true;
@@ -141,8 +144,8 @@ protected:
             }
 
             for (++it; it != end; ++it) {
-                const ArgumentInfo& arg_info = *it;
-                os << ", " << arg_info.type.name();
+                const auto& [arg_info, arg_type] = *it;
+                os << ", " << arg_type->name();
                 if (arg_info.has_default()) {
                     os << "*";
                     has_optional = true;
@@ -155,7 +158,8 @@ protected:
             }
         }
 
-        os << ") -> " << feature.get_type().name() << std::endl;
+        os << ") -> " << feature.get_type().get_return_type().name()
+           << std::endl;
 
         if (has_optional) {
             os << "  The symbol '*' indicates an optional argument."
@@ -184,9 +188,11 @@ protected:
 
         std::vector<std::string> arg_strings;
 
-        for (const ArgumentInfo& arg_info : feature.get_arguments()) {
-            std::string& s =
-                arg_strings.emplace_back(std::format("{:t}", arg_info));
+        for (const auto& [arg_info, arg_type] : std::views::zip(
+                 feature.get_arguments(),
+                 feature.get_type().get_argument_types())) {
+            std::string& s = arg_strings.emplace_back(
+                std::format("{} : {}", arg_info, arg_type->name()));
 
             if (const auto width = static_cast<int>(s.size());
                 width > max_width)
@@ -195,9 +201,10 @@ protected:
 
         int remaining_width = std::max(10, MAX_LINE_WIDTH - max_width + 4);
 
-        for (const auto& [s, arg_info, arg_help] : std::views::zip(
+        for (const auto& [s, arg_info, arg_type, arg_help] : std::views::zip(
                  arg_strings,
                  feature.get_arguments(),
+                 feature.get_type().get_argument_types(),
                  feature.get_argument_docs())) {
             std::stringstream ss;
             ss << arg_help;
@@ -221,10 +228,9 @@ protected:
                 std::println(os, "{:>{}}{}", "", max_width + 4, line);
             }
 
-            const Type& arg_type = arg_info.type;
-            if (!arg_type.is_enum_type()) continue;
+            if (!arg_type->is_enum_type()) continue;
 
-            for (const auto& expl : static_cast<const EnumType&>(arg_type)
+            for (const auto& expl : static_cast<const EnumType&>(*arg_type)
                                         .get_documented_enum_values()) {
                 std::println(
                     os,
@@ -377,7 +383,8 @@ static int list_features(argparse::ArgumentParser& parser)
     }
 
     if (parser.present("--features")) {
-        const auto features = parser.get<std::vector<std::string>>("--features");
+        const auto features =
+            parser.get<std::vector<std::string>>("--features");
         for (const string& name : features) {
             try {
                 doc_printer->print_feature(name);

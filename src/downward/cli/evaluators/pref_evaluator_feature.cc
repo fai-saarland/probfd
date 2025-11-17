@@ -19,7 +19,6 @@ using namespace downward::utils;
 using namespace downward::cli::plugins;
 
 using downward::cli::add_evaluator_options_to_feature;
-using downward::cli::get_evaluator_arguments_from_options;
 
 namespace {
 
@@ -41,22 +40,26 @@ public:
 };
 
 class PrefEvaluatorFeature
-    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<Evaluator>,
+          std::string,
+          Verbosity> {
 public:
     PrefEvaluatorFeature()
-        : TypedFeature("pref")
+        : TypedFeature("pref", &PrefEvaluatorFeature::func)
     {
         document_title("Preference evaluator");
         document_synopsis("Returns 0 if preferred is true and 1 otherwise.");
 
-        add_evaluator_options_to_feature(*this, "pref");
+        add_evaluator_options_to_feature(*this, "pref", 0);
     }
 
-    shared_ptr<TaskDependentFactory<Evaluator>>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<TaskDependentFactory<Evaluator>>
+    func(const Context&, std::string description, Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<PrefEvaluatorFactory>(
-            get_evaluator_arguments_from_options(opts));
+            std::move(description),
+            verbosity);
     }
 };
 

@@ -7,6 +7,7 @@
 #include "downward/utils/tuples.h"
 
 #include <any>
+#include <functional>
 #include <string>
 #include <type_traits>
 #include <typeindex>
@@ -19,7 +20,7 @@ class Context;
 namespace downward::cli::plugins {
 
 class Feature {
-    const Type& type;
+protected:
     std::vector<ArgumentInfo> arguments;
 
     std::vector<std::string> argument_docs;
@@ -31,41 +32,20 @@ class Feature {
     std::vector<NoteInfo> notes;
 
 public:
-    Feature(const Type& type, std::string key);
+    Feature(std::string key, std::size_t num_args);
+
     virtual ~Feature() = default;
+
     Feature(const Feature&) = delete;
 
-    virtual std::any
-    construct(const Options& opts, const downward::utils::Context& context)
-        const = 0;
-
-    template <typename T>
-    void
-    add_optional_argument(const std::string& key, const std::string& help = "");
-
-    template <typename T>
-    void add_optional_argument_with_default(
+    void make_optional_argument_with_default(
+        std::size_t i,
         const std::string& key,
         const std::string& default_value,
         const std::string& help = "");
 
-    template <typename T>
-    void
-    add_required_argument(const std::string& key, const std::string& help = "");
-
-    template <typename T>
-    void add_optional_list_argument(
-        const std::string& key,
-        const std::string& help = "");
-
-    template <typename T>
-    void add_optional_list_argument_with_default(
-        const std::string& key,
-        const std::string& default_value,
-        const std::string& help = "");
-
-    template <typename T>
-    void add_required_list_argument(
+    void make_required_argument(
+        std::size_t i,
         const std::string& key,
         const std::string& help = "");
 
@@ -81,7 +61,6 @@ public:
         const std::string& note,
         bool long_text = false);
 
-    const Type& get_type() const;
     std::string get_key() const;
     std::string get_title() const;
     std::string get_synopsis() const;
@@ -91,17 +70,23 @@ public:
     const std::vector<LanguageSupportInfo>& get_language_support() const;
     const std::vector<NoteInfo>& get_notes() const;
 
-private:
-    void add_argument(ArgumentInfo info, const std::string& help);
+    virtual std::any
+    construct(const Options& opts, const downward::utils::Context& context)
+        const = 0;
+
+    virtual const FunctionType& get_type() const = 0;
 };
 
-template <typename ReturnType>
+template <typename ReturnType, typename... Args>
 class TypedFeature : public Feature {
+    std::function<ReturnType(const downward::utils::Context&, Args...)> f;
+
 public:
-    explicit TypedFeature(std::string key)
-        : Feature(
-              TypeRegistry::instance()->get_type<ReturnType>(),
-              std::move(key))
+    explicit TypedFeature(
+        std::string key,
+        std::function<ReturnType(const downward::utils::Context&, Args...)> f)
+        : Feature(std::move(key), sizeof...(Args))
+        , f(std::move(f))
     {
     }
 
@@ -109,15 +94,31 @@ public:
     construct(const Options& options, const downward::utils::Context& context)
         const override
     {
-        return {this->create_component(options, context)};
+        return construct(
+            options,
+            context,
+            std::make_index_sequence<sizeof...(Args)>{});
     }
 
-    virtual ReturnType
-    create_component(const Options&, const downward::utils::Context&) const = 0;
+    const FunctionType& get_type() const override
+    {
+        return TypeRegistry::instance()
+            ->get_function_type<ReturnType, Args...>();
+    }
+
+private:
+    template <std::size_t... indices>
+    std::any construct(
+        const Options& options,
+        const downward::utils::Context& context,
+        std::index_sequence<indices...>) const
+    {
+        return std::invoke(f, context, options.get<Args>(indices)...);
+    }
 };
 
-template <typename ReturnType>
-using SharedTypedFeature = TypedFeature<std::shared_ptr<ReturnType>>;
+template <typename ReturnType, typename... Args>
+using SharedTypedFeature = TypedFeature<std::shared_ptr<ReturnType>, Args...>;
 
 /*
   Expects constructor arguments of T. Consecutive arguments may be
@@ -252,84 +253,42 @@ public:
     std::string get_synopsis() const;
 };
 
-inline void Feature::add_argument(ArgumentInfo info, const std::string& help)
+inline void Feature::make_optional_argument_with_default(
+    std::size_t i,
+    const std::string& arg_key,
+    const std::string& default_value,
+    const std::string& help)
 {
-    if (const auto cmp = &ArgumentInfo::key;
-        std::ranges::contains(arguments, info.key, cmp)) {
+    if (std::ranges::contains(arguments, arg_key, &ArgumentInfo::key)) {
         throw downward::utils::CriticalError(
             "Duplicate argument keyword argument '{}' of feature {}.",
-            info.key,
-            key);
+            arg_key,
+            this->key);
     }
 
-    arguments.emplace_back(std::move(info));
-    argument_docs.emplace_back(help);
+    auto& info = arguments[i];
+    info.set_key(arg_key);
+    info.set_default(default_value);
+
+    argument_docs[i] = help;
 }
 
-template <typename T>
-void Feature::add_optional_argument(
-    const std::string& key,
+inline void Feature::make_required_argument(
+    std::size_t i,
+    const std::string& arg_key,
     const std::string& help)
 {
-    add_argument(
-        ArgumentInfo::make_optional(
-            key,
-            TypeRegistry::instance()->get_type<T>()),
-        help);
-}
+    if (std::ranges::contains(arguments, arg_key, &ArgumentInfo::key)) {
+        throw downward::utils::CriticalError(
+            "Duplicate argument keyword argument '{}' of feature {}.",
+            arg_key,
+            this->key);
+    }
 
-template <typename T>
-void Feature::add_optional_argument_with_default(
-    const std::string& key,
-    const std::string& default_value,
-    const std::string& help)
-{
-    add_argument(
-        ArgumentInfo::make_optional(
-            key,
-            TypeRegistry::instance()->get_type<T>(),
-            default_value),
-        help);
-}
+    auto& info = arguments[i];
+    info.set_key(arg_key);
 
-template <typename T>
-void Feature::add_required_argument(
-    const std::string& key,
-    const std::string& help)
-{
-    add_argument(
-        ArgumentInfo::make_required(
-            key,
-            TypeRegistry::instance()->get_type<T>()),
-        help);
-}
-
-template <typename T>
-void Feature::add_optional_list_argument(
-    const std::string& key,
-    const std::string& help)
-{
-    add_optional_argument<std::vector<T>>(key, help);
-}
-
-template <typename T>
-void Feature::add_optional_list_argument_with_default(
-    const std::string& key,
-    const std::string& default_value,
-    const std::string& help)
-{
-    add_optional_argument_with_default<std::vector<T>>(
-        key,
-        default_value,
-        help);
-}
-
-template <typename T>
-void Feature::add_required_list_argument(
-    const std::string& key,
-    const std::string& help)
-{
-    add_required_argument<std::vector<T>>(key, help);
+    argument_docs[i] = help;
 }
 
 } // namespace downward::cli::plugins

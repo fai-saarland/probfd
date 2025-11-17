@@ -13,10 +13,14 @@ using namespace downward::cli::plugins;
 
 namespace {
 class MergeSelectorScoreBasedFilteringFeature
-    : public SharedTypedFeature<MergeSelector> {
+    : public SharedTypedFeature<
+          MergeSelector,
+          const std::vector<std::shared_ptr<MergeScoringFunction>>&> {
 public:
     MergeSelectorScoreBasedFilteringFeature()
-        : TypedFeature("score_based_filtering")
+        : TypedFeature(
+              "score_based_filtering",
+              &MergeSelectorScoreBasedFilteringFeature::func)
     {
         document_title("Score based filtering merge selector");
         document_synopsis(
@@ -26,18 +30,19 @@ public:
             "keeping the best "
             "ones (with minimal scores) until only one is left.");
 
-        add_required_list_argument<shared_ptr<MergeScoringFunction>>(
+        make_required_argument(
+            0,
             "scoring_functions",
             "The list of scoring functions used to compute scores for "
             "candidates.");
     }
 
-    virtual shared_ptr<MergeSelector>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<MergeSelector> func(
+        const Context&,
+        const std::vector<std::shared_ptr<MergeScoringFunction>>&
+            scoring_functions)
     {
-        return make_shared<MergeSelectorScoreBasedFiltering>(
-            opts.get_list<shared_ptr<MergeScoringFunction>>(
-                "scoring_functions"));
+        return make_shared<MergeSelectorScoreBasedFiltering>(scoring_functions);
     }
 };
 } // namespace

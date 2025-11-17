@@ -20,7 +20,6 @@ using namespace downward::utils;
 using namespace downward::cli::plugins;
 
 using downward::cli::add_heuristic_options_to_feature;
-using downward::cli::get_heuristic_arguments_from_options;
 
 namespace {
 class CGHeuristicFactory : public TaskDependentFactory<Evaluator> {
@@ -62,19 +61,18 @@ public:
 };
 
 class CGHeuristicFeature
-    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<Evaluator>,
+          shared_ptr<TaskTransformation>,
+          bool,
+          string,
+          utils::Verbosity,
+          int> {
 public:
     CGHeuristicFeature()
-        : TypedFeature("cg")
+        : TypedFeature("cg", &CGHeuristicFeature::func)
     {
         document_title("Causal graph heuristic");
-
-        add_optional_argument_with_default<int>(
-            "max_cache_size",
-            "1000000",
-            "maximum number of cached entries per variable (set to 0 to "
-            "disable cache)");
-        add_heuristic_options_to_feature(*this, "cg");
 
         document_language_support("action costs", "supported");
         document_language_support("conditional effects", "supported");
@@ -88,14 +86,30 @@ public:
         document_property("consistent", "no");
         document_property("safe", "no");
         document_property("preferred operators", "yes");
+
+        make_optional_argument_with_default(
+            0,
+            "max_cache_size",
+            "1000000",
+            "maximum number of cached entries per variable (set to 0 to "
+            "disable cache)");
+        add_heuristic_options_to_feature(*this, "cg", 1);
     }
 
-    shared_ptr<TaskDependentFactory<Evaluator>>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<TaskDependentFactory<Evaluator>> func(
+        const Context&,
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        utils::Verbosity verbosity,
+        int max_cache_size)
     {
-        return make_shared_from_arg_tuples<CGHeuristicFactory>(
-            get_heuristic_arguments_from_options(opts),
-            opts.get<int>("max_cache_size"));
+        return make_shared<CGHeuristicFactory>(
+            std::move(transformation),
+            cache_estimates,
+            std::move(description),
+            verbosity,
+            max_cache_size);
     }
 };
 } // namespace

@@ -21,9 +21,6 @@ using namespace downward::cli::plugins;
 using downward::cli::combining_evaluator::
     add_combining_evaluator_options_to_feature;
 
-using downward::cli::combining_evaluator::
-    get_combining_evaluator_arguments_from_options;
-
 namespace {
 
 class SumEvaluatorFactory : public TaskDependentFactory<Evaluator> {
@@ -58,26 +55,35 @@ public:
 };
 
 class SumEvaluatorFeature
-    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<Evaluator>,
+          std::string,
+          Verbosity,
+          vector<shared_ptr<TaskDependentFactory<Evaluator>>>> {
 public:
     SumEvaluatorFeature()
-        : TypedFeature("sum")
+        : TypedFeature("sum", &SumEvaluatorFeature::func)
     {
         document_title("Sum evaluator");
         document_synopsis("Calculates the sum of the sub-evaluators.");
 
-        add_combining_evaluator_options_to_feature(*this, "sum");
+        add_combining_evaluator_options_to_feature(*this, "sum", 0);
     }
 
-    shared_ptr<TaskDependentFactory<Evaluator>>
-    create_component(const Options& opts, const Context& context) const override
+    static shared_ptr<TaskDependentFactory<Evaluator>> func(
+        const Context& context,
+        std::string description,
+        Verbosity verbosity,
+        vector<shared_ptr<TaskDependentFactory<Evaluator>>> evaluator_factories)
     {
-        verify_list_non_empty<shared_ptr<TaskDependentFactory<Evaluator>>>(
-            context,
-            opts,
-            "evals");
+        if (evaluator_factories.empty()) {
+            context.error("List of evaluators may not be empty.");
+        }
+
         return make_shared_from_arg_tuples<SumEvaluatorFactory>(
-            get_combining_evaluator_arguments_from_options(opts));
+            std::move(description),
+            verbosity,
+            std::move(evaluator_factories));
     }
 };
 

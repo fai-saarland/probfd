@@ -51,15 +51,13 @@ private:
         pattern_collection_generator_;
     const OrderingStrategy ordering_;
     const int random_seed_;
-    const downward::utils::Verbosity verbosity_;
 
 public:
     explicit GZOCPHeuristicFactory(
         std::shared_ptr<pdbs::PatternCollectionGenerator>
             pattern_collection_generator,
         OrderingStrategy ordering,
-        int random_seed,
-        downward::utils::Verbosity verbosity);
+        int random_seed);
 
     std::unique_ptr<FDRHeuristic>
     create_object(const SharedProbabilisticTask& task) override;

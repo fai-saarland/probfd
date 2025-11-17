@@ -78,39 +78,24 @@ public:
 };
 
 class IteratedSearchFeature
-    : public SharedTypedFeature<TaskDependentFactory<SearchAlgorithm>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<SearchAlgorithm>,
+          OperatorCost,
+          int,
+          utils::FSeconds,
+          std::string,
+          utils::Verbosity,
+          std::vector<std::shared_ptr<TaskDependentFactory<SearchAlgorithm>>>,
+          bool,
+          bool,
+          bool,
+          bool> {
 public:
     IteratedSearchFeature()
-        : TypedFeature("iterated")
+        : TypedFeature("iterated", &IteratedSearchFeature::func)
     {
         document_title("Iterated search");
         document_synopsis("");
-
-        add_required_list_argument<
-            shared_ptr<TaskDependentFactory<SearchAlgorithm>>>(
-            "algorithm_configs",
-            "list of search algorithms for each phase");
-        add_optional_argument_with_default<bool>(
-            "pass_bound",
-            "true",
-            "use the bound of iterated search as a bound for its component "
-            "search algorithms, unless these already have a lower bound set. "
-            "The iterated search bound is tightened whenever a component finds "
-            "a cheaper plan.");
-        add_optional_argument_with_default<bool>(
-            "repeat_last",
-            "false",
-            "repeat last phase of search");
-        add_optional_argument_with_default<bool>(
-            "continue_on_fail",
-            "false",
-            "continue search after no solution found");
-        add_optional_argument_with_default<bool>(
-            "continue_on_solve",
-            "true",
-            "continue search after solution found");
-        add_search_algorithm_options_to_feature(*this, "iterated");
-
         document_note(
             "Note 1",
             "We don't cache heuristic values between search iterations at"
@@ -131,31 +116,66 @@ public:
             "lazy_wastar([h],w=5), lazy_wastar([h],w=3), lazy_wastar([h],w=2), "
             "lazy_wastar([h],w=1)]))\"\n"
             "```");
+
+        make_required_argument(
+            0,
+            "algorithm_configs",
+            "list of search algorithms for each phase");
+        make_optional_argument_with_default(
+            1,
+            "pass_bound",
+            "true",
+            "use the bound of iterated search as a bound for its component "
+            "search algorithms, unless these already have a lower bound set. "
+            "The iterated search bound is tightened whenever a component finds "
+            "a cheaper plan.");
+        make_optional_argument_with_default(
+            2,
+            "repeat_last",
+            "false",
+            "repeat last phase of search");
+        make_optional_argument_with_default(
+            3,
+            "continue_on_fail",
+            "false",
+            "continue search after no solution found");
+        make_optional_argument_with_default(
+            4,
+            "continue_on_solve",
+            "true",
+            "continue search after solution found");
+        add_search_algorithm_options_to_feature(*this, "iterated", 5);
     }
 
-    shared_ptr<TaskDependentFactory<SearchAlgorithm>>
-    create_component(const Options& options, const utils::Context& context)
-        const override
+    static shared_ptr<TaskDependentFactory<SearchAlgorithm>> func(
+        const utils::Context& context,
+        OperatorCost cost_type,
+        int bound,
+        utils::FSeconds max_time,
+        std::string description,
+        utils::Verbosity verbosity,
+        std::vector<std::shared_ptr<TaskDependentFactory<SearchAlgorithm>>>
+            algorithm_configs,
+        bool pass_bound,
+        bool repeat_last,
+        bool continue_on_fail,
+        bool continue_on_solve)
     {
-        verify_list_non_empty<
-            std::shared_ptr<TaskDependentFactory<SearchAlgorithm>>>(
-            context,
-            options,
-            "algorithm_configs");
+        if (algorithm_configs.empty()) {
+            context.error("List of algorithms may not be empty.");
+        }
 
         return make_shared<IteratedSearchFactory>(
-            options.get<OperatorCost>("cost_type"),
-            options.get<int>("bound"),
-            options.get<utils::FSeconds>("max_time"),
-            options.get_unparsed_config(),
-            options.get<utils::Verbosity>("verbosity"),
-            options.get_list<
-                std::shared_ptr<TaskDependentFactory<SearchAlgorithm>>>(
-                "algorithm_configs"),
-            options.get<bool>("pass_bound"),
-            options.get<bool>("repeat_last"),
-            options.get<bool>("continue_on_fail"),
-            options.get<bool>("continue_on_solve"));
+            cost_type,
+            bound,
+            max_time,
+            std::move(description),
+            verbosity,
+            std::move(algorithm_configs),
+            pass_bound,
+            repeat_last,
+            continue_on_fail,
+            continue_on_solve);
     }
 };
 } // namespace

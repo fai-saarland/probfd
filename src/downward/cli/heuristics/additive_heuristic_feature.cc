@@ -18,7 +18,6 @@ using namespace downward;
 using namespace downward::cli::plugins;
 
 using downward::cli::add_heuristic_options_to_feature;
-using downward::cli::get_heuristic_arguments_from_options;
 
 namespace {
 class AdditiveHeuristicFactory : public TaskDependentFactory<Evaluator> {
@@ -53,14 +52,17 @@ public:
 };
 
 class AdditiveHeuristicFeature
-    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<Evaluator>,
+          shared_ptr<TaskTransformation>,
+          bool,
+          string,
+          utils::Verbosity> {
 public:
     AdditiveHeuristicFeature()
-        : TypedFeature("add")
+        : TypedFeature("add", &AdditiveHeuristicFeature::func)
     {
         document_title("Additive heuristic");
-
-        add_heuristic_options_to_feature(*this, "add");
 
         document_language_support("action costs", "supported");
         document_language_support("conditional effects", "supported");
@@ -74,13 +76,22 @@ public:
         document_property("consistent", "no");
         document_property("safe", "yes for tasks without axioms");
         document_property("preferred operators", "yes");
+
+        add_heuristic_options_to_feature(*this, "add", 0);
     }
 
-    shared_ptr<TaskDependentFactory<Evaluator>>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<TaskDependentFactory<Evaluator>> func(
+        const Context&,
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        utils::Verbosity verbosity)
     {
-        return make_shared_from_arg_tuples<AdditiveHeuristicFactory>(
-            get_heuristic_arguments_from_options(opts));
+        return make_shared<AdditiveHeuristicFactory>(
+            std::move(transformation),
+            cache_estimates,
+            std::move(description),
+            verbosity);
     }
 };
 } // namespace

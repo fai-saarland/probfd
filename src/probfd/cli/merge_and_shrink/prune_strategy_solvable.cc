@@ -13,14 +13,13 @@ namespace {
 class PruneStrategySolvableFeature : public SharedTypedFeature<PruneStrategy> {
 public:
     PruneStrategySolvableFeature()
-        : TypedFeature("prune_solvable")
+        : TypedFeature("prune_solvable", &PruneStrategySolvableFeature::func)
     {
         document_title("Solvable states prune strategy");
         document_synopsis("This prune strategy keeps only solvable states.");
     }
 
-    std::shared_ptr<PruneStrategy>
-    create_component(const Options&, const utils::Context&) const override
+    static std::shared_ptr<PruneStrategy> func(const utils::Context&)
     {
         return std::make_shared<PruneStrategySolvable>();
     }

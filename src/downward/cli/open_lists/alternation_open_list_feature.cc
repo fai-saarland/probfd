@@ -15,20 +15,26 @@ namespace {
 template <typename T>
 class AlternationOpenListFeature
     : public SharedTypedFeature<
-          downward::TaskDependentFactory<downward::OpenList<T>>> {
+          downward::TaskDependentFactory<downward::OpenList<T>>,
+          const std::vector<shared_ptr<
+              downward::TaskDependentFactory<downward::OpenList<T>>>>&,
+          int> {
 public:
     AlternationOpenListFeature()
         requires(std::same_as<T, downward::StateOpenListEntry>)
-        : AlternationOpenListFeature::TypedFeature("state_alt")
+        : AlternationOpenListFeature::TypedFeature(
+              "state_alt",
+              &AlternationOpenListFeature::func)
     {
         this->document_title("Alternation state open list");
         this->document_synopsis("alternates between several open lists.");
 
-        this->template add_required_list_argument<
-            shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>>(
+        this->make_required_argument(
+            0,
             "sublists",
             "open lists between which this one alternates");
-        this->template add_optional_argument_with_default<int>(
+        this->make_optional_argument_with_default(
+            1,
             "boost",
             "0",
             "boost value for contained open lists that are restricted "
@@ -37,35 +43,38 @@ public:
 
     AlternationOpenListFeature()
         requires(std::same_as<T, downward::EdgeOpenListEntry>)
-        : AlternationOpenListFeature::TypedFeature("edge_alt")
+        : AlternationOpenListFeature::TypedFeature(
+              "edge_alt",
+              &AlternationOpenListFeature::func)
     {
         this->document_title("Alternation edge open list");
         this->document_synopsis("alternates between several open lists.");
 
-        this->template add_required_list_argument<
-            shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>>(
+        this->make_required_argument(
+            0,
             "sublists",
             "open lists between which this one alternates");
-        this->template add_optional_argument_with_default<int>(
+        this->make_optional_argument_with_default(
+            1,
             "boost",
             "0",
             "boost value for contained open lists that are restricted "
             "to preferred successors");
     }
 
-    virtual shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
-    create_component(const Options& opts, const Context& context) const override
+    static shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
+    func(
+        const Context& context,
+        const std::vector<
+            shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>>&
+            sublists,
+        int boost)
     {
-        verify_list_non_empty<
-            shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>>(
-            context,
-            opts,
-            "sublists");
-        return make_shared_from_arg_tuples<AlternationOpenListFactory<T>>(
-            opts.get_list<shared_ptr<
-                downward::TaskDependentFactory<downward::OpenList<T>>>>(
-                "sublists"),
-            opts.get<int>("boost"));
+        if (sublists.empty()) {
+            context.error("List of open lists has to be non-empty.");
+        }
+
+        return make_shared<AlternationOpenListFactory<T>>(sublists, boost);
     }
 };
 } // namespace

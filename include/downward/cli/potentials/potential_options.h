@@ -1,42 +1,21 @@
 #ifndef CLI_POTENTIALS_POTENTIAL_OPTIONS_H
 #define CLI_POTENTIALS_POTENTIAL_OPTIONS_H
 
-#include "downward/lp/lp_solver.h"
-
-#include <memory>
+#include <cstddef>
 #include <string>
-
-namespace downward {
-class TaskTransformation;
-
-enum class LPSolverType;
-}
-
-namespace downward::utils {
-enum class Verbosity;
-}
 
 namespace downward::cli::plugins {
 class Feature;
-class Options;
 } // namespace downward::cli::plugins
 
 namespace downward::cli::potentials {
 
 std::string get_admissible_potentials_reference();
 
-void add_admissible_potentials_options_to_feature(
+std::size_t add_admissible_potentials_options_to_feature(
     plugins::Feature& feature,
-    const std::string& description);
-
-std::tuple<
-    double,
-    lp::LPSolverType,
-    std::shared_ptr<TaskTransformation>,
-    bool,
-    std::string,
-    utils::Verbosity>
-get_admissible_potential_arguments_from_options(const plugins::Options& opts);
+    const std::string& description,
+    std::size_t start_index);
 
 } // namespace downward::cli::potentials
 

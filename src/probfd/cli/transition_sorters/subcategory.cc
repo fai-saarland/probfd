@@ -15,19 +15,19 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-class VDiffSorterFeature : public SharedTypedFeature<FDRTransitionSorter> {
+class VDiffSorterFeature
+    : public SharedTypedFeature<FDRTransitionSorter, bool> {
 public:
     VDiffSorterFeature()
-        : TypedFeature("value_gap_sort")
+        : TypedFeature("value_gap_sort", &VDiffSorterFeature::func)
     {
-        add_optional_argument_with_default<bool>("prefer_large_gaps", "false");
+        make_optional_argument_with_default(0, "prefer_large_gaps", "false");
     }
 
-    std::shared_ptr<FDRTransitionSorter>
-    create_component(const Options& opts, const Context&) const override
+    static std::shared_ptr<FDRTransitionSorter>
+    func(const Context&, bool prefer_large_gaps)
     {
-        return std::make_shared<VDiffSorter>(
-            opts.get<bool>("prefer_large_gaps"));
+        return std::make_shared<VDiffSorter>(prefer_large_gaps);
     }
 };
 } // namespace

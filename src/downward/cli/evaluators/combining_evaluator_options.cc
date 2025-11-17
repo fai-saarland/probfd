@@ -4,37 +4,25 @@
 
 #include "downward/cli/evaluators/evaluator_options.h"
 
-#include "downward/utils/logging.h"
-
-#include "downward/evaluator.h"
-
 using namespace std;
 
 using namespace downward::cli::plugins;
 
 namespace downward::cli::combining_evaluator {
 
-void add_combining_evaluator_options_to_feature(
+std::size_t add_combining_evaluator_options_to_feature(
     Feature& feature,
-    const string& description)
+    const string& description,
+    std::size_t start_index)
 {
-    feature.add_required_list_argument<
-        shared_ptr<TaskDependentFactory<Evaluator>>>(
+    feature.make_required_argument(
+        start_index,
         "evals",
         "at least one evaluator");
-    add_evaluator_options_to_feature(feature, description);
-}
+    const auto n =
+        add_evaluator_options_to_feature(feature, description, start_index + 1);
 
-tuple<
-    const string,
-    utils::Verbosity,
-    vector<shared_ptr<TaskDependentFactory<Evaluator>>>>
-get_combining_evaluator_arguments_from_options(const Options& opts)
-{
-    return tuple_cat(
-        get_evaluator_arguments_from_options(opts),
-        make_tuple(opts.get_list<shared_ptr<TaskDependentFactory<Evaluator>>>(
-            "evals")));
+    return n + 1;
 }
 
 } // namespace downward::cli::combining_evaluator

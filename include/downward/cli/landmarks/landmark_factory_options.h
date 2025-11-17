@@ -1,25 +1,22 @@
 #ifndef DOWNWARD_PLUGINS_LANDMARKS_LANDMARK_FACTORY_H
 #define DOWNWARD_PLUGINS_LANDMARKS_LANDMARK_FACTORY_H
 
-#include <tuple>
-
-namespace downward::utils {
-enum class Verbosity;
-}
+#include <cstddef>
 
 namespace downward::cli::plugins {
 class Feature;
-class Options;
 } // namespace downward::cli::plugins
 
 namespace downward::cli::landmarks {
 
-extern void add_landmark_factory_options_to_feature(plugins::Feature& feature);
-extern std::tuple<utils::Verbosity>
-get_landmark_factory_arguments_from_options(const plugins::Options& opts);
+extern std::size_t add_landmark_factory_options_to_feature(
+    plugins::Feature& feature,
+    std::size_t start_index);
 
-extern void add_use_orders_option_to_feature(plugins::Feature& feature);
-extern bool get_use_orders_arguments_from_options(const plugins::Options& opts);
+extern std::size_t add_use_orders_option_to_feature(
+    plugins::Feature& feature,
+    std::size_t start_index);
+
 } // namespace downward::cli::landmarks
 
 #endif

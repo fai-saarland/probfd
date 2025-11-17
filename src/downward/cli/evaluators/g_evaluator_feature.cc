@@ -38,22 +38,27 @@ public:
     }
 };
 
-class GEvaluatorFeature : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
+class GEvaluatorFeature
+    : public SharedTypedFeature<
+          TaskDependentFactory<Evaluator>,
+          std::string,
+          Verbosity> {
 public:
     GEvaluatorFeature()
-        : TypedFeature("g")
+        : TypedFeature("g", &GEvaluatorFeature::func)
     {
         document_title("g-value evaluator");
         document_synopsis(
             "Returns the g-value (path cost) of the search node.");
-        add_evaluator_options_to_feature(*this, "g");
+        add_evaluator_options_to_feature(*this, "g", 0);
     }
 
-    virtual shared_ptr<TaskDependentFactory<Evaluator>>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<TaskDependentFactory<Evaluator>>
+    func(const Context&, std::string description, Verbosity verbosity)
     {
-        return make_shared_from_arg_tuples<GEvaluatorFactory>(
-            get_evaluator_arguments_from_options(opts));
+        return make_shared<GEvaluatorFactory>(
+            std::move(description),
+            verbosity);
     }
 };
 

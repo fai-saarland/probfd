@@ -19,16 +19,21 @@ using namespace downward::utils;
 using namespace downward::cli::plugins;
 
 using downward::cli::landmarks::add_use_orders_option_to_feature;
-using downward::cli::landmarks::get_use_orders_arguments_from_options;
 
 using downward::cli::landmarks::add_landmark_factory_options_to_feature;
-using downward::cli::landmarks::get_landmark_factory_arguments_from_options;
 
 namespace {
-class LandmarkFactoryHMFeature : public SharedTypedFeature<LandmarkFactory> {
+class LandmarkFactoryHMFeature
+    : public SharedTypedFeature<
+          LandmarkFactory,
+          std::shared_ptr<TaskDependentFactory<MutexInformation>>,
+          int,
+          bool,
+          bool,
+          utils::Verbosity> {
 public:
     LandmarkFactoryHMFeature()
-        : TypedFeature("lm_hm")
+        : TypedFeature("lm_hm", &LandmarkFactoryHMFeature::func)
     {
         // document_group("");
         document_title("h^m Landmarks");
@@ -36,35 +41,39 @@ public:
             "The landmark generation method introduced by "
             "Keyder, Richter & Helmert (ECAI 2010).");
 
-        add_optional_argument_with_default<int>(
-            "m",
-            "2",
-            "subset size (if unsure, use the default of 2)");
-        add_required_argument<
-            std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
-            "mutexes",
-            "factory for mutexes");
-        add_optional_argument_with_default<bool>(
-            "conjunctive_landmarks",
-            "true",
-            "keep conjunctive landmarks");
-        add_use_orders_option_to_feature(*this);
-        add_landmark_factory_options_to_feature(*this);
-
         document_language_support(
             "conditional_effects",
             "ignored, i.e. not supported");
+
+        make_optional_argument_with_default(
+            0,
+            "m",
+            "2",
+            "subset size (if unsure, use the default of 2)");
+        make_required_argument(1, "mutexes", "factory for mutexes");
+        make_optional_argument_with_default(
+            2,
+            "conjunctive_landmarks",
+            "true",
+            "keep conjunctive landmarks");
+        const auto n = add_use_orders_option_to_feature(*this, 3);
+        add_landmark_factory_options_to_feature(*this, n + 3);
     }
 
-    virtual shared_ptr<LandmarkFactory>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<LandmarkFactory> func(
+        const Context&,
+        std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory,
+        int m,
+        bool conjunctive_landmarks,
+        bool use_orders,
+        utils::Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<LandmarkFactoryHM>(
-            opts.get_shared<TaskDependentFactory<MutexInformation>>("mutexes"),
-            opts.get<int>("m"),
-            opts.get<bool>("conjunctive_landmarks"),
-            get_use_orders_arguments_from_options(opts),
-            get_landmark_factory_arguments_from_options(opts));
+            std::move(mutex_factory),
+            m,
+            conjunctive_landmarks,
+            use_orders,
+            verbosity);
     }
 };
 } // namespace

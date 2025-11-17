@@ -15,24 +15,29 @@ using namespace downward::cli::pdbs;
 using namespace downward::cli::plugins;
 
 namespace {
-class PatternGeneratorManualFeature : public SharedTypedFeature<PatternGenerator> {
+class PatternGeneratorManualFeature
+    : public SharedTypedFeature<
+          PatternGenerator,
+          const std::vector<int>&,
+          Verbosity> {
 public:
     PatternGeneratorManualFeature()
-        : TypedFeature("manual_pattern")
+        : TypedFeature("manual_pattern", &PatternGeneratorManualFeature::func)
     {
-        add_required_list_argument<int>(
+        make_required_argument(
+            0,
             "pattern",
             "list of variable numbers of the planning task that should be used "
             "as the pattern.");
-        add_generator_options_to_feature(*this);
+        add_generator_options_to_feature(*this, 1);
     }
 
-    virtual shared_ptr<PatternGenerator>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<PatternGenerator>
+    func(const Context&, const std::vector<int>& pattern, Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<PatternGeneratorManual>(
-            opts.get_list<int>("pattern"),
-            get_generator_arguments_from_options(opts));
+            pattern,
+            verbosity);
     }
 };
 } // namespace

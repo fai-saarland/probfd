@@ -16,10 +16,11 @@ using namespace downward::cli::plugins;
 using namespace downward::merge_and_shrink;
 
 namespace {
-class ShrinkBisimulationFeature : public SharedTypedFeature<ShrinkStrategy> {
+class ShrinkBisimulationFeature
+    : public SharedTypedFeature<ShrinkStrategy, bool, AtLimit> {
 public:
     ShrinkBisimulationFeature()
-        : TypedFeature("shrink_bisimulation")
+        : TypedFeature("shrink_bisimulation", &ShrinkBisimulationFeature::func)
     {
         document_title("Bismulation based shrink strategy");
         document_synopsis(
@@ -37,15 +38,6 @@ public:
                 "1983-1990",
                 "AAAI Press",
                 "2011"));
-
-        add_optional_argument_with_default<bool>(
-            "greedy",
-            "false",
-            "use greedy bisimulation");
-        add_optional_argument_with_default<AtLimit>(
-            "at_limit",
-            "return",
-            "what to do when the size limit is hit");
 
         document_note(
             "shrink_bisimulation(greedy=true)",
@@ -73,14 +65,23 @@ public:
             "with label reduction, this strategy performed best when used with "
             "label reduction before shrinking (and no label reduction before "
             "merging).");
+
+        make_optional_argument_with_default(
+            0,
+            "greedy",
+            "false",
+            "use greedy bisimulation");
+        make_optional_argument_with_default(
+            1,
+            "at_limit",
+            "return",
+            "what to do when the size limit is hit");
     }
 
-    virtual shared_ptr<ShrinkStrategy>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<ShrinkStrategy>
+    func(const Context&, bool greedy, AtLimit at_limit)
     {
-        return make_shared<ShrinkBisimulation>(
-            opts.get<bool>("greedy"),
-            opts.get<AtLimit>("at_limit"));
+        return make_shared<ShrinkBisimulation>(greedy, at_limit);
     }
 };
 } // namespace

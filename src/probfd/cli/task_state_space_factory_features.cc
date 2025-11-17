@@ -54,7 +54,7 @@ class CachingTaskStateSpaceFactory : public TaskStateSpaceFactory {
         path_dependent_evaluator_factories;
 
 public:
-    CachingTaskStateSpaceFactory(
+    explicit CachingTaskStateSpaceFactory(
         std::vector<std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>
             path_dependent_evaluator_factories)
         : path_dependent_evaluator_factories(
@@ -81,14 +81,19 @@ public:
 };
 
 class DefaultTaskStateSpaceFactoryFeature
-    : public SharedTypedFeature<TaskStateSpaceFactory> {
+    : public SharedTypedFeature<
+          TaskStateSpaceFactory,
+          std::vector<
+              std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>> {
 public:
     DefaultTaskStateSpaceFactoryFeature()
-        : TypedFeature("default_state_space")
+        : TypedFeature(
+              "default_state_space",
+              &DefaultTaskStateSpaceFactoryFeature::func)
     {
         document_synopsis("Default task state space implementation.");
-        add_optional_list_argument_with_default<
-            std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>(
+        make_optional_argument_with_default(
+            0,
             "path_dependent_evaluators",
             "[]",
             "A list of path-dependent classical planning evaluators to inform "
@@ -96,26 +101,31 @@ public:
             "new transitions during the search.");
     }
 
-    std::shared_ptr<TaskStateSpaceFactory>
-    create_component(const Options& opts, const Context&) const override
+    static std::shared_ptr<TaskStateSpaceFactory> func(
+        const Context&,
+        std::vector<std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>
+            path_dependent_evaluator_factories)
     {
-        return make_shared_from_arg_tuples<DefaultTaskStateSpaceFactory>(
-            opts.get_list<
-                std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>(
-                "path_dependent_evaluators"));
+        return std::make_shared<DefaultTaskStateSpaceFactory>(
+            std::move(path_dependent_evaluator_factories));
     }
 };
 
 class CachingTaskStateSpaceFactoryFeature
-    : public SharedTypedFeature<TaskStateSpaceFactory> {
+    : public SharedTypedFeature<
+          TaskStateSpaceFactory,
+          std::vector<
+              std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>> {
 public:
     CachingTaskStateSpaceFactoryFeature()
-        : TypedFeature("caching_state_space")
+        : TypedFeature(
+              "caching_state_space",
+              &CachingTaskStateSpaceFactoryFeature::func)
     {
         document_synopsis(
             "Task state space implementation with transition cache.");
-        add_optional_list_argument_with_default<
-            std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>(
+        make_optional_argument_with_default(
+            0,
             "path_dependent_evaluators",
             "[]",
             "A list of path-dependent classical planning evaluators to inform "
@@ -123,13 +133,13 @@ public:
             "new transitions during the search.");
     }
 
-    std::shared_ptr<TaskStateSpaceFactory>
-    create_component(const Options& opts, const Context&) const override
+    static std::shared_ptr<TaskStateSpaceFactory> func(
+        const Context&,
+        std::vector<std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>
+            path_dependent_evaluator_factories)
     {
-        return make_shared_from_arg_tuples<CachingTaskStateSpaceFactory>(
-            opts.get_list<
-                std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>(
-                "path_dependent_evaluators"));
+        return make_shared<CachingTaskStateSpaceFactory>(
+            std::move(path_dependent_evaluator_factories));
     }
 };
 } // namespace

@@ -17,27 +17,26 @@ using namespace downward::cli::plugins;
 using namespace probfd::cartesian_abstractions;
 
 using downward::cli::utils::add_rng_options_to_feature;
-using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
 
 class SplitSelectorRandomFactoryFeature
-    : public SharedTypedFeature<SplitSelectorFactory> {
+    : public SharedTypedFeature<SplitSelectorFactory, int> {
 public:
     SplitSelectorRandomFactoryFeature()
-        : TypedFeature("random")
+        : TypedFeature("random", &SplitSelectorRandomFactoryFeature::func)
     {
         document_synopsis(
             "select a random variable (among all eligible variables)");
 
-        add_rng_options_to_feature(*this);
+        add_rng_options_to_feature(*this, 0);
     }
 
-    std::shared_ptr<SplitSelectorFactory>
-    create_component(const Options& opts, const Context&) const override
+    static std::shared_ptr<SplitSelectorFactory>
+    func(const Context&, int random_seed)
     {
         return make_shared_from_arg_tuples<SplitSelectorRandomFactory>(
-            get_rng(std::get<0>(get_rng_arguments_from_options(opts))));
+            get_rng(random_seed));
     }
 };
 
@@ -45,7 +44,9 @@ class SplitSelectorMinUnwantedFactoryFeature
     : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMinUnwantedFactoryFeature()
-        : TypedFeature("min_unwanted")
+        : TypedFeature(
+              "min_unwanted",
+              &SplitSelectorMinUnwantedFactoryFeature::func)
     {
         document_synopsis(
             "select an eligible variable which has the least unwanted values "
@@ -53,8 +54,7 @@ public:
             "h-value will probably be raised) in the flaw state");
     }
 
-    std::shared_ptr<SplitSelectorFactory>
-    create_component(const Options&, const Context&) const override
+    static std::shared_ptr<SplitSelectorFactory> func(const Context&)
     {
         return std::make_shared<SplitSelectorMinUnwantedFactory>();
     }
@@ -64,7 +64,9 @@ class SplitSelectorMaxUnwantedFactoryFeature
     : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMaxUnwantedFactoryFeature()
-        : TypedFeature("max_unwanted")
+        : TypedFeature(
+              "max_unwanted",
+              &SplitSelectorMaxUnwantedFactoryFeature::func)
     {
         document_synopsis(
             "select an eligible variable which has the most unwanted values "
@@ -72,8 +74,7 @@ public:
             "h-value will probably be raised) in the flaw state");
     }
 
-    std::shared_ptr<SplitSelectorFactory>
-    create_component(const Options&, const Context&) const override
+    static std::shared_ptr<SplitSelectorFactory> func(const Context&)
     {
         return std::make_shared<SplitSelectorMaxUnwantedFactory>();
     }
@@ -83,7 +84,9 @@ class SplitSelectorMinRefinedFactoryFeature
     : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMinRefinedFactoryFeature()
-        : TypedFeature("min_refined")
+        : TypedFeature(
+              "min_refined",
+              &SplitSelectorMinRefinedFactoryFeature::func)
     {
         document_synopsis(
             "select an eligible variable which is the least refined "
@@ -91,8 +94,7 @@ public:
             "in the flaw state");
     }
 
-    std::shared_ptr<SplitSelectorFactory>
-    create_component(const Options&, const Context&) const override
+    static std::shared_ptr<SplitSelectorFactory> func(const Context&)
     {
         return std::make_shared<SplitSelectorMinRefinedFactory>();
     }
@@ -102,7 +104,9 @@ class SplitSelectorMaxRefinedFactoryFeature
     : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMaxRefinedFactoryFeature()
-        : TypedFeature("max_refined")
+        : TypedFeature(
+              "max_refined",
+              &SplitSelectorMaxRefinedFactoryFeature::func)
     {
         document_synopsis(
             "select an eligible variable which is the most refined "
@@ -110,8 +114,7 @@ public:
             "in the flaw state");
     }
 
-    std::shared_ptr<SplitSelectorFactory>
-    create_component(const Options&, const Context&) const override
+    static std::shared_ptr<SplitSelectorFactory> func(const Context&)
     {
         return std::make_shared<SplitSelectorMaxRefinedFactory>();
     }
@@ -121,15 +124,14 @@ class SplitSelectorMinHAddFactoryFeature
     : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMinHAddFactoryFeature()
-        : TypedFeature("min_hadd")
+        : TypedFeature("min_hadd", &SplitSelectorMinHAddFactoryFeature::func)
     {
         document_synopsis(
             "select an eligible variable with minimal h^add(s_0) value "
             "over all facts that need to be removed from the flaw state");
     }
 
-    std::shared_ptr<SplitSelectorFactory>
-    create_component(const Options&, const Context&) const override
+    static std::shared_ptr<SplitSelectorFactory> func(const Context&)
     {
         return std::make_shared<SplitSelectorMinHAddFactory>();
     }
@@ -139,7 +141,7 @@ class SplitSelectorMaxHAddFactoryFeature
     : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMaxHAddFactoryFeature()
-        : TypedFeature("max_hadd")
+        : TypedFeature("max_hadd", &SplitSelectorMaxHAddFactoryFeature::func)
     {
         document_synopsis(
             "Select an eligible variable with maximal h^add(s_0) value "
@@ -147,8 +149,7 @@ public:
             "state");
     }
 
-    std::shared_ptr<SplitSelectorFactory>
-    create_component(const Options&, const Context&) const override
+    static std::shared_ptr<SplitSelectorFactory> func(const Context&)
     {
         return std::make_shared<SplitSelectorMaxHAddFactory>();
     }

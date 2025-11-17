@@ -16,10 +16,13 @@ using namespace downward::cli;
 using namespace downward::cli::plugins;
 
 namespace {
-class NullPruningMethodFeature : public SharedTypedFeature<downward::PruningMethod> {
+class NullPruningMethodFeature
+    : public SharedTypedFeature<
+          downward::PruningMethod,
+          downward::utils::Verbosity> {
 public:
     NullPruningMethodFeature()
-        : TypedFeature("null")
+        : TypedFeature("null", &NullPruningMethodFeature::func)
     {
         // document_group("");
         document_title("No pruning");
@@ -28,15 +31,13 @@ public:
             "i.e., "
             "all applicable operators are applied in all expanded states. ");
 
-        add_pruning_options_to_feature(*this);
+        add_pruning_options_to_feature(*this, 0);
     }
 
-    virtual shared_ptr<downward::PruningMethod>
-    create_component(const Options& opts, const downward::utils::Context&)
-        const override
+    static shared_ptr<downward::PruningMethod>
+    func(const downward::utils::Context&, downward::utils::Verbosity verbosity)
     {
-        return make_shared_from_arg_tuples<NullPruningMethod>(
-            get_pruning_arguments_from_options(opts));
+        return make_shared<NullPruningMethod>(verbosity);
     }
 };
 } // namespace

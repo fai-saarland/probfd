@@ -9,22 +9,20 @@ using namespace downward::pdbs;
 
 namespace downward::cli::pdbs {
 
-void add_canonical_pdbs_options_to_feature(plugins::Feature& feature)
+std::size_t add_canonical_pdbs_options_to_feature(
+    plugins::Feature& feature,
+    std::size_t start_index)
 {
-    feature.add_optional_argument_with_default<utils::FSeconds>(
+    feature.make_optional_argument_with_default(
+        start_index,
         "max_time_dominance_pruning",
         "seconds_max()",
         "The maximum time in seconds spent on dominance pruning. Using 0.0 "
         "turns off dominance pruning. Dominance pruning excludes patterns "
         "and additive subsets that will never contribute to the heuristic "
         "value because there are dominating subsets in the collection.");
-}
 
-tuple<utils::FSeconds>
-get_canonical_pdbs_arguments_from_options(const plugins::Options& opts)
-{
-    return make_tuple(
-        opts.get<downward::utils::FSeconds>("max_time_dominance_pruning"));
+    return 1;
 }
 
 } // namespace downward::cli::pdbs

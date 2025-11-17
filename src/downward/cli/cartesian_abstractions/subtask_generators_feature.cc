@@ -22,85 +22,92 @@ using namespace downward::cli;
 using namespace downward::cli::plugins;
 
 using downward::cli::utils::add_rng_options_to_feature;
-using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-void add_fact_order_option(Feature& feature)
-{
-    feature.add_optional_argument_with_default<FactOrder>(
-        "order",
-        "hadd_down",
-        "ordering of goal or landmark facts");
-    add_rng_options_to_feature(feature);
-}
 
-tuple<FactOrder, int> get_fact_order_arguments_from_options(const Options& opts)
-{
-    return tuple_cat(
-        make_tuple(opts.get<FactOrder>("order")),
-        get_rng_arguments_from_options(opts));
-}
-
-class TaskDuplicatorFeature : public SharedTypedFeature<SubtaskGenerator> {
+class TaskDuplicatorFeature : public SharedTypedFeature<SubtaskGenerator, int> {
 public:
     TaskDuplicatorFeature()
-        : TypedFeature("original")
+        : TypedFeature("original", &TaskDuplicatorFeature::func)
     {
-        add_optional_argument_with_default<int>(
+        make_optional_argument_with_default(
+            0,
             "copies",
             "1",
             "number of task copies");
     }
 
-    virtual shared_ptr<SubtaskGenerator>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<SubtaskGenerator> func(const Context&, int copies)
     {
-        return make_shared_from_arg_tuples<TaskDuplicator>(
-            opts.get<int>("copies"));
+        return make_shared_from_arg_tuples<TaskDuplicator>(copies);
     }
 };
 
-class GoalDecompositionFeature : public SharedTypedFeature<SubtaskGenerator> {
+class GoalDecompositionFeature
+    : public SharedTypedFeature<SubtaskGenerator, FactOrder, int> {
 public:
     GoalDecompositionFeature()
-        : TypedFeature("goals")
+        : TypedFeature("goals", &GoalDecompositionFeature::func)
     {
-        add_fact_order_option(*this);
+        make_optional_argument_with_default(
+            0,
+            "order",
+            "hadd_down",
+            "ordering of goal or landmark facts");
+
+        add_rng_options_to_feature(*this, 1);
     }
 
-    virtual shared_ptr<SubtaskGenerator>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<SubtaskGenerator>
+    func(const Context&, FactOrder order, int random_seed)
     {
         return make_shared_from_arg_tuples<GoalDecomposition>(
-            get_fact_order_arguments_from_options(opts));
+            order,
+            random_seed);
     }
 };
 
 class LandmarkDecompositionFeature
-    : public SharedTypedFeature<SubtaskGenerator> {
+    : public SharedTypedFeature<
+          SubtaskGenerator,
+          std::shared_ptr<TaskDependentFactory<MutexInformation>>,
+          FactOrder,
+          int,
+          bool> {
 public:
     LandmarkDecompositionFeature()
-        : TypedFeature("landmarks")
+        : TypedFeature("landmarks", &LandmarkDecompositionFeature::func)
     {
-        add_optional_argument_with_default<
-            std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
+        make_optional_argument_with_default(
+            0,
             "mutexes",
             "mutexes_from_file(\"output.mutexes\")",
             "factory for mutexes");
-        add_fact_order_option(*this);
-        add_optional_argument_with_default<bool>(
+        make_optional_argument_with_default(
+            1,
+            "order",
+            "hadd_down",
+            "ordering of goal or landmark facts");
+        const auto n = add_rng_options_to_feature(*this, 2);
+        make_optional_argument_with_default(
+            n + 2,
             "combine_facts",
             "true",
             "combine landmark facts with domain abstraction");
     }
 
-    virtual shared_ptr<SubtaskGenerator>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<SubtaskGenerator> func(
+        const Context&,
+        std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory,
+        FactOrder order,
+        int random_seed,
+        bool combine_facts)
     {
         return make_shared_from_arg_tuples<LandmarkDecomposition>(
-            opts.get_shared<TaskDependentFactory<MutexInformation>>("mutexes"),
-            get_fact_order_arguments_from_options(opts),
-            opts.get<bool>("combine_facts"));
+            std::move(mutex_factory),
+            order,
+            random_seed,
+            combine_facts);
     }
 };
 } // namespace

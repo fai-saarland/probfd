@@ -132,9 +132,8 @@ public:
         std::shared_ptr<PolicyPicker> policy);
 
     template <template <typename, typename, bool> class S, typename... Args>
-    std::unique_ptr<MDPAlgorithm<State, Action>> create_search_algorithm(
-        const SharedProbabilisticTask&,
-        Args&&... args)
+    std::unique_ptr<MDPAlgorithm<State, Action>>
+    create_search_algorithm(const SharedProbabilisticTask&, Args&&... args)
     {
         return construct<
             MDPAlgorithm<State, Action>,
@@ -155,6 +154,24 @@ template <
     typename State = downward::State,
     typename Action = downward::OperatorID>
 class MDPHeuristicSearch;
+
+template <bool Bisimulation, bool Fret>
+using PolicyPickerType = algorithms::
+    PolicyPicker<StateType<Bisimulation, Fret>, ActionType<Bisimulation, Fret>>;
+
+template <bool Bisimulation, bool Fret>
+using MDPHeuristicSearchBaseArgs = std::
+    tuple<value_t, bool, std::shared_ptr<PolicyPickerType<Bisimulation, Fret>>>;
+
+using FretAdditionalArgs = std::tuple<bool>;
+
+template <bool Bisimulation, bool Fret>
+using MDPHeuristicSearchArgs = std::conditional_t<
+    Fret,
+    TupleCatType<
+        FretAdditionalArgs,
+        MDPHeuristicSearchBaseArgs<Bisimulation, Fret>>,
+    MDPHeuristicSearchBaseArgs<Bisimulation, Fret>>;
 
 template <typename State, typename Action>
 class MDPHeuristicSearch<false, false, State, Action>

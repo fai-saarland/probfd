@@ -20,74 +20,83 @@ using namespace downward::pareto_open_list;
 using namespace downward::cli::plugins;
 
 using downward::cli::add_open_list_options_to_feature;
-using downward::cli::get_open_list_arguments_from_options;
 
 using downward::cli::utils::add_rng_options_to_feature;
-using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
 template <typename T>
 class ParetoOpenListFeature
     : public SharedTypedFeature<
-          downward::TaskDependentFactory<downward::OpenList<T>>> {
+          downward::TaskDependentFactory<downward::OpenList<T>>,
+          const std::vector<std::shared_ptr<
+              downward::TaskDependentFactory<downward::Evaluator>>>&,
+          bool,
+          int,
+          bool> {
 public:
     ParetoOpenListFeature()
         requires(std::same_as<T, downward::StateOpenListEntry>)
-        : ParetoOpenListFeature::TypedFeature("state_pareto")
+        : ParetoOpenListFeature::TypedFeature(
+              "state_pareto",
+              &ParetoOpenListFeature::func)
     {
         this->document_title("Pareto state open list");
         this->document_synopsis(
             "Selects one of the Pareto-optimal (regarding the sub-evaluators) "
             "entries for removal.");
 
-        this->template add_optional_list_argument<
-            shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>>(
-            "evals",
-            "evaluators");
-        this->template add_optional_argument_with_default<bool>(
+        this->make_required_argument(0, "evals", "evaluators");
+        this->make_optional_argument_with_default(
+            1,
             "state_uniform_selection",
             "false",
             "When removing an entry, we select a non-dominated bucket "
             "and return its oldest entry. If this option is false, we select "
             "uniformly from the non-dominated buckets; if the option is true, "
             "we weight the buckets with the number of entries.");
-        add_rng_options_to_feature(*this);
-        add_open_list_options_to_feature(*this);
+        const auto n = add_rng_options_to_feature(*this, 2);
+        add_open_list_options_to_feature(*this, n + 2);
     }
 
     ParetoOpenListFeature()
         requires(std::same_as<T, downward::EdgeOpenListEntry>)
-        : ParetoOpenListFeature::TypedFeature("edge_pareto")
+        : ParetoOpenListFeature::TypedFeature(
+              "edge_pareto",
+              &ParetoOpenListFeature::func)
     {
         this->document_title("Pareto edge open list");
         this->document_synopsis(
             "Selects one of the Pareto-optimal (regarding the sub-evaluators) "
             "entries for removal.");
 
-        this->template add_optional_list_argument<
-            shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>>(
-            "evals",
-            "evaluators");
-        this->template add_optional_argument_with_default<bool>(
+        this->make_required_argument(0, "evals", "evaluators");
+        this->make_optional_argument_with_default(
+            1,
             "state_uniform_selection",
             "false",
             "When removing an entry, we select a non-dominated bucket "
             "and return its oldest entry. If this option is false, we select "
             "uniformly from the non-dominated buckets; if the option is true, "
             "we weight the buckets with the number of entries.");
-        add_rng_options_to_feature(*this);
-        add_open_list_options_to_feature(*this);
+        const auto n = add_rng_options_to_feature(*this, 2);
+        add_open_list_options_to_feature(*this, n + 2);
     }
 
-    shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
+    func(
+        const Context&,
+        const std::vector<std::shared_ptr<
+            downward::TaskDependentFactory<downward::Evaluator>>>&
+            eval_factories,
+        bool state_uniform_selection,
+        int random_seed,
+        bool pref_only)
     {
-        return make_shared_from_arg_tuples<ParetoOpenListFactory<T>>(
-            opts.get_list<shared_ptr<
-                downward::TaskDependentFactory<downward::Evaluator>>>("evals"),
-            opts.get<bool>("state_uniform_selection"),
-            get_rng_arguments_from_options(opts),
-            get_open_list_arguments_from_options(opts));
+        return make_shared<ParetoOpenListFactory<T>>(
+            eval_factories,
+            state_uniform_selection,
+            random_seed,
+            pref_only);
     }
 };
 } // namespace

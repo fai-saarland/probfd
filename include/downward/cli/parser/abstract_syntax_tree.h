@@ -4,6 +4,7 @@
 #include "downward/cli/parser/decorated_abstract_syntax_tree.h"
 #include "downward/cli/parser/token_stream.h"
 #include "downward/cli/plugins/registry.h"
+#include "downward/utils/strings.h"
 
 #include <cassert>
 #include <memory>
@@ -24,6 +25,11 @@ class VariableEnvironment;
 struct TypedDecoratedAstNodePtr {
     DecoratedASTNodePtr ast_node;
     const plugins::Type* type;
+};
+
+struct QualifiedName {
+    std::vector<std::string> qualification_prefix;
+    std::string name;
 };
 
 class TypeNode {
@@ -95,43 +101,32 @@ public:
     void dump(std::string indent) const override;
 };
 
-class FunctionCallNode : public ASTNode {
-    ASTNodePtr callee;
+class DirectFunctionCallNode : public ASTNode {
+    QualifiedName callee;
     std::vector<ASTNodePtr> positional_arguments;
     std::unordered_map<std::string, ASTNodePtr> keyword_arguments;
     std::string unparsed_config;
 
-    using CollectedArguments =
-        std::unordered_map<std::string, FunctionArgument>;
-
-    static bool collect_argument(
-        const ASTNode& arg,
-        const plugins::ArgumentInfo& arg_info,
-        utils::Context& context,
-        VariableEnvironment& env,
-        CollectedArguments& arguments,
-        bool is_default);
-    void collect_keyword_arguments(
-        const std::vector<plugins::ArgumentInfo>& argument_infos,
-        utils::Context& context,
-        VariableEnvironment& env,
-        CollectedArguments& arguments) const;
-    void collect_positional_arguments(
-        const std::vector<plugins::ArgumentInfo>& argument_infos,
-        utils::Context& context,
-        VariableEnvironment& env,
-        CollectedArguments& arguments) const;
-    static void collect_default_values(
-        const std::vector<plugins::ArgumentInfo>& argument_infos,
-        utils::Context& context,
-        VariableEnvironment& env,
-        CollectedArguments& arguments);
-
 public:
-    FunctionCallNode(
-        ASTNodePtr callee,
+    DirectFunctionCallNode(
+        QualifiedName callee,
         std::vector<ASTNodePtr>&& positional_arguments,
         std::unordered_map<std::string, ASTNodePtr>&& keyword_arguments,
+        const std::string& unparsed_config);
+    TypedDecoratedAstNodePtr
+    decorate(utils::Context& context, VariableEnvironment& env) const override;
+    void dump(std::string indent) const override;
+};
+
+class IndirectFunctionCallNode : public ASTNode {
+    ASTNodePtr callee;
+    std::vector<ASTNodePtr> positional_arguments;
+    std::string unparsed_config;
+
+public:
+    IndirectFunctionCallNode(
+        ASTNodePtr callee,
+        std::vector<ASTNodePtr>&& positional_arguments,
         const std::string& unparsed_config);
     TypedDecoratedAstNodePtr
     decorate(utils::Context& context, VariableEnvironment& env) const override;
@@ -161,16 +156,17 @@ public:
 };
 
 class IdentifierNode : public ASTNode {
-    std::vector<std::string> qualification;
-    std::string name;
+    QualifiedName qualified_name;
 
 public:
-    IdentifierNode(std::vector<std::string> qualification, std::string name);
+    explicit IdentifierNode(QualifiedName qualified_name);
 
     TypedDecoratedAstNodePtr
     decorate(utils::Context& context, VariableEnvironment& env) const override;
 
     void dump(std::string indent) const override;
+
+    const QualifiedName& get_name() const;
 };
 
 class LiteralNode : public ASTNode {
@@ -186,4 +182,30 @@ public:
 };
 
 } // namespace downward::cli::parser
+
+template <typename CharT>
+struct std::formatter<downward::cli::parser::QualifiedName, CharT> {
+    template <typename FormatContext>
+    constexpr auto parse(FormatContext& ctx)
+    {
+        return ctx.begin();
+    }
+
+    template <typename FormatContext>
+    auto
+    format(const downward::cli::parser::QualifiedName& name, FormatContext& ctx)
+        const
+    {
+        if (name.qualification_prefix.empty()) {
+            return std::format_to(ctx.out(), "{}", name.name);
+        }
+
+        return std::format_to(
+            ctx.out(),
+            "{}.{}",
+            downward::utils::join_view{name.qualification_prefix, "."},
+            name.name);
+    }
+};
+
 #endif

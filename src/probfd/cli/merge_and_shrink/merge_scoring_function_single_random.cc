@@ -16,10 +16,12 @@ using namespace probfd::merge_and_shrink;
 
 namespace {
 class MergeScoringFunctionSingleRandomFeature
-    : public SharedTypedFeature<MergeScoringFunction> {
+    : public SharedTypedFeature<MergeScoringFunction, int> {
 public:
     MergeScoringFunctionSingleRandomFeature()
-        : TypedFeature("psingle_random")
+        : TypedFeature(
+              "psingle_random",
+              &MergeScoringFunctionSingleRandomFeature::func)
     {
         document_title("Single random");
         document_synopsis(
@@ -27,16 +29,15 @@ public:
             "candidate a score of "
             "0, chosen randomly, and infinity to all others.");
 
-        downward::cli::utils::add_rng_options_to_feature(*this);
+        downward::cli::utils::add_rng_options_to_feature(*this, 0);
     }
 
 protected:
-    shared_ptr<MergeScoringFunction>
-    create_component(const Options& options, const utils::Context&)
-        const override
+    static shared_ptr<MergeScoringFunction>
+    func(const utils::Context&, int random_seed)
     {
         return make_shared_from_arg_tuples<MergeScoringFunctionSingleRandom>(
-            downward::cli::utils::get_rng_arguments_from_options(options));
+            random_seed);
     }
 };
 } // namespace

@@ -20,21 +20,25 @@ using namespace downward::epsilon_greedy_open_list;
 using namespace downward::cli::plugins;
 
 using downward::cli::add_open_list_options_to_feature;
-using downward::cli::get_open_list_arguments_from_options;
 
 using downward::cli::utils::add_rng_options_to_feature;
-using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
 template <typename T>
 class EpsilonGreedyOpenListFeature
     : public SharedTypedFeature<
-          downward::TaskDependentFactory<downward::OpenList<T>>> {
+          downward::TaskDependentFactory<downward::OpenList<T>>,
+          const std::shared_ptr<
+              downward::TaskDependentFactory<downward::Evaluator>>&,
+          double,
+          int,
+          bool> {
 public:
     EpsilonGreedyOpenListFeature()
         requires(std::same_as<T, downward::StateOpenListEntry>)
         : EpsilonGreedyOpenListFeature::TypedFeature(
-              "state_epsilon_greedy")
+              "state_epsilon_greedy",
+              &EpsilonGreedyOpenListFeature::func)
     {
         this->document_title("Epsilon-greedy state open list");
         this->document_synopsis(
@@ -56,22 +60,21 @@ public:
                 "AAAI Press",
                 "2014"));
 
-        this->template add_required_argument<
-            shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>>(
-            "eval",
-            "evaluator");
-        this->template add_optional_argument_with_default<double>(
+        this->make_required_argument(0, "eval", "evaluator");
+        this->make_optional_argument_with_default(
+            1,
             "epsilon",
             "0.2",
             "probability for choosing the next entry randomly");
-        add_rng_options_to_feature(*this);
-        add_open_list_options_to_feature(*this);
+        const auto n = add_rng_options_to_feature(*this, 2);
+        add_open_list_options_to_feature(*this, n + 2);
     }
 
     EpsilonGreedyOpenListFeature()
         requires(std::same_as<T, downward::EdgeOpenListEntry>)
         : EpsilonGreedyOpenListFeature::TypedFeature(
-              "edge_epsilon_greedy")
+              "edge_epsilon_greedy",
+              &EpsilonGreedyOpenListFeature::func)
     {
         this->document_title("Epsilon-greedy edge open list");
         this->document_synopsis(
@@ -93,27 +96,30 @@ public:
                 "AAAI Press",
                 "2014"));
 
-        this->template add_required_argument<
-            shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>>(
-            "eval",
-            "evaluator");
-        this->template add_optional_argument_with_default<double>(
+        this->make_required_argument(0, "eval", "evaluator");
+        this->make_optional_argument_with_default(
+            1,
             "epsilon",
             "0.2",
             "probability for choosing the next entry randomly");
-        add_rng_options_to_feature(*this);
-        add_open_list_options_to_feature(*this);
+        const auto n = add_rng_options_to_feature(*this, 2);
+        add_open_list_options_to_feature(*this, n + 2);
     }
 
-    virtual shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
+    func(
+        const Context&,
+        const std::shared_ptr<
+            downward::TaskDependentFactory<downward::Evaluator>>& eval_factory,
+        double epsilon,
+        int random_seed,
+        bool pref_only)
     {
         return make_shared_from_arg_tuples<EpsilonGreedyOpenListFactory<T>>(
-            opts.get<shared_ptr<
-                downward::TaskDependentFactory<downward::Evaluator>>>("eval"),
-            opts.get<double>("epsilon"),
-            get_rng_arguments_from_options(opts),
-            get_open_list_arguments_from_options(opts));
+            eval_factory,
+            epsilon,
+            random_seed,
+            pref_only);
     }
 };
 } // namespace

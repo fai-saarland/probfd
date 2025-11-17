@@ -28,9 +28,9 @@ auto tuple_transform(const Tuple& tuple, const F& f, std::index_sequence<I...>)
                        void> &&
                    ...)) {
         (std::invoke(f, std::get<I>(tuple)), ...);
-                   } else {
-                       return std::make_tuple(std::invoke(f, std::get<I>(tuple))...);
-                   }
+    } else {
+        return std::make_tuple(std::invoke(f, std::get<I>(tuple))...);
+    }
 }
 
 template <typename Tuple, typename F>
@@ -68,9 +68,29 @@ constexpr auto slice_unique(TupleLike&& t)
 }
 
 template <typename... T, typename TupleLike>
+    requires (sizeof...(T) > 0)
 constexpr std::tuple<T...> slice(TupleLike&& t)
 {
     return std::forward_as_tuple(std::get<T>(std::forward<TupleLike>(t))...);
+}
+
+template <std::size_t... I, typename TupleLike>
+constexpr auto slice(TupleLike&& t)
+{
+    return std::forward_as_tuple(std::get<I>(std::forward<TupleLike>(t))...);
+}
+
+template <std::size_t I, std::size_t L, typename TupleLike>
+    requires(I <= L)
+constexpr auto slice_contiguous(TupleLike&& t)
+{
+    if constexpr (I == L) {
+        return std::make_tuple();
+    } else {
+        return []<std::size_t... M>(TupleLike&& t, std::index_sequence<M...>) {
+            return slice<M + I...>(t);
+        }(std::forward<TupleLike>(t), std::make_index_sequence<L - I>{});
+    }
 }
 
 namespace detail {

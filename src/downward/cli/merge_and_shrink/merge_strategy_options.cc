@@ -11,15 +11,9 @@ using namespace downward::cli::utils;
 
 namespace downward::cli::merge_and_shrink {
 
-void add_merge_strategy_options_to_feature(Feature& feature)
+std::size_t add_merge_strategy_options_to_feature(Feature& feature, std::size_t start_index)
 {
-    add_log_options_to_feature(feature);
-}
-
-tuple<downward::utils::Verbosity>
-get_merge_strategy_arguments_from_options(const Options& opts)
-{
-    return get_log_arguments_from_options(opts);
+    return add_log_options_to_feature(feature, start_index);
 }
 
 } // namespace downward::cli::merge_and_shrink

@@ -17,14 +17,17 @@ using namespace downward::operator_counting;
 using namespace downward::cli::plugins;
 
 using downward::cli::utils::add_log_options_to_feature;
-using downward::cli::utils::get_log_arguments_from_options;
 
 namespace {
 class StateEquationConstraintsFeature
-    : public SharedTypedFeature<ConstraintGenerator> {
+    : public SharedTypedFeature<
+          ConstraintGenerator,
+          downward::utils::Verbosity> {
 public:
     StateEquationConstraintsFeature()
-        : TypedFeature("state_equation_constraints")
+        : TypedFeature(
+              "state_equation_constraints",
+              &StateEquationConstraintsFeature::func)
     {
         document_title("State equation constraints");
         document_synopsis(
@@ -72,14 +75,13 @@ public:
                 "AAAI Press",
                 "2014"));
 
-        add_log_options_to_feature(*this);
+        add_log_options_to_feature(*this, 0);
     }
 
-    virtual shared_ptr<ConstraintGenerator>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<ConstraintGenerator>
+    func(const Context&, downward::utils::Verbosity verbosity)
     {
-        return make_shared_from_arg_tuples<StateEquationConstraints>(
-            get_log_arguments_from_options(opts));
+        return make_shared_from_arg_tuples<StateEquationConstraints>(verbosity);
     }
 };
 } // namespace

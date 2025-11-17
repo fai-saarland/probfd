@@ -17,15 +17,17 @@ using namespace downward::utils;
 using namespace downward::cli::plugins;
 
 using downward::cli::merge_and_shrink::add_merge_strategy_options_to_feature;
-using downward::cli::merge_and_shrink::
-    get_merge_strategy_arguments_from_options;
 
 namespace {
 class MergeStrategyFactorySCCsFeature
-    : public SharedTypedFeature<MergeStrategyFactory> {
+    : public SharedTypedFeature<
+          MergeStrategyFactory,
+          const OrderOfSCCs&,
+          const std::shared_ptr<MergeSelector>&,
+          downward::utils::Verbosity> {
 public:
     MergeStrategyFactorySCCsFeature()
-        : TypedFeature("merge_sccs")
+        : TypedFeature("merge_sccs", &MergeStrategyFactorySCCsFeature::func)
     {
         document_title("Merge strategy SSCs");
         document_synopsis(
@@ -52,23 +54,28 @@ public:
             "the final abstraction, again using the specified fallback merge "
             "strategy and the configurable order of the SCCs.");
 
-        add_optional_argument_with_default<OrderOfSCCs>(
+        make_optional_argument_with_default(
+            0,
             "order_of_sccs",
             "topological",
             "how the SCCs should be ordered");
-        add_required_argument<shared_ptr<MergeSelector>>(
+        make_required_argument(
+            1,
             "merge_selector",
             "the fallback merge strategy to use.");
-        add_merge_strategy_options_to_feature(*this);
+        add_merge_strategy_options_to_feature(*this, 2);
     }
 
-    virtual shared_ptr<MergeStrategyFactory>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<MergeStrategyFactory> func(
+        const Context&,
+        const OrderOfSCCs& order_of_sccs,
+        const std::shared_ptr<MergeSelector>& merge_selector,
+        downward::utils::Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<MergeStrategyFactorySCCs>(
-            opts.get<OrderOfSCCs>("order_of_sccs"),
-            opts.get<shared_ptr<MergeSelector>>("merge_selector"),
-            get_merge_strategy_arguments_from_options(opts));
+            order_of_sccs,
+            merge_selector,
+            verbosity);
     }
 };
 } // namespace

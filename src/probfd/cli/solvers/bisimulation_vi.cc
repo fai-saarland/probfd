@@ -233,49 +233,51 @@ public:
 };
 
 class BisimulationVISolverFeature
-    : public SharedTypedFeature<TaskSolverFactory> {
+    : public SharedTypedFeature<TaskSolverFactory, value_t> {
 public:
     BisimulationVISolverFeature()
-        : TypedFeature("bisimulation_vi")
+        : TypedFeature("bisimulation_vi", &BisimulationVISolverFeature::func)
     {
         document_title("Bisimulation Value Iteration");
 
-        add_optional_argument_with_default<value_t>(
+        make_optional_argument_with_default(
+            0,
             "convergence_epsilon",
             "10e-4",
             "The tolerance for convergence checks.");
     }
 
 protected:
-    std::shared_ptr<TaskSolverFactory>
-    create_component(const Options& opts, const utils::Context&) const override
+    static std::shared_ptr<TaskSolverFactory>
+    func(const utils::Context&, value_t convergence_epsilon)
     {
         return std::make_shared<BisimulationIterationFactory>(
-            opts.get<value_t>("convergence_epsilon"),
+            convergence_epsilon,
             false);
     }
 };
 
 class BisimulationIISolverFeature
-    : public SharedTypedFeature<TaskSolverFactory> {
+    : public SharedTypedFeature<TaskSolverFactory, value_t> {
 public:
     BisimulationIISolverFeature()
-        : TypedFeature("bisimulation_ii")
+        : TypedFeature("bisimulation_ii", &BisimulationIISolverFeature::func)
     {
         document_title("Bisimulation Interval Iteration");
 
-        add_optional_argument_with_default<value_t>(
+        make_optional_argument_with_default(
+            0,
             "convergence_epsilon",
             "10e-4",
             "The tolerance for convergence checks.");
     }
 
 protected:
-    std::shared_ptr<TaskSolverFactory>
-    create_component(const Options& opts, const utils::Context&) const override
+    static std::shared_ptr<TaskSolverFactory>
+    func(const utils::Context&, value_t convergence_epsilon)
     {
         return std::make_shared<BisimulationIterationFactory>(
-            opts.get<value_t>("convergence_epsilon"),
+            convergence_epsilon,
             true);
     }
 };

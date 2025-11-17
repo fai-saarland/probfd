@@ -114,13 +114,13 @@ public:
 
 class DecoratedFunctionCallNode : public DecoratedASTNode {
     DecoratedASTNodePtr callee;
-    std::vector<std::pair<std::string, FunctionArgument>> arguments;
+    std::vector<FunctionArgument> arguments;
     std::string unparsed_config;
 
 public:
     DecoratedFunctionCallNode(
         DecoratedASTNodePtr callee,
-        std::vector<std::pair<std::string, FunctionArgument>>&& arguments,
+        std::vector<FunctionArgument> arguments,
         const std::string& unparsed_config);
 
     void remove_variable_usages() override;

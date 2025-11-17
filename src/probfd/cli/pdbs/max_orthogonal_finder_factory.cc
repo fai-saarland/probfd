@@ -17,12 +17,13 @@ class AdditiveMaxOrthogonalityFinderFactoryFeature
     : public SharedTypedFeature<SubCollectionFinderFactory> {
 public:
     AdditiveMaxOrthogonalityFinderFactoryFeature()
-        : TypedFeature("additive_max_orthogonality_factory")
+        : TypedFeature(
+              "additive_max_orthogonality_factory",
+              &AdditiveMaxOrthogonalityFinderFactoryFeature::func)
     {
     }
 
-    std::shared_ptr<SubCollectionFinderFactory>
-    create_component(const Options&, const Context&) const override
+    static std::shared_ptr<SubCollectionFinderFactory> func(const Context&)
     {
         return std::make_shared<AdditiveMaxOrthogonalityFinderFactory>();
     }
@@ -32,12 +33,13 @@ class MultiplicativeMaxOrthogonalityFinderFactoryFeature
     : public SharedTypedFeature<SubCollectionFinderFactory> {
 public:
     MultiplicativeMaxOrthogonalityFinderFactoryFeature()
-        : TypedFeature("multiplicative_max_orthogonality_factory")
+        : TypedFeature(
+              "multiplicative_max_orthogonality_factory",
+              &MultiplicativeMaxOrthogonalityFinderFactoryFeature::func)
     {
     }
 
-    std::shared_ptr<SubCollectionFinderFactory>
-    create_component(const Options&, const Context&) const override
+    static std::shared_ptr<SubCollectionFinderFactory> func(const Context&)
     {
         return std::make_shared<MultiplicativeMaxOrthogonalityFinderFactory>();
     }

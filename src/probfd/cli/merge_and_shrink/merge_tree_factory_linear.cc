@@ -21,10 +21,14 @@ using namespace probfd::cli::merge_and_shrink;
 
 namespace {
 class MergeTreeFactoryLinearFeature
-    : public SharedTypedFeature<MergeTreeFactory> {
+    : public SharedTypedFeature<
+          MergeTreeFactory,
+          int,
+          UpdateOption,
+          variable_order_finder::VariableOrderType> {
 public:
     MergeTreeFactoryLinearFeature()
-        : TypedFeature("plinear")
+        : TypedFeature("plinear", &MergeTreeFactoryLinearFeature::func)
     {
         document_title("Linear merge trees");
         document_synopsis(
@@ -41,24 +45,26 @@ public:
                 "AAAI Press",
                 "2007"));
 
-        add_merge_tree_factory_options_to_feature(*this);
+        const auto n = add_merge_tree_factory_options_to_feature(*this, 0);
 
-        add_optional_argument_with_default<
-            variable_order_finder::VariableOrderType>(
+        make_optional_argument_with_default(
+            n,
             "variable_order",
             "cg_goal_level",
             "the order in which atomic transition systems are merged");
     }
 
 protected:
-    shared_ptr<MergeTreeFactory>
-    create_component(const Options& options, const utils::Context&)
-        const override
+    static shared_ptr<MergeTreeFactory> func(
+        const utils::Context&,
+        int random_seed,
+        UpdateOption update_option,
+        downward::variable_order_finder::VariableOrderType variable_order)
     {
         return make_shared_from_arg_tuples<MergeTreeFactoryLinear>(
-            get_merge_tree_factory_args_from_options(options),
-            options.get<variable_order_finder::VariableOrderType>(
-                "variable_order"));
+            random_seed,
+            update_option,
+            variable_order);
     }
 };
 } // namespace

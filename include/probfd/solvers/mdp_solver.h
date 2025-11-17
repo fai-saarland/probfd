@@ -36,13 +36,13 @@ class MDPSolver : public TaskSolverFactory {
     const std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory_;
     const std::shared_ptr<TaskHeuristicFactory> heuristic_factory_;
 
-    mutable downward::utils::LogProxy log_;
-
-    const std::optional<std::string> policy_filename;
+    const std::string policy_filename;
     const bool print_fact_names;
 
-    const std::optional<value_t> report_epsilon;
+    const value_t report_epsilon;
     const bool report_enabled;
+
+    mutable downward::utils::LogProxy log_;
 
 public:
     /**
@@ -52,11 +52,11 @@ public:
         std::shared_ptr<StatisticalMDPAlgorithmFactory> algorithm_factory,
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-        downward::utils::Verbosity verbosity,
-        std::optional<std::string> policy_filename,
+        std::string policy_filename,
         bool print_fact_names,
-        std::optional<value_t> report_epsilon,
-        bool report_enabled);
+        value_t report_epsilon,
+        bool report_enabled,
+        downward::utils::Verbosity verbosity);
 
     ~MDPSolver() override;
 

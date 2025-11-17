@@ -10,15 +10,12 @@ using namespace downward;
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_merge_strategy_options_to_feature(Feature& feature)
+std::size_t
+add_merge_strategy_options_to_feature(Feature& feature, std::size_t start_index)
 {
-    downward::cli::utils::add_log_options_to_feature(feature);
+    return downward::cli::utils::add_log_options_to_feature(
+        feature,
+        start_index);
 }
 
-std::tuple<utils::Verbosity>
-get_merge_strategy_args_from_options(const Options& options)
-{
-    return downward::cli::utils::get_log_arguments_from_options(options);
-}
-
-} // namespace
+} // namespace probfd::cli::merge_and_shrink

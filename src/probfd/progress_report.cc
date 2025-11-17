@@ -10,7 +10,7 @@ using namespace downward;
 namespace probfd {
 
 ProgressReport::ProgressReport(
-    std::optional<value_t> tolerance,
+    value_t tolerance,
     std::ostream& out,
     const bool enabled)
     : tolerance_(tolerance)
@@ -82,15 +82,15 @@ bool ProgressReport::advance_values(bool force)
         const Interval next_val = info.property();
         next_values.push_back(next_val);
 
-        if (!info.last_printed || !tolerance_) {
+        if (!info.last_printed) {
             print = true;
             continue;
         }
 
         const Interval prev_val = *info.last_printed;
         print = print ||
-                !is_approx_equal(next_val.lower, prev_val.lower, *tolerance_) ||
-                !is_approx_equal(next_val.upper, prev_val.upper, *tolerance_);
+                !is_approx_equal(next_val.lower, prev_val.lower, tolerance_) ||
+                !is_approx_equal(next_val.upper, prev_val.upper, tolerance_);
     }
 
     if (print) {

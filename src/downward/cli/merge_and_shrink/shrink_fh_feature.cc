@@ -17,13 +17,17 @@ using namespace downward::merge_and_shrink;
 using namespace downward::cli::plugins;
 
 using downward::cli::merge_and_shrink::add_shrink_bucket_options_to_feature;
-using downward::cli::merge_and_shrink::get_shrink_bucket_arguments_from_options;
 
 namespace {
-class ShrinkFHFeature : public SharedTypedFeature<ShrinkStrategy> {
+class ShrinkFHFeature
+    : public SharedTypedFeature<
+          ShrinkStrategy,
+          ShrinkFH::HighLow,
+          ShrinkFH::HighLow,
+          int> {
 public:
     ShrinkFHFeature()
-        : TypedFeature("shrink_fh")
+        : TypedFeature("shrink_fh", &ShrinkFHFeature::func)
     {
         document_title("f-preserving shrink strategy");
         document_synopsis(
@@ -39,16 +43,6 @@ public:
                 "176-183",
                 "AAAI Press",
                 "2007"));
-
-        add_optional_argument_with_default<ShrinkFH::HighLow>(
-            "shrink_f",
-            "high",
-            "in which direction the f based shrink priority is ordered");
-        add_optional_argument_with_default<ShrinkFH::HighLow>(
-            "shrink_h",
-            "low",
-            "in which direction the h based shrink priority is ordered");
-        add_shrink_bucket_options_to_feature(*this);
 
         document_note(
             "Note",
@@ -81,15 +75,30 @@ public:
             "map-based "
             "approach for partitioning states rather than the more efficient "
             "vector-based approach.");
+
+        make_optional_argument_with_default(
+            0,
+            "shrink_f",
+            "high",
+            "in which direction the f based shrink priority is ordered");
+        make_optional_argument_with_default(
+            1,
+            "shrink_h",
+            "low",
+            "in which direction the h based shrink priority is ordered");
+        add_shrink_bucket_options_to_feature(*this, 2);
     }
 
-    virtual shared_ptr<ShrinkStrategy>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<ShrinkStrategy> func(
+        const Context&,
+        ShrinkFH::HighLow shrink_f,
+        ShrinkFH::HighLow shrink_h,
+        int random_seed)
     {
         return make_shared_from_arg_tuples<ShrinkFH>(
-            opts.get<ShrinkFH::HighLow>("shrink_f"),
-            opts.get<ShrinkFH::HighLow>("shrink_h"),
-            get_shrink_bucket_arguments_from_options(opts));
+            shrink_f,
+            shrink_h,
+            random_seed);
     }
 };
 } // namespace

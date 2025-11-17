@@ -10,17 +10,16 @@ using downward::utils::Verbosity;
 
 namespace downward::cli::utils {
 
-void add_log_options_to_feature(plugins::Feature& feature)
+std::size_t add_log_options_to_feature(
+    plugins::Feature& feature,
+    std::size_t start_index)
 {
-    feature.add_optional_argument_with_default<Verbosity>(
+    feature.make_optional_argument_with_default(
+        start_index,
         "verbosity",
         "normal",
         "Option to specify the verbosity level.");
-}
-
-tuple<Verbosity> get_log_arguments_from_options(const plugins::Options& opts)
-{
-    return make_tuple<Verbosity>(opts.get<Verbosity>("verbosity"));
+    return 1;
 }
 
 } // namespace downward::cli::utils

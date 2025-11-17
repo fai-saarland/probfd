@@ -19,10 +19,11 @@ using namespace downward;
 using namespace downward::stubborn_sets_ec;
 
 namespace {
-class StubbornSetsECFeature : public SharedTypedFeature<PruningMethod> {
+class StubbornSetsECFeature
+    : public SharedTypedFeature<PruningMethod, utils::Verbosity> {
 public:
     StubbornSetsECFeature()
-        : TypedFeature("stubborn_sets_ec")
+        : TypedFeature("stubborn_sets_ec", &StubbornSetsECFeature::func)
     {
         document_title("StubbornSetsEC");
         document_synopsis(
@@ -52,14 +53,13 @@ public:
                 "251-259",
                 "AAAI Press",
                 "2013"));
-        add_pruning_options_to_feature(*this);
+        add_pruning_options_to_feature(*this, 0);
     }
 
-    virtual shared_ptr<PruningMethod>
-    create_component(const Options& opts, const utils::Context&) const override
+    static shared_ptr<PruningMethod>
+    func(const utils::Context&, utils::Verbosity verbosity)
     {
-        return make_shared_from_arg_tuples<StubbornSetsEC>(
-            get_pruning_arguments_from_options(opts));
+        return make_shared<StubbornSetsEC>(verbosity);
     }
 };
 } // namespace

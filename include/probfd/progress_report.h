@@ -37,7 +37,7 @@ class ProgressReport {
         std::optional<Interval> last_printed = std::nullopt;
     };
 
-    const std::optional<value_t> tolerance_;
+    const value_t tolerance_;
     bool enabled_;
     std::ostream& out_;
 
@@ -55,7 +55,7 @@ public:
      * @param enabled - Whether printing is enabled or not.
      */
     explicit ProgressReport(
-        std::optional<value_t> tolerance = std::nullopt,
+        value_t tolerance = std::numeric_limits<value_t>::infinity(),
         std::ostream& out = std::cout,
         bool enabled = true);
 

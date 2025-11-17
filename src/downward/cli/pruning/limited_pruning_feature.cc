@@ -18,10 +18,15 @@ using namespace downward::cli::plugins;
 
 namespace {
 class LimitedPruningFeature
-    : public SharedTypedFeature<downward::PruningMethod> {
+    : public SharedTypedFeature<
+          downward::PruningMethod,
+          const std::shared_ptr<downward::PruningMethod>&,
+          double,
+          int,
+          downward::utils::Verbosity> {
 public:
     LimitedPruningFeature()
-        : TypedFeature("limited_pruning")
+        : TypedFeature("limited_pruning", &LimitedPruningFeature::func)
     {
         document_title("Limited pruning");
         document_synopsis(
@@ -33,21 +38,6 @@ public:
             "divided by the sum of all operators before pruning, considering "
             "all "
             "previous expansions.");
-
-        add_required_argument<shared_ptr<downward::PruningMethod>>(
-            "pruning",
-            "the underlying pruning method to be applied");
-        add_optional_argument_with_default<double>(
-            "min_required_pruning_ratio",
-            "0.2",
-            "disable pruning if the pruning ratio is lower than this value "
-            "after 'expansions_before_checking_pruning_ratio' expansions");
-        add_optional_argument_with_default<int>(
-            "expansions_before_checking_pruning_ratio",
-            "1000",
-            "number of expansions before deciding whether to disable pruning");
-        add_pruning_options_to_feature(*this);
-
         document_note(
             "Example",
             "To use atom centric stubborn sets and limit them, use\n"
@@ -55,16 +45,37 @@ public:
             "min_required_pruning_ratio=0.2,expansions_before_checking_pruning_"
             "ratio=1000)\n}}}\n"
             "in an eager search such as astar.");
+
+        make_required_argument(
+            0,
+            "pruning",
+            "the underlying pruning method to be applied");
+        make_optional_argument_with_default(
+            1,
+            "min_required_pruning_ratio",
+            "0.2",
+            "disable pruning if the pruning ratio is lower than this value "
+            "after 'expansions_before_checking_pruning_ratio' expansions");
+        make_optional_argument_with_default(
+            2,
+            "expansions_before_checking_pruning_ratio",
+            "1000",
+            "number of expansions before deciding whether to disable pruning");
+        add_pruning_options_to_feature(*this, 3);
     }
 
-    virtual shared_ptr<downward::PruningMethod>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<downward::PruningMethod> func(
+        const Context&,
+        const std::shared_ptr<downward::PruningMethod>& pruning,
+        double min_required_pruning_ratio,
+        int expansions_before_checking_pruning_ratio,
+        downward::utils::Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<LimitedPruning>(
-            opts.get<shared_ptr<downward::PruningMethod>>("pruning"),
-            opts.get<double>("min_required_pruning_ratio"),
-            opts.get<int>("expansions_before_checking_pruning_ratio"),
-            get_pruning_arguments_from_options(opts));
+            pruning,
+            min_required_pruning_ratio,
+            expansions_before_checking_pruning_ratio,
+            verbosity);
     }
 };
 } // namespace

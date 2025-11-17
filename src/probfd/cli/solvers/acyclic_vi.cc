@@ -82,22 +82,44 @@ public:
     }
 };
 
-class AcyclicVISolverFeature : public SharedTypedFeature<TaskSolverFactory> {
+class AcyclicVISolverFeature
+    : public SharedTypedFeature<
+          TaskSolverFactory,
+          std::shared_ptr<TaskStateSpaceFactory>,
+          std::shared_ptr<TaskHeuristicFactory>,
+          std::string,
+          bool,
+          value_t,
+          bool,
+          Verbosity> {
 public:
     AcyclicVISolverFeature()
-        : TypedFeature("acyclic_value_iteration")
+        : TypedFeature("acyclic_value_iteration", &AcyclicVISolverFeature::func)
     {
         document_title("Acyclic Value Iteration");
-        add_base_solver_options_except_algorithm_to_feature(*this);
+        add_base_solver_options_except_algorithm_to_feature(*this, 0);
     }
 
 protected:
-    std::shared_ptr<TaskSolverFactory>
-    create_component(const Options& options, const Context&) const override
+    static std::shared_ptr<TaskSolverFactory> func(
+        const Context&,
+        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+        std::string policy_filename,
+        bool print_fact_names,
+        value_t report_epsilon,
+        bool report_enabled,
+        Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<MDPSolver>(
             std::make_shared<AcyclicVISolver>(),
-            get_base_solver_args_no_algorithm_from_options(options));
+            std::move(task_state_space_factory),
+            std::move(heuristic_factory),
+            std::move(policy_filename),
+            print_fact_names,
+            report_epsilon,
+            report_enabled,
+            verbosity);
     }
 };
 } // namespace

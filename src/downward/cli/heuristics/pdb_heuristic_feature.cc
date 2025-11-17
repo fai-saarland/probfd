@@ -18,7 +18,6 @@ using namespace downward::pdbs;
 using namespace downward::cli::plugins;
 
 using downward::cli::add_heuristic_options_to_feature;
-using downward::cli::get_heuristic_arguments_from_options;
 
 namespace {
 class PDBHeuristicFactory : public TaskDependentFactory<Evaluator> {
@@ -58,19 +57,19 @@ public:
 };
 
 class PDBHeuristicFeature
-    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<Evaluator>,
+          shared_ptr<TaskTransformation>,
+          bool,
+          string,
+          utils::Verbosity,
+          std::shared_ptr<PatternGenerator>> {
 public:
     PDBHeuristicFeature()
-        : TypedFeature("pdb")
+        : TypedFeature("pdb", &PDBHeuristicFeature::func)
     {
         document_title("Pattern database heuristic");
         document_synopsis("TODO");
-
-        add_optional_argument_with_default<shared_ptr<PatternGenerator>>(
-            "pattern",
-            "greedy()",
-            "pattern generation method");
-        add_heuristic_options_to_feature(*this, "pdb");
 
         document_language_support("action costs", "supported");
         document_language_support("conditional effects", "not supported");
@@ -80,14 +79,29 @@ public:
         document_property("consistent", "yes");
         document_property("safe", "yes");
         document_property("preferred operators", "no");
+
+        make_optional_argument_with_default(
+            0,
+            "pattern",
+            "greedy()",
+            "pattern generation method");
+        add_heuristic_options_to_feature(*this, "pdb", 1);
     }
 
-    shared_ptr<TaskDependentFactory<Evaluator>>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<TaskDependentFactory<Evaluator>> func(
+        const Context&,
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        Verbosity verbosity,
+        std::shared_ptr<PatternGenerator> generator)
     {
         return make_shared_from_arg_tuples<PDBHeuristicFactory>(
-            get_heuristic_arguments_from_options(opts),
-            opts.get<shared_ptr<PatternGenerator>>("pattern"));
+            std::move(transformation),
+            cache_estimates,
+            std::move(description),
+            verbosity,
+            std::move(generator));
     }
 };
 } // namespace

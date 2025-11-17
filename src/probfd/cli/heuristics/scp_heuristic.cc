@@ -21,14 +21,17 @@ using namespace probfd::cli::heuristics;
 using namespace downward::cli::plugins;
 
 using downward::cli::utils::add_rng_options_to_feature;
-using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
 class SCPHeuristicFactoryFeature
-    : public SharedTypedFeature<TaskHeuristicFactory> {
+    : public SharedTypedFeature<
+          TaskHeuristicFactory,
+          std::shared_ptr<PatternCollectionGenerator>,
+          SCPHeuristicFactory::OrderingStrategy,
+          int> {
 public:
     SCPHeuristicFactoryFeature()
-        : TypedFeature("scp_heuristic")
+        : TypedFeature("scp_heuristic", &SCPHeuristicFactoryFeature::func)
     {
         document_title("Saturated Cost Partitioning Heuristic");
         document_synopsis(
@@ -48,29 +51,32 @@ public:
             "The estimate of a state is the sum over all projection heuristic "
             "estimates for this state.");
 
-        add_optional_argument_with_default<
-            std::shared_ptr<PatternCollectionGenerator>>(
+        make_optional_argument_with_default(
+            0,
             "patterns",
             "classical_generator(generator=systematic(pattern_max_size=2))",
             "The pattern generation algorithm to construct the projections.");
-        add_optional_argument_with_default<
-            SCPHeuristicFactory::OrderingStrategy>(
+
+        make_optional_argument_with_default(
+            1,
             "order",
             "random",
             "The order in which the projections are considered.");
 
-        add_rng_options_to_feature(*this);
-        add_task_dependent_heuristic_options_to_feature(*this);
+        add_rng_options_to_feature(*this, 2);
     }
 
-    std::shared_ptr<TaskHeuristicFactory>
-    create_component(const Options& opts, const Context&) const override
+    static std::shared_ptr<TaskHeuristicFactory> func(
+        const Context&,
+        std::shared_ptr<PatternCollectionGenerator>
+            pattern_collection_generator,
+        SCPHeuristicFactory::OrderingStrategy ordering,
+        int random_seed)
     {
         return make_shared_from_arg_tuples<SCPHeuristicFactory>(
-            opts.get_shared<PatternCollectionGenerator>("patterns"),
-            opts.get<SCPHeuristicFactory::OrderingStrategy>("order"),
-            get_rng_arguments_from_options(opts),
-            get_task_dependent_heuristic_arguments_from_options(opts));
+            std::move(pattern_collection_generator),
+            ordering,
+            random_seed);
     }
 };
 } // namespace

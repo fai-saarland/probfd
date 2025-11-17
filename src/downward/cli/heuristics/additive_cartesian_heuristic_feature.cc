@@ -27,7 +27,6 @@ using namespace downward::cli;
 using namespace downward::cli::plugins;
 
 using downward::cli::utils::add_rng_options_to_feature;
-using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
 class AdditiveCartesianHeuristicFactory
@@ -98,10 +97,22 @@ public:
 };
 
 class AdditiveCartesianHeuristicFeature
-    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<Evaluator>,
+          shared_ptr<TaskTransformation>,
+          bool,
+          string,
+          Verbosity,
+          std::vector<std::shared_ptr<SubtaskGenerator>>,
+          int,
+          int,
+          FSeconds,
+          PickSplit,
+          bool,
+          int> {
 public:
     AdditiveCartesianHeuristicFeature()
-        : TypedFeature("cegar")
+        : TypedFeature("cegar", &AdditiveCartesianHeuristicFeature::func)
     {
         document_title("Additive CEGAR heuristic");
         document_synopsis(
@@ -139,34 +150,6 @@ public:
                 "535-577",
                 "2018"));
 
-        add_optional_list_argument_with_default<shared_ptr<SubtaskGenerator>>(
-            "subtasks",
-            "[landmarks(),goals()]",
-            "subtask generators");
-        add_optional_argument_with_default<int>(
-            "max_states",
-            "infinity()",
-            "maximum sum of abstract states over all abstractions");
-        add_optional_argument_with_default<int>(
-            "max_transitions",
-            "1M",
-            "maximum sum of real transitions (excluding self-loops) over "
-            " all abstractions");
-        add_optional_argument_with_default<downward::utils::FSeconds>(
-            "max_time",
-            "seconds_max()",
-            "maximum time in seconds for building abstractions");
-        add_optional_argument_with_default<PickSplit>(
-            "pick",
-            "max_refined",
-            "how to choose on which variable to split the flaw state");
-        add_optional_argument_with_default<bool>(
-            "use_general_costs",
-            "true",
-            "allow negative costs in cost partitioning");
-        add_rng_options_to_feature(*this);
-        add_heuristic_options_to_feature(*this, "cegar");
-
         document_language_support("action costs", "supported");
         document_language_support("conditional effects", "not supported");
         document_language_support("axioms", "not supported");
@@ -175,20 +158,68 @@ public:
         document_property("consistent", "yes");
         document_property("safe", "yes");
         document_property("preferred operators", "no");
+
+        make_optional_argument_with_default(
+            0,
+            "subtasks",
+            "[landmarks(),goals()]",
+            "subtask generators");
+        make_optional_argument_with_default(
+            1,
+            "max_states",
+            "infinity()",
+            "maximum sum of abstract states over all abstractions");
+        make_optional_argument_with_default(
+            2,
+            "max_transitions",
+            "1M",
+            "maximum sum of real transitions (excluding self-loops) over "
+            " all abstractions");
+        make_optional_argument_with_default(
+            3,
+            "max_time",
+            "seconds_max()",
+            "maximum time in seconds for building abstractions");
+        make_optional_argument_with_default(
+            4,
+            "pick",
+            "max_refined",
+            "how to choose on which variable to split the flaw state");
+        make_optional_argument_with_default(
+            5,
+            "use_general_costs",
+            "true",
+            "allow negative costs in cost partitioning");
+        const auto n = add_rng_options_to_feature(*this, 6);
+        add_heuristic_options_to_feature(*this, "cegar", n + 6);
     }
 
-    shared_ptr<TaskDependentFactory<Evaluator>>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<TaskDependentFactory<Evaluator>> func(
+        const Context&,
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        Verbosity verbosity,
+        std::vector<std::shared_ptr<SubtaskGenerator>> subtasks,
+        int max_states,
+        int max_transitions,
+        FSeconds max_time,
+        PickSplit pick,
+        bool use_general_costs,
+        int random_seed)
     {
         return make_shared_from_arg_tuples<AdditiveCartesianHeuristicFactory>(
-            get_heuristic_arguments_from_options(opts),
-            opts.get_list<shared_ptr<SubtaskGenerator>>("subtasks"),
-            opts.get<int>("max_states"),
-            opts.get<int>("max_transitions"),
-            opts.get<FSeconds>("max_time"),
-            opts.get<PickSplit>("pick"),
-            opts.get<bool>("use_general_costs"),
-            get_rng_arguments_from_options(opts));
+            std::move(transformation),
+            cache_estimates,
+            std::move(description),
+            verbosity,
+            std::move(subtasks),
+            max_states,
+            max_transitions,
+            max_time,
+            pick,
+            use_general_costs,
+            random_seed);
     }
 };
 } // namespace

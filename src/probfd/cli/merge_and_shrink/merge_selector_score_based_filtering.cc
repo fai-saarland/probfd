@@ -14,10 +14,14 @@ using namespace probfd::merge_and_shrink;
 
 namespace {
 class MergeSelectorScoreBasedFilteringFeature
-    : public SharedTypedFeature<MergeSelector> {
+    : public SharedTypedFeature<
+          MergeSelector,
+          std::vector<std::shared_ptr<MergeScoringFunction>>> {
 public:
     MergeSelectorScoreBasedFilteringFeature()
-        : TypedFeature("pscore_based_filtering")
+        : TypedFeature(
+              "pscore_based_filtering",
+              &MergeSelectorScoreBasedFilteringFeature::func)
     {
         document_title("Score based filtering merge selector");
         document_synopsis(
@@ -27,20 +31,20 @@ public:
             "keeping the best "
             "ones (with minimal scores) until only one is left.");
 
-        add_required_list_argument<shared_ptr<MergeScoringFunction>>(
+        make_required_argument(
+            0,
             "scoring_functions",
             "The list of scoring functions used to compute scores for "
             "candidates.");
     }
 
 protected:
-    shared_ptr<MergeSelector>
-    create_component(const Options& options, const utils::Context&)
-        const override
+    static shared_ptr<MergeSelector> func(
+        const utils::Context&,
+        std::vector<std::shared_ptr<MergeScoringFunction>> scoring_functions)
     {
         return make_shared_from_arg_tuples<MergeSelectorScoreBasedFiltering>(
-            options.get_list<std::shared_ptr<MergeScoringFunction>>(
-                "scoring_functions"));
+            std::move(scoring_functions));
     }
 };
 } // namespace

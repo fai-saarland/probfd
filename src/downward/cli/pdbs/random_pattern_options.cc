@@ -34,10 +34,12 @@ void add_random_pattern_implementation_notes_to_feature(
         true);
 }
 
-void add_random_pattern_bidirectional_option_to_feature(
-    plugins::Feature& feature)
+std::size_t add_random_pattern_bidirectional_option_to_feature(
+    plugins::Feature& feature,
+    std::size_t start_index)
 {
-    feature.add_optional_argument_with_default<bool>(
+    feature.make_optional_argument_with_default(
+        start_index,
         "bidirectional",
         "true",
         "this option decides if the causal graph is considered to be "
@@ -46,12 +48,8 @@ void add_random_pattern_bidirectional_option_to_feature(
         "(precondition-effect edges are bidirectional). If false, it is "
         "considered to be directed (a variable is a neighbor only if it is a "
         "predecessor.");
-}
 
-tuple<bool> get_random_pattern_bidirectional_arguments_from_options(
-    const plugins::Options& opts)
-{
-    return make_tuple(opts.get<bool>("bidirectional"));
+    return 1;
 }
 
 } // namespace downward::cli::pdbs

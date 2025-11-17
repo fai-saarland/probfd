@@ -14,10 +14,11 @@ using namespace probfd::heuristics;
 using namespace downward::cli::plugins;
 
 namespace {
-class BlindHeuristicFactoryFeature : public SharedTypedFeature<TaskHeuristicFactory> {
+class BlindHeuristicFactoryFeature
+    : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     BlindHeuristicFactoryFeature()
-        : TypedFeature("blind_heuristic")
+        : TypedFeature("blind_heuristic", &BlindHeuristicFactoryFeature::func)
     {
         document_title("Blind Heuristic");
         document_synopsis(
@@ -25,8 +26,7 @@ public:
     }
 
     [[nodiscard]]
-    std::shared_ptr<TaskHeuristicFactory>
-    create_component(const Options&, const Context&) const override
+    static std::shared_ptr<TaskHeuristicFactory> func(const Context&)
     {
         return std::make_shared<BlindHeuristicFactory>();
     }

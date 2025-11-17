@@ -13,9 +13,10 @@ using namespace downward::landmarks;
 
 namespace downward::cli::landmarks {
 
-void add_landmark_heuristic_options_to_feature(
+std::size_t add_landmark_heuristic_options_to_feature(
     plugins::Feature& feature,
-    const string& description)
+    const string& description,
+    std::size_t start_index)
 {
     feature.document_synopsis(
         "Landmark progression is implemented according to the following "
@@ -33,56 +34,43 @@ void add_landmark_heuristic_options_to_feature(
             "AAAI Press",
             "2023"));
 
-    feature.add_required_argument<shared_ptr<LandmarkFactory>>(
+    feature.document_property(
+        "preferred operators",
+        "yes (if enabled; see ``pref`` option)");
+
+    feature.make_required_argument(
+        start_index,
         "lm_factory",
         "the set of landmarks to use for this heuristic. "
         "The set of landmarks can be specified here, "
         "or predefined (see LandmarkFactory).");
-    feature.add_optional_argument_with_default<bool>(
+    feature.make_optional_argument_with_default(
+        start_index + 1,
         "pref",
         "false",
         "enable preferred operators (see note below)");
     /* TODO: Do we really want these options or should we just always progress
         everything we can? */
-    feature.add_optional_argument_with_default<bool>(
+    feature.make_optional_argument_with_default(
+        start_index + 2,
         "prog_goal",
         "true",
         "Use goal progression.");
-    feature.add_optional_argument_with_default<bool>(
+    feature.make_optional_argument_with_default(
+        start_index + 3,
         "prog_gn",
         "true",
         "Use greedy-necessary ordering progression.");
-    feature.add_optional_argument_with_default<bool>(
+    feature.make_optional_argument_with_default(
+        start_index + 4,
         "prog_r",
         "true",
         "Use reasonable ordering progression.");
-    add_heuristic_options_to_feature(feature, description);
 
-    feature.document_property(
-        "preferred operators",
-        "yes (if enabled; see ``pref`` option)");
-}
+    const auto n =
+        add_heuristic_options_to_feature(feature, description, start_index + 5);
 
-tuple<
-    shared_ptr<TaskTransformation>,
-    bool,
-    string,
-    utils::Verbosity,
-    shared_ptr<LandmarkFactory>,
-    bool,
-    bool,
-    bool,
-    bool>
-get_landmark_heuristic_arguments_from_options(const plugins::Options& opts)
-{
-    return tuple_cat(
-        get_heuristic_arguments_from_options(opts),
-        make_tuple(
-            opts.get<shared_ptr<LandmarkFactory>>("lm_factory"),
-            opts.get<bool>("pref"),
-            opts.get<bool>("prog_goal"),
-            opts.get<bool>("prog_gn"),
-            opts.get<bool>("prog_r")));
+    return n + 5;
 }
 
 } // namespace downward::cli::landmarks

@@ -20,7 +20,6 @@ using namespace downward::utils;
 using namespace downward::cli::plugins;
 
 using downward::cli::add_heuristic_options_to_feature;
-using downward::cli::get_heuristic_arguments_from_options;
 
 namespace {
 class HMHeuristicFactory : public TaskDependentFactory<Evaluator> {
@@ -43,9 +42,7 @@ public:
         , verbosity(verbosity)
         , m(m)
     {
-        if (m < 1) {
-            throw std::domain_error("m must be >= 1.");
-        }
+        if (m < 1) { throw std::domain_error("m must be >= 1."); }
     }
 
     unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
@@ -62,15 +59,18 @@ public:
 };
 
 class HMHeuristicFeature
-    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<Evaluator>,
+          shared_ptr<TaskTransformation>,
+          bool,
+          string,
+          utils::Verbosity,
+          int> {
 public:
     HMHeuristicFeature()
-        : TypedFeature("hm")
+        : TypedFeature("hm", &HMHeuristicFeature::func)
     {
         document_title("h^m heuristic");
-
-        add_optional_argument_with_default<int>("m", "2", "subset size");
-        add_heuristic_options_to_feature(*this, "hm");
 
         document_language_support("action costs", "supported");
         document_language_support("conditional effects", "ignored");
@@ -86,14 +86,25 @@ public:
             "safe",
             "yes for tasks without conditional effects or axioms");
         document_property("preferred operators", "no");
+
+        make_optional_argument_with_default(0, "m", "2", "subset size");
+        add_heuristic_options_to_feature(*this, "hm", 1);
     }
 
-    shared_ptr<TaskDependentFactory<Evaluator>>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<TaskDependentFactory<Evaluator>> func(
+        const Context&,
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        utils::Verbosity verbosity,
+        int m)
     {
         return make_shared_from_arg_tuples<HMHeuristicFactory>(
-            get_heuristic_arguments_from_options(opts),
-            opts.get<int>("m"));
+            std::move(transformation),
+            cache_estimates,
+            std::move(description),
+            verbosity,
+            m);
     }
 };
 } // namespace

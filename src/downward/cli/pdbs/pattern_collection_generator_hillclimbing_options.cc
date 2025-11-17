@@ -10,11 +10,11 @@ using namespace downward::utils;
 using namespace downward::cli::plugins;
 
 using downward::cli::utils::add_rng_options_to_feature;
-using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace downward::cli::pdbs {
 
-void add_hillclimbing_options_to_feature(Feature& feature)
+std::size_t
+add_hillclimbing_options_to_feature(Feature& feature, std::size_t start_index)
 {
     feature.document_note(
         "Note",
@@ -76,26 +76,31 @@ void add_hillclimbing_options_to_feature(Feature& feature)
         "implementation as described in the paper.",
         true);
 
-    feature.add_optional_argument_with_default<int>(
+    feature.make_optional_argument_with_default(
+        start_index,
         "pdb_max_size",
         "2000000",
         "maximal number of states per pattern database");
-    feature.add_optional_argument_with_default<int>(
+    feature.make_optional_argument_with_default(
+        start_index + 1,
         "collection_max_size",
         "20000000",
         "maximal number of states in the pattern collection");
-    feature.add_optional_argument_with_default<int>(
+    feature.make_optional_argument_with_default(
+        start_index + 2,
         "num_samples",
         "1000",
         "number of samples (random states) on which to evaluate each "
         "candidate pattern collection");
-    feature.add_optional_argument_with_default<int>(
+    feature.make_optional_argument_with_default(
+        start_index + 3,
         "min_improvement",
         "10",
         "minimum number of samples on which a candidate pattern "
         "collection must improve on the current one to be considered "
         "as the next pattern collection");
-    feature.add_optional_argument_with_default<FSeconds>(
+    feature.make_optional_argument_with_default(
+        start_index + 4,
         "max_time",
         "seconds_max()",
         "maximum time in seconds for improving the initial pattern "
@@ -103,20 +108,9 @@ void add_hillclimbing_options_to_feature(Feature& feature)
         "is performed at all. Note that this limit only affects hill "
         "climbing. Use max_time_dominance_pruning to limit the time "
         "spent for pruning dominated patterns.");
-    add_rng_options_to_feature(feature);
-}
+    const auto n = add_rng_options_to_feature(feature, start_index + 5);
 
-tuple<int, int, int, int, FSeconds, int>
-get_hillclimbing_arguments_from_options(const Options& opts)
-{
-    return tuple_cat(
-        make_tuple(
-            opts.get<int>("pdb_max_size"),
-            opts.get<int>("collection_max_size"),
-            opts.get<int>("num_samples"),
-            opts.get<int>("min_improvement"),
-            opts.get<FSeconds>("max_time")),
-        get_rng_arguments_from_options(opts));
+    return 5 + n;
 }
 
 } // namespace downward::cli::pdbs

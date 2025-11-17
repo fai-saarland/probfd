@@ -18,20 +18,23 @@ using namespace downward::type_based_open_list;
 using namespace downward::cli::plugins;
 
 using downward::cli::add_open_list_options_to_feature;
-using downward::cli::get_open_list_arguments_from_options;
 
 using downward::cli::utils::add_rng_options_to_feature;
-using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
 template <typename T>
 class TypeBasedOpenListFeature
     : public SharedTypedFeature<
-          downward::TaskDependentFactory<downward::OpenList<T>>> {
+          downward::TaskDependentFactory<downward::OpenList<T>>,
+          const std::vector<std::shared_ptr<
+              downward::TaskDependentFactory<downward::Evaluator>>>&,
+          int> {
 public:
     TypeBasedOpenListFeature()
         requires(std::same_as<T, downward::StateOpenListEntry>)
-        : TypeBasedOpenListFeature::TypedFeature("state_type_based")
+        : TypeBasedOpenListFeature::TypedFeature(
+              "state_type_based",
+              &TypeBasedOpenListFeature::func)
     {
         this->document_title("Type-based state open list");
         this->document_synopsis(
@@ -53,16 +56,18 @@ public:
                 "AAAI Press",
                 "2014"));
 
-        this->template add_optional_list_argument<
-            shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>>(
+        this->make_required_argument(
+            0,
             "evaluators",
             "Evaluators used to determine the bucket for each entry.");
-        add_rng_options_to_feature(*this);
+        add_rng_options_to_feature(*this, 1);
     }
 
     TypeBasedOpenListFeature()
         requires(std::same_as<T, downward::EdgeOpenListEntry>)
-        : TypeBasedOpenListFeature::TypedFeature("edge_type_based")
+        : TypeBasedOpenListFeature::TypedFeature(
+              "edge_type_based",
+              &TypeBasedOpenListFeature::func)
     {
         this->document_title("Type-based edge open list");
         this->document_synopsis(
@@ -84,25 +89,27 @@ public:
                 "AAAI Press",
                 "2014"));
 
-        this->template add_optional_list_argument<
-            shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>>(
+        this->make_required_argument(
+            0,
             "evaluators",
             "Evaluators used to determine the bucket for each entry.");
-        add_rng_options_to_feature(*this);
+        add_rng_options_to_feature(*this, 1);
     }
 
-    virtual shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
-    create_component(const Options& opts, const Context& context) const override
+    static shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
+    func(
+        const Context& context,
+        const std::vector<std::shared_ptr<
+            downward::TaskDependentFactory<downward::Evaluator>>>& factories,
+        int random_seed)
     {
-        verify_list_non_empty<shared_ptr<downward::Evaluator>>(
-            context,
-            opts,
-            "evaluators");
+        if (factories.empty()) {
+            context.error("List of evaluators may not be empty.");
+        }
+
         return make_shared_from_arg_tuples<TypeBasedOpenListFactory<T>>(
-            opts.get_list<shared_ptr<
-                downward::TaskDependentFactory<downward::Evaluator>>>(
-                "evaluators"),
-            get_rng_arguments_from_options(opts));
+            factories,
+            random_seed);
     }
 };
 } // namespace

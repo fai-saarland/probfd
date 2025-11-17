@@ -20,14 +20,19 @@ using namespace downward::utils;
 using namespace downward::cli::plugins;
 
 using downward::cli::landmarks::add_landmark_factory_options_to_feature;
-using downward::cli::landmarks::get_landmark_factory_arguments_from_options;
 
 namespace {
 class LandmarkFactoryReasonableOrdersHPSFeature
-    : public SharedTypedFeature<LandmarkFactory> {
+    : public SharedTypedFeature<
+          LandmarkFactory,
+          const std::shared_ptr<LandmarkFactory>&,
+          std::shared_ptr<TaskDependentFactory<MutexInformation>>,
+          utils::Verbosity> {
 public:
     LandmarkFactoryReasonableOrdersHPSFeature()
-        : TypedFeature("lm_reasonable_orders_hps")
+        : TypedFeature(
+              "lm_reasonable_orders_hps",
+              &LandmarkFactoryReasonableOrdersHPSFeature::func)
     {
         document_title("HPS Orders");
         document_synopsis(
@@ -53,26 +58,27 @@ public:
             "effect on the performance of LAMA (Büchner et al., 2023) and "
             "decided to remove them in issue1089.");
 
-        add_required_argument<shared_ptr<LandmarkFactory>>("lm_factory");
-        add_required_argument<
-            std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
-            "mutexes",
-            "factory for mutexes");
-        add_landmark_factory_options_to_feature(*this);
-
         // TODO: correct?
         document_language_support(
             "conditional_effects",
             "supported if subcomponent supports them");
+
+        make_required_argument(0, "lm_factory");
+        make_required_argument(1, "mutexes", "factory for mutexes");
+
+        add_landmark_factory_options_to_feature(*this, 2);
     }
 
-    virtual shared_ptr<LandmarkFactory>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<LandmarkFactory> func(
+        const Context&,
+        const std::shared_ptr<LandmarkFactory>& lm_factory,
+        std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory,
+        utils::Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<LandmarkFactoryReasonableOrdersHPS>(
-            opts.get<shared_ptr<LandmarkFactory>>("lm_factory"),
-            opts.get_shared<TaskDependentFactory<MutexInformation>>("mutexes"),
-            get_landmark_factory_arguments_from_options(opts));
+            lm_factory,
+            std::move(mutex_factory),
+            verbosity);
     }
 };
 } // namespace

@@ -20,7 +20,6 @@ using namespace downward::utils;
 using namespace downward::cli::plugins;
 
 using downward::cli::add_heuristic_options_to_feature;
-using downward::cli::get_heuristic_arguments_from_options;
 
 namespace {
 class ContextEnhancedAdditiveHeuristicFactory
@@ -56,14 +55,17 @@ public:
 };
 
 class ContextEnhancedAdditiveHeuristicFeature
-    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<Evaluator>,
+          shared_ptr<TaskTransformation>,
+          bool,
+          string,
+          utils::Verbosity> {
 public:
     ContextEnhancedAdditiveHeuristicFeature()
-        : TypedFeature("cea")
+        : TypedFeature("cea", &ContextEnhancedAdditiveHeuristicFeature::func)
     {
         document_title("Context-enhanced additive heuristic");
-
-        add_heuristic_options_to_feature(*this, "cea");
 
         document_language_support("action costs", "supported");
         document_language_support("conditional effects", "supported");
@@ -77,14 +79,22 @@ public:
         document_property("consistent", "no");
         document_property("safe", "no");
         document_property("preferred operators", "yes");
+
+        add_heuristic_options_to_feature(*this, "cea", 0);
     }
 
-    shared_ptr<TaskDependentFactory<Evaluator>>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<TaskDependentFactory<Evaluator>> func(
+        const Context&,
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        utils::Verbosity verbosity)
     {
-        return make_shared_from_arg_tuples<
-            ContextEnhancedAdditiveHeuristicFactory>(
-            get_heuristic_arguments_from_options(opts));
+        return make_shared<ContextEnhancedAdditiveHeuristicFactory>(
+            std::move(transformation),
+            cache_estimates,
+            std::move(description),
+            verbosity);
     }
 };
 } // namespace

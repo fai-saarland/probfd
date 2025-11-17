@@ -99,41 +99,65 @@ public:
 };
 
 class DiversePotentialMaxHeuristicFeature
-    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<Evaluator>,
+          shared_ptr<TaskTransformation>,
+          bool,
+          string,
+          utils::Verbosity,
+          int,
+          int,
+          double,
+          lp::LPSolverType,
+          int> {
 public:
     DiversePotentialMaxHeuristicFeature()
-        : TypedFeature("diverse_potentials")
+        : TypedFeature(
+              "diverse_potentials",
+              &DiversePotentialMaxHeuristicFeature::func)
     {
         document_title("Diverse potential heuristics");
         document_synopsis(get_admissible_potentials_reference());
 
-        add_optional_argument_with_default<int>(
+        make_optional_argument_with_default(
+            0,
             "num_samples",
             "1000",
             "Number of states to sample");
-        add_optional_argument_with_default<int>(
+        make_optional_argument_with_default(
+            1,
             "max_num_heuristics",
             "infinity()",
             "maximum number of potential heuristics");
-        add_admissible_potentials_options_to_feature(
+        const auto n = add_admissible_potentials_options_to_feature(
             *this,
-            "diverse_potentials");
-        add_rng_options_to_feature(*this);
+            "diverse_potentials",
+            2);
+        add_rng_options_to_feature(*this, n + 2);
     }
 
-    shared_ptr<TaskDependentFactory<Evaluator>>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<TaskDependentFactory<Evaluator>> func(
+        const Context&,
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        utils::Verbosity verbosity,
+        int num_samples,
+        int max_num_heuristics,
+        double max_potential,
+        lp::LPSolverType lp_solver,
+        int random_seed)
     {
         return make_shared<DiversePotentialMaxHeuristicFactory>(
-            opts.get<shared_ptr<TaskTransformation>>("transform"),
-            opts.get<bool>("cache_estimates"),
-            opts.get<string>("description"),
-            opts.get<Verbosity>("verbosity"),
-            opts.get<int>("num_samples"),
-            opts.get<int>("max_num_heuristics"),
-            opts.get<double>("max_potential"),
-            opts.get<lp::LPSolverType>("lpsolver"),
-            opts.get<int>("random_seed"));
+            std::move(transformation),
+            cache_estimates,
+            std::move(description),
+            verbosity,
+            num_samples,
+            max_num_heuristics,
+            max_potential,
+            lp_solver,
+            random_seed);
     }
 };
 } // namespace

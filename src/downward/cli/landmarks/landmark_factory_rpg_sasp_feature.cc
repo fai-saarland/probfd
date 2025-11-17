@@ -14,40 +14,45 @@ using namespace downward::utils;
 using namespace downward::cli::plugins;
 
 using downward::cli::landmarks::add_landmark_factory_options_to_feature;
-using downward::cli::landmarks::get_landmark_factory_arguments_from_options;
 
 using downward::cli::landmarks::add_use_orders_option_to_feature;
-using downward::cli::landmarks::get_use_orders_arguments_from_options;
 
 namespace {
 class LandmarkFactoryRpgSaspFeature
-    : public SharedTypedFeature<LandmarkFactory> {
+    : public SharedTypedFeature<
+          LandmarkFactory,
+          bool,
+          bool,
+          downward::utils::Verbosity> {
 public:
     LandmarkFactoryRpgSaspFeature()
-        : TypedFeature("lm_rhw")
+        : TypedFeature("lm_rhw", &LandmarkFactoryRpgSaspFeature::func)
     {
         document_title("RHW Landmarks");
         document_synopsis(
             "The landmark generation method introduced by "
             "Richter, Helmert and Westphal (AAAI 2008).");
+        document_language_support("conditional_effects", "supported");
 
-        add_optional_argument_with_default<bool>(
+        make_optional_argument_with_default(
+            0,
             "disjunctive_landmarks",
             "true",
             "keep disjunctive landmarks");
-        add_use_orders_option_to_feature(*this);
-        add_landmark_factory_options_to_feature(*this);
-
-        document_language_support("conditional_effects", "supported");
+        const auto n = add_use_orders_option_to_feature(*this, 1);
+        add_landmark_factory_options_to_feature(*this, n + 1);
     }
 
-    virtual shared_ptr<LandmarkFactory>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<LandmarkFactory> func(
+        const Context&,
+        bool disjunctive_landmarks,
+        bool use_orders,
+        downward::utils::Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<LandmarkFactoryRpgSasp>(
-            opts.get<bool>("disjunctive_landmarks"),
-            get_use_orders_arguments_from_options(opts),
-            get_landmark_factory_arguments_from_options(opts));
+            disjunctive_landmarks,
+            use_orders,
+            verbosity);
     }
 };
 } // namespace

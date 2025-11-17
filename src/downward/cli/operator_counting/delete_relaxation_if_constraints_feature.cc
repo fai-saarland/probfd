@@ -17,10 +17,12 @@ using namespace downward::cli::plugins;
 
 namespace {
 class DeleteRelaxationIFConstraintsFeature
-    : public SharedTypedFeature<ConstraintGenerator> {
+    : public SharedTypedFeature<ConstraintGenerator, bool, bool> {
 public:
     DeleteRelaxationIFConstraintsFeature()
-        : TypedFeature("delete_relaxation_if_constraints")
+        : TypedFeature(
+              "delete_relaxation_if_constraints",
+              &DeleteRelaxationIFConstraintsFeature::func)
     {
         document_title("Delete relaxation constraints");
         document_synopsis(
@@ -42,32 +44,6 @@ public:
                 "54",
                 "631-677",
                 "2015"));
-
-        add_optional_argument_with_default<bool>(
-            "use_time_vars",
-            "false",
-            "use variables for time steps. With these additional variables the "
-            "constraints enforce an order between the selected operators. "
-            "Leaving "
-            "this off (default) corresponds to the time relaxation by Imai and "
-            "Fukunaga. Switching it on, can increase the heuristic value but "
-            "will "
-            "increase the size of the constraints which has a strong impact on "
-            "runtime. Constraints involving time variables use a big-M "
-            "encoding, "
-            "so they are more useful if used with integer variables.");
-        add_optional_argument_with_default<bool>(
-            "use_integer_vars",
-            "false",
-            "restrict auxiliary variables to integer values. These variables "
-            "encode whether operators are used, facts are reached, which "
-            "operator "
-            "first achieves which fact, and in which order the operators are "
-            "used. "
-            "Restricting them to integers generally improves the heuristic "
-            "value "
-            "at the cost of increased runtime.");
-
         document_note(
             "Example",
             "To compute the optimal delete-relaxation heuristic h^+^, use\n"
@@ -80,14 +56,41 @@ public:
             "For best performance we recommend using the alternative "
             "formulation by Rankooh and Rintanen, accessible through the "
             "option {{{delete_relaxation_rr_constraints}}}.\n");
+
+        make_optional_argument_with_default(
+            0,
+            "use_time_vars",
+            "false",
+            "use variables for time steps. With these additional variables the "
+            "constraints enforce an order between the selected operators. "
+            "Leaving "
+            "this off (default) corresponds to the time relaxation by Imai and "
+            "Fukunaga. Switching it on, can increase the heuristic value but "
+            "will "
+            "increase the size of the constraints which has a strong impact on "
+            "runtime. Constraints involving time variables use a big-M "
+            "encoding, "
+            "so they are more useful if used with integer variables.");
+        make_optional_argument_with_default(
+            1,
+            "use_integer_vars",
+            "false",
+            "restrict auxiliary variables to integer values. These variables "
+            "encode whether operators are used, facts are reached, which "
+            "operator "
+            "first achieves which fact, and in which order the operators are "
+            "used. "
+            "Restricting them to integers generally improves the heuristic "
+            "value "
+            "at the cost of increased runtime.");
     }
 
-    virtual shared_ptr<ConstraintGenerator>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<ConstraintGenerator>
+    func(const Context&, bool use_time_vars, bool use_integer_vars)
     {
         return make_shared<DeleteRelaxationIFConstraints>(
-            opts.get<bool>("use_time_vars"),
-            opts.get<bool>("use_integer_vars"));
+            use_time_vars,
+            use_integer_vars);
     }
 };
 } // namespace

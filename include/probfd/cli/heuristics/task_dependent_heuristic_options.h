@@ -1,21 +1,17 @@
 #ifndef PROBFD_CLI_HEURISTICS_TASK_DEPENDENT_HEURISTIC_OPTIONS_H
 #define PROBFD_CLI_HEURISTICS_TASK_DEPENDENT_HEURISTIC_OPTIONS_H
 
-#include "probfd/cli/heuristics/task_dependent_heuristic_options_fwd.h"
+#include <cstddef>
 
 namespace downward::cli::plugins {
 class Feature;
-class Options;
 } // namespace downward::cli::plugins
 
 namespace probfd::cli::heuristics {
 
-extern void add_task_dependent_heuristic_options_to_feature(
-    downward::cli::plugins::Feature& feature);
-
-extern TaskDependentHeuristicArgs
-get_task_dependent_heuristic_arguments_from_options(
-    const downward::cli::plugins::Options& opts);
+extern std::size_t add_task_dependent_heuristic_options_to_feature(
+    downward::cli::plugins::Feature& feature,
+    std::size_t start_index);
 
 } // namespace probfd::cli::heuristics
 

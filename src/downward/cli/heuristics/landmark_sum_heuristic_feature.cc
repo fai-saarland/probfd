@@ -20,7 +20,6 @@ using namespace downward::utils;
 using namespace downward::cli::plugins;
 
 using downward::cli::landmarks::add_landmark_heuristic_options_to_feature;
-using downward::cli::landmarks::get_landmark_heuristic_arguments_from_options;
 
 namespace {
 class LandmarkSumHeuristicFactory : public TaskDependentFactory<Evaluator> {
@@ -75,10 +74,20 @@ public:
 };
 
 class LandmarkSumHeuristicFeature
-    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<Evaluator>,
+          shared_ptr<TaskTransformation>,
+          bool,
+          string,
+          utils::Verbosity,
+          shared_ptr<LandmarkFactory>,
+          bool,
+          bool,
+          bool,
+          bool> {
 public:
     LandmarkSumHeuristicFeature()
-        : TypedFeature("landmark_sum")
+        : TypedFeature("landmark_sum", &LandmarkSumHeuristicFeature::func)
     {
         document_title("Landmark sum heuristic");
         document_synopsis(
@@ -104,10 +113,6 @@ public:
                 "39",
                 "127-177",
                 "2010"));
-
-        add_landmark_heuristic_options_to_feature(
-            *this,
-            "landmark_sum_heuristic");
 
         document_note(
             "Note on performance for satisficing planning",
@@ -163,13 +168,35 @@ public:
             "yes except on tasks with axioms or on tasks with "
             "conditional effects when using a LandmarkFactory "
             "not supporting them");
+
+        add_landmark_heuristic_options_to_feature(
+            *this,
+            "landmark_sum_heuristic",
+            0);
     }
 
-    shared_ptr<TaskDependentFactory<Evaluator>>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<TaskDependentFactory<Evaluator>> func(
+        const Context&,
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        utils::Verbosity verbosity,
+        shared_ptr<LandmarkFactory> landmark_factory,
+        bool pref,
+        bool prog_goal,
+        bool prog_gn,
+        bool prog_r)
     {
         return make_shared_from_arg_tuples<LandmarkSumHeuristicFactory>(
-            get_landmark_heuristic_arguments_from_options(opts));
+            std::move(transformation),
+            cache_estimates,
+            std::move(description),
+            verbosity,
+            std::move(landmark_factory),
+            pref,
+            prog_goal,
+            prog_gn,
+            prog_r);
     }
 };
 } // namespace

@@ -21,13 +21,19 @@ using namespace downward::cli::pdbs;
 using namespace downward::cli::plugins;
 
 using downward::cli::utils::add_rng_options_to_feature;
-using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-class PatternGeneratorCEGARFeature : public SharedTypedFeature<PatternGenerator> {
+class PatternGeneratorCEGARFeature
+    : public SharedTypedFeature<
+          PatternGenerator,
+          int,
+          FSeconds,
+          bool,
+          int,
+          Verbosity> {
 public:
     PatternGeneratorCEGARFeature()
-        : TypedFeature("cegar_pattern")
+        : TypedFeature("cegar_pattern", &PatternGeneratorCEGARFeature::func)
     {
         document_title("CEGAR");
         document_synopsis(
@@ -38,32 +44,39 @@ public:
             "paper " +
             get_rovner_et_al_reference());
 
-        add_optional_argument_with_default<int>(
+        add_cegar_implementation_notes_to_feature(*this);
+
+        make_optional_argument_with_default(
+            0,
             "max_pdb_size",
             "1000000",
             "maximum number of states in the final pattern database (possibly "
             "ignored by a singleton pattern consisting of a single goal "
             "variable)");
-        add_optional_argument_with_default<FSeconds>(
+        make_optional_argument_with_default(
+            1,
             "max_time",
             "seconds_max()",
             "maximum time in seconds for the pattern generation");
-        add_cegar_wildcard_option_to_feature(*this);
-        add_rng_options_to_feature(*this);
-        add_generator_options_to_feature(*this);
-
-        add_cegar_implementation_notes_to_feature(*this);
+        const auto n = add_cegar_wildcard_option_to_feature(*this, 2);
+        const auto n2 = add_rng_options_to_feature(*this, n + 2);
+        add_generator_options_to_feature(*this, n + n2 + 2);
     }
 
-    virtual shared_ptr<PatternGenerator>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<PatternGenerator> func(
+        const Context&,
+        int max_pdb_size,
+        FSeconds max_time,
+        bool use_wildcard_plans,
+        int random_seed,
+        Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<PatternGeneratorCEGAR>(
-            opts.get<int>("max_pdb_size"),
-            opts.get<FSeconds>("max_time"),
-            get_cegar_wildcard_arguments_from_options(opts),
-            get_rng_arguments_from_options(opts),
-            get_generator_arguments_from_options(opts));
+            max_pdb_size,
+            max_time,
+            use_wildcard_plans,
+            random_seed,
+            verbosity);
     }
 };
 } // namespace

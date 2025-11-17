@@ -1,23 +1,17 @@
 #ifndef DOWNWARD_PLUGINS_PDBS_PATTERN_GENERATOR_H
 #define DOWNWARD_PLUGINS_PDBS_PATTERN_GENERATOR_H
 
-#include <tuple>
-
-namespace downward::utils {
-enum class Verbosity;
-}
+#include <cstddef>
 
 namespace downward::cli::plugins {
 class Feature;
-class Options;
 } // namespace downward::cli::plugins
 
 namespace downward::cli::pdbs {
 
-extern void add_generator_options_to_feature(plugins::Feature& feature);
-
-extern std::tuple<downward::utils::Verbosity>
-get_generator_arguments_from_options(const plugins::Options& opts);
+extern std::size_t add_generator_options_to_feature(
+    plugins::Feature& feature,
+    std::size_t start_index);
 
 } // namespace downward::cli::pdbs
 

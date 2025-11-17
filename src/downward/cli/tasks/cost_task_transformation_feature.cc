@@ -19,7 +19,6 @@ using namespace downward::tasks;
 using namespace downward::cli::plugins;
 
 using downward::cli::add_cost_type_options_to_feature;
-using downward::cli::get_cost_type_arguments_from_options;
 
 namespace {
 class CostAdaptedTaskTransformation : public TaskTransformation {
@@ -47,22 +46,24 @@ public:
 };
 
 class CostAdaptedTaskTransformationFeature
-    : public SharedTypedFeature<TaskTransformation> {
+    : public SharedTypedFeature<TaskTransformation, OperatorCost> {
 public:
     CostAdaptedTaskTransformationFeature()
-        : TypedFeature("adapt_costs")
+        : TypedFeature(
+              "adapt_costs",
+              &CostAdaptedTaskTransformationFeature::func)
     {
         document_title("Cost-adapted task");
         document_synopsis("A cost-adapting transformation of the root task.");
 
-        add_cost_type_options_to_feature(*this);
+        add_cost_type_options_to_feature(*this, 0);
     }
 
-    virtual shared_ptr<TaskTransformation>
-    create_component(const Options& opts, const utils::Context&) const override
+    static shared_ptr<TaskTransformation>
+    func(const utils::Context&, OperatorCost cost_type)
     {
         return make_shared_from_arg_tuples<CostAdaptedTaskTransformation>(
-            get_cost_type_arguments_from_options(opts));
+            cost_type);
     }
 };
 } // namespace

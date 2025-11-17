@@ -19,7 +19,6 @@ using namespace downward::const_evaluator;
 using namespace downward::cli::plugins;
 
 using downward::cli::add_evaluator_options_to_feature;
-using downward::cli::get_evaluator_arguments_from_options;
 
 namespace {
 class ConstEvaluatorFactory : public TaskDependentFactory<Evaluator> {
@@ -48,27 +47,36 @@ public:
 };
 
 class ConstEvaluatorFeature
-    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<Evaluator>,
+          std::string,
+          Verbosity,
+          int> {
 public:
     ConstEvaluatorFeature()
-        : TypedFeature("const")
+        : TypedFeature("const", &ConstEvaluatorFeature::func)
     {
         document_title("Constant evaluator");
         document_synopsis("Returns a constant value.");
 
-        add_optional_argument_with_default<int>(
+        make_optional_argument_with_default(
+            0,
             "value",
             "1",
             "the constant value");
-        add_evaluator_options_to_feature(*this, "const");
+        add_evaluator_options_to_feature(*this, "const", 1);
     }
 
-    shared_ptr<TaskDependentFactory<Evaluator>>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<TaskDependentFactory<Evaluator>> func(
+        const Context&,
+        std::string description,
+        Verbosity verbosity,
+        int value)
     {
         return make_shared_from_arg_tuples<ConstEvaluatorFactory>(
-            get_evaluator_arguments_from_options(opts),
-            opts.get<int>("value"));
+            std::move(description),
+            verbosity,
+            value);
     }
 };
 } // namespace

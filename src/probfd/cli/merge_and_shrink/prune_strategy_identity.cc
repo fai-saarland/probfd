@@ -13,14 +13,13 @@ namespace {
 class PruneStrategyIdentityFeature : public SharedTypedFeature<PruneStrategy> {
 public:
     PruneStrategyIdentityFeature()
-        : TypedFeature("prune_identity")
+        : TypedFeature("prune_identity", &PruneStrategyIdentityFeature::func)
     {
         document_title("Identity prune strategy");
         document_synopsis("This prune strategy leaves the TS unchanged.");
     }
 
-    std::shared_ptr<PruneStrategy>
-    create_component(const Options&, const utils::Context&) const override
+    static std::shared_ptr<PruneStrategy> func(const utils::Context&)
     {
         return std::make_shared<PruneStrategyIdentity>();
     }

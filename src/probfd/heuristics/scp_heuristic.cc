@@ -29,12 +29,10 @@ namespace probfd::heuristics {
 SCPHeuristicFactory::SCPHeuristicFactory(
     std::shared_ptr<PatternCollectionGenerator> pattern_collection_generator,
     OrderingStrategy ordering,
-    int random_seed,
-    utils::Verbosity verbosity)
+    int random_seed)
     : pattern_collection_generator_(std::move(pattern_collection_generator))
     , ordering_(ordering)
     , random_seed_(random_seed)
-    , verbosity_(verbosity)
 {
 }
 

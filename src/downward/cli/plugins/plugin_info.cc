@@ -7,46 +7,47 @@ using namespace std;
 
 namespace downward::cli::plugins {
 
-static constexpr auto NO_DEFAULT = "<none>";
-
-ArgumentInfo::ArgumentInfo(
-    const string& key,
-    const Type& type,
-    const string& default_value)
+ArgumentInfo::ArgumentInfo(const string& key, const string& default_value)
     : key(key)
-    , type(type)
     , default_value(default_value)
 {
 }
 
-ArgumentInfo ArgumentInfo::make_optional(const std::string& key, const Type& type)
+ArgumentInfo ArgumentInfo::make_optional(const std::string& default_value)
 {
-    return ArgumentInfo(key, type, NO_DEFAULT);
+    return ArgumentInfo("", default_value);
 }
 
-ArgumentInfo ArgumentInfo::make_optional(
+ArgumentInfo ArgumentInfo::make_required()
+{
+    return ArgumentInfo("", "");
+}
+
+ArgumentInfo ArgumentInfo::make_named_optional(
     const std::string& key,
-    const Type& type,
     const std::string& default_value)
 {
-    return ArgumentInfo(key, type, default_value);
+    return ArgumentInfo(key, default_value);
 }
 
-ArgumentInfo ArgumentInfo::make_required(
-    const std::string& key,
-    const Type& type)
+ArgumentInfo ArgumentInfo::make_named_required(const std::string& key)
 {
-    return ArgumentInfo(key, type, "");
-}
-
-bool ArgumentInfo::is_optional() const
-{
-    return !default_value.empty();
+    return ArgumentInfo(key, "");
 }
 
 bool ArgumentInfo::has_default() const
 {
-    return is_optional() && default_value != NO_DEFAULT;
+    return !default_value.empty();
+}
+
+void ArgumentInfo::set_key(const std::string& key)
+{
+    this->key = key;
+}
+
+void ArgumentInfo::set_default(const std::string& default_value)
+{
+    this->default_value = default_value;
 }
 
 PropertyInfo::PropertyInfo(const string& property, const string& description)
