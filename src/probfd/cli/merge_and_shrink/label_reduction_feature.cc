@@ -21,10 +21,17 @@ using utils::ExitCode;
 using namespace probfd::merge_and_shrink;
 
 namespace {
-class LabelReductionFeature : public SharedTypedFeature<LabelReduction> {
+class LabelReductionFeature
+    : public SharedTypedFeature<
+          LabelReduction,
+          bool,
+          bool,
+          LabelReductionMethod,
+          LabelReductionSystemOrder,
+          int> {
 public:
     LabelReductionFeature()
-        : TypedFeature("pexact")
+        : TypedFeature("pexact", &LabelReductionFeature::func)
     {
         document_title("Exact generalized label reduction");
         document_synopsis(
@@ -40,14 +47,18 @@ public:
                 "AAAI Press",
                 "2014"));
 
-        add_required_argument<bool>(
+        make_required_argument(
+            0,
             "before_shrinking",
             "apply label reduction before shrinking");
-        add_required_argument<bool>(
+
+        make_required_argument(
+            1,
             "before_merging",
             "apply label reduction before merging");
 
-        add_optional_argument_with_default<LabelReductionMethod>(
+        make_optional_argument_with_default(
+            2,
             "method",
             "all_transition_systems_with_fixpoint",
             "Label reduction method. See the AAAI14 paper by "
@@ -58,7 +69,8 @@ public:
             "reduce_labels_before_merging in order to use "
             "the chosen label reduction configuration.");
 
-        add_optional_argument_with_default<LabelReductionSystemOrder>(
+        make_optional_argument_with_default(
+            3,
             "system_order",
             "random",
             "Order of transition systems for the label reduction "
@@ -67,29 +79,31 @@ public:
             "all_transition_systems and "
             "all_transition_systems_with_fixpoint for the option "
             "label_reduction_method.");
+
         // Add random_seed option.
-        downward::cli::utils::add_rng_options_to_feature(*this);
+        downward::cli::utils::add_rng_options_to_feature(*this, 4);
     }
 
-    shared_ptr<LabelReduction>
-    create_component(const Options& options, const utils::Context& context)
-        const override
+    static shared_ptr<LabelReduction> func(
+        const utils::Context& context,
+        bool before_shrinking,
+        bool before_merging,
+        LabelReductionMethod method,
+        LabelReductionSystemOrder system_order,
+        int random_seed)
     {
-        const bool lr_before_shrinking = options.get<bool>("before_shrinking");
-        const bool lr_before_merging = options.get<bool>("before_merging");
-
-        if (!lr_before_shrinking && !lr_before_merging) {
+        if (!before_shrinking && !before_merging) {
             context.error(
                 "Please turn on at least one of the options "
                 "before_shrinking or before_merging!");
         }
 
         return make_shared_from_arg_tuples<LabelReduction>(
-            lr_before_shrinking,
-            lr_before_merging,
-            options.get<LabelReductionMethod>("method"),
-            options.get<LabelReductionSystemOrder>("system_order"),
-            downward::cli::utils::get_rng_arguments_from_options(options));
+            before_shrinking,
+            before_merging,
+            method,
+            system_order,
+            random_seed);
     }
 };
 

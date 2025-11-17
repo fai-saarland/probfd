@@ -21,10 +21,8 @@ using namespace downward::landmarks;
 using namespace downward::cli::plugins;
 
 using downward::cli::landmarks::add_landmark_heuristic_options_to_feature;
-using downward::cli::landmarks::get_landmark_heuristic_arguments_from_options;
 
 using downward::cli::lp::add_lp_solver_option_to_feature;
-using downward::cli::lp::get_lp_solver_arguments_from_options;
 
 namespace {
 class LandmarkCostPartitioningHeuristicFactory
@@ -92,10 +90,25 @@ public:
 };
 
 class LandmarkCostPartitioningHeuristicFeature
-    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<Evaluator>,
+          shared_ptr<TaskTransformation>,
+          bool,
+          string,
+          utils::Verbosity,
+          shared_ptr<LandmarkFactory>,
+          bool,
+          bool,
+          bool,
+          bool,
+          CostPartitioningMethod,
+          bool,
+          lp::LPSolverType> {
 public:
     LandmarkCostPartitioningHeuristicFeature()
-        : TypedFeature("landmark_cost_partitioning")
+        : TypedFeature(
+              "landmark_cost_partitioning",
+              &LandmarkCostPartitioningHeuristicFeature::func)
     {
         document_title("Landmark cost partitioning heuristic");
         document_synopsis(
@@ -120,27 +133,6 @@ public:
                 "335-340",
                 "IOS Press",
                 "2010"));
-
-        /*
-          We usually have the options of base classes behind the options
-          of specific implementations. In the case of landmark
-          heuristics, we decided to have the common options at the front
-          because it feels more natural to specify the landmark factory
-          before the more specific arguments like the used LP solver in
-          the case of an optimal cost partitioning heuristic.
-        */
-        add_landmark_heuristic_options_to_feature(
-            *this,
-            "landmark_cost_partitioning");
-        add_optional_argument_with_default<CostPartitioningMethod>(
-            "cost_partitioning",
-            "uniform",
-            "strategy for partitioning operator costs among landmarks");
-        add_optional_argument_with_default<bool>(
-            "alm",
-            "true",
-            "use action landmarks");
-        add_lp_solver_option_to_feature(*this);
 
         document_note(
             "Usage with A*",
@@ -180,17 +172,61 @@ public:
             "consistent",
             "no; see document note about consistency");
         document_property("safe", "yes");
+
+        /*
+          We usually have the options of base classes behind the options
+          of specific implementations. In the case of landmark
+          heuristics, we decided to have the common options at the front
+          because it feels more natural to specify the landmark factory
+          before the more specific arguments like the used LP solver in
+          the case of an optimal cost partitioning heuristic.
+        */
+        const auto n = add_landmark_heuristic_options_to_feature(
+            *this,
+            "landmark_cost_partitioning",
+            0);
+        make_optional_argument_with_default(
+            n,
+            "cost_partitioning",
+            "uniform",
+            "strategy for partitioning operator costs among landmarks");
+        make_optional_argument_with_default(
+            n + 1,
+            "alm",
+            "true",
+            "use action landmarks");
+        add_lp_solver_option_to_feature(*this, n + 2);
     }
 
-    shared_ptr<TaskDependentFactory<Evaluator>>
-    create_component(const Options& opts, const utils::Context&) const override
+    static shared_ptr<TaskDependentFactory<Evaluator>> func(
+        const utils::Context&,
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        utils::Verbosity verbosity,
+        shared_ptr<LandmarkFactory> landmark_factory,
+        bool pref,
+        bool prog_goal,
+        bool prog_gn,
+        bool prog_r,
+        CostPartitioningMethod cost_partitioning_method,
+        bool alm,
+        lp::LPSolverType lp_solver_type)
     {
         return make_shared_from_arg_tuples<
             LandmarkCostPartitioningHeuristicFactory>(
-            get_landmark_heuristic_arguments_from_options(opts),
-            opts.get<CostPartitioningMethod>("cost_partitioning"),
-            opts.get<bool>("alm"),
-            get_lp_solver_arguments_from_options(opts));
+            std::move(transformation),
+            cache_estimates,
+            std::move(description),
+            verbosity,
+            std::move(landmark_factory),
+            pref,
+            prog_goal,
+            prog_gn,
+            prog_r,
+            cost_partitioning_method,
+            alm,
+            lp_solver_type);
     }
 };
 } // namespace

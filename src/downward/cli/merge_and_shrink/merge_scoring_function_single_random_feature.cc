@@ -16,14 +16,15 @@ using namespace downward::utils;
 using namespace downward::cli::plugins;
 
 using downward::cli::utils::add_rng_options_to_feature;
-using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
 class MergeScoringFunctionSingleRandomFeature
-    : public SharedTypedFeature<MergeScoringFunction> {
+    : public SharedTypedFeature<MergeScoringFunction, int> {
 public:
     MergeScoringFunctionSingleRandomFeature()
-        : TypedFeature("single_random")
+        : TypedFeature(
+              "single_random",
+              &MergeScoringFunctionSingleRandomFeature::func)
     {
         document_title("Single random");
         document_synopsis(
@@ -31,14 +32,14 @@ public:
             "candidate a score of "
             "0, chosen randomly, and infinity to all others.");
 
-        add_rng_options_to_feature(*this);
+        add_rng_options_to_feature(*this, 0);
     }
 
-    virtual shared_ptr<MergeScoringFunction>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<MergeScoringFunction>
+    func(const Context&, int random_seed)
     {
         return make_shared_from_arg_tuples<MergeScoringFunctionSingleRandom>(
-            get_rng_arguments_from_options(opts));
+            random_seed);
     }
 };
 } // namespace

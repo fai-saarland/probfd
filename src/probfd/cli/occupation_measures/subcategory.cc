@@ -34,16 +34,18 @@ using namespace probfd::occupation_measures;
 using namespace downward::cli::plugins;
 
 using downward::cli::utils::add_log_options_to_feature;
-using downward::cli::utils::get_log_arguments_from_options;
 
 using downward::cli::lp::add_lp_solver_option_to_feature;
-using downward::cli::lp::get_lp_solver_arguments_from_options;
 
 namespace {
-class HROCFactoryFeature : public SharedTypedFeature<TaskHeuristicFactory> {
+class HROCFactoryFeature
+    : public SharedTypedFeature<
+          TaskHeuristicFactory,
+          Verbosity,
+          lp::LPSolverType> {
 public:
     HROCFactoryFeature()
-        : TypedFeature("hroc")
+        : TypedFeature("hroc", &HROCFactoryFeature::func)
     {
         document_title("Regrouped operator-counting heuristic");
         document_synopsis(
@@ -64,24 +66,28 @@ public:
         document_property("admissible", "yes");
         document_property("consistent", "yes");
 
-        add_log_options_to_feature(*this);
-        add_lp_solver_option_to_feature(*this);
+        const auto n = add_log_options_to_feature(*this, 0);
+        add_lp_solver_option_to_feature(*this, n);
     }
 
-    std::shared_ptr<TaskHeuristicFactory>
-    create_component(const Options& options, const Context&) const override
+    static std::shared_ptr<TaskHeuristicFactory>
+    func(const Context&, Verbosity verbosity, lp::LPSolverType lp_solver_type)
     {
         return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
-            get_log_arguments_from_options(options),
-            get_lp_solver_arguments_from_options(options),
+            verbosity,
+            lp_solver_type,
             std::make_shared<HROCGeneratorFactory>());
     }
 };
 
-class HPOMFactoryFeature : public SharedTypedFeature<TaskHeuristicFactory> {
+class HPOMFactoryFeature
+    : public SharedTypedFeature<
+          TaskHeuristicFactory,
+          Verbosity,
+          lp::LPSolverType> {
 public:
     HPOMFactoryFeature()
-        : TypedFeature("hpom")
+        : TypedFeature("hpom", &HPOMFactoryFeature::func)
     {
         document_title("Projection Occupation Measure Heuristic");
 
@@ -104,24 +110,29 @@ public:
         document_property("admissible", "yes");
         document_property("consistent", "yes");
 
-        add_log_options_to_feature(*this);
-        add_lp_solver_option_to_feature(*this);
+        const auto n = add_log_options_to_feature(*this, 0);
+        add_lp_solver_option_to_feature(*this, n);
     }
 
-    std::shared_ptr<TaskHeuristicFactory>
-    create_component(const Options& options, const Context&) const override
+    static std::shared_ptr<TaskHeuristicFactory>
+    func(const Context&, Verbosity verbosity, lp::LPSolverType lp_solver_type)
     {
         return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
-            get_log_arguments_from_options(options),
-            get_lp_solver_arguments_from_options(options),
+            verbosity,
+            lp_solver_type,
             std::make_shared<HPOMGeneratorFactory>());
     }
 };
 
-class HOHPOMFactoryFeature : public SharedTypedFeature<TaskHeuristicFactory> {
+class HOHPOMFactoryFeature
+    : public SharedTypedFeature<
+          TaskHeuristicFactory,
+          Verbosity,
+          lp::LPSolverType,
+          int> {
 public:
     HOHPOMFactoryFeature()
-        : TypedFeature("ho_hpom")
+        : TypedFeature("ho_hpom", &HOHPOMFactoryFeature::func)
     {
         document_title("Higher-Order Projection Occupation Measure Heuristic");
         document_synopsis(
@@ -145,30 +156,38 @@ public:
         document_property("admissible", "yes");
         document_property("consistent", "yes");
 
-        add_log_options_to_feature(*this);
-        add_lp_solver_option_to_feature(*this);
+        const auto n = add_log_options_to_feature(*this, 0);
+        const auto n2 = add_lp_solver_option_to_feature(*this, n);
 
-        add_optional_argument_with_default<int>(
+        make_optional_argument_with_default(
+            n + n2,
             "projection_size",
             "1",
             "The size of the projections");
     }
 
-    std::shared_ptr<TaskHeuristicFactory>
-    create_component(const Options& options, const Context&) const override
+    static std::shared_ptr<TaskHeuristicFactory> func(
+        const Context&,
+        Verbosity verbosity,
+        lp::LPSolverType lp_solver_type,
+        int projection_size)
     {
         return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
-            get_log_arguments_from_options(options),
-            get_lp_solver_arguments_from_options(options),
-            std::make_shared<HigherOrderHPOMGeneratorFactory>(
-                options.get<int>("projection_size")));
+            verbosity,
+            lp_solver_type,
+            std::make_shared<HigherOrderHPOMGeneratorFactory>(projection_size));
     }
 };
 
-class HPHOFactoryFeature : public SharedTypedFeature<TaskHeuristicFactory> {
+class HPHOFactoryFeature
+    : public SharedTypedFeature<
+          TaskHeuristicFactory,
+          Verbosity,
+          lp::LPSolverType,
+          std::shared_ptr<PatternCollectionGenerator>> {
 public:
     HPHOFactoryFeature()
-        : TypedFeature("pho")
+        : TypedFeature("pho", &HPHOFactoryFeature::func)
     {
         document_title("Post-hoc Optimization Heuristic");
 
@@ -178,25 +197,27 @@ public:
         document_property("admissible", "yes");
         document_property("consistent", "yes");
 
-        add_log_options_to_feature(*this);
-        add_lp_solver_option_to_feature(*this);
+        const auto n = add_log_options_to_feature(*this, 0);
+        const auto n2 = add_lp_solver_option_to_feature(*this, n);
 
-        add_optional_argument_with_default<
-            std::shared_ptr<probfd::pdbs::PatternCollectionGenerator>>(
+        make_optional_argument_with_default(
+            n + n2,
             "patterns",
             "det_adapter(generator=systematic(pattern_max_size=2))",
             "The pattern generator used to construct the PDB collection which "
             "is subject to post-hoc optimization.");
     }
 
-    std::shared_ptr<TaskHeuristicFactory>
-    create_component(const Options& options, const Context&) const override
+    static std::shared_ptr<TaskHeuristicFactory> func(
+        const Context&,
+        Verbosity verbosity,
+        lp::LPSolverType lp_solver,
+        std::shared_ptr<PatternCollectionGenerator> generator)
     {
         return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
-            get_log_arguments_from_options(options),
-            get_lp_solver_arguments_from_options(options),
-            std::make_shared<PHOGeneratorFactory>(
-                options.get_shared<PatternCollectionGenerator>("patterns")));
+            verbosity,
+            lp_solver,
+            std::make_shared<PHOGeneratorFactory>(std::move(generator)));
     }
 };
 } // namespace

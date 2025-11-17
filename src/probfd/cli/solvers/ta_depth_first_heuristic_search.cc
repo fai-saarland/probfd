@@ -74,7 +74,7 @@ public:
     create_algorithm(const SharedProbabilisticTask& task) override
     {
         return std::make_unique<AlgorithmAdaptor>(
-            this->template create_search_algorithm<Algorithm>(
+            this->create_search_algorithm<Algorithm>(
                 task,
                 forward_updates_,
                 backward_updates_,
@@ -86,192 +86,351 @@ public:
 };
 
 class TrapAwareDFHSSolverFeature
-    : public SharedTypedFeature<TaskSolverFactory> {
+    : public SharedTypedFeature<
+          TaskSolverFactory,
+          std::shared_ptr<TaskStateSpaceFactory>,
+          std::shared_ptr<TaskHeuristicFactory>,
+          std::string,
+          bool,
+          value_t,
+          bool,
+          Verbosity,
+          value_t,
+          bool,
+          std::shared_ptr<PolicyPickerType<false, true>>,
+          std::shared_ptr<QOpenList>,
+          bool,
+          BacktrackingUpdateType,
+          bool,
+          bool,
+          bool,
+          bool> {
 public:
     TrapAwareDFHSSolverFeature()
-        : TypedFeature("tadfhs")
+        : TypedFeature("tadfhs", &TrapAwareDFHSSolverFeature::func)
     {
         document_title("Trap-aware depth-first heuristic search family");
         document_synopsis(
             "Supports all MDPs (even non-SSPs) without FRET loop.");
 
-        add_optional_argument_with_default<std::shared_ptr<QOpenList>>(
+        const auto n =
+            add_mdp_hs_base_options_to_feature<false, true>(*this, 7);
+        const auto n2 =
+            add_base_solver_options_except_algorithm_to_feature(*this, n);
+
+        make_optional_argument_with_default(
+            n + n2,
             "open_list",
             add_mdp_type_to_option<false, true>("lifo_open_list()"),
             "Ordering in which successors are considered during policy "
             "exploration.");
 
-        add_optional_argument_with_default<bool>(
+        make_optional_argument_with_default(
+            n + n2 + 1,
             "fwup",
             "true",
             "Value updates on the way down of exploration.");
-        add_optional_argument_with_default<BacktrackingUpdateType>(
+        make_optional_argument_with_default(
+            n + n2 + 2,
             "bwup",
             "ondemand",
             "Value updates on the way back of exploration");
-        add_optional_argument_with_default<bool>(
+        make_optional_argument_with_default(
+            n + n2 + 3,
             "cutoff_tip",
             "true",
             "Do not follow tip states during policy exploration.");
-        add_optional_argument_with_default<bool>(
+        make_optional_argument_with_default(
+            n + n2 + 4,
             "cutoff_inconsistent",
             "true",
             "Do not expand states whose values have changed during the forward "
             "updates.");
-        add_optional_argument_with_default<bool>(
+        make_optional_argument_with_default(
+            n + n2 + 5,
             "labeling",
             "true",
             "Label states as solved.");
-        add_optional_argument_with_default<bool>(
+        make_optional_argument_with_default(
+            n + n2 + 6,
             "reexpand_traps",
             "true",
             "Immediately re-expand the collapsed trap state.");
-
-        add_base_solver_options_except_algorithm_to_feature(*this);
-        add_mdp_hs_base_options_to_feature<false, true>(*this);
     }
 
 protected:
-    std::shared_ptr<TaskSolverFactory>
-    create_component(const Options& options, const Context&) const override
+    static std::shared_ptr<TaskSolverFactory> func(
+        const Context&,
+        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+        std::string policy_filename,
+        bool print_fact_names,
+        value_t report_epsilon,
+        bool report_enabled,
+        Verbosity verbosity,
+        value_t convergence_epsilon,
+        bool dual_bounds,
+        std::shared_ptr<PolicyPickerType<false, true>> policy,
+        std::shared_ptr<QOpenList> open_list,
+        bool fwup,
+        BacktrackingUpdateType bwup,
+        bool cutoff_tip,
+        bool cutoff_inconsistent,
+        bool labeling,
+        bool reexpand_traps)
     {
         return make_shared_from_arg_tuples<MDPSolver>(
             make_shared_from_arg_tuples<TrapAwareDFHSSolver>(
-                options.get_shared<QOpenList>("open_list"),
-                options.get<bool>("fwup"),
-                options.get<BacktrackingUpdateType>("bwup"),
-                options.get<bool>("cutoff_tip"),
-                options.get<bool>("cutoff_inconsistent"),
-                options.get<bool>("labeling"),
-                options.get<bool>("reexpand_traps"),
-                get_mdp_hs_base_args_from_options<false, true>(options)),
-            get_base_solver_args_no_algorithm_from_options(options));
+                std::move(open_list),
+                fwup,
+                bwup,
+                cutoff_tip,
+                cutoff_inconsistent,
+                labeling,
+                reexpand_traps,
+                convergence_epsilon,
+                dual_bounds,
+                std::move(policy)),
+            std::move(task_state_space_factory),
+            std::move(heuristic_factory),
+            std::move(policy_filename),
+            print_fact_names,
+            report_epsilon,
+            report_enabled,
+            verbosity);
     }
 };
 
 class TrapAwareILAOSolverFeature
-    : public SharedTypedFeature<TaskSolverFactory> {
+    : public SharedTypedFeature<
+          TaskSolverFactory,
+          std::shared_ptr<TaskStateSpaceFactory>,
+          std::shared_ptr<TaskHeuristicFactory>,
+          std::string,
+          bool,
+          value_t,
+          bool,
+          Verbosity,
+          value_t,
+          bool,
+          std::shared_ptr<PolicyPickerType<false, true>>,
+          std::shared_ptr<QOpenList>,
+          bool> {
 public:
     TrapAwareILAOSolverFeature()
-        : TypedFeature("tailao")
+        : TypedFeature("tailao", &TrapAwareILAOSolverFeature::func)
     {
         document_title(
             "iLAO* variant of trap-aware depth-first heuristic search");
 
-        add_optional_argument_with_default<std::shared_ptr<QOpenList>>(
+        const auto n =
+            add_base_solver_options_except_algorithm_to_feature(*this, 0);
+
+        const auto n2 =
+            add_mdp_hs_base_options_to_feature<false, true>(*this, n);
+
+        make_optional_argument_with_default(
+            n + n2,
             "open_list",
             add_mdp_type_to_option<false, true>("lifo_open_list()"),
             "Ordering in which successors are considered during policy "
             "exploration.");
-        add_optional_argument_with_default<bool>(
+
+        make_optional_argument_with_default(
+            n + n2 + 1,
             "reexpand_traps",
             "true",
             "Immediately re-expand the collapsed trap state.");
-
-        add_base_solver_options_except_algorithm_to_feature(*this);
-        add_mdp_hs_base_options_to_feature<false, true>(*this);
     }
 
-    std::shared_ptr<TaskSolverFactory>
-    create_component(const Options& options, const Context&) const override
+    static std::shared_ptr<TaskSolverFactory> func(
+        const Context&,
+        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+        std::string policy_filename,
+        bool print_fact_names,
+        value_t report_epsilon,
+        bool report_enabled,
+        Verbosity verbosity,
+        value_t convergence_epsilon,
+        bool dual_bounds,
+        std::shared_ptr<PolicyPickerType<false, true>> policy,
+        std::shared_ptr<QOpenList> open_list,
+        bool reexpand_traps)
     {
         // opts_copy.set<std::string>("name", "ilao");
         return make_shared_from_arg_tuples<MDPSolver>(
             make_shared_from_arg_tuples<TrapAwareDFHSSolver>(
-                options.get_shared<QOpenList>("open_list"),
+                std::move(open_list),
                 false,
                 BacktrackingUpdateType::SINGLE,
                 true,
                 false,
                 false,
-                options.get<bool>("reexpand_traps"),
-                get_mdp_hs_base_args_from_options<false, true>(options)),
-            get_base_solver_args_no_algorithm_from_options(options));
+                reexpand_traps,
+                convergence_epsilon,
+                dual_bounds,
+                std::move(policy)),
+            std::move(task_state_space_factory),
+            std::move(heuristic_factory),
+            std::move(policy_filename),
+            print_fact_names,
+            report_epsilon,
+            report_enabled,
+            verbosity);
     }
 };
 
 class TrapAwareLILAOSolverFeature
-    : public SharedTypedFeature<TaskSolverFactory> {
+    : public SharedTypedFeature<
+          TaskSolverFactory,
+          std::shared_ptr<TaskStateSpaceFactory>,
+          std::shared_ptr<TaskHeuristicFactory>,
+          std::string,
+          bool,
+          value_t,
+          bool,
+          Verbosity,
+          value_t,
+          bool,
+          std::shared_ptr<PolicyPickerType<false, true>>,
+          std::shared_ptr<QOpenList>,
+          bool> {
 public:
     TrapAwareLILAOSolverFeature()
-        : TypedFeature("talilao")
+        : TypedFeature("talilao", &TrapAwareLILAOSolverFeature::func)
     {
         document_title(
             "Labelled iLAO* variant of trap-aware depth-first "
             "heuristic search");
 
-        add_optional_argument_with_default<std::shared_ptr<QOpenList>>(
+        make_optional_argument_with_default(
+            0,
             "open_list",
             add_mdp_type_to_option<false, true>("lifo_open_list()"),
             "Ordering in which successors are considered during policy "
             "exploration.");
-        add_optional_argument_with_default<bool>(
+        make_optional_argument_with_default(
+            1,
             "reexpand_traps",
             "true",
             "Immediately re-expand the collapsed trap state.");
 
-        add_base_solver_options_except_algorithm_to_feature(*this);
-        add_mdp_hs_base_options_to_feature<false, true>(*this);
+        const auto n =
+            add_mdp_hs_base_options_to_feature<false, true>(*this, 2);
+        add_base_solver_options_except_algorithm_to_feature(*this, n + 2);
     }
 
-    std::shared_ptr<TaskSolverFactory>
-    create_component(const Options& options, const Context&) const override
+    static std::shared_ptr<TaskSolverFactory> func(
+        const Context&,
+        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+        std::string policy_filename,
+        bool print_fact_names,
+        value_t report_epsilon,
+        bool report_enabled,
+        Verbosity verbosity,
+        value_t convergence_epsilon,
+        bool dual_bounds,
+        std::shared_ptr<PolicyPickerType<false, true>> policy,
+        std::shared_ptr<QOpenList> open_list,
+        bool reexpand_traps)
     {
-        // opts_copy.set<std::string>("name", "lilao");
-        // opts_copy.set<bool>("labeling", true);
-
         return make_shared_from_arg_tuples<MDPSolver>(
             make_shared_from_arg_tuples<TrapAwareDFHSSolver>(
-                options.get_shared<QOpenList>("open_list"),
+                std::move(open_list),
                 false,
                 BacktrackingUpdateType::SINGLE,
                 true,
                 false,
                 true,
-                options.get<bool>("reexpand_traps"),
-                get_mdp_hs_base_args_from_options<false, true>(options)),
-            get_base_solver_args_no_algorithm_from_options(options));
+                reexpand_traps,
+                convergence_epsilon,
+                dual_bounds,
+                std::move(policy)),
+            std::move(task_state_space_factory),
+            std::move(heuristic_factory),
+            std::move(policy_filename),
+            print_fact_names,
+            report_epsilon,
+            report_enabled,
+            verbosity);
     }
 };
 
-class TrapAwareHDPSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
+class TrapAwareHDPSolverFeature
+    : public SharedTypedFeature<
+          TaskSolverFactory,
+          std::shared_ptr<TaskStateSpaceFactory>,
+          std::shared_ptr<TaskHeuristicFactory>,
+          std::string,
+          bool,
+          value_t,
+          bool,
+          Verbosity,
+          value_t,
+          bool,
+          std::shared_ptr<PolicyPickerType<false, true>>,
+          std::shared_ptr<QOpenList>,
+          bool> {
 public:
     TrapAwareHDPSolverFeature()
-        : TypedFeature("tahdp")
+        : TypedFeature("tahdp", &TrapAwareHDPSolverFeature::func)
     {
         document_title(
             "HDP variant of trap-aware depth-first heuristic search");
 
-        add_optional_argument_with_default<std::shared_ptr<QOpenList>>(
+        make_optional_argument_with_default(
+            0,
             "open_list",
             add_mdp_type_to_option<false, true>("lifo_open_list()"),
             "Ordering in which successors are considered during policy "
             "exploration.");
-        add_optional_argument_with_default<bool>(
+        make_optional_argument_with_default(
+            1,
             "reexpand_traps",
             "true",
             "Immediately re-expand the collapsed trap state.");
 
-        add_base_solver_options_except_algorithm_to_feature(*this);
-        add_mdp_hs_base_options_to_feature<false, true>(*this);
+        const auto n =
+            add_mdp_hs_base_options_to_feature<false, true>(*this, 2);
+        add_base_solver_options_except_algorithm_to_feature(*this, n + 2);
     }
 
-    std::shared_ptr<TaskSolverFactory>
-    create_component(const Options& options, const Context&) const override
+    static std::shared_ptr<TaskSolverFactory> func(
+        const Context&,
+        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+        std::string policy_filename,
+        bool print_fact_names,
+        value_t report_epsilon,
+        bool report_enabled,
+        Verbosity verbosity,
+        value_t convergence_epsilon,
+        bool dual_bounds,
+        std::shared_ptr<PolicyPickerType<false, true>> policy,
+        std::shared_ptr<QOpenList> open_list,
+        bool reexpand_traps)
     {
-        // opts_copy.set<std::string>("name", "hdp");
-        // opts_copy.set<bool>("labeling", true);
         return make_shared_from_arg_tuples<MDPSolver>(
             make_shared_from_arg_tuples<TrapAwareDFHSSolver>(
-                options.get_shared<QOpenList>("open_list"),
+                std::move(open_list),
                 true,
                 BacktrackingUpdateType::ON_DEMAND,
                 false,
                 true,
                 false,
-                options.get<bool>("reexpand_traps"),
-                get_mdp_hs_base_args_from_options<false, true>(options)),
-            get_base_solver_args_no_algorithm_from_options(options));
+                reexpand_traps,
+                convergence_epsilon,
+                dual_bounds,
+                std::move(policy)),
+            std::move(task_state_space_factory),
+            std::move(heuristic_factory),
+            std::move(policy_filename),
+            print_fact_names,
+            report_epsilon,
+            report_enabled,
+            verbosity);
     }
 };
 } // namespace

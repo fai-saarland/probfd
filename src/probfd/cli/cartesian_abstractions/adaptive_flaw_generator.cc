@@ -14,25 +14,29 @@ using namespace probfd::cartesian_abstractions;
 
 namespace {
 class AdaptiveFlawGeneratorFactoryFeature
-    : public SharedTypedFeature<FlawGeneratorFactory> {
+    : public SharedTypedFeature<
+          FlawGeneratorFactory,
+          std::vector<std::shared_ptr<FlawGeneratorFactory>>> {
 public:
     AdaptiveFlawGeneratorFactoryFeature()
-        : TypedFeature("flaws_adaptive")
+        : TypedFeature(
+              "flaws_adaptive",
+              &AdaptiveFlawGeneratorFactoryFeature::func)
     {
-        add_optional_list_argument_with_default<
-            std::shared_ptr<FlawGeneratorFactory>>(
+        make_optional_argument_with_default(
+            0,
             "generators",
             "[flaws_astar(), flaws_ilao()]",
             "The linear hierarchy of flaw generators.");
     }
 
 protected:
-    std::shared_ptr<FlawGeneratorFactory>
-    create_component(const Options& options, const Context&) const override
+    static std::shared_ptr<FlawGeneratorFactory> func(
+        const Context&,
+        std::vector<std::shared_ptr<FlawGeneratorFactory>> generators)
     {
         return std::make_shared<AdaptiveFlawGeneratorFactory>(
-            options.get_list<std::shared_ptr<FlawGeneratorFactory>>(
-                "generators"));
+            std::move(generators));
     }
 };
 } // namespace

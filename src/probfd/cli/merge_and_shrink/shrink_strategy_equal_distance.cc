@@ -19,36 +19,42 @@ using namespace probfd::cli::merge_and_shrink;
 
 namespace {
 class ShrinkStrategyEqualDistanceFeature
-    : public SharedTypedFeature<ShrinkStrategy> {
+    : public SharedTypedFeature<
+          ShrinkStrategy,
+          int,
+          ShrinkStrategyEqualDistance::Priority> {
 public:
     ShrinkStrategyEqualDistanceFeature()
-        : TypedFeature("shrink_equal_distance")
+        : TypedFeature(
+              "shrink_equal_distance",
+              &ShrinkStrategyEqualDistanceFeature::func)
     {
         document_title("distance-preserving shrink strategy");
-
-        add_bucket_based_shrink_options_to_feature(*this);
-
-        add_optional_argument_with_default<
-            ShrinkStrategyEqualDistance::Priority>(
-            "priority",
-            "low",
-            "in which direction the distance based shrink priority is ordered");
 
         document_note(
             "Note",
             "The strategy first partitions all states according to their "
             "h-values. States sorted last are shrinked together until reaching "
             "max_states.");
+
+        const auto n = add_bucket_based_shrink_options_to_feature(*this, 0);
+
+        make_optional_argument_with_default(
+            n,
+            "priority",
+            "low",
+            "in which direction the distance based shrink priority is ordered");
     }
 
 protected:
-    shared_ptr<ShrinkStrategy>
-    create_component(const Options& options, const utils::Context&)
-        const override
+    static shared_ptr<ShrinkStrategy> func(
+        const utils::Context&,
+        int random_seed,
+        ShrinkStrategyEqualDistance::Priority high_low)
     {
         return make_shared_from_arg_tuples<ShrinkStrategyEqualDistance>(
-            get_bucket_based_shrink_args_from_options(options),
-            options.get<ShrinkStrategyEqualDistance::Priority>("priority"));
+            random_seed,
+            high_low);
     }
 };
 } // namespace

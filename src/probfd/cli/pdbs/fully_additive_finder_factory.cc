@@ -17,12 +17,13 @@ class FullyAdditiveFinderFactoryFeature
     : public SharedTypedFeature<SubCollectionFinderFactory> {
 public:
     FullyAdditiveFinderFactoryFeature()
-        : TypedFeature("fully_additive_factory")
+        : TypedFeature(
+              "fully_additive_factory",
+              &FullyAdditiveFinderFactoryFeature::func)
     {
     }
 
-    std::shared_ptr<SubCollectionFinderFactory>
-    create_component(const Options&, const Context&) const override
+    static std::shared_ptr<SubCollectionFinderFactory> func(const Context&)
     {
         return std::make_shared<FullyAdditiveFinderFactory>();
     }

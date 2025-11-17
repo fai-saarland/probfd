@@ -25,7 +25,6 @@ using namespace probfd::cli::solvers;
 using namespace downward::cli::plugins;
 
 using downward::cli::lp::add_lp_solver_option_to_feature;
-using downward::cli::lp::get_lp_solver_arguments_from_options;
 
 namespace {
 class I2DualSolver : public StatisticalMDPAlgorithmFactory {
@@ -62,39 +61,73 @@ public:
     }
 };
 
-class I2DualSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
+class I2DualSolverFeature
+    : public SharedTypedFeature<
+          TaskSolverFactory,
+          std::shared_ptr<TaskStateSpaceFactory>,
+          std::shared_ptr<TaskHeuristicFactory>,
+          std::string,
+          bool,
+          value_t,
+          bool,
+          utils::Verbosity,
+          bool,
+          bool,
+          lp::LPSolverType,
+          double> {
 public:
     I2DualSolverFeature()
-        : TypedFeature("i2dual")
+        : TypedFeature("i2dual", &I2DualSolverFeature::func)
     {
         document_title("i^2-dual");
 
-        add_optional_argument_with_default<bool>("disable_hpom", "false");
-        add_optional_argument_with_default<bool>("incremental_updates", "true");
+        const auto n =
+            add_base_solver_options_except_algorithm_to_feature(*this, 0);
 
-        add_lp_solver_option_to_feature(*this);
+        make_optional_argument_with_default(n, "disable_hpom", "false");
+        make_optional_argument_with_default(
+            n + 1,
+            "incremental_updates",
+            "true");
 
-        add_optional_argument_with_default<double>(
+        const auto n2 = add_lp_solver_option_to_feature(*this, n + 2);
+
+        make_optional_argument_with_default(
+            n + n2 + 2,
             "fp_epsilon",
             "0.0001",
             "The tolerance to use when checking for non-zero values in an LP "
             "solution.");
-
-        add_base_solver_options_except_algorithm_to_feature(*this);
     }
 
 protected:
-    std::shared_ptr<TaskSolverFactory>
-    create_component(const Options& options, const utils::Context&)
-        const override
+    static std::shared_ptr<TaskSolverFactory> func(
+        const utils::Context&,
+        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+        std::string policy_filename,
+        bool print_fact_names,
+        value_t report_epsilon,
+        bool report_enabled,
+        downward::utils::Verbosity verbosity,
+        bool disable_hpom,
+        bool incremental_updates,
+        lp::LPSolverType lp_solver,
+        double fp_epsilon)
     {
         return make_shared_from_arg_tuples<MDPSolver>(
             make_shared_from_arg_tuples<I2DualSolver>(
-                options.get<bool>("disable_hpom"),
-                options.get<bool>("incremental_updates"),
-                get_lp_solver_arguments_from_options(options),
-                options.get<double>("fp_epsilon")),
-            get_base_solver_args_no_algorithm_from_options(options));
+                disable_hpom,
+                incremental_updates,
+                lp_solver,
+                fp_epsilon),
+            std::move(task_state_space_factory),
+            std::move(heuristic_factory),
+            std::move(policy_filename),
+            print_fact_names,
+            report_epsilon,
+            report_enabled,
+            verbosity);
     }
 };
 } // namespace

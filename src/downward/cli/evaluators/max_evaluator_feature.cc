@@ -23,9 +23,6 @@ using namespace downward::cli::plugins;
 using downward::cli::combining_evaluator ::
     add_combining_evaluator_options_to_feature;
 
-using downward::cli::combining_evaluator ::
-    get_combining_evaluator_arguments_from_options;
-
 namespace {
 
 class MaxEvaluatorFactory : public TaskDependentFactory<Evaluator> {
@@ -60,22 +57,34 @@ public:
 };
 
 class MaxEvaluatorFeature
-    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<Evaluator>,
+          std::string,
+          Verbosity,
+          vector<shared_ptr<TaskDependentFactory<Evaluator>>>> {
 public:
     MaxEvaluatorFeature()
-        : TypedFeature("max")
+        : TypedFeature("max", &MaxEvaluatorFeature::func)
     {
         document_title("Max evaluator");
         document_synopsis("Calculates the maximum of the sub-evaluators.");
-        add_combining_evaluator_options_to_feature(*this, "max");
+        add_combining_evaluator_options_to_feature(*this, "max", 0);
     }
 
-    shared_ptr<TaskDependentFactory<Evaluator>>
-    create_component(const Options& opts, const Context& context) const override
+    static shared_ptr<TaskDependentFactory<Evaluator>> func(
+        const Context& context,
+        std::string description,
+        Verbosity verbosity,
+        vector<shared_ptr<TaskDependentFactory<Evaluator>>> evaluator_factories)
     {
-        verify_list_non_empty<shared_ptr<Evaluator>>(context, opts, "evals");
-        return make_shared_from_arg_tuples<MaxEvaluatorFactory>(
-            get_combining_evaluator_arguments_from_options(opts));
+        if (evaluator_factories.empty()) {
+            context.error("List of evaluators may not be empty.");
+        }
+
+        return make_shared<MaxEvaluatorFactory>(
+            std::move(description),
+            verbosity,
+            std::move(evaluator_factories));
     }
 };
 

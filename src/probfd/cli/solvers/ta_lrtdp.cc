@@ -67,47 +67,88 @@ public:
     }
 };
 
-class TrapAwareLRTDPSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
+class TrapAwareLRTDPSolverFeature
+    : public SharedTypedFeature<
+          TaskSolverFactory,
+          std::shared_ptr<TaskStateSpaceFactory>,
+          std::shared_ptr<TaskHeuristicFactory>,
+          Verbosity,
+          std::string,
+          bool,
+          value_t,
+          bool,
+          value_t,
+          bool,
+          std::shared_ptr<PolicyPickerType<false, true>>,
+          std::shared_ptr<QSuccessorSampler>,
+          TrialTerminationCondition,
+          bool> {
 public:
     TrapAwareLRTDPSolverFeature()
-        : TypedFeature("talrtdp")
+        : TypedFeature("talrtdp", &TrapAwareLRTDPSolverFeature::func)
     {
         document_title("Trap-aware LRTDP");
         document_synopsis(
             "Supports all MDP types (even non-SSPs) without FRET loop.");
 
-        add_optional_argument_with_default<std::shared_ptr<QSuccessorSampler>>(
+        make_optional_argument_with_default(
+            0,
             "successor_sampler",
             add_mdp_type_to_option<false, true>("random_successor_sampler()"),
             "Successor bias for the trials.");
-        add_optional_argument_with_default<TrialTerminationCondition>(
+
+        make_optional_argument_with_default(
+            1,
             "terminate_trial",
             "consistent",
             "The trial termination condition.");
-        add_optional_argument_with_default<bool>(
+
+        make_optional_argument_with_default(
+            2,
             "reexpand_traps",
             "true",
             "Immediately re-expand the collapsed trap state.");
 
-        add_base_solver_options_except_algorithm_to_feature(*this);
-        add_mdp_hs_base_options_to_feature<false, true>(*this);
+        const auto n =
+            add_mdp_hs_base_options_to_feature<false, true>(*this, 3);
+        add_base_solver_options_except_algorithm_to_feature(*this, n + 3);
     }
 
 protected:
-    std::shared_ptr<TaskSolverFactory>
-    create_component(const Options& options, const Context&) const override
+    static std::shared_ptr<TaskSolverFactory> func(
+        const Context&,
+        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+        Verbosity verbosity,
+        std::string policy_filename,
+        bool print_fact_names,
+        value_t report_epsilon,
+        bool report_enabled,
+        value_t convergence_epsilon,
+        bool dual_bounds,
+        std::shared_ptr<PolicyPickerType<false, true>> policy_picker,
+        std::shared_ptr<QSuccessorSampler> successor_sampler,
+        TrialTerminationCondition terminate_trial,
+        bool reexpand_traps)
     {
         return make_shared_from_arg_tuples<MDPSolver>(
             make_shared_from_arg_tuples<TrapAwareLRTDPSolver>(
-                options.get_shared<QSuccessorSampler>(
-                    "successor_sampler"),
-                options.get<TrialTerminationCondition>("terminate_trial"),
-                options.get<bool>("reexpand_traps"),
-                get_mdp_hs_base_args_from_options<false, true>(options)),
-            get_base_solver_args_no_algorithm_from_options(options));
+                std::move(successor_sampler),
+                terminate_trial,
+                reexpand_traps,
+                convergence_epsilon,
+                dual_bounds,
+                std::move(policy_picker)),
+            std::move(task_state_space_factory),
+            std::move(heuristic_factory),
+            std::move(policy_filename),
+            print_fact_names,
+            report_epsilon,
+            report_enabled,
+            verbosity);
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::solvers {
 
@@ -123,4 +164,4 @@ void add_ta_lrtdp_feature(Registry& registry)
     n.insert_feature_plugin<TrapAwareLRTDPSolverFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::solvers

@@ -5,6 +5,8 @@
 
 #include "probfd/storage/per_state_storage.h"
 
+#include "downward/utils/countdown_timer.h"
+
 #include <iosfwd>
 #include <queue>
 #include <type_traits>

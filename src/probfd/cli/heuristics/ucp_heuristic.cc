@@ -20,10 +20,12 @@ using namespace downward::cli::plugins;
 
 namespace {
 class UCPHeuristicFactoryFeature
-    : public SharedTypedFeature<TaskHeuristicFactory> {
+    : public SharedTypedFeature<
+          TaskHeuristicFactory,
+          std::shared_ptr<PatternCollectionGenerator>> {
 public:
     UCPHeuristicFactoryFeature()
-        : TypedFeature("ucp_heuristic")
+        : TypedFeature("ucp_heuristic", &UCPHeuristicFactoryFeature::func)
     {
         document_title("Uniform Cost Partitioning Heuristic");
         document_synopsis(
@@ -36,21 +38,19 @@ public:
             "The estimate of a state is the sum over all estimates of these "
             "projection heuristics for this state.");
 
-        add_optional_argument_with_default<
-            std::shared_ptr<PatternCollectionGenerator>>(
+        make_optional_argument_with_default(
+            0,
             "patterns",
             "classical_generator(generator=systematic(pattern_max_size=2))",
             "The pattern generation algorithm to construct the projections.");
-
-        add_task_dependent_heuristic_options_to_feature(*this);
     }
 
-    std::shared_ptr<TaskHeuristicFactory>
-    create_component(const Options& opts, const Context&) const override
+    static std::shared_ptr<TaskHeuristicFactory> func(
+        const Context&,
+        std::shared_ptr<PatternCollectionGenerator> generator)
     {
         return make_shared_from_arg_tuples<UCPHeuristicFactory>(
-            get_task_dependent_heuristic_arguments_from_options(opts),
-            opts.get_shared<PatternCollectionGenerator>("patterns"));
+            std::move(generator));
     }
 };
 } // namespace

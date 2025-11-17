@@ -80,25 +80,24 @@ public:
 };
 
 class AStarSearchFeature
-    : public SharedTypedFeature<TaskDependentFactory<SearchAlgorithm>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<SearchAlgorithm>,
+          std::shared_ptr<TaskDependentFactory<Evaluator>>,
+          std::shared_ptr<PruningMethod>,
+          OperatorCost,
+          int,
+          utils::FSeconds,
+          const std::string&,
+          utils::Verbosity> {
 public:
     AStarSearchFeature()
-        : TypedFeature("astar")
+        : TypedFeature("astar", &AStarSearchFeature::func)
     {
         document_title("A* search (eager)");
         document_synopsis(
             "A* is a special case of eager best first search that uses g+h "
             "as f-function. "
             "We break ties using the evaluator. Closed nodes are re-opened.");
-
-        add_required_argument<shared_ptr<TaskDependentFactory<Evaluator>>>(
-            "eval",
-            "evaluator for h-value");
-        add_optional_argument<shared_ptr<TaskDependentFactory<Evaluator>>>(
-            "lazy_evaluator",
-            "An evaluator that re-evaluates a state before it is expanded.");
-        add_eager_search_options_to_feature(*this, "astar");
-
         document_note(
             "lazy_evaluator",
             "When a state s is taken out of the open list, the lazy evaluator "
@@ -117,19 +116,105 @@ public:
             "               reopen_closed=true, f_eval=sum([g(), h]))\n"
             "```\n",
             true);
+
+        make_required_argument(0, "eval", "evaluator for h-value");
+        add_eager_search_options_to_feature(*this, "astar", 1);
     }
 
-    shared_ptr<TaskDependentFactory<SearchAlgorithm>>
-    create_component(const Options& opts, const utils::Context&) const override
+    static shared_ptr<TaskDependentFactory<SearchAlgorithm>> func(
+        const utils::Context&,
+        std::shared_ptr<TaskDependentFactory<Evaluator>> eval_factory,
+        std::shared_ptr<PruningMethod> pruning,
+        OperatorCost cost_type,
+        int bound,
+        utils::FSeconds max_time,
+        const std::string& description,
+        utils::Verbosity verbosity)
     {
-        return make_shared_from_arg_tuples<AStarFactory>(
-            opts.get<shared_ptr<TaskDependentFactory<Evaluator>>>("eval"),
-            opts.get<shared_ptr<TaskDependentFactory<Evaluator>>>(
-                "lazy_evaluator",
-                nullptr),
-            get_eager_search_arguments_from_options(opts));
+        return make_shared<AStarFactory>(
+            std::move(eval_factory),
+            nullptr,
+            std::move(pruning),
+            cost_type,
+            bound,
+            max_time,
+            description,
+            verbosity);
     }
 };
+
+class AStarSearchWithLazyEvaluatorFeature
+    : public SharedTypedFeature<
+          TaskDependentFactory<SearchAlgorithm>,
+          std::shared_ptr<TaskDependentFactory<Evaluator>>,
+          std::shared_ptr<TaskDependentFactory<Evaluator>>,
+          std::shared_ptr<PruningMethod>,
+          OperatorCost,
+          int,
+          utils::FSeconds,
+          const std::string&,
+          utils::Verbosity> {
+public:
+    AStarSearchWithLazyEvaluatorFeature()
+        : TypedFeature(
+              "astar_with_lazy_eval",
+              &AStarSearchWithLazyEvaluatorFeature::func)
+    {
+        document_title("A* search (eager)");
+        document_synopsis(
+            "A* is a special case of eager best first search that uses g+h "
+            "as f-function. "
+            "We break ties using the evaluator. Closed nodes are re-opened.");
+        document_note(
+            "lazy_evaluator",
+            "When a state s is taken out of the open list, the lazy evaluator "
+            "h "
+            "re-evaluates s. If h(s) changes (for example because h is "
+            "path-dependent), "
+            "s is not expanded, but instead reinserted into the open list. "
+            "This option is currently only present for the A* algorithm.");
+        document_note(
+            "Equivalent statements using general eager search",
+            "\n```\n--search astar(evaluator)\n```\n"
+            "is equivalent to\n"
+            "```\n--evaluator h=evaluator\n"
+            "--search eager(tiebreaking([sum([g(), h]), h], "
+            "unsafe_pruning=false),\n"
+            "               reopen_closed=true, f_eval=sum([g(), h]))\n"
+            "```\n",
+            true);
+
+        make_required_argument(0, "eval", "evaluator for h-value");
+        make_required_argument(
+            1,
+            "lazy_evaluator",
+            "An evaluator that re-evaluates a state before it is expanded.");
+        add_eager_search_options_to_feature(*this, "astar", 2);
+    }
+
+    static shared_ptr<TaskDependentFactory<SearchAlgorithm>> func(
+        const utils::Context&,
+        std::shared_ptr<TaskDependentFactory<Evaluator>> eval_factory,
+        std::shared_ptr<TaskDependentFactory<Evaluator>> lazy_evaluator_factory,
+        std::shared_ptr<PruningMethod> pruning,
+        OperatorCost cost_type,
+        int bound,
+        utils::FSeconds max_time,
+        const std::string& description,
+        utils::Verbosity verbosity)
+    {
+        return make_shared<AStarFactory>(
+            std::move(eval_factory),
+            std::move(lazy_evaluator_factory),
+            std::move(pruning),
+            cost_type,
+            bound,
+            max_time,
+            description,
+            verbosity);
+    }
+};
+
 } // namespace
 
 namespace downward::cli::search_algorithms {

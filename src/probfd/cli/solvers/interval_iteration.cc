@@ -53,29 +53,57 @@ public:
     }
 };
 
-class IntervalIterationSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
+class IntervalIterationSolverFeature
+    : public SharedTypedFeature<
+          TaskSolverFactory,
+          std::shared_ptr<TaskStateSpaceFactory>,
+          std::shared_ptr<TaskHeuristicFactory>,
+          std::string,
+          bool,
+          value_t,
+          bool,
+          Verbosity,
+          value_t> {
 public:
     IntervalIterationSolverFeature()
-        : TypedFeature("interval_iteration")
+        : TypedFeature(
+              "interval_iteration",
+              &IntervalIterationSolverFeature::func)
     {
         document_title("Interval Iteration");
 
-        add_base_solver_options_except_algorithm_to_feature(*this);
+        const auto n =
+            add_base_solver_options_except_algorithm_to_feature(*this, 0);
 
-        add_optional_argument_with_default<value_t>(
+        make_optional_argument_with_default(
+            n,
             "convergence_epsilon",
             "10e-4",
             "The tolerance for convergence checks.");
     }
 
 protected:
-    std::shared_ptr<TaskSolverFactory>
-    create_component(const Options& options, const Context&) const override
+    static std::shared_ptr<TaskSolverFactory> func(
+        const Context&,
+        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+        std::string policy_filename,
+        bool print_fact_names,
+        value_t report_epsilon,
+        bool report_enabled,
+        Verbosity verbosity,
+        value_t convergence_epsilon)
     {
         return make_shared_from_arg_tuples<MDPSolver>(
             make_shared_from_arg_tuples<IntervalIterationSolver>(
-                options.get<value_t>("convergence_epsilon")),
-            get_base_solver_args_no_algorithm_from_options(options));
+                convergence_epsilon),
+            std::move(task_state_space_factory),
+            std::move(heuristic_factory),
+            std::move(policy_filename),
+            print_fact_names,
+            report_epsilon,
+            report_enabled,
+            verbosity);
     }
 };
 } // namespace

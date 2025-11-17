@@ -17,14 +17,20 @@ using namespace downward::merge_and_shrink;
 using namespace downward::cli::plugins;
 
 using downward::cli::utils::add_rng_options_to_feature;
-using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
 class MergeScoringFunctionTotalOrderFeature
-    : public SharedTypedFeature<MergeScoringFunction> {
+    : public SharedTypedFeature<
+          MergeScoringFunction,
+          AtomicTSOrder,
+          ProductTSOrder,
+          bool,
+          int> {
 public:
     MergeScoringFunctionTotalOrderFeature()
-        : TypedFeature("total_order")
+        : TypedFeature(
+              "total_order",
+              &MergeScoringFunctionTotalOrderFeature::func)
     {
         document_title("Total order");
         document_synopsis(
@@ -53,35 +59,42 @@ public:
             "strategies "
             "reverse level/level (independently of the other options).");
 
-        add_optional_argument_with_default<AtomicTSOrder>(
+        make_optional_argument_with_default(
+            0,
             "atomic_ts_order",
             "reverse_level",
             "The order in which atomic transition systems are considered when "
             "considering pairs of potential merges.");
 
-        add_optional_argument_with_default<ProductTSOrder>(
+        make_optional_argument_with_default(
+            1,
             "product_ts_order",
             "new_to_old",
             "The order in which product transition systems are considered when "
             "considering pairs of potential merges.");
 
-        add_optional_argument_with_default<bool>(
+        make_optional_argument_with_default(
+            2,
             "atomic_before_product",
             "false",
             "Consider atomic transition systems before composite ones iff "
             "true.");
 
-        add_rng_options_to_feature(*this);
+        add_rng_options_to_feature(*this, 3);
     }
 
-    virtual shared_ptr<MergeScoringFunction>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<MergeScoringFunction> func(
+        const Context&,
+        AtomicTSOrder atomic_ts_order,
+        ProductTSOrder product_ts_order,
+        bool atomic_before_product,
+        int random_seed)
     {
         return make_shared_from_arg_tuples<MergeScoringFunctionTotalOrder>(
-            opts.get<AtomicTSOrder>("atomic_ts_order"),
-            opts.get<ProductTSOrder>("product_ts_order"),
-            opts.get<bool>("atomic_before_product"),
-            get_rng_arguments_from_options(opts));
+            atomic_ts_order,
+            product_ts_order,
+            atomic_before_product,
+            random_seed);
     }
 };
 } // namespace

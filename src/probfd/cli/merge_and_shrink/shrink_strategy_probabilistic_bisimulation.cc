@@ -16,10 +16,15 @@ using namespace probfd::merge_and_shrink;
 
 namespace {
 class ShrinkProbabilisticBisimulationFeature
-    : public SharedTypedFeature<ShrinkStrategy> {
+    : public SharedTypedFeature<
+          ShrinkStrategy,
+          ShrinkStrategyProbabilisticBisimulation::AtLimit,
+          bool> {
 public:
     ShrinkProbabilisticBisimulationFeature()
-        : TypedFeature("pshrink_probabilistic_bisimulation")
+        : TypedFeature(
+              "pshrink_probabilistic_bisimulation",
+              &ShrinkProbabilisticBisimulationFeature::func)
     {
         document_title("Probabilistic Bisimulation-based shrink strategy");
         document_synopsis(
@@ -27,36 +32,36 @@ public:
             "probabilistic transition system and emits the corresponding "
             "abstraction mapping. This strategy is not exact.");
 
-        add_optional_argument_with_default<
-            ShrinkStrategyProbabilisticBisimulation::AtLimit>(
+        make_optional_argument_with_default(
+            0,
             "at_limit",
             "return",
             "what to do when the size limit is hit");
 
-        add_optional_argument_with_default<bool>(
+        make_optional_argument_with_default(
+            1,
             "require_goal_distances",
             "true",
             "whether goal distances are required");
     }
 
 protected:
-    shared_ptr<ShrinkStrategy>
-    create_component(const Options& options, const utils::Context&)
-        const override
+    static shared_ptr<ShrinkStrategy> func(
+        const utils::Context&,
+        ShrinkStrategyProbabilisticBisimulation::AtLimit at_limit,
+        bool require_goal_distance)
     {
         return make_shared_from_arg_tuples<
             ShrinkStrategyProbabilisticBisimulation>(
-            options.get<ShrinkStrategyProbabilisticBisimulation::AtLimit>(
-                "at_limit"),
-            options.get<bool>("require_goal_distances"));
+            at_limit,
+            require_goal_distance);
     }
 };
 } // namespace
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_shrink_strategy_probabilistic_bisimulation_feature(
-    Registry& registry)
+void add_shrink_strategy_probabilistic_bisimulation_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
     n.insert_enum_plugin<ShrinkStrategyProbabilisticBisimulation::AtLimit>(

@@ -8,6 +8,7 @@
 #include "probfd/cli/solvers/mdp_solver_options.h"
 
 #include "probfd/algorithms/lrtdp.h"
+#include "probfd/solvers/mdp_heuristic_search.h"
 
 #include "downward/cli/plugins/registry.h"
 
@@ -60,58 +61,172 @@ public:
     }
 };
 
-template <bool Bisimulation, bool Fret>
-class LRTDPSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
-    using Sampler = SuccessorSampler<ActionType<Bisimulation, Fret>>;
+template <bool Bisimulation>
+class LRTDPSolverFeature
+    : public SharedTypedFeature<
+          TaskSolverFactory,
+          std::shared_ptr<TaskStateSpaceFactory>,
+          std::shared_ptr<TaskHeuristicFactory>,
+          std::string,
+          bool,
+          value_t,
+          bool,
+          Verbosity,
+          value_t,
+          bool,
+          std::shared_ptr<PolicyPickerType<Bisimulation, false>>,
+          std::shared_ptr<SuccessorSampler<ActionType<Bisimulation, false>>>,
+          TrialTerminationCondition> {
+    using Sampler = SuccessorSampler<ActionType<Bisimulation, false>>;
 
 public:
     LRTDPSolverFeature()
-        : TypedFeature(
-              add_wrapper_algo_suffix<Bisimulation, Fret>("lrtdp"))
+        : LRTDPSolverFeature::TypedFeature(
+              add_wrapper_algo_suffix<Bisimulation, false>("lrtdp"),
+              &LRTDPSolverFeature::func)
     {
         this->document_title("Labelled Real-Time Dynamic Programming");
 
-        add_base_solver_options_except_algorithm_to_feature(*this);
-        add_mdp_hs_options_to_feature<Bisimulation, Fret>(*this);
+        const auto n =
+            add_base_solver_options_except_algorithm_to_feature(*this, 0);
+        const auto n2 =
+            add_mdp_hs_options_to_feature<Bisimulation, false>(*this, n);
 
-        this->template add_optional_argument_with_default<
-            std::shared_ptr<Sampler>>(
+        this->make_optional_argument_with_default(
+            n + n2,
             "successor_sampler",
-            add_mdp_type_to_option<Bisimulation, Fret>(
+            add_mdp_type_to_option<Bisimulation, false>(
                 "random_successor_sampler()"));
 
-        this->template add_optional_argument_with_default<
-            TrialTerminationCondition>("trial_termination", "terminal");
+        this->make_optional_argument_with_default(
+            n + n2 + 1,
+            "trial_termination",
+            "terminal");
     }
 
 protected:
-    std::shared_ptr<TaskSolverFactory>
-    create_component(const Options& options, const Context& context)
-        const override
+    static std::shared_ptr<TaskSolverFactory> func(
+        const Context&,
+        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+        std::string policy_filename,
+        bool print_fact_names,
+        value_t report_epsilon,
+        bool report_enabled,
+        Verbosity verbosity,
+        value_t convergence_epsilon,
+        bool dual_bounds,
+        std::shared_ptr<PolicyPickerType<Bisimulation, false>> policy,
+        std::shared_ptr<Sampler> successor_sampler,
+        TrialTerminationCondition trial_termination)
     {
         using enum TrialTerminationCondition;
 
-        const auto trial_termination =
-            options.get<TrialTerminationCondition>("trial_termination");
+        return make_shared_from_arg_tuples<MDPSolver>(
+            make_shared_from_arg_tuples<LRTDPSolver<Bisimulation, false>>(
+                std::move(successor_sampler),
+                std::move(trial_termination),
+                convergence_epsilon,
+                dual_bounds,
+                std::move(policy)),
+            std::move(task_state_space_factory),
+            std::move(heuristic_factory),
+            std::move(policy_filename),
+            print_fact_names,
+            report_epsilon,
+            report_enabled,
+            verbosity);
+    }
+};
 
-        if constexpr (Fret) {
-            if (trial_termination != CONSISTENT &&
-                trial_termination != REVISITED) {
-                context.warn(
-                    "Warning: LRTDP is run within FRET with an unsafe "
-                    "trial termination condition! LRTDP's trials may "
-                    "get stuck in cycles.");
-            }
+template <bool Bisimulation>
+class LRTDPFretSolverFeature
+    : public SharedTypedFeature<
+          TaskSolverFactory,
+          std::shared_ptr<TaskStateSpaceFactory>,
+          std::shared_ptr<TaskHeuristicFactory>,
+          std::string,
+          bool,
+          value_t,
+          bool,
+          Verbosity,
+          bool,
+          value_t,
+          bool,
+          std::shared_ptr<PolicyPickerType<Bisimulation, true>>,
+          std::shared_ptr<SuccessorSampler<ActionType<Bisimulation, true>>>,
+          TrialTerminationCondition> {
+    using Sampler = SuccessorSampler<ActionType<Bisimulation, true>>;
+
+public:
+    LRTDPFretSolverFeature()
+        : LRTDPFretSolverFeature::TypedFeature(
+              add_wrapper_algo_suffix<Bisimulation, true>("lrtdp"),
+              &LRTDPFretSolverFeature::func)
+    {
+        this->document_title("Labelled Real-Time Dynamic Programming");
+
+        const auto n =
+            add_base_solver_options_except_algorithm_to_feature(*this, 0);
+        const auto n2 =
+            add_mdp_hs_options_to_feature<Bisimulation, true>(*this, n);
+
+        this->make_optional_argument_with_default(
+            n + n2,
+            "successor_sampler",
+            add_mdp_type_to_option<Bisimulation, true>(
+                "random_successor_sampler()"));
+
+        this->make_optional_argument_with_default(
+            n + n2 + 1,
+            "trial_termination",
+            "terminal");
+    }
+
+protected:
+    static std::shared_ptr<TaskSolverFactory> func(
+        const Context& context,
+        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+        std::string policy_filename,
+        bool print_fact_names,
+        value_t report_epsilon,
+        bool report_enabled,
+        Verbosity verbosity,
+        bool fret_on_policy,
+        value_t convergence_epsilon,
+        bool dual_bounds,
+        std::shared_ptr<PolicyPickerType<Bisimulation, true>> policy,
+        std::shared_ptr<Sampler> successor_sampler,
+        TrialTerminationCondition trial_termination)
+    {
+        using enum TrialTerminationCondition;
+
+        if (trial_termination != CONSISTENT && trial_termination != REVISITED) {
+            context.warn(
+                "Warning: LRTDP is run within FRET with an unsafe "
+                "trial termination condition! LRTDP's trials may "
+                "get stuck in cycles.");
         }
 
         return make_shared_from_arg_tuples<MDPSolver>(
-            make_shared_from_arg_tuples<LRTDPSolver<Bisimulation, Fret>>(
-                options.get_shared<Sampler>("successor_sampler"),
-                options.get<TrialTerminationCondition>("trial_termination"),
-                get_mdp_hs_args_from_options<Bisimulation, Fret>(options)),
-            get_base_solver_args_no_algorithm_from_options(options));
+            make_shared_from_arg_tuples<LRTDPSolver<Bisimulation, true>>(
+                std::move(successor_sampler),
+                std::move(trial_termination),
+                fret_on_policy,
+                convergence_epsilon,
+                dual_bounds,
+                std::move(policy)),
+            std::move(task_state_space_factory),
+            std::move(heuristic_factory),
+            std::move(policy_filename),
+            print_fact_names,
+            report_epsilon,
+            report_enabled,
+            verbosity);
     }
 };
+
 } // namespace
 
 namespace probfd::cli::solvers {
@@ -126,6 +241,7 @@ void add_lrtdp_features(Registry& registry)
          {"revisited", "Stop trials upon revisiting a state"}});
 
     n.insert_feature_plugins<LRTDPSolverFeature>();
+    n.insert_feature_plugins<LRTDPFretSolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

@@ -13,14 +13,13 @@ namespace {
 class PruneStrategyAliveFeature : public SharedTypedFeature<PruneStrategy> {
 public:
     PruneStrategyAliveFeature()
-        : TypedFeature("prune_alive")
+        : TypedFeature("prune_alive", &PruneStrategyAliveFeature::func)
     {
         document_title("Alive states prune strategy");
         document_synopsis("This prune strategy keeps only alive states.");
     }
 
-    std::shared_ptr<PruneStrategy>
-    create_component(const Options&, const utils::Context&) const override
+    static std::shared_ptr<PruneStrategy> func(const utils::Context&)
     {
         return std::make_shared<PruneStrategyAlive>();
     }

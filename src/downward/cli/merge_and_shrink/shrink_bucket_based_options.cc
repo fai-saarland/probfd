@@ -8,15 +8,11 @@ using namespace std;
 
 namespace downward::cli::merge_and_shrink {
 
-void add_shrink_bucket_options_to_feature(plugins::Feature& feature)
+std::size_t add_shrink_bucket_options_to_feature(
+    plugins::Feature& feature,
+    std::size_t start_index)
 {
-    utils::add_rng_options_to_feature(feature);
-}
-
-tuple<int>
-get_shrink_bucket_arguments_from_options(const plugins::Options& opts)
-{
-    return utils::get_rng_arguments_from_options(opts);
+    return utils::add_rng_options_to_feature(feature, start_index);
 }
 
 } // namespace downward::cli::merge_and_shrink

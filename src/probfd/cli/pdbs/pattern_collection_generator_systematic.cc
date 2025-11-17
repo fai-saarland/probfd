@@ -15,14 +15,19 @@ using namespace probfd::pdbs;
 using namespace downward::cli::plugins;
 
 using downward::cli::utils::add_log_options_to_feature;
-using downward::cli::utils::get_log_arguments_from_options;
 
 namespace {
 class PatternCollectionGeneratorSystematicFeature
-    : public SharedTypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<
+          PatternCollectionGenerator,
+          int,
+          bool,
+          downward::utils::Verbosity> {
 public:
     PatternCollectionGeneratorSystematicFeature()
-        : TypedFeature("psystematic")
+        : TypedFeature(
+              "psystematic",
+              &PatternCollectionGeneratorSystematicFeature::func)
     {
         document_title("Systematically generated patterns");
         document_synopsis(
@@ -40,26 +45,31 @@ public:
                 "AAAI Press",
                 "2013"));
 
-        add_optional_argument_with_default<int>(
+        make_optional_argument_with_default(
+            0,
             "pattern_max_size",
             "1",
             "max number of variables per pattern");
-        add_optional_argument_with_default<bool>(
+        make_optional_argument_with_default(
+            1,
             "only_interesting_patterns",
             "true",
             "Only consider the union of two disjoint patterns if the union has "
             "more information than the individual patterns.");
-        add_log_options_to_feature(*this);
+        add_log_options_to_feature(*this, 2);
     }
 
-    std::shared_ptr<PatternCollectionGenerator>
-    create_component(const Options& opts, const utils::Context&) const override
+    static std::shared_ptr<PatternCollectionGenerator> func(
+        const utils::Context&,
+        int pattern_max_size,
+        bool only_interesting_patterns,
+        downward::utils::Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<
             PatternCollectionGeneratorSystematic>(
-            opts.get<int>("pattern_max_size"),
-            opts.get<bool>("only_interesting_patterns"),
-            get_log_arguments_from_options(opts));
+            pattern_max_size,
+            only_interesting_patterns,
+            verbosity);
     }
 };
 } // namespace

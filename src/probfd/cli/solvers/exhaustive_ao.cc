@@ -58,35 +58,69 @@ public:
 };
 
 template <bool Bisimulation>
-class ExhaustiveAOSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
+class ExhaustiveAOSolverFeature
+    : public SharedTypedFeature<
+          TaskSolverFactory,
+          std::shared_ptr<TaskStateSpaceFactory>,
+          std::shared_ptr<TaskHeuristicFactory>,
+          std::string,
+          bool,
+          value_t,
+          bool,
+          utils::Verbosity,
+          value_t,
+          bool,
+          std::shared_ptr<PolicyPickerType<Bisimulation, false>>,
+          std::shared_ptr<OpenList<ActionType<Bisimulation, false>>>> {
     using OpenListType = OpenList<ActionType<Bisimulation, false>>;
 
 public:
     ExhaustiveAOSolverFeature()
-        : TypedFeature(
-              add_wrapper_algo_suffix<Bisimulation, false>("exhaustive_ao"))
+        : ExhaustiveAOSolverFeature::TypedFeature(
+              add_wrapper_algo_suffix<Bisimulation, false>("exhaustive_ao"),
+              &ExhaustiveAOSolverFeature::func)
     {
         this->document_title("Exhaustive AO* algorithm");
 
-        this->template add_optional_argument_with_default<
-            std::shared_ptr<OpenListType>>(
+        const auto n =
+            add_base_solver_options_except_algorithm_to_feature(*this, 0);
+        const auto n2 =
+            add_mdp_hs_options_to_feature<Bisimulation, false>(*this, n);
+
+        this->make_optional_argument_with_default(
+            n + n2,
             "open_list",
             add_mdp_type_to_option<Bisimulation, false>("lifo_open_list()"));
-
-        add_base_solver_options_except_algorithm_to_feature(*this);
-        add_mdp_hs_options_to_feature<Bisimulation, false>(*this);
     }
 
 protected:
-    std::shared_ptr<TaskSolverFactory>
-    create_component(const Options& options, const utils::Context&)
-        const override
+    static std::shared_ptr<TaskSolverFactory> func(
+        const utils::Context&,
+        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+        std::string policy_filename,
+        bool print_fact_names,
+        value_t report_epsilon,
+        bool report_enabled,
+        utils::Verbosity verbosity,
+        value_t convergence_epsilon,
+        bool dual_bounds,
+        std::shared_ptr<PolicyPickerType<Bisimulation, false>> policy,
+        std::shared_ptr<OpenListType> open_list)
     {
         return make_shared_from_arg_tuples<MDPSolver>(
             make_shared_from_arg_tuples<ExhaustiveAOSolver<Bisimulation>>(
-                options.get_shared<OpenListType>("open_list"),
-                get_mdp_hs_args_from_options<Bisimulation, false>(options)),
-            get_base_solver_args_no_algorithm_from_options(options));
+                std::move(open_list),
+                convergence_epsilon,
+                dual_bounds,
+                std::move(policy)),
+            std::move(task_state_space_factory),
+            std::move(heuristic_factory),
+            std::move(policy_filename),
+            print_fact_names,
+            report_epsilon,
+            report_enabled,
+            verbosity);
     }
 };
 } // namespace

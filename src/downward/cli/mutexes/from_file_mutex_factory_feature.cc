@@ -15,23 +15,22 @@ using namespace downward::cli::plugins;
 
 namespace {
 class FromFileMutexFactoryFeature
-    : public SharedTypedFeature<TaskDependentFactory<MutexInformation>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<MutexInformation>,
+          const std::string&> {
 public:
     FromFileMutexFactoryFeature()
-        : TypedFeature("mutexes_from_file")
+        : TypedFeature("mutexes_from_file", &FromFileMutexFactoryFeature::func)
     {
         document_title("Mutexes from a mutex file");
         document_synopsis("Produces pre-computed mutexes as read from a file.");
 
-        add_required_argument<std::string>("file", "The mutex file");
+        make_required_argument(0, "file", "The mutex file");
     }
 
-    virtual shared_ptr<TaskDependentFactory<MutexInformation>>
-    create_component(const Options& opts, const utils::Context& context)
-        const override
+    static shared_ptr<TaskDependentFactory<MutexInformation>>
+    func(const utils::Context& context, const std::string& filename)
     {
-        const auto filename = opts.get<std::string>("file");
-
         if (!std::filesystem::exists(filename)) {
             context.error("The mutex file {} does not exist!", filename);
         }

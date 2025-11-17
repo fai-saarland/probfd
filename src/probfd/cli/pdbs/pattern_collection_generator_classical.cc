@@ -17,14 +17,18 @@ using namespace probfd::cli::pdbs;
 
 using namespace downward::cli::plugins;
 
-using downward::cli::utils::get_log_arguments_from_options;
-
 namespace {
 class PatternCollectionGeneratorClassicalFeature
-    : public SharedTypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<
+          PatternCollectionGenerator,
+          std::shared_ptr<pdbs::PatternCollectionGenerator>,
+          std::shared_ptr<SubCollectionFinderFactory>,
+          Verbosity> {
 public:
     PatternCollectionGeneratorClassicalFeature()
-        : TypedFeature("classical_generator")
+        : TypedFeature(
+              "classical_generator",
+              &PatternCollectionGeneratorClassicalFeature::func)
     {
         document_title("Classical Pattern Generation Adapter");
         document_synopsis(
@@ -33,29 +37,32 @@ public:
             "generation algorithm, they are used as a heuristic to compute the "
             "corresponding probability-aware PDBs.");
 
-        add_pattern_collection_generator_options_to_feature(*this);
-
-        add_optional_argument_with_default<
-            std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
+        make_optional_argument_with_default(
+            0,
             "generator",
             "systematic()",
             "The classical pattern collection generator.");
 
-        add_optional_argument_with_default<
-            std::shared_ptr<SubCollectionFinderFactory>>(
+        make_optional_argument_with_default(
+            1,
             "subcollection_finder_factory",
             "finder_trivial_factory()",
             "The subcollection finder factory.");
+
+        add_pattern_collection_generator_options_to_feature(*this, 2);
     }
 
-    std::shared_ptr<PatternCollectionGenerator>
-    create_component(const Options& opts, const Context&) const override
+    static std::shared_ptr<PatternCollectionGenerator> func(
+        const Context&,
+        std::shared_ptr<pdbs::PatternCollectionGenerator> generator,
+        std::shared_ptr<SubCollectionFinderFactory>
+            subcollection_finder_factory,
+        Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<PatternCollectionGeneratorClassical>(
-            opts.get_shared<::pdbs::PatternCollectionGenerator>("generator"),
-            opts.get_shared<SubCollectionFinderFactory>(
-                "subcollection_finder_factory"),
-            get_log_arguments_from_options(opts));
+            std::move(generator),
+            std::move(subcollection_finder_factory),
+            verbosity);
     }
 };
 } // namespace

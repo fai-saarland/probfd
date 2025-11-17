@@ -325,11 +325,23 @@ static ASTNodePtr parse_function(
 
     string unparsed_config =
         tokens.str(initial_token_stream_index, tokens.get_position());
-    return std::make_unique<FunctionCallNode>(
-        std::move(callee),
-        move(positional_arguments),
-        move(keyword_arguments),
-        unparsed_config);
+
+    if (const auto* n = dynamic_cast<const IdentifierNode*>(callee.get())) {
+        return std::make_unique<DirectFunctionCallNode>(
+            n->get_name(),
+            move(positional_arguments),
+            move(keyword_arguments),
+            unparsed_config);
+    } else {
+        if (!keyword_arguments.empty()) {
+            context.error("Keyword arguments not allowed here.");
+        }
+
+        return std::make_unique<IndirectFunctionCallNode>(
+            std::move(callee),
+            move(positional_arguments),
+            unparsed_config);
+    }
 }
 
 static constexpr std::array literal_tokens{
@@ -347,17 +359,17 @@ parse_literal(TokenStream& tokens, SyntaxAnalyzerContext& context)
     Token token = tokens.pop(context);
 
     if (token.type == TokenType::IDENTIFIER) {
-        std::vector<std::string> qualification;
+        QualifiedName qualified_name;
         while (tokens.has_tokens(1) &&
                tokens.peek(context).type == TokenType::DOT) {
-            qualification.push_back(token.content);
+            qualified_name.qualification_prefix.push_back(token.content);
             tokens.pop(context);
             token = tokens.pop(context, TokenType::IDENTIFIER);
         }
 
-        return std::make_unique<IdentifierNode>(
-            std::move(qualification),
-            token.content);
+        qualified_name.name = token.content;
+
+        return std::make_unique<IdentifierNode>(std::move(qualified_name));
     }
 
     if (!std::ranges::binary_search(literal_tokens, token.type)) {

@@ -19,13 +19,19 @@ using namespace downward::cli::pdbs;
 using namespace downward::cli::plugins;
 
 using downward::cli::utils::add_rng_options_to_feature;
-using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-class PatternGeneratorRandomFeature : public SharedTypedFeature<PatternGenerator> {
+class PatternGeneratorRandomFeature
+    : public SharedTypedFeature<
+          PatternGenerator,
+          int,
+          FSeconds,
+          bool,
+          int,
+          Verbosity> {
 public:
     PatternGeneratorRandomFeature()
-        : TypedFeature("random_pattern")
+        : TypedFeature("random_pattern", &PatternGeneratorRandomFeature::func)
     {
         document_title("Random Pattern");
         document_synopsis(
@@ -37,32 +43,40 @@ public:
             "implementation "
             "notes.");
 
-        add_optional_argument_with_default<int>(
+        add_random_pattern_implementation_notes_to_feature(*this);
+
+        make_optional_argument_with_default(
+            0,
             "max_pdb_size",
             "1000000",
             "maximum number of states in the final pattern database (possibly "
             "ignored by a singleton pattern consisting of a single goal "
             "variable)");
-        add_optional_argument_with_default<downward::utils::FSeconds>(
+        make_optional_argument_with_default(
+            1,
             "max_time",
             "seconds_max()",
             "maximum time in seconds for the pattern generation");
-        add_random_pattern_bidirectional_option_to_feature(*this);
-        add_rng_options_to_feature(*this);
-        add_generator_options_to_feature(*this);
-
-        add_random_pattern_implementation_notes_to_feature(*this);
+        const auto n =
+            add_random_pattern_bidirectional_option_to_feature(*this, 2);
+        const auto n2 = add_rng_options_to_feature(*this, n + 2);
+        add_generator_options_to_feature(*this, n + n2 + 2);
     }
 
-    virtual shared_ptr<PatternGenerator>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<PatternGenerator> func(
+        const Context&,
+        int max_pdb_size,
+        FSeconds max_time,
+        bool bidirectional,
+        int random_seed,
+        Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<PatternGeneratorRandom>(
-            opts.get<int>("max_pdb_size"),
-            opts.get<downward::utils::FSeconds>("max_time"),
-            get_random_pattern_bidirectional_arguments_from_options(opts),
-            get_rng_arguments_from_options(opts),
-            get_generator_arguments_from_options(opts));
+            max_pdb_size,
+            max_time,
+            bidirectional,
+            random_seed,
+            verbosity);
     }
 };
 

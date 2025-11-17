@@ -18,10 +18,15 @@ using namespace probfd::cli::merge_and_shrink;
 
 namespace {
 class MergeStrategyFactoryPrecomputedFeature
-    : public SharedTypedFeature<MergeStrategyFactory> {
+    : public SharedTypedFeature<
+          MergeStrategyFactory,
+          utils::Verbosity,
+          std::shared_ptr<MergeTreeFactory>> {
 public:
     MergeStrategyFactoryPrecomputedFeature()
-        : TypedFeature("pmerge_precomputed")
+        : TypedFeature(
+              "pmerge_precomputed",
+              &MergeStrategyFactoryPrecomputedFeature::func)
     {
         document_title("Precomputed merge strategy");
         document_synopsis(
@@ -34,12 +39,6 @@ public:
             "given "
             "by the merge tree.");
 
-        add_required_argument<shared_ptr<MergeTreeFactory>>(
-            "merge_tree",
-            "The precomputed merge tree.");
-
-        add_merge_strategy_options_to_feature(*this);
-
         document_note(
             "Note",
             "An example of a precomputed merge startegy is a linear merge "
@@ -49,16 +48,20 @@ public:
             "merge_strategy=merge_precomputed(merge_tree=linear(<variable_"
             "order>))"
             "\n}}}");
+
+        const auto n = add_merge_strategy_options_to_feature(*this, 0);
+        make_required_argument(n, "merge_tree", "The precomputed merge tree.");
     }
 
 protected:
-    shared_ptr<MergeStrategyFactory>
-    create_component(const Options& options, const utils::Context&)
-        const override
+    static shared_ptr<MergeStrategyFactory> func(
+        const utils::Context&,
+        downward::utils::Verbosity verbosity,
+        std::shared_ptr<MergeTreeFactory> merge_tree_factory)
     {
         return make_shared_from_arg_tuples<MergeStrategyFactoryPrecomputed>(
-            get_merge_strategy_args_from_options(options),
-            options.get<shared_ptr<MergeTreeFactory>>("merge_tree"));
+            verbosity,
+            std::move(merge_tree_factory));
     }
 };
 } // namespace

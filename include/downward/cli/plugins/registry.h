@@ -168,8 +168,7 @@ public:
         return s;
     }
 
-    SubcategoryPlugin&
-    get_subcategory_plugin(const std::string& subcategory);
+    SubcategoryPlugin& get_subcategory_plugin(const std::string& subcategory);
 
     const SubcategoryPlugin&
     get_subcategory_plugin(const std::string& subcategory) const;

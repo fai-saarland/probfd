@@ -18,7 +18,7 @@ class MergeScoringFunctionDFPFeature
     : public SharedTypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionDFPFeature()
-        : TypedFeature("dfp")
+        : TypedFeature("dfp", &MergeScoringFunctionDFPFeature::func)
     {
         document_title("DFP scoring");
         document_synopsis(
@@ -58,8 +58,7 @@ public:
             "\n}}}");
     }
 
-    virtual shared_ptr<MergeScoringFunction>
-    create_component(const Options&, const Context&) const override
+    static shared_ptr<MergeScoringFunction> func(const Context&)
     {
         return make_shared<MergeScoringFunctionDFP>();
     }

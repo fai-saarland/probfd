@@ -10,15 +10,10 @@ using namespace downward::cli::plugins;
 
 namespace downward::cli::pdbs {
 
-void add_generator_options_to_feature(Feature& feature)
+std::size_t
+add_generator_options_to_feature(Feature& feature, std::size_t start_index)
 {
-    utils::add_log_options_to_feature(feature);
-}
-
-tuple<downward::utils::Verbosity>
-get_generator_arguments_from_options(const Options& opts)
-{
-    return utils::get_log_arguments_from_options(opts);
+    return utils::add_log_options_to_feature(feature, start_index);
 }
 
 } // namespace downward::cli::pdbs

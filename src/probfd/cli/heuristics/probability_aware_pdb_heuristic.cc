@@ -18,10 +18,16 @@ using namespace downward::cli::plugins;
 
 namespace {
 class ProbabilityAwarePDBHeuristicFactoryFeature
-    : public SharedTypedFeature<TaskHeuristicFactory> {
+    : public SharedTypedFeature<
+          TaskHeuristicFactory,
+          std::shared_ptr<PatternCollectionGenerator>,
+          utils::FSeconds,
+          utils::Verbosity> {
 public:
     ProbabilityAwarePDBHeuristicFactoryFeature()
-        : TypedFeature("ppdbs")
+        : TypedFeature(
+              "ppdbs",
+              &ProbabilityAwarePDBHeuristicFactoryFeature::func)
     {
         document_title("Probability-aware Pattern database heuristic");
         document_synopsis(
@@ -36,25 +42,29 @@ public:
         document_property("consistent", "yes");
         document_property("safe", "yes");
 
-        add_optional_argument_with_default<
-            std::shared_ptr<PatternCollectionGenerator>>(
+        make_optional_argument_with_default(
+            0,
             "patterns",
             "classical_generator(generator=systematic(pattern_max_size=2))",
             "The pattern generation method");
-        add_optional_argument_with_default<utils::FSeconds>(
+        make_optional_argument_with_default(
+            1,
             "max_time_dominance_pruning",
             "0.0s",
             "The maximum time spent pruning dominated patterns");
-        add_task_dependent_heuristic_options_to_feature(*this);
+        add_task_dependent_heuristic_options_to_feature(*this, 2);
     }
 
-    std::shared_ptr<TaskHeuristicFactory>
-    create_component(const Options& opts, const utils::Context&) const override
+    static std::shared_ptr<TaskHeuristicFactory> func(
+        const utils::Context&,
+        std::shared_ptr<PatternCollectionGenerator> generator,
+        utils::FSeconds max_time_dominance_pruning,
+        utils::Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<ProbabilityAwarePDBHeuristicFactory>(
-            opts.get_shared<PatternCollectionGenerator>("patterns"),
-            opts.get<utils::FSeconds>("max_time_dominance_pruning"),
-            get_task_dependent_heuristic_arguments_from_options(opts));
+            std::move(generator),
+            max_time_dominance_pruning,
+            verbosity);
     }
 };
 } // namespace

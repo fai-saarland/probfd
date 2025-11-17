@@ -17,16 +17,36 @@ enum class OrderOfSCCs {
     INCREASING
 };
 
-class MergeStrategyFactorySCCs : public MergeStrategyFactory {
+class MergeStrategyFactorySCCsTree : public MergeStrategyFactory {
     OrderOfSCCs order_of_sccs;
     std::shared_ptr<MergeTreeFactory> merge_tree_factory;
+
+public:
+    MergeStrategyFactorySCCsTree(
+        downward::utils::Verbosity verbosity,
+        OrderOfSCCs order_of_sccs,
+        std::shared_ptr<MergeTreeFactory> merge_tree_factory);
+
+    std::unique_ptr<MergeStrategy> compute_merge_strategy(
+        const SharedProbabilisticTask& task,
+        const FactoredTransitionSystem& fts) override;
+
+    bool requires_liveness() const override;
+    bool requires_goal_distances() const override;
+
+protected:
+    std::string name() const override;
+    void dump_strategy_specific_options() const override;
+};
+
+class MergeStrategyFactorySCCsSelector : public MergeStrategyFactory {
+    OrderOfSCCs order_of_sccs;
     std::shared_ptr<MergeSelector> merge_selector;
 
 public:
-    MergeStrategyFactorySCCs(
+    MergeStrategyFactorySCCsSelector(
         downward::utils::Verbosity verbosity,
         OrderOfSCCs order_of_sccs,
-        std::shared_ptr<MergeTreeFactory> merge_tree_factory,
         std::shared_ptr<MergeSelector> merge_selector);
 
     std::unique_ptr<MergeStrategy> compute_merge_strategy(

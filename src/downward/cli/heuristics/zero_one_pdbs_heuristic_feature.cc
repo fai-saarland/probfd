@@ -18,7 +18,6 @@ using namespace downward::pdbs;
 using namespace downward::cli::plugins;
 
 using downward::cli::add_heuristic_options_to_feature;
-using downward::cli::get_heuristic_arguments_from_options;
 
 namespace {
 class ZOPDBsHeuristicFactory : public TaskDependentFactory<Evaluator> {
@@ -58,10 +57,16 @@ public:
 };
 
 class ZeroOnePDBsHeuristicFeature
-    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<Evaluator>,
+          shared_ptr<TaskTransformation>,
+          bool,
+          string,
+          utils::Verbosity,
+          std::shared_ptr<PatternCollectionGenerator>> {
 public:
     ZeroOnePDBsHeuristicFeature()
-        : TypedFeature("zopdbs")
+        : TypedFeature("zopdbs", &ZeroOnePDBsHeuristicFeature::func)
     {
         document_title("Zero-One PDB");
         document_synopsis(
@@ -81,13 +86,6 @@ public:
             "set "
             "to zero for all other affected patterns.");
 
-        add_optional_argument_with_default<
-            shared_ptr<PatternCollectionGenerator>>(
-            "patterns",
-            "systematic(1)",
-            "pattern generation method");
-        add_heuristic_options_to_feature(*this, "zopdbs");
-
         document_language_support("action costs", "supported");
         document_language_support("conditional effects", "not supported");
         document_language_support("axioms", "not supported");
@@ -96,14 +94,29 @@ public:
         document_property("consistent", "yes");
         document_property("safe", "yes");
         document_property("preferred operators", "no");
+
+        make_optional_argument_with_default(
+            0,
+            "patterns",
+            "systematic(1)",
+            "pattern generation method");
+        add_heuristic_options_to_feature(*this, "zopdbs", 1);
     }
 
-    shared_ptr<TaskDependentFactory<Evaluator>>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<TaskDependentFactory<Evaluator>> func(
+        const Context&,
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        utils::Verbosity verbosity,
+        std::shared_ptr<PatternCollectionGenerator> generator)
     {
         return make_shared_from_arg_tuples<ZOPDBsHeuristicFactory>(
-            get_heuristic_arguments_from_options(opts),
-            opts.get<shared_ptr<PatternCollectionGenerator>>("patterns"));
+            std::move(transformation),
+            cache_estimates,
+            std::move(description),
+            verbosity,
+            std::move(generator));
     }
 };
 } // namespace

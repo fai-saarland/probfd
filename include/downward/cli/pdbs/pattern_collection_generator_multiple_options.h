@@ -1,17 +1,10 @@
 #ifndef DOWNWARD_PLUGINS_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_H
 #define DOWNWARD_PLUGINS_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_H
 
-#include "downward/utils/timer.h"
-
-#include <tuple>
-
-namespace downward::utils {
-enum class Verbosity;
-}
+#include <cstddef>
 
 namespace downward::cli::plugins {
 class Feature;
-class Options;
 } // namespace downward::cli::plugins
 
 namespace downward::cli::pdbs {
@@ -19,19 +12,9 @@ namespace downward::cli::pdbs {
 extern void add_multiple_algorithm_implementation_notes_to_feature(
     plugins::Feature& feature);
 
-extern void add_multiple_options_to_feature(plugins::Feature& feature);
-
-extern std::tuple<
-    int,
-    int,
-    utils::FSeconds,
-    utils::FSeconds,
-    utils::FSeconds,
-    double,
-    bool,
-    int,
-    utils::Verbosity>
-get_multiple_arguments_from_options(const plugins::Options& opts);
+extern std::size_t add_multiple_options_to_feature(
+    plugins::Feature& feature,
+    std::size_t start_index);
 
 } // namespace downward::cli::pdbs
 

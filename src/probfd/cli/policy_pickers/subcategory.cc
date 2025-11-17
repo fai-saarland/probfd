@@ -36,7 +36,6 @@ using namespace probfd::cli;
 using namespace downward::cli::plugins;
 
 using downward::cli::utils::add_rng_options_to_feature;
-using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
 template <
@@ -61,48 +60,50 @@ using PolicyPicker = Wrapper<algorithms::PolicyPicker, Bisimulation, Fret>;
 
 template <bool Bisimulation, bool Fret>
 class ArbitraryTieBreakerFeature
-    : public SharedTypedFeature<PolicyPicker<Bisimulation, Fret>> {
+    : public SharedTypedFeature<PolicyPicker<Bisimulation, Fret>, bool> {
     using R = Wrapper<ArbitraryTiebreaker, Bisimulation, Fret>;
 
 public:
     ArbitraryTieBreakerFeature()
         : ArbitraryTieBreakerFeature::TypedFeature(
               add_mdp_type_to_option<Bisimulation, Fret>(
-                  "arbitrary_policy_tiebreaker"))
+                  "arbitrary_policy_tiebreaker"),
+              &ArbitraryTieBreakerFeature::func)
     {
-        this->template add_optional_argument_with_default<bool>(
-            "stable_policy",
-            "true");
+        this->make_optional_argument_with_default(0, "stable_policy", "true");
     }
 
-    std::shared_ptr<PolicyPicker<Bisimulation, Fret>>
-    create_component(const Options& opts, const Context&) const override
+    static std::shared_ptr<PolicyPicker<Bisimulation, Fret>>
+    func(const Context&, bool stable_policy)
     {
-        return std::make_shared<R>(opts.get<bool>("stable_policy"));
+        return std::make_shared<R>(stable_policy);
     }
 };
 
-class OperatorIDTieBreakerFeature : public SharedTypedFeature<FDRPolicyPicker> {
+class OperatorIDTieBreakerFeature
+    : public SharedTypedFeature<FDRPolicyPicker, bool, bool> {
 public:
     OperatorIDTieBreakerFeature()
-        : TypedFeature("operator_id_policy_tiebreaker")
+        : TypedFeature(
+              "operator_id_policy_tiebreaker",
+              &OperatorIDTieBreakerFeature::func)
     {
-        add_optional_argument_with_default<bool>("stable_policy", "true");
-        add_optional_argument_with_default<bool>("prefer_smaller", "true");
+        make_optional_argument_with_default(0, "stable_policy", "true");
+        make_optional_argument_with_default(1, "prefer_smaller", "true");
     }
 
-    std::shared_ptr<FDRPolicyPicker>
-    create_component(const Options& opts, const Context&) const override
+    static std::shared_ptr<FDRPolicyPicker>
+    func(const Context&, bool stable_policy, bool prefer_smaller)
     {
         return make_shared_from_arg_tuples<OperatorIdTiebreaker>(
-            opts.get<bool>("stable_policy"),
-            opts.get<bool>("prefer_smaller"));
+            stable_policy,
+            prefer_smaller);
     }
 };
 
 template <bool Bisimulation, bool Fret>
 class RandomTieBreakerFeature
-    : public SharedTypedFeature<PolicyPicker<Bisimulation, Fret>> {
+    : public SharedTypedFeature<PolicyPicker<Bisimulation, Fret>, bool, int> {
 
     using R = Wrapper<RandomTiebreaker, Bisimulation, Fret>;
 
@@ -110,48 +111,50 @@ public:
     RandomTieBreakerFeature()
         : RandomTieBreakerFeature::TypedFeature(
               add_mdp_type_to_option<Bisimulation, Fret>(
-                  "random_policy_tiebreaker"))
+                  "random_policy_tiebreaker"),
+              &RandomTieBreakerFeature::func)
     {
-        this->template add_optional_list_argument_with_default<bool>(
+        this->make_optional_argument_with_default(
+            0,
             "stable_policy",
             "true");
-        add_rng_options_to_feature(*this);
+        add_rng_options_to_feature(*this, 1);
     }
 
-    std::shared_ptr<PolicyPicker<Bisimulation, Fret>>
-    create_component(const Options& opts, const Context&) const override
+    static std::shared_ptr<PolicyPicker<Bisimulation, Fret>>
+    func(const Context&, bool stable_policy, int random_seed)
     {
-        return make_shared_from_arg_tuples<R>(
-            opts.get<bool>("stable_policy"),
-            get_rng_arguments_from_options(opts));
+        return make_shared_from_arg_tuples<R>(stable_policy, random_seed);
     }
 };
 
 template <bool Bisimulation, bool Fret>
 class ValueGapTieBreakerFeature
-    : public SharedTypedFeature<PolicyPicker<Bisimulation, Fret>> {
+    : public SharedTypedFeature<PolicyPicker<Bisimulation, Fret>, bool, bool> {
     using R = Wrapper<VDiffTiebreaker, Bisimulation, Fret>;
 
 public:
     ValueGapTieBreakerFeature()
         : ValueGapTieBreakerFeature::TypedFeature(
               add_mdp_type_to_option<Bisimulation, Fret>(
-                  "value_gap_policy_tiebreaker"))
+                  "value_gap_policy_tiebreaker"),
+              &ValueGapTieBreakerFeature::func)
     {
-        this->template add_optional_list_argument_with_default<bool>(
+        this->make_optional_argument_with_default(
+            0,
             "stable_policy",
             "true");
-        this->template add_optional_list_argument_with_default<bool>(
+
+        this->make_optional_argument_with_default(
+            1,
             "prefer_large_gaps",
             "true");
     }
 
-    std::shared_ptr<PolicyPicker<Bisimulation, Fret>>
-    create_component(const Options& opts, const Context&) const override
+    static std::shared_ptr<PolicyPicker<Bisimulation, Fret>>
+    func(const Context&, bool stable_policy, bool prefer_large_gaps)
     {
-        return make_shared_from_arg_tuples<R>(
-            opts.get<bool>("stable_policy"),
-            opts.get<bool>("prefer_large_gaps"));
+        return make_shared_from_arg_tuples<R>(stable_policy, prefer_large_gaps);
     }
 };
 } // namespace
@@ -165,7 +168,7 @@ void add_policy_picker_category(Registry& registry)
         []<bool Bisimulation, bool Fret> {
             return add_mdp_type_to_category<Bisimulation, Fret>("PolicyPicker");
         },
-        []<bool, bool>{ return "Tiebreaker for greedy actions."; });
+        []<bool, bool> { return "Tiebreaker for greedy actions."; });
 }
 
 void add_policy_picker_features(Registry& registry)

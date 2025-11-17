@@ -17,10 +17,23 @@ using namespace downward::cli::plugins;
 
 namespace {
 class PatternCollectionGeneratorMultipleRandomFeature
-    : public SharedTypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<
+          PatternCollectionGenerator,
+          bool,
+          int,
+          int,
+          FSeconds,
+          FSeconds,
+          FSeconds,
+          double,
+          bool,
+          int,
+          Verbosity> {
 public:
     PatternCollectionGeneratorMultipleRandomFeature()
-        : TypedFeature("random_patterns")
+        : TypedFeature(
+              "random_patterns",
+              &PatternCollectionGeneratorMultipleRandomFeature::func)
     {
         document_title("Multiple Random Patterns");
         document_synopsis(
@@ -33,20 +46,39 @@ public:
             "pattern algorithm, called 'single randomized causal graph' (sRCG) "
             "in the paper. See below for descriptions of the algorithms.");
 
-        add_random_pattern_bidirectional_option_to_feature(*this);
-        add_multiple_options_to_feature(*this);
-
         add_random_pattern_implementation_notes_to_feature(*this);
         add_multiple_algorithm_implementation_notes_to_feature(*this);
+
+        const auto n =
+            add_random_pattern_bidirectional_option_to_feature(*this, 0);
+        add_multiple_options_to_feature(*this, n);
     }
 
-    virtual shared_ptr<PatternCollectionGenerator>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<PatternCollectionGenerator> func(
+        const Context&,
+        bool bidirectional,
+        int max_pdb_size,
+        int max_collection_size,
+        FSeconds pattern_generation_max_time,
+        FSeconds total_max_time,
+        FSeconds stagnation_limit,
+        double blacklist_trigger_percentage,
+        bool enable_blacklist_on_stagnation,
+        int random_seed,
+        Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<
             PatternCollectionGeneratorMultipleRandom>(
-            get_random_pattern_bidirectional_arguments_from_options(opts),
-            get_multiple_arguments_from_options(opts));
+            bidirectional,
+            max_pdb_size,
+            max_collection_size,
+            pattern_generation_max_time,
+            total_max_time,
+            stagnation_limit,
+            blacklist_trigger_percentage,
+            enable_blacklist_on_stagnation,
+            random_seed,
+            verbosity);
     }
 };
 } // namespace

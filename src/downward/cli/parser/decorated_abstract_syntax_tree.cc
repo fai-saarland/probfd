@@ -14,6 +14,32 @@
 
 using namespace std;
 
+namespace {
+struct TypedName {
+    const std::string& name;
+    const downward::cli::plugins::Type& type;
+};
+} // namespace
+
+template <typename CharT>
+struct std::formatter<TypedName, CharT> {
+    template <typename FormatContext>
+    constexpr auto parse(FormatContext& ctx)
+    {
+        return ctx.begin();
+    }
+
+    template <typename FormatContext>
+    auto format(const TypedName& tname, FormatContext& ctx) const
+    {
+        return std::format_to(
+            ctx.out(),
+            "{} : {}",
+            tname.name,
+            tname.type.name());
+    }
+};
+
 namespace downward::cli::parser {
 
 class ConstructContext : public utils::Context {
@@ -248,10 +274,11 @@ std::any DecoratedLambdaNode::construct(ConstructContext&) const
                           const utils::Context&) -> std::any {
         ConstructContext nested_context;
 
-        for (const auto& arg_info : type.get_argument_infos()) {
+        for (std::size_t i = 0;
+             const auto& arg_info : decorated_variable_declarations) {
             nested_context.set_variable(
-                arg_info.key,
-                opts.get_raw(arg_info.key));
+                arg_info.variable_name,
+                opts.get_raw(i++));
         }
 
         return nested_value->construct(nested_context);
@@ -266,13 +293,21 @@ void DecoratedLambdaNode::print(
     bool print_default_args) const
 {
     std::print(out, "{}", std::string(indent, ' '));
-    std::print(out, "fun({:n:t}): ", type.get_argument_infos());
+    std::print(
+        out,
+        "fun({:n}): ",
+        std::views::zip(
+            decorated_variable_declarations,
+            type.get_argument_types()) |
+            std::views::transform([](const auto& t) {
+                return TypedName{std::get<0>(t).variable_name, *std::get<1>(t)};
+            }));
     nested_value->print(out, 0, print_default_args);
 }
 
 DecoratedFunctionCallNode::DecoratedFunctionCallNode(
     DecoratedASTNodePtr callee,
-    vector<std::pair<std::string, FunctionArgument>>&& arguments,
+    vector<FunctionArgument> arguments,
     const string& unparsed_config)
     : callee(std::move(callee))
     , arguments(move(arguments))
@@ -282,9 +317,7 @@ DecoratedFunctionCallNode::DecoratedFunctionCallNode(
 
 void DecoratedFunctionCallNode::remove_variable_usages()
 {
-    for (auto& arg : arguments | views::values) {
-        arg.get_value().remove_variable_usages();
-    }
+    for (auto& arg : arguments) { arg.get_value().remove_variable_usages(); }
 }
 
 using FType =
@@ -295,11 +328,11 @@ std::any DecoratedFunctionCallNode::construct(ConstructContext& context) const
     utils::TraceBlock cblock(context, "Constructing callee");
     const auto calleef = std::any_cast<FType>(callee->construct(context));
 
-    plugins::Options opts;
+    plugins::Options opts(arguments.size());
     opts.set_unparsed_config(unparsed_config);
-    for (const auto& [key, arg] : arguments) {
-        utils::TraceBlock block(context, "Constructing argument '{}'", key);
-        opts.set(key, arg.get_value().construct(context));
+    for (std::size_t i = 0; const auto& arg : arguments) {
+        utils::TraceBlock block(context, "Constructing argument {}", i);
+        opts.set(i++, arg.get_value().construct(context));
     }
     return calleef(opts, context);
 }
@@ -315,20 +348,17 @@ void DecoratedFunctionCallNode::print(
 
     auto filter =
         print_default_args
-            ? static_cast<std::function<bool(
-                  const std::pair<std::string, FunctionArgument>&)>>(
+            ? static_cast<std::function<bool(const FunctionArgument&)>>(
                   [](const auto&) { return true; })
-            : [](const auto& arg) { return !arg.second.is_default_argument(); };
+            : [](const auto& arg) { return !arg.is_default_argument(); };
 
     if (auto args = arguments | std::views::filter(filter); !args.empty()) {
         {
-            const auto& [key, arg] = args.front();
-            std::print(out, "{}=", key);
+            const auto& arg = args.front();
             arg.get_value().print(out, 0, print_default_args);
         }
 
-        for (const auto& [key, arg] : args | std::views::drop(1)) {
-            std::print(out, ", {}=", key);
+        for (const auto& arg : args | std::views::drop(1)) {
             arg.get_value().print(out, 0, print_default_args);
         }
     }

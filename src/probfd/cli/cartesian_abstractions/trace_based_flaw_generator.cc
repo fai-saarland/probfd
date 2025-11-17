@@ -17,12 +17,11 @@ class AStarFlawGeneratorFactoryFeature
     : public SharedTypedFeature<FlawGeneratorFactory> {
 public:
     AStarFlawGeneratorFactoryFeature()
-        : TypedFeature("flaws_astar")
+        : TypedFeature("flaws_astar", &AStarFlawGeneratorFactoryFeature::func)
     {
     }
 
-    std::shared_ptr<FlawGeneratorFactory>
-    create_component(const Options&, const Context&) const override
+    static std::shared_ptr<FlawGeneratorFactory> func(const Context&)
     {
         return std::make_shared<AStarFlawGeneratorFactory>();
     }

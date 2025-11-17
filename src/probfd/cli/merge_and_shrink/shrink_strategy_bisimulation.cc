@@ -20,10 +20,14 @@ using namespace downward::cli::plugins;
 using namespace probfd::merge_and_shrink;
 
 namespace {
-class ShrinkBisimulationFeature : public SharedTypedFeature<ShrinkStrategy> {
+class ShrinkBisimulationFeature
+    : public SharedTypedFeature<
+          ShrinkStrategy,
+          ShrinkStrategyBisimulation::AtLimit,
+          bool> {
 public:
     ShrinkBisimulationFeature()
-        : TypedFeature("pshrink_bisimulation")
+        : TypedFeature("pshrink_bisimulation", &ShrinkBisimulationFeature::func)
     {
         document_title("Bismulation based shrink strategy");
         document_synopsis(
@@ -42,25 +46,28 @@ public:
                 "AAAI Press",
                 "2011"));
 
-        add_optional_argument_with_default<ShrinkStrategyBisimulation::AtLimit>(
+        make_optional_argument_with_default(
+            0,
             "at_limit",
             "return",
             "what to do when the size limit is hit");
 
-        add_optional_argument_with_default<bool>(
+        make_optional_argument_with_default(
+            1,
             "require_goal_distances",
             "true",
             "whether goal distances are required");
     }
 
 protected:
-    shared_ptr<ShrinkStrategy>
-    create_component(const Options& options, const utils::Context&)
-        const override
+    static shared_ptr<ShrinkStrategy> func(
+        const utils::Context&,
+        ShrinkStrategyBisimulation::AtLimit at_limit,
+        bool require_goal_distances)
     {
         return make_shared_from_arg_tuples<ShrinkStrategyBisimulation>(
-            options.get<ShrinkStrategyBisimulation::AtLimit>("at_limit"),
-            options.get<bool>("require_goal_distances"));
+            at_limit,
+            require_goal_distances);
     }
 };
 } // namespace

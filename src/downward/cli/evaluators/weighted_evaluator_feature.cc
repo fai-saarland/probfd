@@ -19,7 +19,6 @@ using namespace downward::weighted_evaluator;
 using namespace downward::cli::plugins;
 
 using downward::cli::add_evaluator_options_to_feature;
-using downward::cli::get_evaluator_arguments_from_options;
 
 namespace {
 
@@ -54,29 +53,37 @@ public:
 };
 
 class WeightedEvaluatorFeature
-    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<Evaluator>,
+          std::string,
+          Verbosity,
+          std::shared_ptr<TaskDependentFactory<Evaluator>>,
+          int> {
 public:
     WeightedEvaluatorFeature()
-        : TypedFeature("weight")
+        : TypedFeature("weight", &WeightedEvaluatorFeature::func)
     {
         document_title("Weighted evaluator");
         document_synopsis(
             "Multiplies the value of the evaluator with the given weight.");
 
-        add_required_argument<shared_ptr<TaskDependentFactory<Evaluator>>>(
-            "eval",
-            "evaluator");
-        add_required_argument<int>("weight", "weight");
-        add_evaluator_options_to_feature(*this, "weight");
+        make_required_argument(0, "eval", "evaluator");
+        make_required_argument(1, "weight", "weight");
+        add_evaluator_options_to_feature(*this, "weight", 2);
     }
 
-    shared_ptr<TaskDependentFactory<Evaluator>>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<TaskDependentFactory<Evaluator>> func(
+        const Context&,
+        std::string description,
+        Verbosity verbosity,
+        std::shared_ptr<TaskDependentFactory<Evaluator>> eval_factory,
+        int weight)
     {
         return make_shared_from_arg_tuples<WeightedEvaluatorFactory>(
-            get_evaluator_arguments_from_options(opts),
-            opts.get<shared_ptr<TaskDependentFactory<Evaluator>>>("eval"),
-            opts.get<int>("weight"));
+            std::move(description),
+            verbosity,
+            std::move(eval_factory),
+            weight);
     }
 };
 

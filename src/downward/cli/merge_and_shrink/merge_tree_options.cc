@@ -5,29 +5,25 @@
 #include "downward/cli/utils/rng_options.h"
 
 using namespace std;
-using namespace downward::merge_and_shrink;
 
 using namespace downward::cli::utils;
 
 namespace downward::cli::merge_and_shrink {
 
-void add_merge_tree_options_to_feature(plugins::Feature& feature)
+std::size_t add_merge_tree_options_to_feature(
+    plugins::Feature& feature,
+    std::size_t start_index)
 {
-    add_rng_options_to_feature(feature);
-    feature.add_optional_argument_with_default<UpdateOption>(
+    const auto n = add_rng_options_to_feature(feature, start_index);
+    feature.make_optional_argument_with_default(
+        start_index + n,
         "update_option",
         "use_random",
         "When the merge tree is used within another merge strategy, how "
         "should it be updated when a merge different to a merge from the "
         "tree is performed.");
-}
 
-tuple<int, UpdateOption>
-get_merge_tree_arguments_from_options(const plugins::Options& opts)
-{
-    return tuple_cat(
-        get_rng_arguments_from_options(opts),
-        make_tuple(opts.get<UpdateOption>("update_option")));
+    return n + 1;
 }
 
 } // namespace downward::cli::merge_and_shrink

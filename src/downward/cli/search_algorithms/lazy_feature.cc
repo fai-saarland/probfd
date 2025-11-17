@@ -17,8 +17,6 @@ using namespace downward::cli::plugins;
 
 using downward::cli::add_search_algorithm_options_to_feature;
 using downward::cli::add_successors_order_options_to_feature;
-using downward::cli::get_search_algorithm_arguments_from_options;
-using downward::cli::get_successors_order_arguments_from_options;
 
 namespace {
 class LazySearchFactory : public TaskDependentFactory<SearchAlgorithm> {
@@ -87,40 +85,67 @@ public:
 };
 
 class LazySearchFeature
-    : public SharedTypedFeature<TaskDependentFactory<SearchAlgorithm>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<SearchAlgorithm>,
+          OperatorCost,
+          int,
+          utils::FSeconds,
+          const std::string&,
+          utils::Verbosity,
+          shared_ptr<TaskDependentFactory<EdgeOpenList>>,
+          bool,
+          vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
+          bool,
+          bool,
+          int> {
 public:
     LazySearchFeature()
-        : TypedFeature("lazy")
+        : TypedFeature("lazy", &LazySearchFeature::func)
     {
         document_title("Lazy best-first search");
         document_synopsis("");
 
-        add_required_argument<shared_ptr<TaskDependentFactory<EdgeOpenList>>>(
-            "open",
-            "open list");
-        add_optional_argument_with_default<bool>(
+        make_required_argument(0, "open", "open list");
+        make_optional_argument_with_default(
+            1,
             "reopen_closed",
             "false",
             "reopen closed nodes");
-        add_optional_list_argument_with_default<
-            shared_ptr<TaskDependentFactory<Evaluator>>>(
+        make_optional_argument_with_default(
+            2,
             "preferred",
             "[]",
             "use preferred operators of these evaluators");
-        add_successors_order_options_to_feature(*this);
-        add_search_algorithm_options_to_feature(*this, "lazy");
+        const auto n = add_successors_order_options_to_feature(*this, 3);
+        add_search_algorithm_options_to_feature(*this, "lazy", n + 3);
     }
 
-    shared_ptr<TaskDependentFactory<SearchAlgorithm>>
-    create_component(const Options& opts, const utils::Context&) const override
+    static shared_ptr<TaskDependentFactory<SearchAlgorithm>> func(
+        const utils::Context&,
+        OperatorCost cost_type,
+        int bound,
+        utils::FSeconds max_time,
+        const std::string& description,
+        utils::Verbosity verbosity,
+        shared_ptr<TaskDependentFactory<EdgeOpenList>> open_list_factory,
+        bool reopen_closed,
+        vector<shared_ptr<TaskDependentFactory<Evaluator>>> preferred_factories,
+        bool randomize_successors,
+        bool preferred_successors_first,
+        int random_seed)
     {
         return make_shared_from_arg_tuples<LazySearchFactory>(
-            get_search_algorithm_arguments_from_options(opts),
-            opts.get<shared_ptr<TaskDependentFactory<EdgeOpenList>>>("open"),
-            opts.get<bool>("reopen_closed"),
-            opts.get_list<shared_ptr<TaskDependentFactory<Evaluator>>>(
-                "preferred"),
-            get_successors_order_arguments_from_options(opts));
+            cost_type,
+            bound,
+            max_time,
+            description,
+            verbosity,
+            std::move(open_list_factory),
+            reopen_closed,
+            std::move(preferred_factories),
+            randomize_successors,
+            preferred_successors_first,
+            random_seed);
     }
 };
 } // namespace

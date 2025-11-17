@@ -17,7 +17,7 @@ namespace {
 class LMCutConstraintsFeature : public SharedTypedFeature<ConstraintGenerator> {
 public:
     LMCutConstraintsFeature()
-        : TypedFeature("lmcut_constraints")
+        : TypedFeature("lmcut_constraints", &LMCutConstraintsFeature::func)
     {
         document_title("LM-cut landmark constraints");
         document_synopsis(
@@ -54,8 +54,7 @@ public:
                 "2013"));
     }
 
-    virtual shared_ptr<ConstraintGenerator>
-    create_component(const Options&, const Context&) const override
+    static shared_ptr<ConstraintGenerator> func(const Context&)
     {
         return make_shared<LMCutConstraints>();
     }

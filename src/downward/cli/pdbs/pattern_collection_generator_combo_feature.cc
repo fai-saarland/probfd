@@ -14,28 +14,31 @@ using namespace downward::pdbs;
 using namespace downward::cli::plugins;
 
 using downward::cli::pdbs::add_generator_options_to_feature;
-using downward::cli::pdbs::get_generator_arguments_from_options;
 
 namespace {
 class PatternCollectionGeneratorComboFeature
-    : public SharedTypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<
+          PatternCollectionGenerator,
+          int,
+          downward::utils::Verbosity> {
 public:
     PatternCollectionGeneratorComboFeature()
-        : TypedFeature("combo")
+        : TypedFeature("combo", &PatternCollectionGeneratorComboFeature::func)
     {
-        add_optional_argument_with_default<int>(
+        make_optional_argument_with_default(
+            0,
             "max_states",
             "1000000",
             "maximum abstraction size for combo strategy");
-        add_generator_options_to_feature(*this);
+        add_generator_options_to_feature(*this, 1);
     }
 
-    virtual shared_ptr<PatternCollectionGenerator>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<PatternCollectionGenerator>
+    func(const Context&, int max_states, downward::utils::Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<PatternCollectionGeneratorCombo>(
-            opts.get<int>("max_states"),
-            get_generator_arguments_from_options(opts));
+            max_states,
+            verbosity);
     }
 };
 } // namespace

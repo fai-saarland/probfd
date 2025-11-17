@@ -227,33 +227,28 @@ namespace {
 class InfinityFeature : public plugins::TypedFeature<int> {
 public:
     InfinityFeature()
-        : TypedFeature("infinity")
+        : TypedFeature("infinity", &InfinityFeature::func)
     {
     }
 
-    int
-    create_component(const plugins::Options&, const downward::utils::Context&)
-        const override
+    static int func(const downward::utils::Context&)
     {
         return std::numeric_limits<int>::max();
     }
 };
 
 template <typename T, T F, auto S>
-class LiteralFeature : public plugins::TypedFeature<T> {
+class LiteralFeature : public plugins::TypedFeature<T, T> {
 public:
     LiteralFeature()
         : LiteralFeature::TypedFeature(
-              static_cast<std::string>(static_cast<std::string_view>(S)))
+              static_cast<std::string>(static_cast<std::string_view>(S)),
+              &LiteralFeature::func)
     {
-        this->template add_required_argument<T>("value");
     }
 
-    T create_component(
-        const plugins::Options& opts,
-        const downward::utils::Context& context) const override
+    static T func(const downward::utils::Context& context, T v)
     {
-        const T v = opts.get<T>("value");
         if constexpr (std::same_as<T, int>) {
             if (!downward::utils::is_product_within_limits(
                     v,
@@ -268,22 +263,16 @@ public:
 };
 
 template <typename R, typename T, auto S>
-class CastFromLiteralFeature : public plugins::TypedFeature<R> {
+class CastFromLiteralFeature : public plugins::TypedFeature<R, T> {
 public:
     CastFromLiteralFeature()
         : CastFromLiteralFeature::TypedFeature(
-              static_cast<std::string>(static_cast<std::string_view>(S)))
+              static_cast<std::string>(static_cast<std::string_view>(S)),
+              &CastFromLiteralFeature::func)
     {
-        this->template add_required_argument<T>("value");
     }
 
-    R create_component(
-        const plugins::Options& opts,
-        const downward::utils::Context&) const override
-    {
-        const T v = opts.get<T>("value");
-        return R{v};
-    }
+    static R func(const downward::utils::Context&, T v) { return R{v}; }
 };
 
 template <typename R, auto S>
@@ -291,16 +280,13 @@ class ConstructInfiniteFeature : public plugins::TypedFeature<R> {
 public:
     ConstructInfiniteFeature()
         : ConstructInfiniteFeature::TypedFeature(
-              static_cast<std::string>(static_cast<std::string_view>(S)))
+              static_cast<std::string>(static_cast<std::string_view>(S)),
+              &ConstructInfiniteFeature::func)
     {
         this->document_synopsis("Returns a maximum / infinite duration.");
     }
 
-    R create_component(const plugins::Options&, const downward::utils::Context&)
-        const override
-    {
-        return R::max();
-    }
+    static R func(const downward::utils::Context&) { return R::max(); }
 };
 
 } // namespace
@@ -340,8 +326,7 @@ static void register_fast_downward_types(plugins::Registry& registry)
 
     // Heuristics
     heuristics::add_additive_cartesian_heuristic_categories(registry);
-    heuristics::add_landmark_cost_partitioning_heuristic_categories(
-        registry);
+    heuristics::add_landmark_cost_partitioning_heuristic_categories(registry);
 
     // Landmarks
     landmarks::add_landmark_factory_category(registry);
@@ -532,17 +517,14 @@ static void register_fast_downward_definitions(plugins::Registry& registry)
     merge_and_shrink::add_merge_scoring_function_goal_relevance_feature(
         registry);
     merge_and_shrink::add_merge_scoring_function_miasm_feature(registry);
-    merge_and_shrink::add_merge_scoring_function_total_order_feature(
-        registry);
+    merge_and_shrink::add_merge_scoring_function_total_order_feature(registry);
     merge_and_shrink::add_merge_scoring_function_single_random_feature(
         registry);
     merge_and_shrink::add_merge_selector_score_based_filtering_feature(
         registry);
-    merge_and_shrink::add_merge_strategy_factory_precomputed_feature(
-        registry);
+    merge_and_shrink::add_merge_strategy_factory_precomputed_feature(registry);
     merge_and_shrink::add_merge_strategy_factory_sccs_feature(registry);
-    merge_and_shrink::add_merge_strategy_factory_stateless_feature(
-        registry);
+    merge_and_shrink::add_merge_strategy_factory_stateless_feature(registry);
     merge_and_shrink::add_merge_tree_factory_linear_feature(registry);
     merge_and_shrink::add_shrink_bisimulation_feature(registry);
     merge_and_shrink::add_shrink_fh_feature(registry);
@@ -560,10 +542,8 @@ static void register_fast_downward_definitions(plugins::Registry& registry)
     open_lists::add_type_based_open_list_features(registry);
 
     // Operator Counting
-    operator_counting::add_delete_relaxation_if_constraints_feature(
-        registry);
-    operator_counting::add_delete_relaxation_rr_constraints_feature(
-        registry);
+    operator_counting::add_delete_relaxation_if_constraints_feature(registry);
+    operator_counting::add_delete_relaxation_rr_constraints_feature(registry);
     operator_counting::add_lm_cut_constraints_feature(registry);
     operator_counting::add_pho_constraints_feature(registry);
     operator_counting::add_state_equation_constraints_feature(registry);
@@ -575,8 +555,7 @@ static void register_fast_downward_definitions(plugins::Registry& registry)
     pdbs::add_pattern_collection_generator_hillclimbing_feature(registry);
     pdbs::add_pattern_collection_generator_manual_feature(registry);
     pdbs::add_pattern_collection_generator_multiple_cegar_feature(registry);
-    pdbs::add_pattern_collection_generator_multiple_random_feature(
-        registry);
+    pdbs::add_pattern_collection_generator_multiple_random_feature(registry);
     pdbs::add_pattern_collection_generator_systematic_feature(registry);
     pdbs::add_pattern_generator_cegar_feature(registry);
     pdbs::add_pattern_generator_greedy_feature(registry);
@@ -609,12 +588,10 @@ static void register_fast_downward_definitions(plugins::Registry& registry)
 static void register_probfd_types(plugins::Registry& registry)
 {
     // Cartesian Abstractions
-    probfd::cli::cartesian_abstractions::add_flaw_generator_category(
-        registry);
+    probfd::cli::cartesian_abstractions::add_flaw_generator_category(registry);
     probfd::cli::cartesian_abstractions::add_subtask_generator_category(
         registry);
-    probfd::cli::cartesian_abstractions::add_split_selector_category(
-        registry);
+    probfd::cli::cartesian_abstractions::add_split_selector_category(registry);
 
     // Heuristics
     probfd::cli::heuristics::add_task_heuristic_factory_category(registry);
@@ -626,8 +603,7 @@ static void register_probfd_types(plugins::Registry& registry)
     probfd::cli::merge_and_shrink::add_merge_selector_category(registry);
     probfd::cli::merge_and_shrink::add_merge_strategy_factory_category(
         registry);
-    probfd::cli::merge_and_shrink::add_merge_tree_factory_category(
-        registry);
+    probfd::cli::merge_and_shrink::add_merge_tree_factory_category(registry);
     probfd::cli::merge_and_shrink::add_prune_strategy_category(registry);
     probfd::cli::merge_and_shrink::add_shrink_strategy_category(registry);
 
@@ -653,12 +629,10 @@ static void register_probfd_types(plugins::Registry& registry)
         registry);
 
     // Successor Samplers
-    probfd::cli::successor_samplers::add_successor_sampler_category(
-        registry);
+    probfd::cli::successor_samplers::add_successor_sampler_category(registry);
 
     // Transition Sorters
-    probfd::cli::transiton_sorters::add_transition_sorter_category(
-        registry);
+    probfd::cli::transiton_sorters::add_transition_sorter_category(registry);
 
     // Task State Spaces
     probfd::cli::add_task_state_space_factory_category(registry);
@@ -673,19 +647,15 @@ static void register_probfd_definitions(plugins::Registry& registry)
         registry);
     probfd::cli::cartesian_abstractions::
         add_policy_based_flaw_generator_feature(registry);
-    probfd::cli::cartesian_abstractions::add_split_selector_features(
-        registry);
+    probfd::cli::cartesian_abstractions::add_split_selector_features(registry);
     probfd::cli::cartesian_abstractions::add_subtask_generator_features(
         registry);
 
     // Heuristics
-    probfd::cli::heuristics::add_additive_cartesian_heuristic_feature(
-        registry);
-    probfd::cli::heuristics::add_dead_end_pruning_heuristic_feature(
-        registry);
+    probfd::cli::heuristics::add_additive_cartesian_heuristic_feature(registry);
+    probfd::cli::heuristics::add_dead_end_pruning_heuristic_feature(registry);
     probfd::cli::heuristics::add_gzocp_heuristic_feature(registry);
-    probfd::cli::heuristics::add_merge_and_shrink_heuristic_feature(
-        registry);
+    probfd::cli::heuristics::add_merge_and_shrink_heuristic_feature(registry);
     probfd::cli::heuristics::add_blind_heuristic_factory_feature(registry);
     probfd::cli::heuristics::add_pdb_heuristic_feature(registry);
     probfd::cli::heuristics::add_scp_heuristic_feature(registry);
@@ -715,8 +685,7 @@ static void register_probfd_definitions(plugins::Registry& registry)
         registry);
     probfd::cli::merge_and_shrink::add_merge_tree_factory_linear_feature(
         registry);
-    probfd::cli::merge_and_shrink::add_prune_strategy_alive_feature(
-        registry);
+    probfd::cli::merge_and_shrink::add_prune_strategy_alive_feature(registry);
     probfd::cli::merge_and_shrink::add_prune_strategy_identity_feature(
         registry);
     probfd::cli::merge_and_shrink::add_prune_strategy_solvable_feature(
@@ -725,8 +694,7 @@ static void register_probfd_definitions(plugins::Registry& registry)
         registry);
     probfd::cli::merge_and_shrink::add_shrink_strategy_equal_distance_feature(
         registry);
-    probfd::cli::merge_and_shrink::add_shrink_strategy_random_feature(
-        registry);
+    probfd::cli::merge_and_shrink::add_shrink_strategy_random_feature(registry);
     probfd::cli::merge_and_shrink::
         add_shrink_strategy_probabilistic_bisimulation_feature(registry);
 
@@ -761,30 +729,24 @@ static void register_probfd_definitions(plugins::Registry& registry)
     // Solvers
     probfd::cli::solvers::add_acyclic_value_iteration_feature(registry);
     probfd::cli::solvers::add_aostar_solver_features(registry);
-    probfd::cli::solvers::add_bisimulation_value_iteration_features(
-        registry);
-    probfd::cli::solvers::add_depth_first_heuristic_search_features(
-        registry);
+    probfd::cli::solvers::add_bisimulation_value_iteration_features(registry);
+    probfd::cli::solvers::add_depth_first_heuristic_search_features(registry);
     probfd::cli::solvers::add_exhaustive_ao_solver_features(registry);
     probfd::cli::solvers::add_exhaustive_dfs_feature(registry);
     probfd::cli::solvers::add_i2dual_feature(registry);
     probfd::cli::solvers::add_idual_feature(registry);
     probfd::cli::solvers::add_interval_iteration_solver_feature(registry);
     probfd::cli::solvers::add_lrtdp_features(registry);
-    probfd::cli::solvers::add_ta_depth_first_heuristic_search_feature(
-        registry);
-    probfd::cli::solvers::add_ta_topological_value_iteration_feature(
-        registry);
+    probfd::cli::solvers::add_ta_depth_first_heuristic_search_feature(registry);
+    probfd::cli::solvers::add_ta_topological_value_iteration_feature(registry);
     probfd::cli::solvers::add_ta_lrtdp_feature(registry);
     probfd::cli::solvers::add_topological_value_iteration_feature(registry);
 
     // Successor Samplers
-    probfd::cli::successor_samplers::add_successor_sampler_features(
-        registry);
+    probfd::cli::successor_samplers::add_successor_sampler_features(registry);
 
     // Transition Sorters
-    probfd::cli::transiton_sorters::add_transition_sorter_features(
-        registry);
+    probfd::cli::transiton_sorters::add_transition_sorter_features(registry);
 
     // Task State Spaces
     probfd::cli::add_task_state_space_factory_features(registry);

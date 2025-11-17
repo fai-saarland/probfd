@@ -20,7 +20,6 @@ using namespace downward::blind_search_heuristic;
 using namespace downward::cli::plugins;
 
 using downward::cli::add_heuristic_options_to_feature;
-using downward::cli::get_heuristic_arguments_from_options;
 
 namespace {
 class BlindSearchHeuristicFactory : public TaskDependentFactory<Evaluator> {
@@ -55,17 +54,20 @@ public:
 };
 
 class BlindSearchHeuristicFeature
-    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<Evaluator>,
+          shared_ptr<TaskTransformation>,
+          bool,
+          string,
+          utils::Verbosity> {
 public:
     BlindSearchHeuristicFeature()
-        : TypedFeature("blind")
+        : TypedFeature("blind", &BlindSearchHeuristicFeature::func)
     {
         document_title("Blind heuristic");
         document_synopsis(
             "Returns cost of cheapest action for non-goal states, "
             "0 for goal states");
-
-        add_heuristic_options_to_feature(*this, "blind");
 
         document_language_support("action costs", "supported");
         document_language_support("conditional effects", "supported");
@@ -75,13 +77,22 @@ public:
         document_property("consistent", "yes");
         document_property("safe", "yes");
         document_property("preferred operators", "no");
+
+        add_heuristic_options_to_feature(*this, "blind", 0);
     }
 
-    shared_ptr<TaskDependentFactory<Evaluator>>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<TaskDependentFactory<Evaluator>> func(
+        const Context&,
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        utils::Verbosity verbosity)
     {
-        return make_shared_from_arg_tuples<BlindSearchHeuristicFactory>(
-            get_heuristic_arguments_from_options(opts));
+        return make_shared<BlindSearchHeuristicFactory>(
+            std::move(transformation),
+            cache_estimates,
+            std::move(description),
+            std::move(verbosity));
     }
 };
 } // namespace

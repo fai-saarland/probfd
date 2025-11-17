@@ -13,12 +13,14 @@ using namespace probfd::pdbs::cegar;
 using namespace downward::cli::plugins;
 
 namespace {
-class PUCSFlawFinderFeature : public SharedTypedFeature<FlawFindingStrategy> {
+class PUCSFlawFinderFeature
+    : public SharedTypedFeature<FlawFindingStrategy, int> {
 public:
     PUCSFlawFinderFeature()
-        : TypedFeature("pucs_flaw_finder")
+        : TypedFeature("pucs_flaw_finder", &PUCSFlawFinderFeature::func)
     {
-        add_optional_argument_with_default<int>(
+        make_optional_argument_with_default(
+            0,
             "max_search_states",
             "20M",
             "Maximal number of generated states after which the flaw search is "
@@ -26,11 +28,10 @@ public:
     }
 
 protected:
-    std::shared_ptr<FlawFindingStrategy>
-    create_component(const Options& options, const Context&) const override
+    static std::shared_ptr<FlawFindingStrategy>
+    func(const Context&, int max_search_states)
     {
-        return std::make_shared<PUCSFlawFinder>(
-            options.get<int>("max_search_states"));
+        return std::make_shared<PUCSFlawFinder>(max_search_states);
     }
 };
 } // namespace

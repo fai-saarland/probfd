@@ -1,22 +1,17 @@
 #ifndef DOWNWARD_PLUGINS_MERGE_AND_SHRINK_MERGE_STRATEGY_FACTORY_H
 #define DOWNWARD_PLUGINS_MERGE_AND_SHRINK_MERGE_STRATEGY_FACTORY_H
 
-#include <tuple>
-
-namespace downward::utils {
-enum class Verbosity;
-}
+#include <cstddef>
 
 namespace downward::cli::plugins {
 class Feature;
-class Options;
 } // namespace downward::cli::plugins
 
 namespace downward::cli::merge_and_shrink {
 
-extern void add_merge_strategy_options_to_feature(plugins::Feature& feature);
-extern std::tuple<utils::Verbosity>
-get_merge_strategy_arguments_from_options(const plugins::Options& opts);
+extern std::size_t add_merge_strategy_options_to_feature(
+    plugins::Feature& feature,
+    std::size_t start_index);
 
 } // namespace downward::cli::merge_and_shrink
 

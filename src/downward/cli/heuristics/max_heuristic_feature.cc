@@ -18,7 +18,6 @@ using namespace downward::utils;
 using namespace downward::cli::plugins;
 
 using downward::cli::add_heuristic_options_to_feature;
-using downward::cli::get_heuristic_arguments_from_options;
 
 namespace {
 class HMaxHeuristicFactory : public TaskDependentFactory<Evaluator> {
@@ -53,14 +52,17 @@ public:
 };
 
 class HSPMaxHeuristicFeature
-    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<Evaluator>,
+          shared_ptr<TaskTransformation>,
+          bool,
+          string,
+          utils::Verbosity> {
 public:
     HSPMaxHeuristicFeature()
-        : TypedFeature("hmax")
+        : TypedFeature("hmax", &HSPMaxHeuristicFeature::func)
     {
         document_title("Max heuristic");
-
-        add_heuristic_options_to_feature(*this, "hmax");
 
         document_language_support("action costs", "supported");
         document_language_support("conditional effects", "supported");
@@ -74,13 +76,22 @@ public:
         document_property("consistent", "yes for tasks without axioms");
         document_property("safe", "yes for tasks without axioms");
         document_property("preferred operators", "no");
+
+        add_heuristic_options_to_feature(*this, "hmax", 0);
     }
 
-    shared_ptr<TaskDependentFactory<Evaluator>>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<TaskDependentFactory<Evaluator>> func(
+        const Context&,
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        utils::Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<HMaxHeuristicFactory>(
-            get_heuristic_arguments_from_options(opts));
+            std::move(transformation),
+            cache_estimates,
+            std::move(description),
+            verbosity);
     }
 };
 } // namespace

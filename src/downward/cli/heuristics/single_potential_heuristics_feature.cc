@@ -98,57 +98,89 @@ public:
 };
 
 class InitialStatePotentialHeuristicFeature
-    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<Evaluator>,
+          shared_ptr<TaskTransformation>,
+          bool,
+          string,
+          utils::Verbosity,
+          double,
+          lp::LPSolverType> {
 public:
     InitialStatePotentialHeuristicFeature()
-        : TypedFeature("initial_state_potential")
+        : TypedFeature(
+              "initial_state_potential",
+              &InitialStatePotentialHeuristicFeature::func)
     {
         document_title("Potential heuristic optimized for initial state");
         document_synopsis(get_admissible_potentials_reference());
 
         add_admissible_potentials_options_to_feature(
             *this,
-            "initial_state_potential");
+            "initial_state_potential",
+            0);
     }
 
-    shared_ptr<TaskDependentFactory<Evaluator>>
-    create_component(const Options& opts, const utils::Context&) const override
+    static shared_ptr<TaskDependentFactory<Evaluator>> func(
+        const utils::Context&,
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        utils::Verbosity verbosity,
+        double max_potential,
+        lp::LPSolverType lp_solver)
     {
         return make_shared<PotentialHeuristicFactory>(
-            opts.get<shared_ptr<TaskTransformation>>("transform"),
-            opts.get<bool>("cache_estimates"),
-            opts.get<string>("description"),
-            opts.get<utils::Verbosity>("verbosity"),
-            opts.get<double>("max_potential"),
-            opts.get<lp::LPSolverType>("lpsolver"),
+            std::move(transformation),
+            cache_estimates,
+            std::move(description),
+            verbosity,
+            max_potential,
+            lp_solver,
             OptimizeFor::INITIAL_STATE);
     }
 };
 
 class AllStatesPotentialHeuristicFeature
-    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<Evaluator>,
+          shared_ptr<TaskTransformation>,
+          bool,
+          string,
+          utils::Verbosity,
+          double,
+          lp::LPSolverType> {
 public:
     AllStatesPotentialHeuristicFeature()
-        : TypedFeature("all_states_potential")
+        : TypedFeature(
+              "all_states_potential",
+              &AllStatesPotentialHeuristicFeature::func)
     {
         document_title("Potential heuristic optimized for all states");
         document_synopsis(get_admissible_potentials_reference());
 
         add_admissible_potentials_options_to_feature(
             *this,
-            "all_states_potential");
+            "all_states_potential",
+            0);
     }
 
-    shared_ptr<TaskDependentFactory<Evaluator>>
-    create_component(const Options& opts, const utils::Context&) const override
+    static shared_ptr<TaskDependentFactory<Evaluator>> func(
+        const utils::Context&,
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        utils::Verbosity verbosity,
+        double max_potential,
+        lp::LPSolverType lp_solver)
     {
         return make_shared<PotentialHeuristicFactory>(
-            opts.get<shared_ptr<TaskTransformation>>("transform"),
-            opts.get<bool>("cache_estimates"),
-            opts.get<string>("description"),
-            opts.get<utils::Verbosity>("verbosity"),
-            opts.get<double>("max_potential"),
-            opts.get<lp::LPSolverType>("lpsolver"),
+            std::move(transformation),
+            cache_estimates,
+            std::move(description),
+            verbosity,
+            max_potential,
+            lp_solver,
             OptimizeFor::ALL_STATES);
     }
 };

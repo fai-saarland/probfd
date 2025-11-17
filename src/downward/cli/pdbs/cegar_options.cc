@@ -82,20 +82,17 @@ void add_cegar_implementation_notes_to_feature(plugins::Feature& feature)
         true);
 }
 
-void add_cegar_wildcard_option_to_feature(plugins::Feature& feature)
+std::size_t add_cegar_wildcard_option_to_feature(plugins::Feature& feature, std::size_t start_index)
 {
-    feature.add_optional_argument_with_default<bool>(
+    feature.make_optional_argument_with_default(
+        start_index,
         "use_wildcard_plans",
         "true",
         "if true, compute wildcard plans which are sequences of sets of "
         "operators that induce the same transition; otherwise compute regular "
         "plans which are sequences of single operators");
-}
 
-tuple<bool>
-get_cegar_wildcard_arguments_from_options(const plugins::Options& opts)
-{
-    return make_tuple(opts.get<bool>("use_wildcard_plans"));
+    return 1;
 }
 
 } // namespace downward::cli::pdbs

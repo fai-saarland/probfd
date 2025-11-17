@@ -21,17 +21,25 @@ using namespace downward::cli::pdbs;
 using namespace downward::cli::plugins;
 
 using downward::cli::pdbs::add_generator_options_to_feature;
-using downward::cli::pdbs::get_generator_arguments_from_options;
 
 using downward::cli::utils::add_rng_options_to_feature;
-using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
 class PatternCollectionGeneratorGeneticFeature
-    : public SharedTypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<
+          PatternCollectionGenerator,
+          int,
+          int,
+          int,
+          double,
+          bool,
+          int,
+          Verbosity> {
 public:
     PatternCollectionGeneratorGeneticFeature()
-        : TypedFeature("genetic")
+        : TypedFeature(
+              "genetic",
+              &PatternCollectionGeneratorGeneticFeature::func)
     {
         document_title("Genetic Algorithm Patterns");
         document_synopsis(
@@ -56,31 +64,6 @@ public:
                 "35-50",
                 "AAAI Press",
                 "2007"));
-
-        add_optional_argument_with_default<int>(
-            "pdb_max_size",
-            "50000",
-            "maximal number of states per pattern database");
-        add_optional_argument_with_default<int>(
-            "num_collections",
-            "5",
-            "number of pattern collections to maintain in the genetic "
-            "algorithm (population size)");
-        add_optional_argument_with_default<int>(
-            "num_episodes",
-            "30",
-            "number of episodes for the genetic algorithm");
-        add_optional_argument_with_default<double>(
-            "mutation_probability",
-            "0.01",
-            "probability for flipping a bit in the genetic algorithm");
-        add_optional_argument_with_default<bool>(
-            "disjoint",
-            "false",
-            "consider a pattern collection invalid (giving it very low "
-            "fitness) if its patterns are not disjoint");
-        add_rng_options_to_feature(*this);
-        add_generator_options_to_feature(*this);
 
         document_note(
             "Note",
@@ -132,19 +115,56 @@ public:
         document_language_support("action costs", "supported");
         document_language_support("conditional effects", "not supported");
         document_language_support("axioms", "not supported");
+
+        make_optional_argument_with_default(
+            0,
+            "pdb_max_size",
+            "50000",
+            "maximal number of states per pattern database");
+        make_optional_argument_with_default(
+            1,
+            "num_collections",
+            "5",
+            "number of pattern collections to maintain in the genetic "
+            "algorithm (population size)");
+        make_optional_argument_with_default(
+            2,
+            "num_episodes",
+            "30",
+            "number of episodes for the genetic algorithm");
+        make_optional_argument_with_default(
+            3,
+            "mutation_probability",
+            "0.01",
+            "probability for flipping a bit in the genetic algorithm");
+        make_optional_argument_with_default(
+            4,
+            "disjoint",
+            "false",
+            "consider a pattern collection invalid (giving it very low "
+            "fitness) if its patterns are not disjoint");
+        const auto n = add_rng_options_to_feature(*this, 5);
+        add_generator_options_to_feature(*this, n + 5);
     }
 
-    virtual shared_ptr<PatternCollectionGenerator>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<PatternCollectionGenerator> func(
+        const Context&,
+        int pdb_max_size,
+        int num_collections,
+        int num_episodes,
+        double mutation_probability,
+        bool disjoint,
+        int random_seed,
+        Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<PatternCollectionGeneratorGenetic>(
-            opts.get<int>("pdb_max_size"),
-            opts.get<int>("num_collections"),
-            opts.get<int>("num_episodes"),
-            opts.get<double>("mutation_probability"),
-            opts.get<bool>("disjoint"),
-            get_rng_arguments_from_options(opts),
-            get_generator_arguments_from_options(opts));
+            pdb_max_size,
+            num_collections,
+            num_episodes,
+            mutation_probability,
+            disjoint,
+            random_seed,
+            verbosity);
     }
 };
 } // namespace

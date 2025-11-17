@@ -17,25 +17,23 @@ using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
 
 namespace {
-class ShrinkRandomFeature : public SharedTypedFeature<ShrinkStrategy> {
+class ShrinkRandomFeature : public SharedTypedFeature<ShrinkStrategy, int> {
 public:
     ShrinkRandomFeature()
-        : TypedFeature("pshrink_random")
+        : TypedFeature("pshrink_random", &ShrinkRandomFeature::func)
     {
         document_title("Random Shrink Strategy");
         document_synopsis(
             "This strategy picks states to shrink uniformly at random.");
 
-        add_bucket_based_shrink_options_to_feature(*this);
+        add_bucket_based_shrink_options_to_feature(*this, 0);
     }
 
 protected:
-    shared_ptr<ShrinkStrategy>
-    create_component(const Options& options, const utils::Context&)
-        const override
+    static shared_ptr<ShrinkStrategy>
+    func(const utils::Context&, int random_seed)
     {
-        return make_shared_from_arg_tuples<ShrinkStrategyRandom>(
-            get_bucket_based_shrink_args_from_options(options));
+        return make_shared_from_arg_tuples<ShrinkStrategyRandom>(random_seed);
     }
 };
 } // namespace

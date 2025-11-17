@@ -33,7 +33,6 @@ using namespace probfd::successor_samplers;
 using namespace downward::cli::plugins;
 
 using downward::cli::utils::add_rng_options_to_feature;
-using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
 template <template <typename> typename S, bool Fret>
@@ -52,13 +51,13 @@ public:
     ArbitrarySuccessorSamplerFeature()
         : ArbitrarySuccessorSamplerFeature::TypedFeature(
               add_mdp_type_to_option<false, Fret>(
-                  "arbitrary_successor_sampler"))
+                  "arbitrary_successor_sampler"),
+              &ArbitrarySuccessorSamplerFeature::func)
     {
     }
 
     [[nodiscard]]
-    std::shared_ptr<SuccessorSampler<Fret>>
-    create_component(const Options&, const Context&) const override
+    static std::shared_ptr<SuccessorSampler<Fret>> func(const Context&)
     {
         return std::make_shared<Wrapper<ArbitrarySuccessorSampler, Fret>>();
     }
@@ -71,13 +70,13 @@ public:
     MostLikelySuccessorSamplerFeature()
         : MostLikelySuccessorSamplerFeature::TypedFeature(
               add_mdp_type_to_option<false, Fret>(
-                  "most_likely_successor_Sampler"))
+                  "most_likely_successor_Sampler"),
+              &MostLikelySuccessorSamplerFeature::func)
     {
     }
 
     [[nodiscard]]
-    std::shared_ptr<SuccessorSampler<Fret>>
-    create_component(const Options&, const Context&) const override
+    static std::shared_ptr<SuccessorSampler<Fret>> func(const Context&)
     {
         return std::make_shared<Wrapper<MostLikelySuccessorSampler, Fret>>();
     }
@@ -85,87 +84,89 @@ public:
 
 template <bool Fret>
 class UniformSuccessorSamplerFeature
-    : public SharedTypedFeature<SuccessorSampler<Fret>> {
+    : public SharedTypedFeature<SuccessorSampler<Fret>, int> {
 public:
     UniformSuccessorSamplerFeature()
         : UniformSuccessorSamplerFeature::TypedFeature(
               add_mdp_type_to_option<false, Fret>(
-                  "uniform_random_successor_sampler"))
+                  "uniform_random_successor_sampler"),
+              &UniformSuccessorSamplerFeature::func)
     {
-        add_rng_options_to_feature(*this);
+        add_rng_options_to_feature(*this, 0);
     }
 
-    std::shared_ptr<SuccessorSampler<Fret>>
-    create_component(const Options& opts, const Context&) const override
+    static std::shared_ptr<SuccessorSampler<Fret>>
+    func(const Context&, int random_seed)
     {
         return make_shared_from_arg_tuples<
-            Wrapper<UniformSuccessorSampler, Fret>>(
-            get_rng_arguments_from_options(opts));
+            Wrapper<UniformSuccessorSampler, Fret>>(random_seed);
     }
 };
 
 template <bool Fret>
 class RandomSuccessorSamplerFeature
-    : public SharedTypedFeature<SuccessorSampler<Fret>> {
+    : public SharedTypedFeature<SuccessorSampler<Fret>, int> {
 public:
     RandomSuccessorSamplerFeature()
         : RandomSuccessorSamplerFeature::TypedFeature(
-              add_mdp_type_to_option<false, Fret>("random_successor_sampler"))
+              add_mdp_type_to_option<false, Fret>("random_successor_sampler"),
+              &RandomSuccessorSamplerFeature::func)
     {
-        add_rng_options_to_feature(*this);
+        add_rng_options_to_feature(*this, 0);
     }
 
-    std::shared_ptr<SuccessorSampler<Fret>>
-    create_component(const Options& opts, const Context&) const override
+    static std::shared_ptr<SuccessorSampler<Fret>>
+    func(const Context&, int random_seed)
     {
         return make_shared_from_arg_tuples<
-            Wrapper<RandomSuccessorSampler, Fret>>(
-            get_rng_arguments_from_options(opts));
+            Wrapper<RandomSuccessorSampler, Fret>>(random_seed);
     }
 };
 
 template <bool Fret>
 class VBiasedSuccessorSamplerFeature
-    : public SharedTypedFeature<SuccessorSampler<Fret>> {
+    : public SharedTypedFeature<SuccessorSampler<Fret>, int> {
 public:
     VBiasedSuccessorSamplerFeature()
         : VBiasedSuccessorSamplerFeature::TypedFeature(
-              add_mdp_type_to_option<false, Fret>("vbiased_successor_sampler"))
+              add_mdp_type_to_option<false, Fret>("vbiased_successor_sampler"),
+              &VBiasedSuccessorSamplerFeature::func)
     {
-        add_rng_options_to_feature(*this);
+        add_rng_options_to_feature(*this, 0);
     }
 
-    std::shared_ptr<SuccessorSampler<Fret>>
-    create_component(const Options& opts, const Context&) const override
+    static std::shared_ptr<SuccessorSampler<Fret>>
+    func(const Context&, int random_seed)
     {
         return make_shared_from_arg_tuples<
-            Wrapper<VBiasedSuccessorSampler, Fret>>(
-            get_rng_arguments_from_options(opts));
+            Wrapper<VBiasedSuccessorSampler, Fret>>(random_seed);
     }
 };
 
 template <bool Fret>
 class VDiffSuccessorSamplerFeature
-    : public SharedTypedFeature<SuccessorSampler<Fret>> {
+    : public SharedTypedFeature<SuccessorSampler<Fret>, int, bool> {
 public:
     VDiffSuccessorSamplerFeature()
         : VDiffSuccessorSamplerFeature::TypedFeature(
               add_mdp_type_to_option<false, Fret>(
-                  "value_gap_successor_sampler"))
+                  "value_gap_successor_sampler"),
+              &VDiffSuccessorSamplerFeature::func)
     {
-        add_rng_options_to_feature(*this);
-        this->template add_optional_argument_with_default<bool>(
+        const auto n = add_rng_options_to_feature(*this, 0);
+        this->make_optional_argument_with_default(
+            n,
             "prefer_large_gaps",
             "true");
     }
 
-    std::shared_ptr<SuccessorSampler<Fret>>
-    create_component(const Options& opts, const Context&) const override
+    static std::shared_ptr<SuccessorSampler<Fret>>
+    func(const Context&, int random_seed, bool prefer_large_gaps)
     {
         return make_shared_from_arg_tuples<
             Wrapper<VDiffSuccessorSampler, Fret>>(
-            get_rng_arguments_from_options(opts),
-            opts.get<bool>("prefer_large_gaps"));
+            random_seed,
+            prefer_large_gaps);
     }
 };
 } // namespace

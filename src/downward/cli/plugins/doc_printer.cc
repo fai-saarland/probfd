@@ -124,7 +124,8 @@ void DocPrinter::print_subcategory(const SubcategoryPlugin& subcategory) const
 {
     if (const auto& subcategory_name = subcategory.get_subcategory_name();
         !subcategory_name.empty()) {
-        os << endl << "===== Topic " << subcategory.get_title() << " =====" << endl;
+        os << endl
+           << "===== Topic " << subcategory.get_title() << " =====" << endl;
         if (!subcategory.get_synopsis().empty()) {
             os << subcategory.get_synopsis() << endl;
         }
@@ -187,15 +188,17 @@ void Txt2TagsPrinter::print_usage(const Feature& feature) const
 
 void Txt2TagsPrinter::print_arguments(const Feature& feature) const
 {
-    for (const auto& [arg_info, arg_help] : std::views::zip(
+    const auto& ftype = feature.get_type();
+
+    for (const auto& [arg_type, arg_info, arg_help] : std::views::zip(
+             ftype.get_argument_types(),
              feature.get_arguments(),
              feature.get_argument_docs())) {
-        const Type& arg_type = arg_info.type;
-        os << "- //" << arg_info.key << "// (" << arg_type.name()
+        os << "- //" << arg_info.key << "// (" << arg_type->name()
            << "): " << arg_help << endl;
-        if (arg_type.is_enum_type()) {
+        if (arg_type->is_enum_type()) {
             for (const pair<string, string>& explanation :
-                 static_cast<const EnumType&>(arg_type)
+                 static_cast<const EnumType&>(*arg_type)
                      .get_documented_enum_values()) {
                 os << " - ``" << explanation.first
                    << "``: " << explanation.second << endl;
@@ -279,7 +282,7 @@ void PlainPrinter::print_usage(const Feature& feature) const
     if (!feature.get_key().empty()) {
         std::println(
             os,
-            "{}({:n:td})",
+            "{}({:n:d})",
             feature.get_key(),
             feature.get_arguments());
     }
@@ -287,15 +290,17 @@ void PlainPrinter::print_usage(const Feature& feature) const
 
 void PlainPrinter::print_arguments(const Feature& feature) const
 {
-    for (const auto& [arg_info, arg_help] : std::views::zip(
+    const auto& ftype = feature.get_type();
+
+    for (const auto& [arg_type, arg_info, arg_help] : std::views::zip(
+             ftype.get_argument_types(),
              feature.get_arguments(),
              feature.get_argument_docs())) {
-        os << " " << arg_info.key << " (" << arg_info.type.name()
+        os << " " << arg_info.key << " (" << arg_type->name()
            << "): " << arg_help << endl;
-        const Type& arg_type = arg_info.type;
-        if (arg_type.is_enum_type()) {
+        if (arg_type->is_enum_type()) {
             for (const pair<string, string>& explanation :
-                 static_cast<const EnumType&>(arg_type)
+                 static_cast<const EnumType&>(*arg_type)
                      .get_documented_enum_values()) {
                 os << " - " << explanation.first << ": " << explanation.second
                    << endl;

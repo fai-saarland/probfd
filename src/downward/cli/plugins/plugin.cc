@@ -5,8 +5,10 @@
 using namespace std;
 
 namespace downward::cli::plugins {
-Feature::Feature(const Type& type, string key)
-    : type(type)
+
+Feature::Feature(string key, std::size_t num_args)
+    : arguments(num_args, ArgumentInfo::make_required())
+    , argument_docs(num_args)
     , key(std::move(key))
 {
 }
@@ -39,11 +41,6 @@ void Feature::document_note(
     bool long_text)
 {
     notes.emplace_back(name, note, long_text);
-}
-
-const Type& Feature::get_type() const
-{
-    return type;
 }
 
 string Feature::get_key() const

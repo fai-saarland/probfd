@@ -18,10 +18,13 @@ using namespace downward::cli;
 using namespace downward::cli::plugins;
 
 namespace {
-class StubbornSetsSimpleFeature : public SharedTypedFeature<downward::PruningMethod> {
+class StubbornSetsSimpleFeature
+    : public SharedTypedFeature<
+          downward::PruningMethod,
+          downward::utils::Verbosity> {
 public:
     StubbornSetsSimpleFeature()
-        : TypedFeature("stubborn_sets_simple")
+        : TypedFeature("stubborn_sets_simple", &StubbornSetsSimpleFeature::func)
     {
         document_title("Stubborn sets simple");
         document_synopsis(
@@ -58,14 +61,13 @@ public:
                 "323-331",
                 "AAAI Press",
                 "2014"));
-        add_pruning_options_to_feature(*this);
+        add_pruning_options_to_feature(*this, 0);
     }
 
-    virtual shared_ptr<downward::PruningMethod>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<downward::PruningMethod>
+    func(const Context&, downward::utils::Verbosity verbosity)
     {
-        return make_shared_from_arg_tuples<StubbornSetsSimple>(
-            get_pruning_arguments_from_options(opts));
+        return make_shared_from_arg_tuples<StubbornSetsSimple>(verbosity);
     }
 };
 } // namespace

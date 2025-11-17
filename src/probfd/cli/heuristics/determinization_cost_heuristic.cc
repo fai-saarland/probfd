@@ -17,10 +17,12 @@ using namespace downward::cli::plugins;
 
 namespace {
 class DeterminizationHeuristicFactoryFeature
-    : public SharedTypedFeature<TaskHeuristicFactory> {
+    : public SharedTypedFeature<
+          TaskHeuristicFactory,
+          std::shared_ptr<downward::TaskDependentFactory<Evaluator>>> {
 public:
     DeterminizationHeuristicFactoryFeature()
-        : TypedFeature("det")
+        : TypedFeature("det", &DeterminizationHeuristicFactoryFeature::func)
     {
         document_title("Determinization-based Heuristic");
         document_synopsis(
@@ -28,19 +30,18 @@ public:
             "planning heuristic evaluated on the all-outcomes "
             "determinization of the planning task.");
 
-        add_required_argument<
-            std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>(
+        make_required_argument(
+            0,
             "heuristic",
             "The classical planning heuristic.");
     }
 
-    std::shared_ptr<TaskHeuristicFactory>
-    create_component(const Options& options, const Context&) const override
+    static std::shared_ptr<TaskHeuristicFactory> func(
+        const Context&,
+        std::shared_ptr<downward::TaskDependentFactory<Evaluator>> heuristic)
     {
         return std::make_shared<DeterminizationCostHeuristicFactory>(
-            options.get<
-                std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>(
-                "heuristic"));
+            std::move(heuristic));
     }
 };
 } // namespace

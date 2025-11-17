@@ -17,12 +17,13 @@ class TrivialFinderFactoryFeature
     : public SharedTypedFeature<SubCollectionFinderFactory> {
 public:
     TrivialFinderFactoryFeature()
-        : TypedFeature("finder_trivial_factory")
+        : TypedFeature(
+              "finder_trivial_factory",
+              &TrivialFinderFactoryFeature::func)
     {
     }
 
-    std::shared_ptr<SubCollectionFinderFactory>
-    create_component(const Options&, const Context&) const override
+    static std::shared_ptr<SubCollectionFinderFactory> func(const Context&)
     {
         return std::make_shared<TrivialFinderFactory>();
     }

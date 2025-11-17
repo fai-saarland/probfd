@@ -22,10 +22,8 @@ using namespace downward::operator_counting;
 using namespace downward::cli::plugins;
 
 using downward::cli::add_heuristic_options_to_feature;
-using downward::cli::get_heuristic_arguments_from_options;
 
 using downward::cli::lp::add_lp_solver_option_to_feature;
-using downward::cli::lp::get_lp_solver_arguments_from_options;
 
 namespace {
 class OperatorCountingHeuristicFactory
@@ -73,10 +71,20 @@ public:
 };
 
 class OperatorCountingHeuristicFeature
-    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<Evaluator>,
+          shared_ptr<TaskTransformation>,
+          bool,
+          string,
+          utils::Verbosity,
+          std::vector<std::shared_ptr<ConstraintGenerator>>,
+          bool,
+          lp::LPSolverType> {
 public:
     OperatorCountingHeuristicFeature()
-        : TypedFeature("operatorcounting")
+        : TypedFeature(
+              "operatorcounting",
+              &OperatorCountingHeuristicFeature::func)
     {
         document_title("Operator-counting heuristic");
         document_synopsis(
@@ -106,23 +114,6 @@ public:
                 "AAAI Press",
                 "2014"));
 
-        add_required_list_argument<shared_ptr<ConstraintGenerator>>(
-            "constraint_generators",
-            "methods that generate constraints over operator-counting "
-            "variables");
-        add_optional_argument_with_default<bool>(
-            "use_integer_operator_counts",
-            "false",
-            "restrict operator-counting variables to integer values. Computing "
-            "the "
-            "heuristic with integer variables can produce higher values but "
-            "requires solving a MIP instead of an LP which is generally more "
-            "computationally expensive. Turning this option on can thus "
-            "drastically "
-            "increase the runtime.");
-        add_lp_solver_option_to_feature(*this);
-        add_heuristic_options_to_feature(*this, "operatorcounting");
-
         document_language_support("action costs", "supported");
         document_language_support(
             "conditional effects",
@@ -141,21 +132,49 @@ public:
         document_property("safe", "yes");
         // TODO: prefer operators that are non-zero in the solution.
         document_property("preferred operators", "no");
+
+        make_required_argument(
+            0,
+            "constraint_generators",
+            "methods that generate constraints over operator-counting "
+            "variables");
+        make_optional_argument_with_default(
+            1,
+            "use_integer_operator_counts",
+            "false",
+            "restrict operator-counting variables to integer values. Computing "
+            "the "
+            "heuristic with integer variables can produce higher values but "
+            "requires solving a MIP instead of an LP which is generally more "
+            "computationally expensive. Turning this option on can thus "
+            "drastically "
+            "increase the runtime.");
+        const auto n = add_lp_solver_option_to_feature(*this, 2);
+        add_heuristic_options_to_feature(*this, "operatorcounting", n + 2);
     }
 
-    virtual shared_ptr<TaskDependentFactory<Evaluator>>
-    create_component(const Options& opts, const Context& context) const override
+    static shared_ptr<TaskDependentFactory<Evaluator>> func(
+        const Context& context,
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        utils::Verbosity verbosity,
+        std::vector<std::shared_ptr<ConstraintGenerator>> constraint_generators,
+        bool use_integer_operator_counts,
+        lp::LPSolverType lp_solver)
     {
-        verify_list_non_empty<shared_ptr<ConstraintGenerator>>(
-            context,
-            opts,
-            "constraint_generators");
+        if (constraint_generators.empty()) {
+            context.error("List of constraint generators may not be empty.");
+        }
+
         return make_shared_from_arg_tuples<OperatorCountingHeuristicFactory>(
-            get_heuristic_arguments_from_options(opts),
-            opts.get_list<shared_ptr<ConstraintGenerator>>(
-                "constraint_generators"),
-            opts.get<bool>("use_integer_operator_counts"),
-            get_lp_solver_arguments_from_options(opts));
+            std::move(transformation),
+            cache_estimates,
+            std::move(description),
+            verbosity,
+            std::move(constraint_generators),
+            use_integer_operator_counts,
+            lp_solver);
     }
 };
 } // namespace

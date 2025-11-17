@@ -33,6 +33,7 @@ public:
     virtual bool is_enum_type() const;
     virtual bool is_symbol_type() const;
     virtual bool is_function_type() const;
+    virtual bool is_keyword_function_type() const;
 
     virtual bool can_convert_into(const Type& other) const;
 
@@ -42,39 +43,43 @@ public:
 
 struct ArgumentInfo {
     std::string key;
-    const Type& type;
     std::string default_value;
 
 private:
-    ArgumentInfo(
-        const std::string& key,
-        const Type& type,
-        const std::string& default_value);
+    ArgumentInfo(const std::string& key, const std::string& default_value);
 
 public:
-    static ArgumentInfo make_optional(const std::string& key, const Type& type);
-    static ArgumentInfo make_optional(
-        const std::string& key,
-        const Type& type,
-        const std::string& default_value);
-    static ArgumentInfo make_required(const std::string& key, const Type& type);
+    static ArgumentInfo make_optional(const std::string& default_value);
+    static ArgumentInfo make_required();
 
-    bool is_optional() const;
+    static ArgumentInfo make_named_optional(
+        const std::string& key,
+        const std::string& default_value);
+    static ArgumentInfo make_named_required(const std::string& key);
+
     bool has_default() const;
+
+    void set_key(const std::string& key);
+    void set_default(const std::string& default_value);
+
+    friend bool operator==(const ArgumentInfo&, const ArgumentInfo&) = default;
 };
 
 class FunctionType : public Type {
+protected:
     const Type& return_type;
-    std::vector<ArgumentInfo> arguments;
+    std::vector<const Type*> argument_types;
 
 public:
-    FunctionType(const Type& return_type, std::vector<ArgumentInfo> arguments);
+    FunctionType(
+        const Type& return_type,
+        std::vector<const Type*> argument_types);
 
     bool is_function_type() const override { return true; }
 
     const Type& get_return_type() const { return return_type; }
 
-    const auto& get_argument_infos() const { return arguments; }
+    const auto& get_argument_types() const { return argument_types; }
 
     bool operator==(const Type& other) const override;
 
@@ -103,9 +108,7 @@ class FeatureType : public Type {
     std::string type_name;
 
 public:
-    FeatureType(
-        std::type_index pointer_type,
-        const std::string& type_name);
+    FeatureType(std::type_index pointer_type, const std::string& type_name);
 
     bool operator==(const Type& other) const override;
     bool is_feature_type() const override;
@@ -224,13 +227,13 @@ public:
     const ListType& create_list_type(const Type& element_type);
     const FunctionType& create_function_type(
         const Type& return_type,
-        std::vector<ArgumentInfo> arg_types);
+        std::vector<const Type*> arg_types);
 
     template <typename T>
     const Type& get_type();
 
     template <typename T, typename... ArgTypes>
-    const Type& get_function_type();
+    const FunctionType& get_function_type();
 
     static TypeRegistry* instance()
     {
@@ -258,7 +261,7 @@ const Type& TypeRegistry::get_type()
 }
 
 template <typename T, typename... ArgTypes>
-const Type& TypeRegistry::get_function_type()
+const FunctionType& TypeRegistry::get_function_type()
 {
     return create_function_type(
         TypeOf<T>::value(*this),
@@ -275,7 +278,8 @@ extern std::any convert(
 template <>
 struct std::formatter<downward::cli::plugins::ArgumentInfo> {
     bool with_default = false;
-    bool with_type = false;
+
+    // bool with_type = false;
 
     template <typename ParseContext>
     constexpr auto parse(ParseContext& ctx)
@@ -292,13 +296,13 @@ struct std::formatter<downward::cli::plugins::ArgumentInfo> {
                 }
                 with_default = true;
             } break;
-            case 't': {
+            /*case 't': {
                 if (with_type) {
                     throw std::format_error(
                         std::format("Repeated format specifier: '{}'", *pos));
                 }
                 with_type = true;
-            } break;
+            } break;*/
             default:
                 throw std::format_error(
                     std::format("Illegal format specifier: '{}'", *pos));
@@ -315,7 +319,8 @@ struct std::formatter<downward::cli::plugins::ArgumentInfo> {
     {
         auto it = std::format_to(ctx.out(), "{}", info.key);
 
-        if (with_type) { it = std::format_to(it, " : {}", info.type.name()); }
+        // if (with_type) { it = std::format_to(it, " : {}", info.type.name());
+        // }
 
         if (with_default) {
             it = std::format_to(it, " = {}", info.default_value);

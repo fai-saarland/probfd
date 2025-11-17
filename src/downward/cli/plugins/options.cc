@@ -4,21 +4,35 @@ using namespace std;
 
 namespace downward::cli::plugins {
 
-std::any Options::get_raw(const std::string& key) const
+Options::Options(std::size_t num_opts)
+    : storage(num_opts)
 {
-    const auto it = storage.find(key);
-    if (it == storage.end()) {
-        throw downward::utils::CriticalError(
-            "Attempt to retrieve non-existing object of name {}",
-            key);
-    }
-
-    return it->second;
 }
 
-bool Options::contains(const string& key) const
+std::any Options::get_raw(std::size_t i) const
 {
-    return storage.contains(key);
+    if (i >= storage.size()) {
+        throw downward::utils::CriticalError(
+            "Attempt to retrieve non-existing object at index {}",
+            i);
+    }
+
+    if (const auto& obj = storage[i]; obj.has_value()) { return obj; }
+
+    throw downward::utils::CriticalError(
+        "Attempt to retrieve unset object at index {}",
+        i);
+}
+
+bool Options::contains(size_t i) const
+{
+    if (i >= storage.size()) {
+        throw downward::utils::CriticalError(
+            "Attempt to retrieve non-existing object at index {}",
+            i);
+    }
+
+    return storage[i].has_value();
 }
 
 const string& Options::get_unparsed_config() const

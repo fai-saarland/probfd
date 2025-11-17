@@ -20,10 +20,8 @@ using namespace downward::pdbs;
 using namespace downward::cli::plugins;
 
 using downward::cli::add_heuristic_options_to_feature;
-using downward::cli::get_heuristic_arguments_from_options;
 
 using downward::cli::pdbs::add_canonical_pdbs_options_to_feature;
-using downward::cli::pdbs::get_canonical_pdbs_arguments_from_options;
 
 namespace {
 class CanonicalPDBsHeuristicFactory : public TaskDependentFactory<Evaluator> {
@@ -67,10 +65,17 @@ public:
 };
 
 class CanonicalPDBsHeuristicFeature
-    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<
+          TaskDependentFactory<Evaluator>,
+          shared_ptr<TaskTransformation>,
+          bool,
+          string,
+          utils::Verbosity,
+          std::shared_ptr<PatternCollectionGenerator>,
+          FSeconds> {
 public:
     CanonicalPDBsHeuristicFeature()
-        : TypedFeature("cpdbs")
+        : TypedFeature("cpdbs", &CanonicalPDBsHeuristicFeature::func)
     {
         document_title("Canonical PDB");
         document_synopsis(
@@ -82,14 +87,6 @@ public:
             "S in A is the sum of the heuristic values for all patterns in S "
             "for a given state.");
 
-        add_optional_argument_with_default<
-            shared_ptr<PatternCollectionGenerator>>(
-            "patterns",
-            "systematic(1)",
-            "pattern generation method");
-        add_canonical_pdbs_options_to_feature(*this);
-        add_heuristic_options_to_feature(*this, "cpdbs");
-
         document_language_support("action costs", "supported");
         document_language_support("conditional effects", "not supported");
         document_language_support("axioms", "not supported");
@@ -98,15 +95,32 @@ public:
         document_property("consistent", "yes");
         document_property("safe", "yes");
         document_property("preferred operators", "no");
+
+        make_optional_argument_with_default(
+            0,
+            "patterns",
+            "systematic(1)",
+            "pattern generation method");
+        const auto n = add_canonical_pdbs_options_to_feature(*this, 1);
+        add_heuristic_options_to_feature(*this, "cpdbs", n + 1);
     }
 
-    shared_ptr<TaskDependentFactory<Evaluator>>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<TaskDependentFactory<Evaluator>> func(
+        const Context&,
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        utils::Verbosity verbosity,
+        std::shared_ptr<PatternCollectionGenerator> generator,
+        FSeconds max_time_dominance_pruning)
     {
         return make_shared_from_arg_tuples<CanonicalPDBsHeuristicFactory>(
-            get_heuristic_arguments_from_options(opts),
-            opts.get<shared_ptr<PatternCollectionGenerator>>("patterns"),
-            get_canonical_pdbs_arguments_from_options(opts));
+            std::move(transformation),
+            cache_estimates,
+            std::move(description),
+            verbosity,
+            std::move(generator),
+            max_time_dominance_pruning);
     }
 };
 } // namespace

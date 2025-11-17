@@ -16,25 +16,33 @@ using namespace downward::cli::plugins;
 
 namespace {
 class PatternCollectionGeneratorManualFeature
-    : public SharedTypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<
+          PatternCollectionGenerator,
+          const std::vector<Pattern>&,
+          Verbosity> {
 public:
     PatternCollectionGeneratorManualFeature()
-        : TypedFeature("manual_patterns")
+        : TypedFeature(
+              "manual_patterns",
+              &PatternCollectionGeneratorManualFeature::func)
     {
-        add_required_list_argument<Pattern>(
+        make_required_argument(
+            0,
             "patterns",
             "list of patterns (which are lists of variable numbers of the "
             "planning "
             "task).");
-        add_generator_options_to_feature(*this);
+        add_generator_options_to_feature(*this, 1);
     }
 
-    virtual shared_ptr<PatternCollectionGenerator>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<PatternCollectionGenerator> func(
+        const Context&,
+        const std::vector<Pattern>& patterns,
+        Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<PatternCollectionGeneratorManual>(
-            opts.get_list<Pattern>("patterns"),
-            get_generator_arguments_from_options(opts));
+            patterns,
+            verbosity);
     }
 };
 } // namespace

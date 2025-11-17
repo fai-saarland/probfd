@@ -20,17 +20,24 @@ using namespace downward::cli::pdbs;
 using namespace downward::cli::plugins;
 
 using downward::cli::pdbs::add_generator_options_to_feature;
-using downward::cli::pdbs::get_generator_arguments_from_options;
 
 using downward::cli::utils::add_rng_options_to_feature;
-using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
 class PatternCollectionGeneratorDisjointCegarFeature
-    : public SharedTypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<
+          PatternCollectionGenerator,
+          int,
+          int,
+          FSeconds,
+          bool,
+          int,
+          Verbosity> {
 public:
     PatternCollectionGeneratorDisjointCegarFeature()
-        : TypedFeature("disjoint_cegar")
+        : TypedFeature(
+              "disjoint_cegar",
+              &PatternCollectionGeneratorDisjointCegarFeature::func)
     {
         document_title("Disjoint CEGAR");
         document_synopsis(
@@ -41,15 +48,19 @@ public:
             "paper " +
             get_rovner_et_al_reference());
 
+        add_cegar_implementation_notes_to_feature(*this);
+
         // TODO: these options could be move to the base class; see issue1022.
-        add_optional_argument_with_default<int>(
+        make_optional_argument_with_default(
+            0,
             "max_pdb_size",
             "1000000",
             "maximum number of states per pattern database (ignored for the "
             "initial collection consisting of a singleton pattern for each "
             "goal "
             "variable)");
-        add_optional_argument_with_default<int>(
+        make_optional_argument_with_default(
+            1,
             "max_collection_size",
             "10000000",
             "maximum number of states in the pattern collection (ignored for "
@@ -57,38 +68,42 @@ public:
             "initial collection consisting of a singleton pattern for each "
             "goal "
             "variable)");
-        add_optional_argument_with_default<FSeconds>(
+        make_optional_argument_with_default(
+            2,
             "max_time",
             "seconds_max()",
             "maximum time in seconds for this pattern collection generator "
             "(ignored for computing the initial collection consisting of a "
             "singleton pattern for each goal variable)");
-        add_cegar_wildcard_option_to_feature(*this);
-        add_rng_options_to_feature(*this);
-        add_generator_options_to_feature(*this);
-
-        add_cegar_implementation_notes_to_feature(*this);
+        const auto n = add_cegar_wildcard_option_to_feature(*this, 3);
+        const auto n2 = add_rng_options_to_feature(*this, n + 3);
+        add_generator_options_to_feature(*this, n + n2 + 3);
     }
 
-    virtual shared_ptr<PatternCollectionGenerator>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<PatternCollectionGenerator> func(
+        const Context&,
+        int max_pdb_size,
+        int max_collection_size,
+        FSeconds max_time,
+        bool use_wildcard_plans,
+        int random_seed,
+        Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<
             PatternCollectionGeneratorDisjointCegar>(
-            opts.get<int>("max_pdb_size"),
-            opts.get<int>("max_collection_size"),
-            opts.get<FSeconds>("max_time"),
-            get_cegar_wildcard_arguments_from_options(opts),
-            get_rng_arguments_from_options(opts),
-            get_generator_arguments_from_options(opts));
+            max_pdb_size,
+            max_collection_size,
+            max_time,
+            use_wildcard_plans,
+            random_seed,
+            verbosity);
     }
 };
 } // namespace
 
 namespace downward::cli::pdbs {
 
-void add_pattern_collection_generator_disjoint_cegar_feature(
-    Registry& registry)
+void add_pattern_collection_generator_disjoint_cegar_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
     n.insert_feature_plugin<PatternCollectionGeneratorDisjointCegarFeature>();

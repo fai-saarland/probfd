@@ -15,10 +15,13 @@ using namespace downward::operator_counting;
 using namespace downward::cli::plugins;
 
 namespace {
-class PhOConstraintsFeature : public SharedTypedFeature<ConstraintGenerator> {
+class PhOConstraintsFeature
+    : public SharedTypedFeature<
+          ConstraintGenerator,
+          const std::shared_ptr<downward::pdbs::PatternCollectionGenerator>&> {
 public:
     PhOConstraintsFeature()
-        : TypedFeature("pho_constraints")
+        : TypedFeature("pho_constraints", &PhOConstraintsFeature::func)
     {
         document_title("Posthoc optimization constraints");
         document_synopsis(
@@ -36,17 +39,19 @@ public:
                 "AAAI Press",
                 "2013"));
 
-        add_optional_argument_with_default<shared_ptr<PatternCollectionGenerator>>(
+        make_optional_argument_with_default(
+            0,
             "patterns",
             "systematic(2)",
             "pattern generation method");
     }
 
-    virtual shared_ptr<ConstraintGenerator>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<ConstraintGenerator> func(
+        const Context&,
+        const std::shared_ptr<downward::pdbs::PatternCollectionGenerator>&
+            patterns)
     {
-        return make_shared_from_arg_tuples<PhOConstraints>(
-            opts.get<shared_ptr<PatternCollectionGenerator>>("patterns"));
+        return make_shared_from_arg_tuples<PhOConstraints>(patterns);
     }
 };
 } // namespace

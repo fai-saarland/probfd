@@ -16,14 +16,17 @@ using namespace downward::merge_and_shrink;
 using namespace downward::cli::plugins;
 
 using downward::cli::merge_and_shrink::add_merge_tree_options_to_feature;
-using downward::cli::merge_and_shrink::get_merge_tree_arguments_from_options;
 
 namespace {
 class MergeTreeFactoryLinearFeature
-    : public SharedTypedFeature<MergeTreeFactory> {
+    : public SharedTypedFeature<
+          MergeTreeFactory,
+          downward::variable_order_finder::VariableOrderType,
+          int,
+          UpdateOption> {
 public:
     MergeTreeFactoryLinearFeature()
-        : TypedFeature("linear")
+        : TypedFeature("linear", &MergeTreeFactoryLinearFeature::func)
     {
         document_title("Linear merge trees");
         document_synopsis(
@@ -40,22 +43,25 @@ public:
                 "AAAI Press",
                 "2007"));
 
-        add_optional_argument_with_default<
-            downward::variable_order_finder::VariableOrderType>(
+        make_optional_argument_with_default(
+            0,
             "variable_order",
             "cg_goal_level",
             "the order in which atomic transition systems are merged");
 
-        add_merge_tree_options_to_feature(*this);
+        add_merge_tree_options_to_feature(*this, 1);
     }
 
-    virtual shared_ptr<MergeTreeFactory>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<MergeTreeFactory> func(
+        const Context&,
+        downward::variable_order_finder::VariableOrderType variable_order,
+        int random_seed,
+        UpdateOption update_option)
     {
         return make_shared_from_arg_tuples<MergeTreeFactoryLinear>(
-            opts.get<downward::variable_order_finder::VariableOrderType>(
-                "variable_order"),
-            get_merge_tree_arguments_from_options(opts));
+            variable_order,
+            random_seed,
+            update_option);
     }
 };
 } // namespace
@@ -65,8 +71,7 @@ namespace downward::cli::merge_and_shrink {
 void add_merge_tree_factory_linear_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_enum_plugin<
-        downward::variable_order_finder::VariableOrderType>(
+    n.insert_enum_plugin<downward::variable_order_finder::VariableOrderType>(
         {{"cg_goal_level",
           "variables are prioritized first if they have an arc to a previously "
           "added variable, second if their goal value is defined "

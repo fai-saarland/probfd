@@ -81,19 +81,19 @@ MDPSolver::MDPSolver(
     std::shared_ptr<StatisticalMDPAlgorithmFactory> algorithm_factory,
     std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
     std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-    Verbosity verbosity,
-    std::optional<std::string> policy_filename,
+    std::string policy_filename,
     bool print_fact_names,
-    std::optional<value_t> report_epsilon,
-    bool report_enabled)
+    value_t report_epsilon,
+    bool report_enabled,
+    Verbosity verbosity)
     : algorithm_factory_(std::move(algorithm_factory))
     , task_state_space_factory_(std::move(task_state_space_factory))
     , heuristic_factory_(std::move(heuristic_factory))
-    , log_(get_log_for_verbosity(verbosity))
     , policy_filename(std::move(policy_filename))
     , print_fact_names(print_fact_names)
     , report_epsilon(report_epsilon)
     , report_enabled(report_enabled)
+    , log_(get_log_for_verbosity(verbosity))
 {
 }
 
@@ -106,7 +106,7 @@ class Solver : public SolverInterface {
     std::unique_ptr<TaskStateSpace> state_space;
     const std::shared_ptr<FDRHeuristic> heuristic;
     std::string algorithm_name;
-    std::optional<std::string> policy_filename;
+    std::string policy_filename;
     bool print_fact_names;
 
     ProgressReport progress;
@@ -120,9 +120,9 @@ public:
         std::unique_ptr<TaskStateSpace> state_space,
         std::shared_ptr<FDRHeuristic> heuristic,
         std::string algorithm_name,
-        std::optional<std::string> policy_filename,
+        std::string policy_filename,
         bool print_fact_names,
-        std::optional<value_t> report_epsilon,
+        value_t report_epsilon,
         bool report_enabled)
         : task(std::move(task))
         , algorithm(std::move(algorithm))
@@ -212,8 +212,8 @@ public:
                 const auto& variables = get_variables(task);
                 const auto& operators = get_operators(task);
 
-                if (policy_filename) {
-                    std::ofstream out(*policy_filename);
+                if (!policy_filename.empty()) {
+                    std::ofstream out(policy_filename);
                     auto print_state = [this, &variables](const State& state) {
                         const auto fact_set = as_fact_pair_set(state);
 

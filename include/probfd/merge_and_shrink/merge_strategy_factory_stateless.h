@@ -13,8 +13,9 @@ class MergeStrategyFactoryStateless : public MergeStrategyFactory {
     std::shared_ptr<MergeSelector> merge_selector;
 
 public:
-    MergeStrategyFactoryStateless(downward::utils::Verbosity verbosity,
-    std::shared_ptr<MergeSelector> merge_selector);
+    MergeStrategyFactoryStateless(
+        downward::utils::Verbosity verbosity,
+        std::shared_ptr<MergeSelector> merge_selector);
 
     std::unique_ptr<MergeStrategy> compute_merge_strategy(
         const SharedProbabilisticTask& task,

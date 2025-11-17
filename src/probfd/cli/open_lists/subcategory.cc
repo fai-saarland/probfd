@@ -42,13 +42,13 @@ class FifoOpenListFeature : public SharedTypedFeature<OpenList<Fret>> {
 public:
     FifoOpenListFeature()
         : FifoOpenListFeature::TypedFeature(
-              add_mdp_type_to_option<false, Fret>("fifo_open_list"))
+              add_mdp_type_to_option<false, Fret>("fifo_open_list"),
+              &FifoOpenListFeature::func)
     {
     }
 
     [[nodiscard]]
-    std::shared_ptr<OpenList<Fret>>
-    create_component(const Options&, const utils::Context&) const override
+    static std::shared_ptr<OpenList<Fret>> func(const utils::Context&)
     {
         return std::make_shared<Wrapped<FifoOpenList, Fret>>();
     }
@@ -59,13 +59,13 @@ class LifoOpenListFeature : public SharedTypedFeature<OpenList<Fret>> {
 public:
     LifoOpenListFeature()
         : LifoOpenListFeature::TypedFeature(
-              add_mdp_type_to_option<false, Fret>("lifo_open_list"))
+              add_mdp_type_to_option<false, Fret>("lifo_open_list"),
+              &LifoOpenListFeature::func)
     {
     }
 
     [[nodiscard]]
-    std::shared_ptr<OpenList<Fret>>
-    create_component(const Options&, const utils::Context&) const override
+    static std::shared_ptr<OpenList<Fret>> func(const utils::Context&)
     {
         return std::make_shared<Wrapped<LifoOpenList, Fret>>();
     }

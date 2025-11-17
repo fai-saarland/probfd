@@ -15,10 +15,14 @@ using namespace downward::cli::plugins;
 
 namespace {
 class DeadEndPruningHeuristicFactoryFeature
-    : public SharedTypedFeature<TaskHeuristicFactory> {
+    : public SharedTypedFeature<
+          TaskHeuristicFactory,
+          std::shared_ptr<downward::TaskDependentFactory<Evaluator>>> {
 public:
     DeadEndPruningHeuristicFactoryFeature()
-        : TypedFeature("prune_dead_ends")
+        : TypedFeature(
+              "prune_dead_ends",
+              &DeadEndPruningHeuristicFactoryFeature::func)
     {
         document_title("Dead-End Pruning Heuristic");
         document_synopsis(
@@ -28,19 +32,16 @@ public:
             "if h(s) is infinity in the all-outcomes determinization. "
             "Otherwise, the heuristic value is 0.");
 
-        add_required_argument<
-            std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>(
-            "evaluator");
+        make_required_argument(0, "evaluator");
     }
 
 protected:
-    std::shared_ptr<TaskHeuristicFactory>
-    create_component(const Options& options, const Context&) const override
+    static std::shared_ptr<TaskHeuristicFactory> func(
+        const Context&,
+        std::shared_ptr<downward::TaskDependentFactory<Evaluator>> evaluator)
     {
         return std::make_shared<DeadEndPruningHeuristicFactory>(
-            options.get<
-                std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>(
-                "evaluator"));
+            std::move(evaluator));
     }
 };
 } // namespace

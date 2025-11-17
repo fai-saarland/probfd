@@ -16,79 +16,93 @@ using namespace downward::cli::plugins;
 using namespace probfd::cartesian_abstractions;
 
 using downward::cli::utils::add_rng_options_to_feature;
-using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-class TaskDuplicatorFeature : public SharedTypedFeature<SubtaskGenerator> {
+class TaskDuplicatorFeature : public SharedTypedFeature<SubtaskGenerator, int> {
 public:
     TaskDuplicatorFeature()
-        : TypedFeature("pcegar_original")
+        : TypedFeature("pcegar_original", &TaskDuplicatorFeature::func)
     {
-        add_optional_argument_with_default<int>(
+        make_optional_argument_with_default(
+            0,
             "copies",
             "1",
             "number of task copies");
     }
 
-    std::shared_ptr<SubtaskGenerator>
-    create_component(const Options& opts, const Context&) const override
+    static std::shared_ptr<SubtaskGenerator> func(const Context&, int copies)
     {
-        return make_shared_from_arg_tuples<TaskDuplicator>(
-            opts.get<int>("copies"));
+        return make_shared_from_arg_tuples<TaskDuplicator>(copies);
     }
 };
 
-class GoalDecompositionFeature : public SharedTypedFeature<SubtaskGenerator> {
+class GoalDecompositionFeature
+    : public SharedTypedFeature<SubtaskGenerator, FactOrder, int> {
 public:
     GoalDecompositionFeature()
-        : TypedFeature("pcegar_goals")
+        : TypedFeature("pcegar_goals", &GoalDecompositionFeature::func)
     {
-        add_optional_argument_with_default<FactOrder>(
+        make_optional_argument_with_default(
+            0,
             "order",
             "hadd_down",
             "ordering of goal or landmark facts");
-        add_rng_options_to_feature(*this);
+        add_rng_options_to_feature(*this, 1);
     }
 
-    std::shared_ptr<SubtaskGenerator>
-    create_component(const Options& opts, const Context&) const override
+    static std::shared_ptr<SubtaskGenerator>
+    func(const Context&, FactOrder order, int random_seed)
     {
         return make_shared_from_arg_tuples<GoalDecomposition>(
-            opts.get<FactOrder>("order"),
-            get_rng_arguments_from_options(opts));
+            order,
+            random_seed);
     }
 };
 
 class LandmarkDecompositionFeature
-    : public SharedTypedFeature<SubtaskGenerator> {
+    : public SharedTypedFeature<
+          SubtaskGenerator,
+          std::shared_ptr<TaskDependentFactory<MutexInformation>>,
+          FactOrder,
+          bool,
+          int> {
 public:
     LandmarkDecompositionFeature()
-        : TypedFeature("pcegar_landmarks")
+        : TypedFeature("pcegar_landmarks", &LandmarkDecompositionFeature::func)
     {
-        add_optional_argument_with_default<
-            std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
+        make_optional_argument_with_default(
+            0,
             "mutexes",
             "mutexes_from_file(\"output.mutexes\")",
             "factory for mutexes");
-        add_optional_argument_with_default<FactOrder>(
+
+        make_optional_argument_with_default(
+            1,
             "order",
             "hadd_down",
             "ordering of goal or landmark facts");
-        add_rng_options_to_feature(*this);
-        add_optional_argument_with_default<bool>(
+
+        const auto n = add_rng_options_to_feature(*this, 2);
+
+        make_optional_argument_with_default(
+            n + 2,
             "combine_facts",
             "true",
             "combine landmark facts with domain abstraction");
     }
 
-    std::shared_ptr<SubtaskGenerator>
-    create_component(const Options& opts, const Context&) const override
+    static std::shared_ptr<SubtaskGenerator> func(
+        const Context&,
+        std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory,
+        FactOrder order,
+        bool combine_facts,
+        int random_seed)
     {
         return make_shared_from_arg_tuples<LandmarkDecomposition>(
-            opts.get_shared<TaskDependentFactory<MutexInformation>>("mutexes"),
-            opts.get<FactOrder>("order"),
-            opts.get<bool>("combine_facts"),
-            get_rng_arguments_from_options(opts));
+            std::move(mutex_factory),
+            order,
+            combine_facts,
+            random_seed);
     }
 };
 

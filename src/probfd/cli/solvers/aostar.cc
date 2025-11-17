@@ -9,6 +9,7 @@
 #include "probfd/cli/solvers/mdp_solver_options.h"
 
 #include "probfd/algorithms/ao_star.h"
+#include "probfd/solvers/mdp_heuristic_search.h"
 
 #include <memory>
 #include <string>
@@ -54,33 +55,70 @@ public:
 };
 
 template <bool Bisimulation>
-class AOStarSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
+class AOStarSolverFeature
+    : public SharedTypedFeature<
+          TaskSolverFactory,
+          std::shared_ptr<TaskStateSpaceFactory>,
+          std::shared_ptr<TaskHeuristicFactory>,
+          Verbosity,
+          std::string,
+          bool,
+          value_t,
+          bool,
+          value_t,
+          bool,
+          std::shared_ptr<PolicyPickerType<Bisimulation, false>>,
+          std::shared_ptr<SuccessorSampler<ActionType<Bisimulation, false>>>> {
     using Sampler = SuccessorSampler<ActionType<Bisimulation, false>>;
 
 public:
     AOStarSolverFeature()
-        : TypedFeature(add_wrapper_algo_suffix<Bisimulation, false>("aostar"))
+        : AOStarSolverFeature::TypedFeature(
+              add_wrapper_algo_suffix<Bisimulation, false>("aostar"),
+              &AOStarSolverFeature::func)
     {
         this->document_title("AO* algorithm");
 
-        add_base_solver_options_except_algorithm_to_feature(*this);
-        add_mdp_hs_options_to_feature<Bisimulation, false>(*this);
+        const auto n =
+            add_base_solver_options_except_algorithm_to_feature(*this, 0);
+        const auto n2 =
+            add_mdp_hs_options_to_feature<Bisimulation, false>(*this, n);
 
-        this->template add_required_argument<std::shared_ptr<Sampler>>(
+        this->make_required_argument(
+            n + n2,
             "successor_sampler",
             add_mdp_type_to_option<Bisimulation, false>(
                 "arbitrary_successor_sampler()"));
     }
 
 protected:
-    std::shared_ptr<TaskSolverFactory>
-    create_component(const Options& options, const Context&) const override
+    static std::shared_ptr<TaskSolverFactory> func(
+        const Context&,
+        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+        Verbosity verbosity,
+        std::string policy_filename,
+        bool print_fact_names,
+        value_t report_epsilon,
+        bool report_enabled,
+        value_t convergence_epsilon,
+        bool dual_bounds,
+        std::shared_ptr<PolicyPickerType<Bisimulation, false>> policy_picker,
+        std::shared_ptr<Sampler> successor_sampler)
     {
-        return make_shared_from_arg_tuples<MDPSolver>(
+        return make_shared<MDPSolver>(
             make_shared_from_arg_tuples<AOStarSolver<Bisimulation>>(
-                options.get_shared<Sampler>("successor_sampler"),
-                get_mdp_hs_args_from_options<Bisimulation, false>(options)),
-            get_base_solver_args_no_algorithm_from_options(options));
+                std::move(successor_sampler),
+                convergence_epsilon,
+                dual_bounds,
+                std::move(policy_picker)),
+            std::move(task_state_space_factory),
+            std::move(heuristic_factory),
+            std::move(policy_filename),
+            print_fact_names,
+            report_epsilon,
+            report_enabled,
+            verbosity);
     }
 };
 } // namespace

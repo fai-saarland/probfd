@@ -30,7 +30,6 @@ using namespace probfd::cli::solvers;
 using namespace downward::cli::plugins;
 
 using downward::cli::lp::add_lp_solver_option_to_feature;
-using downward::cli::lp::get_lp_solver_arguments_from_options;
 
 namespace {
 class IDualSolver : public StatisticalMDPAlgorithmFactory {
@@ -56,34 +55,61 @@ public:
     }
 };
 
-class IDualSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
+class IDualSolverFeature
+    : public SharedTypedFeature<
+          TaskSolverFactory,
+          std::shared_ptr<TaskStateSpaceFactory>,
+          std::shared_ptr<TaskHeuristicFactory>,
+          std::string,
+          bool,
+          value_t,
+          bool,
+          utils::Verbosity,
+          lp::LPSolverType,
+          double> {
 public:
     IDualSolverFeature()
-        : TypedFeature("idual")
+        : TypedFeature("idual", &IDualSolverFeature::func)
     {
         document_title("i-dual");
 
-        add_lp_solver_option_to_feature(*this);
+        const auto n =
+            add_base_solver_options_except_algorithm_to_feature(*this, 0);
 
-        add_optional_argument_with_default<double>(
+        const auto n2 = add_lp_solver_option_to_feature(*this, n);
+
+        make_optional_argument_with_default(
+            n + n2,
             "fp_epsilon",
             "0.0001",
             "The tolerance to use when checking for non-zero values in an LP "
             "solution.");
-
-        add_base_solver_options_except_algorithm_to_feature(*this);
     }
 
 protected:
-    std::shared_ptr<TaskSolverFactory>
-    create_component(const Options& options, const utils::Context&)
-        const override
+    static std::shared_ptr<TaskSolverFactory> func(
+        const utils::Context&,
+        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+        std::string policy_filename,
+        bool print_fact_names,
+        value_t report_epsilon,
+        bool report_enabled,
+        utils::Verbosity verbosity,
+        lp::LPSolverType lp_solver_type,
+        double fp_epsilon)
     {
         return make_shared_from_arg_tuples<MDPSolver>(
             make_shared_from_arg_tuples<IDualSolver>(
-                get_lp_solver_arguments_from_options(options),
-                options.get<double>("fp_epsilon")),
-            get_base_solver_args_no_algorithm_from_options(options));
+                lp_solver_type,
+                fp_epsilon),
+            std::move(task_state_space_factory),
+            std::move(heuristic_factory),
+            std::move(policy_filename),
+            print_fact_names,
+            report_epsilon,
+            report_enabled,
+            verbosity);
     }
 };
 } // namespace

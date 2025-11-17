@@ -69,96 +69,112 @@ struct OptionsAnyCaster<std::vector<T>> {
 
 // Wrapper for unordered_map<string, std::any>.
 class Options {
-    std::unordered_map<std::string, std::any> storage;
+    std::vector<std::any> storage;
     std::string unparsed_config;
 
 public:
-    Options() = default;
+    explicit Options(std::size_t num_opts);
 
     Options(const Options& other) = delete;
     Options& operator=(const Options& other) = delete;
 
     template <typename T>
-    void set(const std::string& key, T value)
+    void set(std::size_t i, T value)
     {
-        storage[key] = value;
+        storage[i] = value;
     }
 
     template <typename T>
-    std::shared_ptr<T> get_shared(const std::string& key) const
+    std::shared_ptr<T> get_shared(std::size_t i) const
     {
-        return get<std::shared_ptr<T>>(key);
+        return get<std::shared_ptr<T>>(i);
     }
 
     template <typename T>
     std::shared_ptr<T>
-    get_shared(const std::string& key, const std::shared_ptr<T>& default_value)
-        const
+    get_shared(std::size_t i, const std::shared_ptr<T>& default_value) const
     {
-        return get<std::shared_ptr<T>>(key, default_value);
+        return get<std::shared_ptr<T>>(i, default_value);
     }
 
     template <typename T>
-    std::shared_ptr<T> get_shared(const std::string& key, std::nullptr_t) const
+    std::shared_ptr<T> get_shared(std::size_t i, std::nullptr_t) const
     {
-        return get<std::shared_ptr<T>>(key, nullptr);
+        return get<std::shared_ptr<T>>(i, nullptr);
     }
 
     template <typename T>
-    T get(const std::string& key) const
+    T get(std::size_t i) const
     {
-        const auto it = storage.find(key);
-        if (it == storage.end()) {
+        if (i >= storage.size()) {
             throw downward::utils::CriticalError(
-                "Attempt to retrieve non-existing object of name {} (type: {})",
-                key,
+                "Attempt to retrieve non-existing parameter (index {})",
+                i);
+        }
+
+        const auto& obj = storage[i];
+
+        if (!obj.has_value()) {
+            throw downward::utils::CriticalError(
+                "Attempt to retrieve unset parameter at index {} "
+                "(type: {})",
+                i,
                 typeid(T).name());
         }
+
         try {
-            T result = OptionsAnyCaster<T>::cast(it->second);
-            return result;
+            return OptionsAnyCaster<T>::cast(obj);
         } catch (const std::bad_any_cast&) {
             throw downward::utils::CriticalError(
                 "Invalid conversion while retrieving config options!\n"
-                "{} is not of type {} but of type {}",
-                key,
+                "Parameter {} is not of type {} but of type {}",
+                i,
                 typeid(T).name(),
-                it->second.type().name());
+                obj.type().name());
         }
     }
 
     template <typename T>
-    T get(const std::string& key, const T& default_value) const
+    T get(std::size_t i, const T& default_value) const
     {
-        if (storage.contains(key))
-            return get<T>(key);
-        else
-            return default_value;
+        if (i >= storage.size()) {
+            throw downward::utils::CriticalError(
+                "Attempt to retrieve non-existing parameter at index {} "
+                "(type: {})",
+                i,
+                typeid(T).name());
+        }
+
+        if (const auto& obj = storage[i]; obj.has_value()) {
+            try {
+                return OptionsAnyCaster<T>::cast(obj);
+            } catch (const std::bad_any_cast&) {
+                throw downward::utils::CriticalError(
+                    "Invalid conversion while retrieving config options!\n"
+                    "Parameter {} is not of type {} but of type {}",
+                    i,
+                    typeid(T).name(),
+                    obj.type().name());
+            }
+        }
+
+        return default_value;
     }
 
     template <typename T>
-    std::vector<T> get_list(const std::string& key) const
+    std::vector<T> get_list(std::size_t i) const
     {
-        return get<std::vector<T>>(key);
+        return get<std::vector<T>>(i);
     }
 
-    std::any get_raw(const std::string& key) const;
+    std::any get_raw(std::size_t i) const;
 
-    bool contains(const std::string& key) const;
+    bool contains(std::size_t i) const;
+
     const std::string& get_unparsed_config() const;
     void set_unparsed_config(const std::string& config);
 };
 
-template <typename T>
-void verify_list_non_empty(
-    const downward::utils::Context& context,
-    const Options& opts,
-    const std::string& key)
-{
-    if (std::vector<T> list = opts.get_list<T>(key); list.empty()) {
-        context.error("List argument '{}' has to be non-empty.", key);
-    }
-}
 } // namespace downward::cli::plugins
 
 #endif

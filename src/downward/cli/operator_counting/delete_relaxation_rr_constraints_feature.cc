@@ -17,10 +17,12 @@ using namespace downward::cli::plugins;
 
 namespace {
 class DeleteRelaxationRRConstraintsFeature
-    : public SharedTypedFeature<ConstraintGenerator> {
+    : public SharedTypedFeature<ConstraintGenerator, AcyclicityType, bool> {
 public:
     DeleteRelaxationRRConstraintsFeature()
-        : TypedFeature("delete_relaxation_rr_constraints")
+        : TypedFeature(
+              "delete_relaxation_rr_constraints",
+              &DeleteRelaxationRRConstraintsFeature::func)
     {
         document_title(
             "Delete relaxation constraints from Rankooh and Rintanen");
@@ -44,25 +46,6 @@ public:
                 "71-79",
                 "2022"));
 
-        add_optional_argument_with_default<AcyclicityType>(
-            "acyclicity_type",
-            "vertex_elimination",
-            "The most relaxed version of this constraint only enforces that "
-            "achievers of facts are picked in such a way that all goal facts "
-            "have an achiever, and the preconditions all achievers are either "
-            "true in the current state or have achievers themselves. In this "
-            "version, cycles in the achiever relation can occur. Such cycles "
-            "can be excluded with additional auxilliary varibles and "
-            "constraints.");
-        add_optional_argument_with_default<bool>(
-            "use_integer_vars",
-            "false",
-            "restrict auxiliary variables to integer values. These variables "
-            "encode whether facts are reached, which operator first achieves "
-            "which fact, and (depending on the acyclicity_type) in which order "
-            "the operators are used. Restricting them to integers generally "
-            "improves the heuristic value at the cost of increased runtime.");
-
         document_note(
             "Example",
             "To compute the optimal delete-relaxation heuristic h^+^, use"
@@ -79,14 +62,35 @@ public:
             "recommend using this formulation as it can generally be solved "
             "more efficiently, in particular in case of the h^+^ "
             "configuration, and some relaxations offer tighter bounds.\n");
+
+        make_optional_argument_with_default(
+            0,
+            "acyclicity_type",
+            "vertex_elimination",
+            "The most relaxed version of this constraint only enforces that "
+            "achievers of facts are picked in such a way that all goal facts "
+            "have an achiever, and the preconditions all achievers are either "
+            "true in the current state or have achievers themselves. In this "
+            "version, cycles in the achiever relation can occur. Such cycles "
+            "can be excluded with additional auxilliary varibles and "
+            "constraints.");
+        make_optional_argument_with_default(
+            1,
+            "use_integer_vars",
+            "false",
+            "restrict auxiliary variables to integer values. These variables "
+            "encode whether facts are reached, which operator first achieves "
+            "which fact, and (depending on the acyclicity_type) in which order "
+            "the operators are used. Restricting them to integers generally "
+            "improves the heuristic value at the cost of increased runtime.");
     }
 
-    virtual std::shared_ptr<ConstraintGenerator>
-    create_component(const Options& opts, const Context&) const override
+    static std::shared_ptr<ConstraintGenerator>
+    func(const Context&, AcyclicityType acyclicity_type, bool use_integer_vars)
     {
         return std::make_shared<DeleteRelaxationRRConstraints>(
-            opts.get<AcyclicityType>("acyclicity_type"),
-            opts.get<bool>("use_integer_vars"));
+            acyclicity_type,
+            use_integer_vars);
     }
 };
 } // namespace

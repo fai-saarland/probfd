@@ -16,20 +16,20 @@ using namespace downward::utils;
 using namespace downward::cli::plugins;
 
 using downward::cli::landmarks::add_landmark_factory_options_to_feature;
-using downward::cli::landmarks::get_landmark_factory_arguments_from_options;
 
 namespace {
-class LandmarkFactoryMergedFeature : public SharedTypedFeature<LandmarkFactory> {
+class LandmarkFactoryMergedFeature
+    : public SharedTypedFeature<
+          LandmarkFactory,
+          const std::vector<std::shared_ptr<LandmarkFactory>>&,
+          downward::utils::Verbosity> {
 public:
     LandmarkFactoryMergedFeature()
-        : TypedFeature("lm_merged")
+        : TypedFeature("lm_merged", &LandmarkFactoryMergedFeature::func)
     {
         document_title("Merged Landmarks");
         document_synopsis(
             "Merges the landmarks and orderings from the parameter landmarks");
-
-        add_required_list_argument<shared_ptr<LandmarkFactory>>("lm_factories");
-        add_landmark_factory_options_to_feature(*this);
 
         document_note(
             "Precedence",
@@ -43,18 +43,23 @@ public:
         document_language_support(
             "conditional_effects",
             "supported if all components support them");
+
+        make_required_argument(0, "lm_factories");
+        add_landmark_factory_options_to_feature(*this, 1);
     }
 
-    virtual shared_ptr<LandmarkFactory>
-    create_component(const Options& opts, const Context& context) const override
+    static shared_ptr<LandmarkFactory> func(
+        const Context& context,
+        const std::vector<std::shared_ptr<LandmarkFactory>>& lm_factories,
+        downward::utils::Verbosity verbosity)
     {
-        verify_list_non_empty<shared_ptr<LandmarkFactory>>(
-            context,
-            opts,
-            "lm_factories");
+        if (lm_factories.empty()) {
+            context.error("List of landmark factories may not be empty.");
+        }
+
         return make_shared_from_arg_tuples<LandmarkFactoryMerged>(
-            opts.get_list<shared_ptr<LandmarkFactory>>("lm_factories"),
-            get_landmark_factory_arguments_from_options(opts));
+            lm_factories,
+            verbosity);
     }
 };
 } // namespace

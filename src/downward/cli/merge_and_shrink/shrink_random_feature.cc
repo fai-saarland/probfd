@@ -14,25 +14,22 @@ using namespace downward::utils;
 using namespace downward::cli::plugins;
 
 using downward::cli::merge_and_shrink::add_shrink_bucket_options_to_feature;
-using downward::cli::merge_and_shrink::get_shrink_bucket_arguments_from_options;
 
 namespace {
-class ShrinkRandomFeature : public SharedTypedFeature<ShrinkStrategy> {
+class ShrinkRandomFeature : public SharedTypedFeature<ShrinkStrategy, int> {
 public:
     ShrinkRandomFeature()
-        : TypedFeature("shrink_random")
+        : TypedFeature("shrink_random", &ShrinkRandomFeature::func)
     {
         document_title("Random");
         document_synopsis("");
 
-        add_shrink_bucket_options_to_feature(*this);
+        add_shrink_bucket_options_to_feature(*this, 0);
     }
 
-    virtual shared_ptr<ShrinkStrategy>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<ShrinkStrategy> func(const Context&, int random_seed)
     {
-        return make_shared_from_arg_tuples<ShrinkRandom>(
-            get_shrink_bucket_arguments_from_options(opts));
+        return make_shared_from_arg_tuples<ShrinkRandom>(random_seed);
     }
 };
 } // namespace

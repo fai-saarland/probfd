@@ -14,15 +14,18 @@ using namespace downward::merge_and_shrink;
 using namespace downward::cli::plugins;
 
 using downward::cli::merge_and_shrink::add_merge_strategy_options_to_feature;
-using downward::cli::merge_and_shrink::
-    get_merge_strategy_arguments_from_options;
 
 namespace {
 class MergeStrategyFactoryPrecomputedFeature
-    : public SharedTypedFeature<MergeStrategyFactory> {
+    : public SharedTypedFeature<
+          MergeStrategyFactory,
+          const std::shared_ptr<MergeTreeFactory>&,
+          downward::utils::Verbosity> {
 public:
     MergeStrategyFactoryPrecomputedFeature()
-        : TypedFeature("merge_precomputed")
+        : TypedFeature(
+              "merge_precomputed",
+              &MergeStrategyFactoryPrecomputedFeature::func)
     {
         document_title("Precomputed merge strategy");
         document_synopsis(
@@ -35,11 +38,6 @@ public:
             "given "
             "by the merge tree.");
 
-        add_required_argument<shared_ptr<MergeTreeFactory>>(
-            "merge_tree",
-            "The precomputed merge tree.");
-        add_merge_strategy_options_to_feature(*this);
-
         document_note(
             "Note",
             "An example of a precomputed merge startegy is a linear merge "
@@ -49,14 +47,19 @@ public:
             "merge_strategy=merge_precomputed(merge_tree=linear(<variable_"
             "order>))"
             "\n}}}");
+
+        make_required_argument(0, "merge_tree", "The precomputed merge tree.");
+        add_merge_strategy_options_to_feature(*this, 1);
     }
 
-    virtual shared_ptr<MergeStrategyFactory>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<MergeStrategyFactory> func(
+        const Context&,
+        const std::shared_ptr<MergeTreeFactory>& merge_tree,
+        downward::utils::Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<MergeStrategyFactoryPrecomputed>(
-            opts.get<shared_ptr<MergeTreeFactory>>("merge_tree"),
-            get_merge_strategy_arguments_from_options(opts));
+            merge_tree,
+            verbosity);
     }
 };
 } // namespace

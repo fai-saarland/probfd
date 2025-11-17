@@ -21,6 +21,31 @@ using namespace std;
 
 namespace downward::cli::parser {
 
+static DecoratedASTNodePtr decorate_and_convert(
+    const ASTNode& node,
+    const plugins::Type& target_type,
+    utils::Context& context,
+    VariableEnvironment& env)
+{
+    auto [ast_node, type] = node.decorate(context, env);
+
+    if (*type != target_type) {
+        utils::TraceBlock block(context, "Adding casting node");
+        if (type->can_convert_into(target_type)) {
+            return std::make_unique<ConvertNode>(
+                move(ast_node),
+                *type,
+                target_type);
+        }
+
+        context.error(
+            "Cannot convert from type '{}' to type '{}'\n",
+            type->name(),
+            target_type.name());
+    }
+    return std::move(ast_node);
+}
+
 struct VariableDefinition;
 
 struct TypedDeclaration {
@@ -277,7 +302,7 @@ LambdaNode::decorate(utils::Context& context, VariableEnvironment& env) const
 {
     utils::TraceBlock lblock(context, "Checking Lambda");
 
-    std::vector<plugins::ArgumentInfo> arg_infos;
+    std::vector<const plugins::Type*> arg_types;
     VariableEnvironment nested_env(env.get_registry());
 
     std::vector<VariableDeclaration> decorated_variable_declarations;
@@ -290,8 +315,7 @@ LambdaNode::decorate(utils::Context& context, VariableEnvironment& env) const
         auto& param_declaration =
             decorated_variable_declarations.emplace_back(variable_name);
         const auto& t = type_node->get_type(*plugins::TypeRegistry::instance());
-        arg_infos.emplace_back(
-            plugins::ArgumentInfo::make_required(variable_name, t));
+        arg_types.emplace_back(&t);
         const bool s =
             nested_env.add_variable(variable_name, t, param_declaration);
 
@@ -309,7 +333,7 @@ LambdaNode::decorate(utils::Context& context, VariableEnvironment& env) const
 
     const auto& ftype = plugins::TypeRegistry::instance()->create_function_type(
         *rtype,
-        std::move(arg_infos));
+        std::move(arg_types));
 
     return {
         std::make_unique<DecoratedLambdaNode>(
@@ -333,8 +357,8 @@ void LambdaNode::dump(std::string indent) const
     nested_value->dump("| " + indent);
 }
 
-FunctionCallNode::FunctionCallNode(
-    ASTNodePtr callee,
+DirectFunctionCallNode::DirectFunctionCallNode(
+    QualifiedName callee,
     vector<ASTNodePtr>&& positional_arguments,
     unordered_map<string, ASTNodePtr>&& keyword_arguments,
     const string& unparsed_config)
@@ -345,234 +369,160 @@ FunctionCallNode::FunctionCallNode(
 {
 }
 
-static DecoratedASTNodePtr decorate_and_convert(
-    const ASTNode& node,
-    const plugins::Type& target_type,
+TypedDecoratedAstNodePtr DirectFunctionCallNode::decorate(
     utils::Context& context,
-    VariableEnvironment& env)
-{
-    auto [ast_node, type] = node.decorate(context, env);
-
-    if (*type != target_type) {
-        utils::TraceBlock block(context, "Adding casting node");
-        if (type->can_convert_into(target_type)) {
-            return std::make_unique<ConvertNode>(
-                move(ast_node),
-                *type,
-                target_type);
-        }
-
-        context.error(
-            "Cannot convert from type '{}' to type '{}'\n",
-            type->name(),
-            target_type.name());
-    }
-    return std::move(ast_node);
-}
-
-bool FunctionCallNode::collect_argument(
-    const ASTNode& arg,
-    const plugins::ArgumentInfo& arg_info,
-    utils::Context& context,
-    VariableEnvironment& env,
-    CollectedArguments& arguments,
-    bool is_default)
-{
-    string key = arg_info.key;
-    if (arguments.contains(key)) { return false; }
-
-    DecoratedASTNodePtr decorated_arg =
-        decorate_and_convert(arg, arg_info.type, context, env);
-
-    arguments.emplace(
-        std::piecewise_construct,
-        std::forward_as_tuple(key),
-        std::forward_as_tuple(move(decorated_arg), is_default));
-
-    return true;
-}
-
-void FunctionCallNode::collect_keyword_arguments(
-    const vector<plugins::ArgumentInfo>& argument_infos,
-    utils::Context& context,
-    VariableEnvironment& env,
-    CollectedArguments& arguments) const
-{
-    unordered_map<string, plugins::ArgumentInfo> argument_infos_by_key;
-    for (const plugins::ArgumentInfo& arg_info : argument_infos) {
-        assert(!argument_infos_by_key.contains(arg_info.key));
-        argument_infos_by_key.insert({arg_info.key, arg_info});
-    }
-
-    for (const auto& [key, arg] : keyword_arguments) {
-        utils::TraceBlock block(
-            context,
-            "Checking the keyword argument '{}'.",
-            key);
-        if (auto it = argument_infos_by_key.find(key);
-            it != argument_infos_by_key.end()) {
-            const bool success = collect_argument(
-                *arg,
-                it->second,
-                context,
-                env,
-                arguments,
-                false);
-            if (!success) {
-                throw utils::CriticalError(
-                    "Multiple keyword definitions using the same key '{}'."
-                    "This should be impossible here because we sort by key "
-                    "earlier.",
-                    key);
-            }
-        } else {
-            context.error(
-                "Unknown keyword argument: {:?}\n"
-                "Valid keyword arguments are: {:n:?}\n",
-                key,
-                get_keys<string>(argument_infos_by_key));
-        }
-    }
-}
-
-/* This function has to be called *AFTER* collect_keyword_arguments. */
-void FunctionCallNode::collect_positional_arguments(
-    const vector<plugins::ArgumentInfo>& argument_infos,
-    utils::Context& context,
-    VariableEnvironment& env,
-    CollectedArguments& arguments) const
-{
-    // Check if too many arguments are specified for the plugin
-    const int num_pos_args = positional_arguments.size();
-    const int num_kwargs = keyword_arguments.size();
-
-    if (num_pos_args + num_kwargs > static_cast<int>(argument_infos.size())) {
-        vector<string> allowed_keys;
-        allowed_keys.reserve(argument_infos.size());
-        for (const auto& arg_info : argument_infos) {
-            allowed_keys.push_back(arg_info.key);
-        }
-        vector<string> given_positional_keys;
-        for (size_t i = 0; i < positional_arguments.size(); ++i) {
-            if (i < argument_infos.size()) {
-                given_positional_keys.push_back(argument_infos[i].key);
-            } else {
-                given_positional_keys.push_back("?");
-            }
-        }
-        vector<string> given_keyword_keys = get_keys(keyword_arguments);
-
-        context.error(
-            "Too many parameters specified!\n"
-            "Allowed parameters: {:n:s}\n"
-            "Given positional parameters: {:n:s}\n"
-            "Given keyword parameters: {:n:s}\n",
-            allowed_keys,
-            given_positional_keys,
-            given_keyword_keys);
-    }
-
-    for (int i = 0; i < num_pos_args; ++i) {
-        ASTNode& arg = *positional_arguments[i];
-        const plugins::ArgumentInfo& arg_info = argument_infos[i];
-        utils::TraceBlock block(
-            context,
-            "Checking the positional argument at index {} ({})",
-            i + 1,
-            arg_info.key);
-        const bool success =
-            collect_argument(arg, arg_info, context, env, arguments, false);
-        if (!success) {
-            context.error(
-                "The argument '{}' is defined by the positional argument at "
-                "index {} and by a keyword argument.",
-                arg_info.key,
-                i + 1);
-        }
-    }
-}
-
-/* This function has to be called *AFTER* collect_positional_arguments. */
-void FunctionCallNode::collect_default_values(
-    const vector<plugins::ArgumentInfo>& argument_infos,
-    utils::Context& context,
-    VariableEnvironment& env,
-    CollectedArguments& arguments)
-{
-    for (const plugins::ArgumentInfo& arg_info : argument_infos) {
-        if (const string& key = arg_info.key; !arguments.contains(key)) {
-            utils::TraceBlock dblock(
-                context,
-                "Checking the default for argument '{}'.",
-                key);
-
-            if (arg_info.has_default()) {
-                ASTNodePtr arg = [&] {
-                    utils::TraceBlock block(context, "Parsing default value");
-                    return parse_ast_node(arg_info.default_value);
-                }();
-
-                const bool success = collect_argument(
-                    *arg,
-                    arg_info,
-                    context,
-                    env,
-                    arguments,
-                    true);
-
-                if (!success) {
-                    throw utils::CriticalError(
-                        "Default argument for '{}' set although "
-                        "value for keyword exists. This should be impossible.",
-                        key);
-                }
-            } else if (!arg_info.is_optional()) {
-                context.error("Missing argument is mandatory!");
-            }
-        }
-    }
-}
-
-TypedDecoratedAstNodePtr
-FunctionCallNode::decorate(utils::Context& context, VariableEnvironment& env)
-    const
+    VariableEnvironment& env) const
 {
     utils::TraceBlock block(context, "Checking Call");
 
-    auto [dast_node, type] = callee->decorate(context, env);
-    if (!type->is_function_type()) {
-        context.error("Callee does not have function type.");
+    utils::TraceBlock nblock(context, "Checking Callee Identifier: {}", callee);
+
+    const auto& [qualification, name] = callee;
+
+    DecoratedASTNodePtr callee_node;
+    const plugins::FunctionType* callee_type;
+    std::vector<plugins::ArgumentInfo> argument_infos;
+
+    if (qualification.empty() && env.has_variable(name)) {
+        auto& def = env.get_variable_definition(name);
+        callee_node = std::make_unique<VariableNode>(def);
+        def.usages.emplace_back(static_cast<VariableNode*>(callee_node.get()));
+
+        const auto& type = &env.get_variable_type(name);
+
+        if (!type->is_function_type()) {
+            context.error(
+                "Variable '{}' has type '{}' which is not a function type",
+                callee,
+                type->name());
+        }
+
+        callee_type = static_cast<const plugins::FunctionType*>(type);
+    } else if (const auto& n = env.get_registry().get_namespace(qualification);
+               n.has_feature(name)) {
+        const auto& f = n.get_feature(name);
+        callee_node = std::make_unique<FeatureLiteralNode>(f);
+        callee_type = &f.get_type();
+        argument_infos = f.get_arguments();
+    } else {
+        context.error("Undefined variable {}", callee);
     }
 
-    const auto& ftype = *static_cast<const plugins::FunctionType*>(type);
-    const auto& argument_infos = ftype.get_argument_infos();
+    const auto& argument_types = callee_type->get_argument_types();
 
-    CollectedArguments arguments_by_key;
-    collect_keyword_arguments(argument_infos, context, env, arguments_by_key);
-    collect_positional_arguments(
-        argument_infos,
-        context,
-        env,
-        arguments_by_key);
-    collect_default_values(argument_infos, context, env, arguments_by_key);
+    vector<FunctionArgument> arguments;
+    arguments.reserve(argument_types.size());
 
-    vector<std::pair<std::string, FunctionArgument>> arguments;
-    arguments.reserve(arguments_by_key.size());
+    if (!argument_infos.empty()) {
+        // Check keyword arguments exist
+        for (const auto& keyword : keyword_arguments | std::views::keys) {
+            for (const auto& arg_info : argument_infos) {
+                if (arg_info.key == keyword) { goto next; }
+            }
 
-    for (auto& val : arguments_by_key) { arguments.push_back(move(val)); }
+            context.error("Unknown keyword argument {}", keyword);
+
+        next:;
+        }
+
+        for (std::size_t i = 0; i < positional_arguments.size(); ++i) {
+            utils::TraceBlock nnblock(
+                context,
+                "Checking the positional argument at index {}",
+                i);
+
+            const auto& arg_info = argument_infos[i];
+            const auto& arg_type = argument_types[i];
+            const auto& pos_arg = *positional_arguments[i];
+
+            if (keyword_arguments.contains(arg_info.key)) {
+                context.error(
+                    "The argument '{}' is defined by the positional argument "
+                    "at index {} and by a keyword argument.",
+                    arg_info.key,
+                    i);
+            }
+
+            DecoratedASTNodePtr decorated_arg =
+                decorate_and_convert(pos_arg, *arg_type, context, env);
+
+            arguments.emplace_back(move(decorated_arg), false);
+        }
+
+        for (std::size_t i = positional_arguments.size();
+             i < argument_infos.size();
+             ++i) {
+            utils::TraceBlock nnblock(
+                context,
+                "Checking the positional argument at index {}",
+                i);
+            const auto& arg_info = argument_infos[i];
+            const auto& arg_type = argument_types[i];
+
+            if (auto it = keyword_arguments.find(arg_info.key);
+                it != keyword_arguments.end()) {
+                const auto& keyword_arg = it->second;
+
+                DecoratedASTNodePtr decorated_arg =
+                    decorate_and_convert(*keyword_arg, *arg_type, context, env);
+
+                arguments.emplace_back(move(decorated_arg), false);
+            } else if (arg_info.has_default()) {
+                ASTNodePtr default_arg = [&] {
+                    utils::TraceBlock nnnblock(
+                        context,
+                        "Parsing default value");
+                    return parse_ast_node(arg_info.default_value);
+                }();
+
+                DecoratedASTNodePtr decorated_arg =
+                    decorate_and_convert(*default_arg, *arg_type, context, env);
+
+                arguments.emplace_back(move(decorated_arg), true);
+            } else {
+                context.error("Missing argument '{}' is mandatory.", arg_info.key);
+            }
+        }
+    } else {
+        if (!keyword_arguments.empty()) {
+            context.error("Keyword arguments not allowed here");
+        }
+
+        if (positional_arguments.size() != argument_types.size()) {
+            context.error(
+                "Expected {} arguments, {} were given",
+                argument_types.size(),
+                positional_arguments.size());
+        }
+
+        for (std::size_t i = 0; i < positional_arguments.size(); ++i) {
+            utils::TraceBlock nnblock(
+                context,
+                "Checking the positional argument at index {}",
+                i);
+
+            const auto& arg = positional_arguments[i];
+            const auto& arg_type = argument_types[i];
+
+            DecoratedASTNodePtr decorated_arg =
+                decorate_and_convert(*arg, *arg_type, context, env);
+
+            arguments.emplace_back(move(decorated_arg), false);
+        }
+    }
 
     return {
         std::make_unique<DecoratedFunctionCallNode>(
-            std::move(dast_node),
+            std::move(callee_node),
             move(arguments),
             unparsed_config),
-        &ftype.get_return_type()};
+        &callee_type->get_return_type()};
 }
 
-void FunctionCallNode::dump(string indent) const
+void DirectFunctionCallNode::dump(string indent) const
 {
-    cout << indent << "FUNC: ";
-    callee->dump();
+    cout << indent << "INDIRECTFUNC: ";
+    std::print(cout, "{}", callee);
     cout << endl;
     indent = "| " + indent;
     cout << indent << "POSITIONAL ARGS:" << endl;
@@ -583,6 +533,75 @@ void FunctionCallNode::dump(string indent) const
     for (const auto& [key, default_arg] : keyword_arguments) {
         cout << indent << key << " = " << endl;
         default_arg->dump("| " + indent);
+    }
+}
+
+IndirectFunctionCallNode::IndirectFunctionCallNode(
+    ASTNodePtr callee,
+    vector<ASTNodePtr>&& positional_arguments,
+    const string& unparsed_config)
+    : callee(std::move(callee))
+    , positional_arguments(move(positional_arguments))
+    , unparsed_config(unparsed_config)
+{
+}
+
+TypedDecoratedAstNodePtr IndirectFunctionCallNode::decorate(
+    utils::Context& context,
+    VariableEnvironment& env) const
+{
+    utils::TraceBlock block(context, "Checking Call");
+
+    auto [dast_node, type] = callee->decorate(context, env);
+    if (!type->is_function_type()) {
+        context.error("Callee does not have function type.");
+    }
+
+    const auto& ftype = *static_cast<const plugins::FunctionType*>(type);
+    const auto& argument_types = ftype.get_argument_types();
+
+    vector<FunctionArgument> arguments;
+    arguments.reserve(argument_types.size());
+
+    if (positional_arguments.size() != argument_types.size()) {
+        context.error(
+            "Expected {} arguments, {} were given",
+            argument_types.size(),
+            positional_arguments.size());
+    }
+
+    for (std::size_t i = 0; i < positional_arguments.size(); ++i) {
+        utils::TraceBlock nblock(
+            context,
+            "Checking the positional argument at index {}",
+            i);
+
+        const auto& arg = positional_arguments[i];
+        const auto& arg_type = argument_types[i];
+
+        DecoratedASTNodePtr decorated_arg =
+            decorate_and_convert(*arg, *arg_type, context, env);
+
+        arguments.emplace_back(move(decorated_arg), false);
+    }
+
+    return {
+        std::make_unique<DecoratedFunctionCallNode>(
+            std::move(dast_node),
+            move(arguments),
+            unparsed_config),
+        &ftype.get_return_type()};
+}
+
+void IndirectFunctionCallNode::dump(string indent) const
+{
+    cout << indent << "INDIRECTCALL: ";
+    callee->dump();
+    cout << endl;
+    indent = "| " + indent;
+    cout << indent << "ARGS:" << endl;
+    for (const ASTNodePtr& node : positional_arguments) {
+        node->dump("| " + indent);
     }
 }
 
@@ -709,11 +728,8 @@ LiteralNode::LiteralNode(const Token& value)
 {
 }
 
-IdentifierNode::IdentifierNode(
-    std::vector<std::string> qualification,
-    std::string name)
-    : qualification(std::move(qualification))
-    , name(std::move(name))
+IdentifierNode::IdentifierNode(QualifiedName qualified_name)
+    : qualified_name(std::move(qualified_name))
 {
 }
 
@@ -721,11 +737,9 @@ TypedDecoratedAstNodePtr
 IdentifierNode::decorate(utils::Context& context, VariableEnvironment& env)
     const
 {
-    utils::TraceBlock block(
-        context,
-        "Checking Literal: {}.{}",
-        utils::join_view(qualification, "."),
-        name);
+    utils::TraceBlock block(context, "Checking Identifier: {}", qualified_name);
+
+    const auto& [qualification, name] = qualified_name;
 
     if (qualification.empty() && env.has_variable(name)) {
         auto& def = env.get_variable_definition(name);
@@ -738,10 +752,7 @@ IdentifierNode::decorate(utils::Context& context, VariableEnvironment& env)
         n.has_feature(name)) {
         const auto& f = n.get_feature(name);
         auto node = std::make_unique<FeatureLiteralNode>(f);
-        const auto& t = plugins::TypeRegistry::instance()->create_function_type(
-            f.get_type(),
-            f.get_arguments());
-        return {std::move(node), &t};
+        return {std::move(node), &f.get_type()};
     }
 
     if (!qualification.empty()) {
@@ -761,10 +772,14 @@ void IdentifierNode::dump(string indent) const
     std::print(cout, "{}", std::string(indent, ' '));
     std::println(
         cout,
-        "{}: {}.{}",
+        "{}: {}",
         token_type_name(TokenType::IDENTIFIER),
-        utils::join_view(qualification, "."),
-        name);
+        qualified_name);
+}
+
+const QualifiedName& IdentifierNode::get_name() const
+{
+    return qualified_name;
 }
 
 TypedDecoratedAstNodePtr
@@ -851,17 +866,15 @@ LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
 
             const auto& feature = n.get_feature(operator_fname);
 
-            std::vector<std::pair<std::string, FunctionArgument>> arguments;
-            arguments.emplace_back(
-                "value",
-                FunctionArgument(std::make_unique<IntLiteralNode>(x), false));
+            std::vector<FunctionArgument> arguments;
+            arguments.emplace_back(std::make_unique<IntLiteralNode>(x), false);
 
             return {
                 std::make_unique<DecoratedFunctionCallNode>(
                     std::make_unique<FeatureLiteralNode>(feature),
                     std::move(arguments),
                     ""),
-                &feature.get_type()};
+                &feature.get_type().get_return_type()};
         }
     }
     case TokenType::FLOAT: {
@@ -897,17 +910,17 @@ LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
 
             const auto& feature = n.get_feature(operator_fname);
 
-            std::vector<std::pair<std::string, FunctionArgument>> arguments;
+            std::vector<FunctionArgument> arguments;
             arguments.emplace_back(
-                "value",
-                FunctionArgument(std::make_unique<FloatLiteralNode>(x), false));
+                std::make_unique<FloatLiteralNode>(x),
+                false);
 
             return {
                 std::make_unique<DecoratedFunctionCallNode>(
                     std::make_unique<FeatureLiteralNode>(feature),
                     std::move(arguments),
                     ""),
-                &feature.get_type()};
+                &feature.get_type().get_return_type()};
         }
     }
     default:

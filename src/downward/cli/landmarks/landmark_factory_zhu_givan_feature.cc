@@ -14,24 +14,26 @@ using namespace downward::utils;
 using namespace downward::cli::plugins;
 
 using downward::cli::landmarks::add_use_orders_option_to_feature;
-using downward::cli::landmarks::get_use_orders_arguments_from_options;
 
 using downward::cli::landmarks::add_landmark_factory_options_to_feature;
-using downward::cli::landmarks::get_landmark_factory_arguments_from_options;
 
 namespace {
-class LandmarkFactoryZhuGivanFeature : public SharedTypedFeature<LandmarkFactory> {
+class LandmarkFactoryZhuGivanFeature
+    : public SharedTypedFeature<
+          LandmarkFactory,
+          bool,
+          downward::utils::Verbosity> {
 public:
     LandmarkFactoryZhuGivanFeature()
-        : TypedFeature("lm_zg")
+        : TypedFeature("lm_zg", &LandmarkFactoryZhuGivanFeature::func)
     {
         document_title("Zhu/Givan Landmarks");
         document_synopsis(
             "The landmark generation method introduced by "
             "Zhu & Givan (ICAPS 2003 Doctoral Consortium).");
 
-        add_use_orders_option_to_feature(*this);
-        add_landmark_factory_options_to_feature(*this);
+        const auto n = add_use_orders_option_to_feature(*this, 0);
+        add_landmark_factory_options_to_feature(*this, n);
 
         // TODO: Make sure that conditional effects are indeed supported.
         document_language_support(
@@ -39,12 +41,12 @@ public:
             "We think they are supported, but this is not 100% sure.");
     }
 
-    virtual shared_ptr<LandmarkFactory>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<LandmarkFactory>
+    func(const Context&, bool use_orders, downward::utils::Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<LandmarkFactoryZhuGivan>(
-            get_use_orders_arguments_from_options(opts),
-            get_landmark_factory_arguments_from_options(opts));
+            use_orders,
+            verbosity);
     }
 };
 } // namespace

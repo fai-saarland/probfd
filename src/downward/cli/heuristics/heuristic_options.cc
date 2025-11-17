@@ -12,29 +12,24 @@ using namespace std;
 
 namespace downward::cli {
 
-void add_heuristic_options_to_feature(
+std::size_t add_heuristic_options_to_feature(
     plugins::Feature& feature,
-    const string& description)
+    const string& description,
+    std::size_t start_index)
 {
-    feature.add_optional_argument_with_default<shared_ptr<TaskTransformation>>(
+    feature.make_optional_argument_with_default(
+        start_index,
         "transform",
         "no_transform()",
         "Optional task transformation for the heuristic.");
-    feature.add_optional_argument_with_default<bool>(
+    feature.make_optional_argument_with_default(
+        start_index + 1,
         "cache_estimates",
         "true",
         "cache heuristic estimates");
-    add_evaluator_options_to_feature(feature, description);
-}
+    const auto n = add_evaluator_options_to_feature(feature, description, start_index + 2);
 
-tuple<shared_ptr<TaskTransformation>, bool, string, utils::Verbosity>
-get_heuristic_arguments_from_options(const plugins::Options& opts)
-{
-    return tuple_cat(
-        make_tuple(
-            opts.get<shared_ptr<TaskTransformation>>("transform"),
-            opts.get<bool>("cache_estimates")),
-        get_evaluator_arguments_from_options(opts));
+    return n + 2;
 }
 
 } // namespace downward::cli

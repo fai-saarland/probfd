@@ -16,7 +16,9 @@ class MergeScoringFunctionGoalRelevanceFeature
     : public SharedTypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionGoalRelevanceFeature()
-        : TypedFeature("goal_relevance")
+        : TypedFeature(
+              "goal_relevance",
+              &MergeScoringFunctionGoalRelevanceFeature::func)
     {
         document_title("Goal relevance scoring");
         document_synopsis(
@@ -28,8 +30,7 @@ public:
             "All other candidates get a score of positive infinity.");
     }
 
-    virtual shared_ptr<MergeScoringFunction>
-    create_component(const Options&, const Context&) const override
+    static shared_ptr<MergeScoringFunction> func(const Context&)
     {
         return make_shared<MergeScoringFunctionGoalRelevance>();
     }

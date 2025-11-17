@@ -13,22 +13,30 @@ using namespace downward::utils;
 using namespace downward::cli::plugins;
 
 using downward::cli::landmarks::add_landmark_factory_options_to_feature;
-using downward::cli::landmarks::get_landmark_factory_arguments_from_options;
 
 using namespace downward::landmarks;
 
 namespace {
-class LandmarkFactoryRpgExhaustFeature : public SharedTypedFeature<LandmarkFactory> {
+class LandmarkFactoryRpgExhaustFeature
+    : public SharedTypedFeature<
+          LandmarkFactory,
+          bool,
+          downward::utils::Verbosity> {
 public:
     LandmarkFactoryRpgExhaustFeature()
-        : TypedFeature("lm_exhaust")
+        : TypedFeature("lm_exhaust", &LandmarkFactoryRpgExhaustFeature::func)
     {
         document_title("Exhaustive Landmarks");
         document_synopsis(
             "Exhaustively checks for each fact if it is a landmark."
             "This check is done using relaxed planning.");
 
-        add_optional_argument_with_default<bool>(
+        document_language_support(
+            "conditional_effects",
+            "ignored, i.e. not supported");
+
+        make_optional_argument_with_default(
+            0,
             "use_unary_relaxation",
             "false",
             "compute landmarks of the unary relaxation, i.e., landmarks "
@@ -38,19 +46,17 @@ public:
             "Setting the option to true can reduce the overall number of "
             "landmarks, which can make the search more memory-efficient but "
             "potentially less informative.");
-        add_landmark_factory_options_to_feature(*this);
-
-        document_language_support(
-            "conditional_effects",
-            "ignored, i.e. not supported");
+        add_landmark_factory_options_to_feature(*this, 1);
     }
 
-    virtual shared_ptr<LandmarkFactory>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<LandmarkFactory> func(
+        const Context&,
+        bool use_unary_relaxation,
+        downward::utils::Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<LandmarkFactoryRpgExhaust>(
-            opts.get<bool>("use_unary_relaxation"),
-            get_landmark_factory_arguments_from_options(opts));
+            use_unary_relaxation,
+            verbosity);
     }
 };
 } // namespace

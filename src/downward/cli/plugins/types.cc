@@ -47,6 +47,11 @@ bool Type::is_function_type() const
     return false;
 }
 
+bool Type::is_keyword_function_type() const
+{
+    return false;
+}
+
 bool Type::can_convert_into(const Type& other) const
 {
     return *this == other;
@@ -54,15 +59,22 @@ bool Type::can_convert_into(const Type& other) const
 
 FunctionType::FunctionType(
     const Type& return_type,
-    std::vector<ArgumentInfo> arguments)
+    std::vector<const Type*> argument_types)
     : return_type(return_type)
-    , arguments(std::move(arguments))
+    , argument_types(std::move(argument_types))
 {
 }
 
 bool FunctionType::operator==(const Type& other) const
 {
-    return this == &other;
+    if (!other.is_function_type() || other.is_keyword_function_type()) {
+        return false;
+    }
+
+    const auto& other_casted = static_cast<const FunctionType&>(other);
+
+    return return_type == other_casted.return_type &&
+           argument_types == other_casted.argument_types;
 }
 
 std::string FunctionType::name() const
@@ -70,20 +82,19 @@ std::string FunctionType::name() const
     return std::format(
         "{} ({:n:s})",
         return_type.name(),
-        arguments | std::views::transform([](const ArgumentInfo& info) {
-            return info.type.name();
-        }));
+        argument_types |
+            std::views::transform([](const Type* t) { return t->name(); }));
 }
 
 size_t FunctionType::get_hash() const
 {
     // https://stackoverflow.com/questions/20511347/a-good-hash-function-for-a-vector
-    std::size_t seed = arguments.size() + 1;
+    std::size_t seed = argument_types.size() + 1;
 
     seed ^= return_type.get_hash() + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 
-    for (const auto& info : arguments) {
-        seed ^= info.type.get_hash() + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    for (const auto* t : argument_types) {
+        seed ^= t->get_hash() + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     }
 
     return seed;
@@ -129,9 +140,7 @@ size_t BasicType::get_hash() const
     return hash<type_index>()(type);
 }
 
-FeatureType::FeatureType(
-    type_index pointer_type,
-    const string& type_name)
+FeatureType::FeatureType(type_index pointer_type, const string& type_name)
     : pointer_type(pointer_type)
     , type_name(type_name)
 {
@@ -271,7 +280,7 @@ const EnumInfo& EnumType::get_documented_enum_values() const
 
 string EnumType::name() const
 {
-    return std::format("{{{:n}}}", values);
+    return std::format("{{{:n:s}}}", values);
 }
 
 size_t EnumType::get_hash() const
@@ -448,10 +457,13 @@ const ListType& TypeRegistry::create_list_type(const Type& element_type)
 
 const FunctionType& TypeRegistry::create_function_type(
     const Type& return_type,
-    std::vector<ArgumentInfo> arg_types)
+    std::vector<const Type*> arg_types)
 {
     return **registered_function_types
-                 .insert(std::make_unique<FunctionType>(return_type, arg_types))
+                 .insert(
+                     std::make_unique<FunctionType>(
+                         return_type,
+                         std::move(arg_types)))
                  .first;
 }
 

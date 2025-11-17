@@ -19,10 +19,16 @@ using namespace downward::cli::plugins;
 
 namespace {
 class StubbornSetsAtomCentricFeature
-    : public SharedTypedFeature<downward::PruningMethod> {
+    : public SharedTypedFeature<
+          downward::PruningMethod,
+          bool,
+          AtomSelectionStrategy,
+          downward::utils::Verbosity> {
 public:
     StubbornSetsAtomCentricFeature()
-        : TypedFeature("atom_centric_stubborn_sets")
+        : TypedFeature(
+              "atom_centric_stubborn_sets",
+              &StubbornSetsAtomCentricFeature::func)
     {
         document_title("Atom-centric stubborn sets");
         document_synopsis(
@@ -49,27 +55,32 @@ public:
                 "AAAI Press",
                 "2020"));
 
-        add_optional_argument_with_default<bool>(
+        make_optional_argument_with_default(
+            0,
             "use_sibling_shortcut",
             "true",
             "use variable-based marking in addition to atom-based marking");
-        add_optional_argument_with_default<AtomSelectionStrategy>(
+        make_optional_argument_with_default(
+            1,
             "atom_selection_strategy",
             "quick_skip",
             "Strategy for selecting unsatisfied atoms from action "
             "preconditions or "
             "the goal atoms. All strategies use the fast_downward strategy for "
             "breaking ties.");
-        add_pruning_options_to_feature(*this);
+        add_pruning_options_to_feature(*this, 2);
     }
 
-    virtual shared_ptr<downward::PruningMethod>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<downward::PruningMethod> func(
+        const Context&,
+        bool use_sibling_shortcut,
+        AtomSelectionStrategy atom_selection_strategy,
+        downward::utils::Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<StubbornSetsAtomCentric>(
-            opts.get<bool>("use_sibling_shortcut"),
-            opts.get<AtomSelectionStrategy>("atom_selection_strategy"),
-            get_pruning_arguments_from_options(opts));
+            use_sibling_shortcut,
+            atom_selection_strategy,
+            verbosity);
     }
 };
 } // namespace

@@ -25,9 +25,10 @@ string get_admissible_potentials_reference()
                "2015");
 }
 
-void add_admissible_potentials_options_to_feature(
+std::size_t add_admissible_potentials_options_to_feature(
     plugins::Feature& feature,
-    const string& description)
+    const string& description,
+    std::size_t start_index)
 {
     feature.document_language_support("action costs", "supported");
     feature.document_language_support("conditional effects", "not supported");
@@ -36,7 +37,8 @@ void add_admissible_potentials_options_to_feature(
     feature.document_property("consistent", "yes");
     feature.document_property("safe", "yes");
     feature.document_property("preferred operators", "no");
-    feature.add_optional_argument_with_default<double>(
+    feature.make_optional_argument_with_default(
+        start_index,
         "max_potential",
         "1e8",
         "Bound potentials by this number. Using the bound {{{infinity}}} "
@@ -45,23 +47,14 @@ void add_admissible_potentials_options_to_feature(
         "very high weights can cause numerical instability in the LP solver, "
         "while using very low weights limits the choice of potential "
         "heuristics. For details, see the ICAPS paper cited above.");
-    downward::cli::lp::add_lp_solver_option_to_feature(feature);
-    add_heuristic_options_to_feature(feature, description);
-}
-
-tuple<
-    double,
-    downward::lp::LPSolverType,
-    shared_ptr<TaskTransformation>,
-    bool,
-    string,
-    utils::Verbosity>
-get_admissible_potential_arguments_from_options(const plugins::Options& opts)
-{
-    return tuple_cat(
-        make_tuple(opts.get<double>("max_potential")),
-        lp::get_lp_solver_arguments_from_options(opts),
-        get_heuristic_arguments_from_options(opts));
+    const auto n = downward::cli::lp::add_lp_solver_option_to_feature(
+        feature,
+        start_index + 1);
+    const auto n2 = add_heuristic_options_to_feature(
+        feature,
+        description,
+        start_index + n + 1);
+    return n + n2 + 1;
 }
 
 } // namespace downward::cli::potentials

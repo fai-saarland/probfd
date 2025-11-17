@@ -15,24 +15,26 @@ using namespace downward::cli::pdbs;
 using namespace downward::cli::plugins;
 
 namespace {
-class PatternGeneratorGreedyFeature : public SharedTypedFeature<PatternGenerator> {
+class PatternGeneratorGreedyFeature
+    : public SharedTypedFeature<PatternGenerator, int, Verbosity> {
 public:
     PatternGeneratorGreedyFeature()
-        : TypedFeature("greedy")
+        : TypedFeature("greedy", &PatternGeneratorGreedyFeature::func)
     {
-        add_optional_argument_with_default<int>(
+        make_optional_argument_with_default(
+            0,
             "max_states",
             "1000000",
             "maximal number of abstract states in the pattern database.");
-        add_generator_options_to_feature(*this);
+        add_generator_options_to_feature(*this, 1);
     }
 
-    virtual shared_ptr<PatternGenerator>
-    create_component(const Options& opts, const Context&) const override
+    static shared_ptr<PatternGenerator>
+    func(const Context&, int max_states, Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<PatternGeneratorGreedy>(
-            opts.get<int>("max_states"),
-            get_generator_arguments_from_options(opts));
+            max_states,
+            verbosity);
     }
 };
 } // namespace

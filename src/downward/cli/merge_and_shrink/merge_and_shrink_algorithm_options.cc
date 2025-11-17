@@ -7,8 +7,6 @@
 #include "downward/utils/logging.h"
 #include "downward/utils/math.h"
 
-#include <vector>
-
 using namespace std;
 using namespace downward::merge_and_shrink;
 
@@ -16,107 +14,30 @@ using namespace downward::cli::plugins;
 
 namespace downward::cli::merge_and_shrink {
 
-void add_merge_and_shrink_algorithm_options_to_feature(Feature& feature)
+std::size_t add_transition_system_size_limit_options_to_feature(Feature& feature, std::size_t start_index)
 {
-    // Merge strategy option.
-    feature.add_required_argument<shared_ptr<MergeStrategyFactory>>(
-        "merge_strategy",
-        "See detailed documentation for merge strategies. "
-        "We currently recommend SCC-DFP, which can be achieved using "
-        "{{{merge_strategy=merge_sccs(order_of_sccs=topological,merge_selector="
-        "score_based_filtering(scoring_functions=[goal_relevance,dfp,total_"
-        "order"
-        "]))}}}");
-
-    // Shrink strategy option.
-    feature.add_required_argument<shared_ptr<ShrinkStrategy>>(
-        "shrink_strategy",
-        "See detailed documentation for shrink strategies. "
-        "We currently recommend non-greedy shrink_bisimulation, which can be "
-        "achieved using "
-        "{{{shrink_strategy=shrink_bisimulation(greedy=false)}}}");
-
-    // Label reduction option.
-    feature.add_optional_argument<shared_ptr<LabelReduction>>(
-        "label_reduction",
-        "See detailed documentation for labels. There is currently only "
-        "one 'option' to use label_reduction, which is "
-        "{{{label_reduction=exact}}} "
-        "Also note the interaction with shrink strategies.");
-
-    // Pruning options.
-    feature.add_optional_argument_with_default<bool>(
-        "prune_unreachable_states",
-        "true",
-        "If true, prune abstract states unreachable from the initial state.");
-    feature.add_optional_argument_with_default<bool>(
-        "prune_irrelevant_states",
-        "true",
-        "If true, prune abstract states from which no goal state can be "
-        "reached.");
-
-    add_transition_system_size_limit_options_to_feature(feature);
-
-    feature.add_optional_argument_with_default<downward::utils::FSeconds>(
-        "main_loop_max_time",
-        "seconds_max()",
-        "A limit in seconds on the runtime of the main loop of the algorithm. "
-        "If the limit is exceeded, the algorithm terminates, potentially "
-        "returning a factored transition system with several factors. Also "
-        "note that the time limit is only checked between transformations "
-        "of the main loop, but not during, so it can be exceeded if a "
-        "transformation is runtime-intense.");
-}
-
-tuple<
-    shared_ptr<MergeStrategyFactory>,
-    shared_ptr<ShrinkStrategy>,
-    shared_ptr<LabelReduction>,
-    bool,
-    bool,
-    int,
-    int,
-    int,
-    downward::utils::FSeconds>
-get_merge_and_shrink_algorithm_arguments_from_options(const Options& opts)
-{
-    return tuple_cat(
-        make_tuple(
-            opts.get<shared_ptr<MergeStrategyFactory>>("merge_strategy"),
-            opts.get<shared_ptr<ShrinkStrategy>>("shrink_strategy"),
-            opts.get<shared_ptr<LabelReduction>>("label_reduction", nullptr),
-            opts.get<bool>("prune_unreachable_states"),
-            opts.get<bool>("prune_irrelevant_states")),
-        get_transition_system_size_limit_arguments_from_options(opts),
-        make_tuple(opts.get<utils::FSeconds>("main_loop_max_time")));
-}
-
-void add_transition_system_size_limit_options_to_feature(Feature& feature)
-{
-    feature.add_optional_argument_with_default<int>(
+    feature.make_optional_argument_with_default(
+        start_index,
         "max_states",
         "-1",
         "maximum transition system size allowed at any time point.");
-    feature.add_optional_argument_with_default<int>(
+
+    feature.make_optional_argument_with_default(
+        start_index + 1,
         "max_states_before_merge",
         "-1",
         "maximum transition system size allowed for two transition systems "
         "before being merged to form the synchronized product.");
-    feature.add_optional_argument_with_default<int>(
+
+    feature.make_optional_argument_with_default(
+        start_index + 2,
         "threshold_before_merge",
         "-1",
         "If a transition system, before being merged, surpasses this soft "
         "transition system size limit, the shrink strategy is called to "
         "possibly shrink the transition system.");
-}
 
-tuple<int, int, int>
-get_transition_system_size_limit_arguments_from_options(const Options& opts)
-{
-    return make_tuple(
-        opts.get<int>("max_states"),
-        opts.get<int>("max_states_before_merge"),
-        opts.get<int>("threshold_before_merge"));
+    return 3;
 }
 
 void handle_shrink_limit_options_defaults(
@@ -126,15 +47,15 @@ void handle_shrink_limit_options_defaults(
     const utils::Context& context)
 {
     if (max_states < -1) {
-        throw std::domain_error("num_samples must be >= -1.");
+        context.error("num_samples must be >= -1.");
     }
 
     if (max_states_before_merge < -1) {
-        throw std::domain_error("num_heuristics must be >= -1.");
+        context.error("num_heuristics must be >= -1.");
     }
 
     if (threshold_before_merge < -1) {
-        throw std::domain_error("max_potential must be >= -1.");
+        context.error("max_potential must be >= -1.");
     }
 
     // If none of the two state limits has been set: set default limit.
@@ -147,7 +68,7 @@ void handle_shrink_limit_options_defaults(
     if (max_states_before_merge == -1) {
         max_states_before_merge = max_states;
     } else if (max_states == -1) {
-        int n = max_states_before_merge;
+        const int n = max_states_before_merge;
         if (utils::is_product_within_limit(n, n, INF)) {
             max_states = n * n;
         } else {

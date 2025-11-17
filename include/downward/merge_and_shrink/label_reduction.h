@@ -1,5 +1,5 @@
-#ifndef MERGE_AND_SHRINK_LABEL_REDUCTION_H
-#define MERGE_AND_SHRINK_LABEL_REDUCTION_H
+#ifndef MERGE_AND_SHRINK_EXACT_LABEL_REDUCTION_H
+#define MERGE_AND_SHRINK_EXACT_LABEL_REDUCTION_H
 
 #include <memory>
 #include <vector>
@@ -76,6 +76,7 @@ public:
         LabelReductionMethod method,
         LabelReductionSystemOrder system_order,
         int random_seed);
+
     void initialize(const VariableSpace& task);
     bool reduce(
         const std::pair<int, int>& next_merge,
