@@ -49,14 +49,9 @@ public:
     }
 
     static shared_ptr<LandmarkFactory> func(
-        const Context& context,
         const std::vector<std::shared_ptr<LandmarkFactory>>& lm_factories,
         downward::utils::Verbosity verbosity)
     {
-        if (lm_factories.empty()) {
-            context.error("List of landmark factories may not be empty.");
-        }
-
         return make_shared_from_arg_tuples<LandmarkFactoryMerged>(
             lm_factories,
             verbosity);

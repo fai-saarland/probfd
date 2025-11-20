@@ -29,7 +29,7 @@ public:
 
 protected:
     static std::shared_ptr<FlawFindingStrategy>
-    func(const Context&, int max_search_states)
+    func(int max_search_states)
     {
         return std::make_shared<PUCSFlawFinder>(max_search_states);
     }

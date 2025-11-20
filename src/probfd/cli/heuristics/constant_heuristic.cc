@@ -26,7 +26,7 @@ public:
     }
 
     [[nodiscard]]
-    static std::shared_ptr<TaskHeuristicFactory> func(const Context&)
+    static std::shared_ptr<TaskHeuristicFactory> func()
     {
         return std::make_shared<BlindHeuristicFactory>();
     }

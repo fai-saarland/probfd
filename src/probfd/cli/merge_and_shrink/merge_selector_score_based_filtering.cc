@@ -40,7 +40,6 @@ public:
 
 protected:
     static shared_ptr<MergeSelector> func(
-        const utils::Context&,
         std::vector<std::shared_ptr<MergeScoringFunction>> scoring_functions)
     {
         return make_shared_from_arg_tuples<MergeSelectorScoreBasedFiltering>(

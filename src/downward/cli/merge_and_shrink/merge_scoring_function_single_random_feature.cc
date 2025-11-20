@@ -36,7 +36,7 @@ public:
     }
 
     static shared_ptr<MergeScoringFunction>
-    func(const Context&, int random_seed)
+    func(int random_seed)
     {
         return make_shared_from_arg_tuples<MergeScoringFunctionSingleRandom>(
             random_seed);

@@ -36,7 +36,6 @@ public:
     }
 
     static shared_ptr<PatternCollectionGenerator> func(
-        const Context&,
         const std::vector<Pattern>& patterns,
         Verbosity verbosity)
     {

@@ -306,7 +306,6 @@ public:
     }
 
     static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        const Context& context,
         shared_ptr<TaskTransformation> transformation,
         bool cache_estimates,
         string description,
@@ -325,8 +324,7 @@ public:
         handle_shrink_limit_options_defaults(
             max_states,
             max_states_before_merge,
-            threshold_before_merge,
-            context);
+            threshold_before_merge);
 
         return make_shared_from_arg_tuples<MergeAndShrinkHeuristicFactory>(
             std::move(transformation),
@@ -547,7 +545,6 @@ public:
     }
 
     static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        const Context& context,
         shared_ptr<TaskTransformation> transformation,
         bool cache_estimates,
         string description,
@@ -561,12 +558,10 @@ public:
         int threshold_before_merge,
         FSeconds main_loop_max_time)
     {
-
         handle_shrink_limit_options_defaults(
             max_states,
             max_states_before_merge,
-            threshold_before_merge,
-            context);
+            threshold_before_merge);
 
         return make_shared_from_arg_tuples<MergeAndShrinkHeuristicFactory>(
             std::move(transformation),

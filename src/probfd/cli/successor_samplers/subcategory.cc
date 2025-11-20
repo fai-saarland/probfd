@@ -57,7 +57,7 @@ public:
     }
 
     [[nodiscard]]
-    static std::shared_ptr<SuccessorSampler<Fret>> func(const Context&)
+    static std::shared_ptr<SuccessorSampler<Fret>> func()
     {
         return std::make_shared<Wrapper<ArbitrarySuccessorSampler, Fret>>();
     }
@@ -76,7 +76,7 @@ public:
     }
 
     [[nodiscard]]
-    static std::shared_ptr<SuccessorSampler<Fret>> func(const Context&)
+    static std::shared_ptr<SuccessorSampler<Fret>> func()
     {
         return std::make_shared<Wrapper<MostLikelySuccessorSampler, Fret>>();
     }
@@ -95,8 +95,7 @@ public:
         add_rng_options_to_feature(*this, 0);
     }
 
-    static std::shared_ptr<SuccessorSampler<Fret>>
-    func(const Context&, int random_seed)
+    static std::shared_ptr<SuccessorSampler<Fret>> func(int random_seed)
     {
         return make_shared_from_arg_tuples<
             Wrapper<UniformSuccessorSampler, Fret>>(random_seed);
@@ -115,8 +114,7 @@ public:
         add_rng_options_to_feature(*this, 0);
     }
 
-    static std::shared_ptr<SuccessorSampler<Fret>>
-    func(const Context&, int random_seed)
+    static std::shared_ptr<SuccessorSampler<Fret>> func(int random_seed)
     {
         return make_shared_from_arg_tuples<
             Wrapper<RandomSuccessorSampler, Fret>>(random_seed);
@@ -135,8 +133,7 @@ public:
         add_rng_options_to_feature(*this, 0);
     }
 
-    static std::shared_ptr<SuccessorSampler<Fret>>
-    func(const Context&, int random_seed)
+    static std::shared_ptr<SuccessorSampler<Fret>> func(int random_seed)
     {
         return make_shared_from_arg_tuples<
             Wrapper<VBiasedSuccessorSampler, Fret>>(random_seed);
@@ -161,7 +158,7 @@ public:
     }
 
     static std::shared_ptr<SuccessorSampler<Fret>>
-    func(const Context&, int random_seed, bool prefer_large_gaps)
+    func(int random_seed, bool prefer_large_gaps)
     {
         return make_shared_from_arg_tuples<
             Wrapper<VDiffSuccessorSampler, Fret>>(

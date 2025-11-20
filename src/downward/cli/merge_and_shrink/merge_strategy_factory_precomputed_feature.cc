@@ -53,7 +53,6 @@ public:
     }
 
     static shared_ptr<MergeStrategyFactory> func(
-        const Context&,
         const std::shared_ptr<MergeTreeFactory>& merge_tree,
         downward::utils::Verbosity verbosity)
     {

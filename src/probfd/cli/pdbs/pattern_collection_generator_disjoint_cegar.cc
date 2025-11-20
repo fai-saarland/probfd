@@ -110,7 +110,6 @@ public:
     }
 
     static shared_ptr<PatternCollectionGenerator> func(
-        const Context&,
         value_t convergence_epsilon,
         bool use_wildcard_policies,
         bool single_goal,

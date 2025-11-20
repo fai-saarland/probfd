@@ -56,8 +56,7 @@ public:
         add_pruning_options_to_feature(*this, 0);
     }
 
-    static shared_ptr<PruningMethod>
-    func(const utils::Context&, utils::Verbosity verbosity)
+    static shared_ptr<PruningMethod> func(utils::Verbosity verbosity)
     {
         return make_shared<StubbornSetsEC>(verbosity);
     }

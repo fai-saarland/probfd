@@ -37,7 +37,6 @@ public:
     }
 
     static std::shared_ptr<TaskHeuristicFactory> func(
-        const Context&,
         std::shared_ptr<downward::TaskDependentFactory<Evaluator>> heuristic)
     {
         return std::make_shared<DeterminizationCostHeuristicFactory>(

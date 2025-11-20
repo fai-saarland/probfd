@@ -37,7 +37,6 @@ public:
 
 protected:
     static std::shared_ptr<TaskHeuristicFactory> func(
-        const Context&,
         std::shared_ptr<downward::TaskDependentFactory<Evaluator>> evaluator)
     {
         return std::make_shared<DeadEndPruningHeuristicFactory>(

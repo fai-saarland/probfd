@@ -34,7 +34,7 @@ public:
     }
 
     static shared_ptr<PatternCollectionGenerator>
-    func(const Context&, int max_states, downward::utils::Verbosity verbosity)
+    func(int max_states, downward::utils::Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<PatternCollectionGeneratorCombo>(
             max_states,

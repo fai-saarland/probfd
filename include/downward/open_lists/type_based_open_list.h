@@ -170,12 +170,14 @@ class TypeBasedOpenListFactory : public TaskDependentFactory<OpenList<T>> {
 
 public:
     TypeBasedOpenListFactory(
-        const std::vector<std::shared_ptr<TaskDependentFactory<Evaluator>>>&
-            factories,
+        std::vector<std::shared_ptr<TaskDependentFactory<Evaluator>>> factories,
         int random_seed)
         : factories(std::move(factories))
         , random_seed(random_seed)
     {
+        if (this->factories.empty()) {
+            throw std::domain_error("List of evaluators may not be empty.");
+        }
     }
 
     std::unique_ptr<OpenList<T>>

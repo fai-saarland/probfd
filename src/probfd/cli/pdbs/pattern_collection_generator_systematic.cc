@@ -60,7 +60,6 @@ public:
     }
 
     static std::shared_ptr<PatternCollectionGenerator> func(
-        const utils::Context&,
         int pattern_max_size,
         bool only_interesting_patterns,
         downward::utils::Verbosity verbosity)

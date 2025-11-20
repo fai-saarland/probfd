@@ -23,7 +23,7 @@ public:
     {
     }
 
-    static std::shared_ptr<SubCollectionFinderFactory> func(const Context&)
+    static std::shared_ptr<SubCollectionFinderFactory> func()
     {
         return std::make_shared<FullyAdditiveFinderFactory>();
     }

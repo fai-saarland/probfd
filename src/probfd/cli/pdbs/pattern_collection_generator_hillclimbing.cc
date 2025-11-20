@@ -101,7 +101,6 @@ public:
     }
 
     static std::shared_ptr<PatternCollectionGenerator> func(
-        const Context& context,
         std::shared_ptr<PatternCollectionGenerator> initial_generator,
         std::shared_ptr<SubCollectionFinderFactory>
             subcollection_finder_factory,
@@ -114,12 +113,6 @@ public:
         std::shared_ptr<RandomNumberGenerator> rng,
         Verbosity verbosity)
     {
-        if (min_improvement > num_samples) {
-            context.error(
-                "Minimum improvement must not be higher than number "
-                "of samples");
-        }
-
         return make_shared<PatternCollectionGeneratorHillclimbing>(
             std::move(initial_generator),
             std::move(subcollection_finder_factory),

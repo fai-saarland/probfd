@@ -419,6 +419,12 @@ PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(
         throw std::domain_error("min_improvement must be >= 1.");
     }
 
+    if (min_improvement > num_samples) {
+        throw std::domain_error(
+            "Minimum improvement must not be higher than number "
+            "of samples");
+    }
+
     if (max_time.count() < 0) {
         throw std::domain_error("max_time must be >= 0.");
     }

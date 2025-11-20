@@ -81,7 +81,6 @@ public:
     }
 
     static shared_ptr<PatternCollectionGenerator> func(
-        const Context&,
         int max_pdb_size,
         int max_collection_size,
         FSeconds max_time,

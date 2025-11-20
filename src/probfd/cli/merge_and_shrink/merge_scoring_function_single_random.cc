@@ -33,8 +33,7 @@ public:
     }
 
 protected:
-    static shared_ptr<MergeScoringFunction>
-    func(const utils::Context&, int random_seed)
+    static shared_ptr<MergeScoringFunction> func(int random_seed)
     {
         return make_shared_from_arg_tuples<MergeScoringFunctionSingleRandom>(
             random_seed);

@@ -201,8 +201,9 @@ const Namespace& Namespace::get_nested_namespace(const std::string& name) const
 
 const Feature& Namespace::get_feature(const string& name) const
 {
-    if (const auto it = features.find(name); it != features.end()) {
-        return **it;
+    if (const auto it = features_by_name.find(name);
+        it != features_by_name.end()) {
+        return *it->second;
     }
 
     throw MissingFeatureError(
@@ -211,7 +212,7 @@ const Feature& Namespace::get_feature(const string& name) const
 
 bool Namespace::has_feature(const string& name) const
 {
-    return features.contains(name);
+    return features_by_name.contains(name);
 }
 
 } // namespace downward::cli::plugins

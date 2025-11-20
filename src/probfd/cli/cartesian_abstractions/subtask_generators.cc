@@ -30,7 +30,7 @@ public:
             "number of task copies");
     }
 
-    static std::shared_ptr<SubtaskGenerator> func(const Context&, int copies)
+    static std::shared_ptr<SubtaskGenerator> func(int copies)
     {
         return make_shared_from_arg_tuples<TaskDuplicator>(copies);
     }
@@ -51,7 +51,7 @@ public:
     }
 
     static std::shared_ptr<SubtaskGenerator>
-    func(const Context&, FactOrder order, int random_seed)
+    func(FactOrder order, int random_seed)
     {
         return make_shared_from_arg_tuples<GoalDecomposition>(
             order,
@@ -92,7 +92,6 @@ public:
     }
 
     static std::shared_ptr<SubtaskGenerator> func(
-        const Context&,
         std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory,
         FactOrder order,
         bool combine_facts,

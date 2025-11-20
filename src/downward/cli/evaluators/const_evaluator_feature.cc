@@ -68,7 +68,6 @@ public:
     }
 
     static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        const Context&,
         std::string description,
         Verbosity verbosity,
         int value)

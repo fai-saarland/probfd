@@ -44,7 +44,6 @@ public:
     }
 
     static shared_ptr<LandmarkFactory> func(
-        const Context&,
         bool disjunctive_landmarks,
         bool use_orders,
         downward::utils::Verbosity verbosity)

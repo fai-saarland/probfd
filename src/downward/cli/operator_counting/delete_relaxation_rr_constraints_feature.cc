@@ -86,7 +86,7 @@ public:
     }
 
     static std::shared_ptr<ConstraintGenerator>
-    func(const Context&, AcyclicityType acyclicity_type, bool use_integer_vars)
+    func(AcyclicityType acyclicity_type, bool use_integer_vars)
     {
         return std::make_shared<DeleteRelaxationRRConstraints>(
             acyclicity_type,

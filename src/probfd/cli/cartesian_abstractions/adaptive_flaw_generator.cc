@@ -32,7 +32,6 @@ public:
 
 protected:
     static std::shared_ptr<FlawGeneratorFactory> func(
-        const Context&,
         std::vector<std::shared_ptr<FlawGeneratorFactory>> generators)
     {
         return std::make_shared<AdaptiveFlawGeneratorFactory>(

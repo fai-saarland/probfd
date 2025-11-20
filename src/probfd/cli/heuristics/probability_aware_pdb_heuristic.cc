@@ -56,7 +56,6 @@ public:
     }
 
     static std::shared_ptr<TaskHeuristicFactory> func(
-        const utils::Context&,
         std::shared_ptr<PatternCollectionGenerator> generator,
         utils::FSeconds max_time_dominance_pruning,
         utils::Verbosity verbosity)

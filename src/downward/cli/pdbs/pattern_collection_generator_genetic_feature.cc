@@ -148,7 +148,6 @@ public:
     }
 
     static shared_ptr<PatternCollectionGenerator> func(
-        const Context&,
         int pdb_max_size,
         int num_collections,
         int num_episodes,

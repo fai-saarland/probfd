@@ -48,7 +48,6 @@ public:
 
 protected:
     static shared_ptr<ShrinkStrategy> func(
-        const utils::Context&,
         int random_seed,
         ShrinkStrategyEqualDistance::Priority high_low)
     {

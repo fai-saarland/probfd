@@ -21,7 +21,7 @@ public:
     {
     }
 
-    static std::shared_ptr<FlawGeneratorFactory> func(const Context&)
+    static std::shared_ptr<FlawGeneratorFactory> func()
     {
         return std::make_shared<AStarFlawGeneratorFactory>();
     }

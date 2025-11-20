@@ -27,7 +27,7 @@ public:
         add_shrink_bucket_options_to_feature(*this, 0);
     }
 
-    static shared_ptr<ShrinkStrategy> func(const Context&, int random_seed)
+    static shared_ptr<ShrinkStrategy> func(int random_seed)
     {
         return make_shared_from_arg_tuples<ShrinkRandom>(random_seed);
     }

@@ -55,7 +55,6 @@ public:
     }
 
     static shared_ptr<PatternCollectionGenerator> func(
-        const Context&,
         bool bidirectional,
         int max_pdb_size,
         int max_collection_size,

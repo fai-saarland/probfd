@@ -30,7 +30,7 @@ public:
             "All other candidates get a score of positive infinity.");
     }
 
-    static shared_ptr<MergeScoringFunction> func(const Context&)
+    static shared_ptr<MergeScoringFunction> func()
     {
         return make_shared<MergeScoringFunctionGoalRelevance>();
     }

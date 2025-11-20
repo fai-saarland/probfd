@@ -184,7 +184,8 @@ class Namespace {
 
     std::set<CategoryPlugin, CategoryComparator> category_plugins;
     std::vector<EnumPlugin> enum_plugins;
-    std::set<std::unique_ptr<Feature>, FeatureComparator> features;
+    std::deque<std::unique_ptr<Feature>> features;
+    std::map<std::string, const Feature*> features_by_name;
 
 public:
     Namespace& get_or_create_nested_namespace(const std::string& name);
@@ -278,17 +279,35 @@ public:
     }
 
     template <std::derived_from<Feature> T>
-    const Feature& insert_feature_plugin()
+    T& insert_feature_plugin()
     {
-        const auto [it, inserted] = features.insert(std::make_unique<T>());
+        auto& f = *features.emplace_back(std::make_unique<T>());
+        const auto [it, inserted] = features_by_name.emplace(f.get_key(), &f);
 
         if (!inserted) {
             throw downward::utils::CriticalError(
                 "Feature with name {} already defined.",
-                (*it)->get_key());
+                f.get_key());
         }
 
-        return **it;
+        return static_cast<T&>(f);
+    }
+
+    template <typename R, typename... Args>
+    TypedFeature<R, Args...>&
+    insert_typed_feature_plugin(std::string name, R (*func)(Args...))
+    {
+        auto& f = *features.emplace_back(
+            std::make_unique<TypedFeature<R, Args...>>(name, func));
+        const auto [it, inserted] = features_by_name.emplace(f.get_key(), &f);
+
+        if (!inserted) {
+            throw downward::utils::CriticalError(
+                "Feature with name {} already defined.",
+                f.get_key());
+        }
+
+        return static_cast<TypedFeature<R, Args...>>(f);
     }
 
     template <template <bool...> typename T, bool... b>
@@ -306,7 +325,7 @@ public:
     bool has_feature(const std::string& name) const;
     const Feature& get_feature(const std::string& name) const;
 
-    auto get_features() const { return std::views::all(features); }
+    auto get_features() const { return features_by_name | std::views::values; }
 
     auto get_categories() const { return std::views::all(category_plugins); }
 

@@ -97,6 +97,11 @@ public:
         , random_seed(random_seed)
         , max_time_dominance_pruning(max_time_dominance_pruning)
     {
+        if (min_improvement > num_samples) {
+            throw std::domain_error(
+                "Minimum improvement must not be higher than number "
+                "of samples");
+        }
     }
 
     unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
@@ -179,7 +184,6 @@ public:
     }
 
     static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        const Context& context,
         shared_ptr<TaskTransformation> transformation,
         bool cache_estimates,
         string description,
@@ -192,12 +196,6 @@ public:
         int random_seed,
         FSeconds max_time_dominance_pruning)
     {
-        if (min_improvement > num_samples) {
-            context.error(
-                "Minimum improvement must not be higher than number "
-                "of samples");
-        }
-
         return make_shared_from_arg_tuples<IPDBsHeuristicFactory>(
             std::move(transformation),
             cache_estimates,

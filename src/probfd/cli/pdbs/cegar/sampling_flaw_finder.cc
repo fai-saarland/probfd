@@ -35,7 +35,7 @@ public:
     }
 
     static std::shared_ptr<FlawFindingStrategy>
-    func(const Context&, int random_seed, int max_search_states)
+    func(int random_seed, int max_search_states)
     {
         return make_shared_from_arg_tuples<SamplingFlawFinder>(
             get_rng(random_seed),

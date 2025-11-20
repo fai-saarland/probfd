@@ -19,7 +19,7 @@ public:
     }
 
     [[nodiscard]]
-    static shared_ptr<TaskTransformation> func(const utils::Context&)
+    static shared_ptr<TaskTransformation> func()
     {
         return std::make_shared<IdentityTaskTransformation>();
     }

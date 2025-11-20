@@ -79,7 +79,7 @@ public:
     }
 
     static shared_ptr<ConstraintGenerator>
-    func(const Context&, downward::utils::Verbosity verbosity)
+    func(downward::utils::Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<StateEquationConstraints>(verbosity);
     }

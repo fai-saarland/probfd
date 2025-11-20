@@ -149,7 +149,6 @@ public:
     }
 
     static shared_ptr<TaskDependentFactory<SearchAlgorithm>> func(
-        const utils::Context&,
         std::vector<shared_ptr<TaskDependentFactory<Evaluator>>> eval_factories,
         std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>
             preferred_factories,

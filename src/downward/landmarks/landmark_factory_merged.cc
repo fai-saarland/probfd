@@ -15,11 +15,14 @@ namespace downward::landmarks {
 class LandmarkNode;
 
 LandmarkFactoryMerged::LandmarkFactoryMerged(
-    const vector<shared_ptr<LandmarkFactory>>& lm_factories,
+    vector<shared_ptr<LandmarkFactory>> lm_factories,
     utils::Verbosity verbosity)
     : LandmarkFactory(verbosity)
     , lm_factories(lm_factories)
 {
+    if (this->lm_factories.empty()) {
+        throw std::domain_error("List of landmark factories may not be empty.");
+    }
 }
 
 LandmarkNode*

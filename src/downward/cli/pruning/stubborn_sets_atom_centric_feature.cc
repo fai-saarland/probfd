@@ -72,7 +72,6 @@ public:
     }
 
     static shared_ptr<downward::PruningMethod> func(
-        const Context&,
         bool use_sibling_shortcut,
         AtomSelectionStrategy atom_selection_strategy,
         downward::utils::Verbosity verbosity)

@@ -56,7 +56,6 @@ public:
 
 protected:
     static shared_ptr<MergeTreeFactory> func(
-        const utils::Context&,
         int random_seed,
         UpdateOption update_option,
         downward::variable_order_finder::VariableOrderType variable_order)

@@ -61,7 +61,6 @@ public:
     }
 
     static shared_ptr<PatternCollectionGenerator> func(
-        const Context&,
         int pattern_max_size,
         bool only_interesting_patterns,
         Verbosity verbosity)

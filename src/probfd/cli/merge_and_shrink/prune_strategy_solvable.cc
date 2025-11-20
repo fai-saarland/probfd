@@ -19,7 +19,7 @@ public:
         document_synopsis("This prune strategy keeps only solvable states.");
     }
 
-    static std::shared_ptr<PruneStrategy> func(const utils::Context&)
+    static std::shared_ptr<PruneStrategy> func()
     {
         return std::make_shared<PruneStrategySolvable>();
     }

@@ -90,7 +90,6 @@ public:
     }
 
     static shared_ptr<ShrinkStrategy> func(
-        const Context&,
         ShrinkFH::HighLow shrink_f,
         ShrinkFH::HighLow shrink_h,
         int random_seed)

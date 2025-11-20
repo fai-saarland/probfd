@@ -33,7 +33,7 @@ public:
     }
 
     static std::shared_ptr<SplitSelectorFactory>
-    func(const Context&, int random_seed)
+    func(int random_seed)
     {
         return make_shared_from_arg_tuples<SplitSelectorRandomFactory>(
             get_rng(random_seed));
@@ -54,7 +54,7 @@ public:
             "h-value will probably be raised) in the flaw state");
     }
 
-    static std::shared_ptr<SplitSelectorFactory> func(const Context&)
+    static std::shared_ptr<SplitSelectorFactory> func()
     {
         return std::make_shared<SplitSelectorMinUnwantedFactory>();
     }
@@ -74,7 +74,7 @@ public:
             "h-value will probably be raised) in the flaw state");
     }
 
-    static std::shared_ptr<SplitSelectorFactory> func(const Context&)
+    static std::shared_ptr<SplitSelectorFactory> func()
     {
         return std::make_shared<SplitSelectorMaxUnwantedFactory>();
     }
@@ -94,7 +94,7 @@ public:
             "in the flaw state");
     }
 
-    static std::shared_ptr<SplitSelectorFactory> func(const Context&)
+    static std::shared_ptr<SplitSelectorFactory> func()
     {
         return std::make_shared<SplitSelectorMinRefinedFactory>();
     }
@@ -114,7 +114,7 @@ public:
             "in the flaw state");
     }
 
-    static std::shared_ptr<SplitSelectorFactory> func(const Context&)
+    static std::shared_ptr<SplitSelectorFactory> func()
     {
         return std::make_shared<SplitSelectorMaxRefinedFactory>();
     }
@@ -131,7 +131,7 @@ public:
             "over all facts that need to be removed from the flaw state");
     }
 
-    static std::shared_ptr<SplitSelectorFactory> func(const Context&)
+    static std::shared_ptr<SplitSelectorFactory> func()
     {
         return std::make_shared<SplitSelectorMinHAddFactory>();
     }
@@ -149,7 +149,7 @@ public:
             "state");
     }
 
-    static std::shared_ptr<SplitSelectorFactory> func(const Context&)
+    static std::shared_ptr<SplitSelectorFactory> func()
     {
         return std::make_shared<SplitSelectorMaxHAddFactory>();
     }

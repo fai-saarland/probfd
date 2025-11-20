@@ -199,7 +199,6 @@ public:
     }
 
     static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        const utils::Context&,
         shared_ptr<TaskTransformation> transformation,
         bool cache_estimates,
         string description,

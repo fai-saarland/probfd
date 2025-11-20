@@ -65,16 +65,11 @@ public:
 
     static shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
     func(
-        const Context& context,
         const std::vector<std::shared_ptr<
             downward::TaskDependentFactory<downward::Evaluator>>>& factories,
         bool unsafe_pruning,
         bool pref_only)
     {
-        if (factories.empty()) {
-            context.error("List of evaluators may not be empty.");
-        }
-
         return make_shared_from_arg_tuples<TieBreakingOpenListFactory<T>>(
             std::move(factories),
             unsafe_pruning,

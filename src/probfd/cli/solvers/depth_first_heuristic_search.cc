@@ -58,6 +58,25 @@ public:
         , cutoff_inconsistent_(cutoff_inconsistent)
         , labeling_(labeling)
     {
+        using enum BacktrackingUpdateType;
+
+        if (!forward_updates_) {
+            if (cutoff_inconsistent) {
+                throw std::domain_error(
+                    "cutoff_inconsistent requires forward updates!");
+            }
+            if (backward_updates_ == ON_DEMAND) {
+                if (cutoff_tip) {
+                    throw std::domain_error(
+                        "ondemand backward updates require forward updates or "
+                        "cutoff_tip=false!");
+                }
+            } else if (backward_updates_ == DISABLED && labeling_) {
+                throw std::domain_error(
+                    "either value_iteration, forward_updates, or "
+                    "backward_updates must be enabled!");
+            }
+        }
     }
 
     std::string get_heuristic_search_name() const override { return name_; }
@@ -118,7 +137,6 @@ public:
 
 protected:
     static std::shared_ptr<TaskSolverFactory> func(
-        const utils::Context& context,
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,
@@ -135,25 +153,6 @@ protected:
         bool cutoff_inconsistent,
         bool labeling)
     {
-        using enum BacktrackingUpdateType;
-
-        if (!forward_updates) {
-            if (cutoff_inconsistent) {
-                context.error("cutoff_inconsistent requires forward updates!");
-            }
-            if (backward_updates == ON_DEMAND) {
-                if (cutoff_tip) {
-                    context.error(
-                        "ondemand backward updates require forward updates or "
-                        "cutoff_tip=false!");
-                }
-            } else if (backward_updates == DISABLED && labeling) {
-                context.error(
-                    "either value_iteration, forward_updates, or "
-                    "backward_updates must be enabled!");
-            }
-        }
-
         return make_shared_from_arg_tuples<MDPSolver>(
             make_shared_from_arg_tuples<DFHSSolver<Bisimulation, false>>(
                 "dfhs",
@@ -204,7 +203,6 @@ public:
     }
 
     static std::shared_ptr<TaskSolverFactory> func(
-        const utils::Context&,
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,
@@ -265,7 +263,6 @@ public:
     }
 
     static std::shared_ptr<TaskSolverFactory> func(
-        const utils::Context&,
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,
@@ -326,7 +323,6 @@ public:
     }
 
     static std::shared_ptr<TaskSolverFactory> func(
-        const utils::Context&,
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,
@@ -402,7 +398,6 @@ public:
 
 protected:
     static std::shared_ptr<TaskSolverFactory> func(
-        const utils::Context& context,
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,
@@ -420,25 +415,6 @@ protected:
         bool cutoff_inconsistent,
         bool labeling)
     {
-        using enum BacktrackingUpdateType;
-
-        if (!forward_updates) {
-            if (cutoff_inconsistent) {
-                context.error("cutoff_inconsistent requires forward updates!");
-            }
-            if (backward_updates == ON_DEMAND) {
-                if (cutoff_tip) {
-                    context.error(
-                        "ondemand backward updates require forward updates or "
-                        "cutoff_tip=false!");
-                }
-            } else if (backward_updates == DISABLED && labeling) {
-                context.error(
-                    "either value_iteration, forward_updates, or "
-                    "backward_updates must be enabled!");
-            }
-        }
-
         return make_shared_from_arg_tuples<MDPSolver>(
             make_shared_from_arg_tuples<DFHSSolver<Bisimulation, true>>(
                 "dfhs",
@@ -490,7 +466,6 @@ public:
     }
 
     static std::shared_ptr<TaskSolverFactory> func(
-        const utils::Context&,
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,
@@ -554,7 +529,6 @@ public:
     }
 
     static std::shared_ptr<TaskSolverFactory> func(
-        const utils::Context&,
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,
@@ -618,7 +592,6 @@ public:
     }
 
     static std::shared_ptr<TaskSolverFactory> func(
-        const utils::Context&,
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,

@@ -64,7 +64,6 @@ public:
 
 protected:
     static shared_ptr<MergeStrategyFactory> func(
-        const utils::Context&,
         utils::Verbosity verbosity,
         std::shared_ptr<MergeSelector> merge_selector)
     {

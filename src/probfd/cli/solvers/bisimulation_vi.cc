@@ -249,7 +249,7 @@ public:
 
 protected:
     static std::shared_ptr<TaskSolverFactory>
-    func(const utils::Context&, value_t convergence_epsilon)
+    func(value_t convergence_epsilon)
     {
         return std::make_shared<BisimulationIterationFactory>(
             convergence_epsilon,
@@ -274,7 +274,7 @@ public:
 
 protected:
     static std::shared_ptr<TaskSolverFactory>
-    func(const utils::Context&, value_t convergence_epsilon)
+    func(value_t convergence_epsilon)
     {
         return std::make_shared<BisimulationIterationFactory>(
             convergence_epsilon,

@@ -86,7 +86,7 @@ public:
     }
 
     static shared_ptr<ConstraintGenerator>
-    func(const Context&, bool use_time_vars, bool use_integer_vars)
+    func(bool use_time_vars, bool use_integer_vars)
     {
         return make_shared<DeleteRelaxationIFConstraints>(
             use_time_vars,

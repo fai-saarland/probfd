@@ -50,7 +50,6 @@ public:
     }
 
     static shared_ptr<LandmarkFactory> func(
-        const Context&,
         bool use_unary_relaxation,
         downward::utils::Verbosity verbosity)
     {

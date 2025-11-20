@@ -38,7 +38,6 @@ public:
     }
 
     static shared_ptr<MergeSelector> func(
-        const Context&,
         const std::vector<std::shared_ptr<MergeScoringFunction>>&
             scoring_functions)
     {

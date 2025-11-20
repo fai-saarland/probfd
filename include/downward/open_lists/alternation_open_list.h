@@ -136,6 +136,9 @@ public:
         : sublists(sublists)
         , boost(boost)
     {
+        if (sublists.empty()) {
+            throw std::domain_error("List of open lists has to be non-empty.");
+        }
     }
 
     std::unique_ptr<OpenList<T>>

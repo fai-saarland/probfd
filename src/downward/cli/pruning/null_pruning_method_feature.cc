@@ -35,7 +35,7 @@ public:
     }
 
     static shared_ptr<downward::PruningMethod>
-    func(const downward::utils::Context&, downward::utils::Verbosity verbosity)
+    func(downward::utils::Verbosity verbosity)
     {
         return make_shared<NullPruningMethod>(verbosity);
     }

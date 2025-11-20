@@ -60,7 +60,7 @@ public:
             "\n}}}");
     }
 
-    static shared_ptr<MergeScoringFunction> func(const utils::Context&)
+    static shared_ptr<MergeScoringFunction> func()
     {
         return make_shared<MergeScoringFunctionDFP>();
     }

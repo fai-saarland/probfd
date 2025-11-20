@@ -51,6 +51,9 @@ public:
         , description(description)
         , verbosity(verbosity)
     {
+        if (this->eval_factories.empty()) {
+            throw std::domain_error("List of evaluators may not be empty.");
+        }
     }
 
     unique_ptr<SearchAlgorithm>
@@ -162,7 +165,6 @@ public:
     }
 
     static shared_ptr<TaskDependentFactory<SearchAlgorithm>> func(
-        const utils::Context& context,
         std::vector<shared_ptr<TaskDependentFactory<Evaluator>>> eval_factories,
         std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>
             preferred_factories,
@@ -174,10 +176,6 @@ public:
         const std::string& description,
         utils::Verbosity verbosity)
     {
-        if (eval_factories.empty()) {
-            context.error("List of evaluators may not be empty.");
-        }
-
         return make_shared_from_arg_tuples<EagerGreedySearchFactory>(
             std::move(eval_factories),
             std::move(preferred_factories),

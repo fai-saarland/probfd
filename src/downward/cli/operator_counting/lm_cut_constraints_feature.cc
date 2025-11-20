@@ -54,7 +54,7 @@ public:
                 "2013"));
     }
 
-    static shared_ptr<ConstraintGenerator> func(const Context&)
+    static shared_ptr<ConstraintGenerator> func()
     {
         return make_shared<LMCutConstraints>();
     }

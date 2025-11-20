@@ -55,7 +55,7 @@ public:
     }
 
     static shared_ptr<TaskDependentFactory<Evaluator>>
-    func(const Context&, std::string description, Verbosity verbosity)
+    func(std::string description, Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<PrefEvaluatorFactory>(
             std::move(description),

@@ -94,7 +94,6 @@ public:
     }
 
     static std::shared_ptr<TaskHeuristicFactory> func(
-        const utils::Context&,
         std::vector<std::shared_ptr<SubtaskGenerator>> subtasks,
         std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory,
         std::shared_ptr<SplitSelectorFactory> split_selector_factory,

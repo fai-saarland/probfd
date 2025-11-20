@@ -7,10 +7,6 @@ namespace downward::cli::plugins {
 class Feature;
 } // namespace downward::cli::plugins
 
-namespace downward::utils {
-class Context;
-} // namespace downward::utils
-
 namespace probfd::cli::merge_and_shrink {
 
 extern std::size_t add_transition_system_size_limit_options_to_feature(
@@ -20,8 +16,7 @@ extern std::size_t add_transition_system_size_limit_options_to_feature(
 extern void handle_shrink_limit_options_defaults(
     int& max_states,
     int& max_states_before_merge,
-    int& threshold_before_merge,
-    const downward::utils::Context& context);
+    int& threshold_before_merge);
 
 } // namespace probfd::cli::merge_and_shrink
 

@@ -65,7 +65,6 @@ public:
     }
 
     static shared_ptr<downward::PruningMethod> func(
-        const Context&,
         const std::shared_ptr<downward::PruningMethod>& pruning,
         double min_required_pruning_ratio,
         int expansions_before_checking_pruning_ratio,

@@ -33,7 +33,7 @@ public:
     }
 
     static shared_ptr<PatternGenerator>
-    func(const Context&, const std::vector<int>& pattern, Verbosity verbosity)
+    func(const std::vector<int>& pattern, Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<PatternGeneratorManual>(
             pattern,

@@ -57,7 +57,6 @@ public:
     }
 
     static std::shared_ptr<PatternCollectionGenerator> func(
-        const Context&,
         probfd::value_t convergence_epsilon,
         std::shared_ptr<FlawFindingStrategy> flaw_strategy,
         bool use_wildcard_policies,
