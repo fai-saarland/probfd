@@ -39,6 +39,9 @@ public:
         , verbosity(verbosity)
         , evaluator_factories(std::move(evaluator_factories))
     {
+        if (this->evaluator_factories.empty()) {
+            throw std::domain_error("List of evaluators may not be empty.");
+        }
     }
 
     unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
@@ -72,15 +75,10 @@ public:
     }
 
     static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        const Context& context,
         std::string description,
         Verbosity verbosity,
         vector<shared_ptr<TaskDependentFactory<Evaluator>>> evaluator_factories)
     {
-        if (evaluator_factories.empty()) {
-            context.error("List of evaluators may not be empty.");
-        }
-
         return make_shared<MaxEvaluatorFactory>(
             std::move(description),
             verbosity,

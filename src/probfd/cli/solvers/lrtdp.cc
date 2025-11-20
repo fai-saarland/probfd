@@ -106,7 +106,6 @@ public:
 
 protected:
     static std::shared_ptr<TaskSolverFactory> func(
-        const Context&,
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,
@@ -141,7 +140,7 @@ protected:
 
 template <bool Bisimulation>
 class LRTDPFretSolverFeature
-    : public SharedTypedFeature<
+    : public SharedTypedFeatureWithContext<
           TaskSolverFactory,
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
@@ -160,7 +159,7 @@ class LRTDPFretSolverFeature
 
 public:
     LRTDPFretSolverFeature()
-        : LRTDPFretSolverFeature::TypedFeature(
+        : LRTDPFretSolverFeature::TypedFeatureWithContext(
               add_wrapper_algo_suffix<Bisimulation, true>("lrtdp"),
               &LRTDPFretSolverFeature::func)
     {

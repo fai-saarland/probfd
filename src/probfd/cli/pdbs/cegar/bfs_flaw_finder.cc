@@ -27,8 +27,7 @@ public:
     }
 
 protected:
-    static std::shared_ptr<FlawFindingStrategy>
-    func(const utils::Context&, int max_search_states)
+    static std::shared_ptr<FlawFindingStrategy> func(int max_search_states)
     {
         return std::make_shared<BFSFlawFinder>(max_search_states);
     }

@@ -29,12 +29,8 @@ public:
     }
 
     static shared_ptr<TaskDependentFactory<MutexInformation>>
-    func(const utils::Context& context, const std::string& filename)
+    func(const std::string& filename)
     {
-        if (!std::filesystem::exists(filename)) {
-            context.error("The mutex file {} does not exist!", filename);
-        }
-
         return make_shared_from_arg_tuples<FromFileMutexFactory>(filename);
     }
 };

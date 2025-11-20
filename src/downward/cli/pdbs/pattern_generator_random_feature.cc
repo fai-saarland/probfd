@@ -64,7 +64,6 @@ public:
     }
 
     static shared_ptr<PatternGenerator> func(
-        const Context&,
         int max_pdb_size,
         FSeconds max_time,
         bool bidirectional,

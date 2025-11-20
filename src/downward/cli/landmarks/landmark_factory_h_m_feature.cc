@@ -61,7 +61,6 @@ public:
     }
 
     static shared_ptr<LandmarkFactory> func(
-        const Context&,
         std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory,
         int m,
         bool conjunctive_landmarks,

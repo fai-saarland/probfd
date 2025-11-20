@@ -60,7 +60,7 @@ public:
     }
 
     static shared_ptr<TaskTransformation>
-    func(const utils::Context&, OperatorCost cost_type)
+    func(OperatorCost cost_type)
     {
         return make_shared_from_arg_tuples<CostAdaptedTaskTransformation>(
             cost_type);

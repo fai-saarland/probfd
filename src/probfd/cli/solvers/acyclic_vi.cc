@@ -102,7 +102,6 @@ public:
 
 protected:
     static std::shared_ptr<TaskSolverFactory> func(
-        const Context&,
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,

@@ -67,7 +67,6 @@ public:
     }
 
     static std::shared_ptr<TaskHeuristicFactory> func(
-        const Context&,
         std::shared_ptr<PatternCollectionGenerator>
             pattern_collection_generator,
         SCPHeuristicFactory::OrderingStrategy ordering,

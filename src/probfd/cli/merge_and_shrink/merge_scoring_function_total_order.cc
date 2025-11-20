@@ -86,7 +86,6 @@ public:
 
 protected:
     static shared_ptr<MergeScoringFunction> func(
-        const utils::Context&,
         AtomicTSOrder atomic_ts_order,
         ProductTSOrder product_ts_order,
         bool atomic_before_product,

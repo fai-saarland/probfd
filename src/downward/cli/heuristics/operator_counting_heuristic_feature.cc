@@ -53,6 +53,10 @@ public:
         , use_integer_operator_counts(use_integer_operator_counts)
         , lp_solver(lp_solver)
     {
+        if (this->constraint_generators.empty()) {
+            throw std::domain_error(
+                "List of constraint generators may not be empty.");
+        }
     }
 
     unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
@@ -154,7 +158,6 @@ public:
     }
 
     static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        const Context& context,
         shared_ptr<TaskTransformation> transformation,
         bool cache_estimates,
         string description,
@@ -163,10 +166,6 @@ public:
         bool use_integer_operator_counts,
         lp::LPSolverType lp_solver)
     {
-        if (constraint_generators.empty()) {
-            context.error("List of constraint generators may not be empty.");
-        }
-
         return make_shared_from_arg_tuples<OperatorCountingHeuristicFactory>(
             std::move(transformation),
             cache_estimates,

@@ -84,19 +84,12 @@ public:
     }
 
     static shared_ptr<LabelReduction> func(
-        const Context& context,
         bool before_shrinking,
         bool before_merging,
         LabelReductionMethod method,
         LabelReductionSystemOrder system_order,
         int random_seed)
     {
-        if (!before_shrinking && !before_merging) {
-            context.error(
-                "Please turn on at least one of the options "
-                "before_shrinking or before_merging!");
-        }
-
         return make_shared_from_arg_tuples<LabelReduction>(
             before_shrinking,
             before_merging,

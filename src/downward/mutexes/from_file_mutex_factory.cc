@@ -8,6 +8,7 @@
 #include "downward/utils/collections.h"
 #include "downward/utils/system.h"
 
+#include <format>
 #include <fstream>
 #include <memory>
 #include <set>
@@ -26,8 +27,9 @@ static void check_magic(std::istream& in, const std::string& magic)
             word);
 
         if (magic == "begin_version") {
-            error.append("\nPossible cause: you are running the planner on a "
-                         "translator output file from an older version.");
+            error.append(
+                "\nPossible cause: you are running the planner on a "
+                "translator output file from an older version.");
         }
 
         throw utils::InputError(error);
@@ -112,6 +114,10 @@ bool ExplicitMutexInformation::are_facts_mutex(
 FromFileMutexFactory::FromFileMutexFactory(std::string filename)
     : filename(std::move(filename))
 {
+    if (!std::filesystem::exists(filename)) {
+        throw std::domain_error(
+            std::format("The mutex file {} does not exist!", filename));
+    }
 }
 
 std::unique_ptr<MutexInformation>

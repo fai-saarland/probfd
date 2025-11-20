@@ -57,6 +57,9 @@ public:
         , continue_on_fail(continue_on_fail)
         , continue_on_solve(continue_on_solve)
     {
+        if (this->algorithm_configs.empty()) {
+            throw std::domain_error("List of algorithms may not be empty.");
+        }
     }
 
     unique_ptr<SearchAlgorithm>
@@ -148,7 +151,6 @@ public:
     }
 
     static shared_ptr<TaskDependentFactory<SearchAlgorithm>> func(
-        const utils::Context& context,
         OperatorCost cost_type,
         int bound,
         utils::FSeconds max_time,
@@ -161,10 +163,6 @@ public:
         bool continue_on_fail,
         bool continue_on_solve)
     {
-        if (algorithm_configs.empty()) {
-            context.error("List of algorithms may not be empty.");
-        }
-
         return make_shared<IteratedSearchFactory>(
             cost_type,
             bound,

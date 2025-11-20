@@ -236,7 +236,6 @@ public:
     }
 
     static shared_ptr<TaskHeuristicFactory> func(
-        const utils::Context& context,
         std::shared_ptr<MergeStrategyFactory> merge_strategy,
         std::shared_ptr<ShrinkStrategy> shrink_strategy,
         std::shared_ptr<LabelReduction> label_reduction,
@@ -250,8 +249,7 @@ public:
         handle_shrink_limit_options_defaults(
             max_states,
             max_states_before_merge,
-            threshold_before_merge,
-            context);
+            threshold_before_merge);
 
         return make_shared_from_arg_tuples<MergeAndShrinkHeuristicFactory>(
             std::move(merge_strategy),
@@ -325,7 +323,6 @@ public:
     }
 
     static shared_ptr<TaskHeuristicFactory> func(
-        const utils::Context& context,
         std::shared_ptr<MergeStrategyFactory> merge_strategy,
         std::shared_ptr<ShrinkStrategy> shrink_strategy,
         std::shared_ptr<PruneStrategy> prune_strategy,
@@ -338,8 +335,7 @@ public:
         handle_shrink_limit_options_defaults(
             max_states,
             max_states_before_merge,
-            threshold_before_merge,
-            context);
+            threshold_before_merge);
 
         return make_shared_from_arg_tuples<MergeAndShrinkHeuristicFactory>(
             std::move(merge_strategy),

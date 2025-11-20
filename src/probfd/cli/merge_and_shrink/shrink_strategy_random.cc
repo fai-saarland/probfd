@@ -30,8 +30,7 @@ public:
     }
 
 protected:
-    static shared_ptr<ShrinkStrategy>
-    func(const utils::Context&, int random_seed)
+    static shared_ptr<ShrinkStrategy> func(int random_seed)
     {
         return make_shared_from_arg_tuples<ShrinkStrategyRandom>(random_seed);
     }

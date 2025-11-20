@@ -30,7 +30,7 @@ public:
     }
 
     static shared_ptr<PatternGenerator>
-    func(const Context&, int max_states, Verbosity verbosity)
+    func(int max_states, Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<PatternGeneratorGreedy>(
             max_states,

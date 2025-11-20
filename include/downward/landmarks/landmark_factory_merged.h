@@ -15,7 +15,7 @@ class LandmarkFactoryMerged : public LandmarkFactory {
 
 public:
     LandmarkFactoryMerged(
-        const std::vector<std::shared_ptr<LandmarkFactory>>& lm_factories,
+        std::vector<std::shared_ptr<LandmarkFactory>> lm_factories,
         utils::Verbosity verbosity);
 
     bool supports_conditional_effects() const override;

@@ -70,7 +70,6 @@ public:
     }
 
     static shared_ptr<LandmarkFactory> func(
-        const Context&,
         const std::shared_ptr<LandmarkFactory>& lm_factory,
         std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory,
         utils::Verbosity verbosity)

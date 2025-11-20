@@ -35,7 +35,6 @@ public:
     }
 
     static std::shared_ptr<FlawGeneratorFactory> func(
-        const Context&,
         probfd::value_t convergence_epsilon,
         int max_search_states)
     {

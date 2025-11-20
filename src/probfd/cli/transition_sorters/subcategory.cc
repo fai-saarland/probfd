@@ -25,7 +25,7 @@ public:
     }
 
     static std::shared_ptr<FDRTransitionSorter>
-    func(const Context&, bool prefer_large_gaps)
+    func(bool prefer_large_gaps)
     {
         return std::make_shared<VDiffSorter>(prefer_large_gaps);
     }

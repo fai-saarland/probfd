@@ -55,7 +55,6 @@ public:
     }
 
     static std::shared_ptr<TaskHeuristicFactory> func(
-        const utils::Context&,
         std::shared_ptr<PatternCollectionGenerator>
             pattern_collection_generator,
         GZOCPHeuristicFactory::OrderingStrategy ordering,

@@ -73,7 +73,7 @@ public:
     }
 
     static shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
-    func(const Context&, bool pref_only)
+    func(bool pref_only)
     {
         return make_shared<BestFirstOpenListFactory<T>>(nullptr, pref_only);
     }
@@ -138,7 +138,6 @@ public:
 
     static shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
     func(
-        const Context&,
         shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>
             evaluator,
         bool pref_only)

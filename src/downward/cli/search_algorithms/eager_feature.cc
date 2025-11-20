@@ -121,7 +121,6 @@ public:
     }
 
     static shared_ptr<TaskDependentFactory<SearchAlgorithm>> func(
-        const utils::Context&,
         std::shared_ptr<TaskDependentFactory<StateOpenList>> open_list_factory,
         bool reopen_closed,
         std::shared_ptr<TaskDependentFactory<Evaluator>> f_eval_factory,
@@ -182,7 +181,6 @@ public:
     }
 
     static shared_ptr<TaskDependentFactory<SearchAlgorithm>> func(
-        const utils::Context& context,
         std::shared_ptr<TaskDependentFactory<StateOpenList>> open_list_factory,
         bool reopen_closed,
         std::vector<std::shared_ptr<TaskDependentFactory<Evaluator>>>
@@ -195,7 +193,6 @@ public:
         utils::Verbosity verbosity)
     {
         return EagerSearchWithFEvalFeature::func(
-            context,
             std::move(open_list_factory),
             reopen_closed,
             nullptr,

@@ -19,7 +19,7 @@ public:
         document_synopsis("This prune strategy keeps only alive states.");
     }
 
-    static std::shared_ptr<PruneStrategy> func(const utils::Context&)
+    static std::shared_ptr<PruneStrategy> func()
     {
         return std::make_shared<PruneStrategyAlive>();
     }

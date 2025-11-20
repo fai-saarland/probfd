@@ -101,7 +101,7 @@ void DocPrinter::print_category(const CategoryPlugin& category) const
                 type.is_feature_type() &&
                 static_cast<const FeatureType&>(type).get_type_index() ==
                     category.get_pointer_type()) {
-                features.push_back(feature.get());
+                features.push_back(feature);
             }
         }
 

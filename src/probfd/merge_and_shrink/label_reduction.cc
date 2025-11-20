@@ -39,6 +39,11 @@ LabelReduction::LabelReduction(
     , lr_system_order(system_order)
     , rng(utils::get_rng(random_seed))
 {
+    if (!before_shrinking && !before_merging) {
+        throw std::logic_error(
+            "Please turn on at least one of the options "
+            "before_shrinking or before_merging!");
+    }
 }
 
 bool LabelReduction::initialized() const

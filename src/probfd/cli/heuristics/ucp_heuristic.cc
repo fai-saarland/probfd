@@ -46,7 +46,6 @@ public:
     }
 
     static std::shared_ptr<TaskHeuristicFactory> func(
-        const Context&,
         std::shared_ptr<PatternCollectionGenerator> generator)
     {
         return make_shared_from_arg_tuples<UCPHeuristicFactory>(

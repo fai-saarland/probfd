@@ -79,10 +79,52 @@ public:
 
 template <typename ReturnType, typename... Args>
 class TypedFeature : public Feature {
+    std::function<ReturnType(Args...)> f;
+
+public:
+    explicit TypedFeature(std::string key, std::function<ReturnType(Args...)> f)
+        : Feature(std::move(key), sizeof...(Args))
+        , f(std::move(f))
+    {
+    }
+
+    std::any
+    construct(const Options& options, const downward::utils::Context& context)
+        const override
+    {
+        return construct(
+            options,
+            context,
+            std::make_index_sequence<sizeof...(Args)>{});
+    }
+
+    const FunctionType& get_type() const override
+    {
+        return TypeRegistry::instance()
+            ->get_function_type<ReturnType, Args...>();
+    }
+
+private:
+    template <std::size_t... indices>
+    std::any construct(
+        const Options& options,
+        const downward::utils::Context& context,
+        std::index_sequence<indices...>) const
+    {
+        try {
+            return std::invoke(f, options.get<Args>(indices)...);
+        } catch (std::exception& e) {
+            context.error("Exception thrown during contruction:\n{}", e.what());
+        }
+    }
+};
+
+template <typename ReturnType, typename... Args>
+class TypedFeatureWithContext : public Feature {
     std::function<ReturnType(const downward::utils::Context&, Args...)> f;
 
 public:
-    explicit TypedFeature(
+    explicit TypedFeatureWithContext(
         std::string key,
         std::function<ReturnType(const downward::utils::Context&, Args...)> f)
         : Feature(std::move(key), sizeof...(Args))
@@ -113,12 +155,20 @@ private:
         const downward::utils::Context& context,
         std::index_sequence<indices...>) const
     {
-        return std::invoke(f, context, options.get<Args>(indices)...);
+        try {
+            return std::invoke(f, context, options.get<Args>(indices)...);
+        } catch (std::exception& e) {
+            context.error("Exception thrown during contruction:\n{}", e.what());
+        }
     }
 };
 
 template <typename ReturnType, typename... Args>
 using SharedTypedFeature = TypedFeature<std::shared_ptr<ReturnType>, Args...>;
+
+template <typename ReturnType, typename... Args>
+using SharedTypedFeatureWithContext =
+    TypedFeatureWithContext<std::shared_ptr<ReturnType>, Args...>;
 
 /*
   Expects constructor arguments of T. Consecutive arguments may be

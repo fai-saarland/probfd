@@ -19,7 +19,7 @@ public:
         document_synopsis("This prune strategy leaves the TS unchanged.");
     }
 
-    static std::shared_ptr<PruneStrategy> func(const utils::Context&)
+    static std::shared_ptr<PruneStrategy> func()
     {
         return std::make_shared<PruneStrategyIdentity>();
     }

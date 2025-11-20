@@ -102,7 +102,6 @@ public:
     }
 
     static std::shared_ptr<TaskStateSpaceFactory> func(
-        const Context&,
         std::vector<std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>
             path_dependent_evaluator_factories)
     {
@@ -134,7 +133,6 @@ public:
     }
 
     static std::shared_ptr<TaskStateSpaceFactory> func(
-        const Context&,
         std::vector<std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>
             path_dependent_evaluator_factories)
     {

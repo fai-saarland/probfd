@@ -121,7 +121,6 @@ public:
     }
 
     static shared_ptr<TaskDependentFactory<SearchAlgorithm>> func(
-        const utils::Context&,
         OperatorCost cost_type,
         int bound,
         utils::FSeconds max_time,

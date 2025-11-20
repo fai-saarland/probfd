@@ -57,7 +57,6 @@ public:
     }
 
     static shared_ptr<PatternCollectionGenerator> func(
-        const Context&,
         bool use_wildcard_plans,
         int max_pdb_size,
         int max_collection_size,

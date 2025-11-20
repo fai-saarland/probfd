@@ -67,7 +67,6 @@ public:
     }
 
     static shared_ptr<MergeStrategyFactory> func(
-        const Context&,
         const OrderOfSCCs& order_of_sccs,
         const std::shared_ptr<MergeSelector>& merge_selector,
         downward::utils::Verbosity verbosity)

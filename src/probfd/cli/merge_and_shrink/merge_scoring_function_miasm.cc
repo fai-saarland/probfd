@@ -120,7 +120,6 @@ public:
     }
 
     static shared_ptr<MergeScoringFunction> func(
-        const utils::Context& context,
         bool use_caching,
         std::shared_ptr<ShrinkStrategy> shrink_strategy,
         int max_states,
@@ -130,8 +129,7 @@ public:
         handle_shrink_limit_options_defaults(
             max_states,
             max_states_before_merge,
-            threshold_before_merge,
-            context);
+            threshold_before_merge);
 
         return make_shared_from_arg_tuples<MergeScoringFunctionMIASM>(
             use_caching,

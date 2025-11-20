@@ -84,7 +84,6 @@ public:
     }
 
     static shared_ptr<PatternCollectionGenerator> func(
-        const Context& context,
         int pdb_max_size,
         int collection_max_size,
         int num_samples,
@@ -93,12 +92,6 @@ public:
         int random_seed,
         Verbosity verbosity)
     {
-        if (min_improvement > num_samples) {
-            context.error(
-                "Minimum improvement must not be higher than number "
-                "of samples");
-        }
-
         return make_shared_from_arg_tuples<
             PatternCollectionGeneratorHillclimbing>(
             pdb_max_size,

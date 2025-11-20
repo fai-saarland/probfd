@@ -64,16 +64,11 @@ public:
 
     static shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
     func(
-        const Context& context,
         const std::vector<
             shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>>&
             sublists,
         int boost)
     {
-        if (sublists.empty()) {
-            context.error("List of open lists has to be non-empty.");
-        }
-
         return make_shared<AlternationOpenListFactory<T>>(sublists, boost);
     }
 };

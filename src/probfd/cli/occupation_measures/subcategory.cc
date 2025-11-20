@@ -71,7 +71,7 @@ public:
     }
 
     static std::shared_ptr<TaskHeuristicFactory>
-    func(const Context&, Verbosity verbosity, lp::LPSolverType lp_solver_type)
+    func(Verbosity verbosity, lp::LPSolverType lp_solver_type)
     {
         return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
             verbosity,
@@ -115,7 +115,7 @@ public:
     }
 
     static std::shared_ptr<TaskHeuristicFactory>
-    func(const Context&, Verbosity verbosity, lp::LPSolverType lp_solver_type)
+    func(Verbosity verbosity, lp::LPSolverType lp_solver_type)
     {
         return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
             verbosity,
@@ -167,7 +167,6 @@ public:
     }
 
     static std::shared_ptr<TaskHeuristicFactory> func(
-        const Context&,
         Verbosity verbosity,
         lp::LPSolverType lp_solver_type,
         int projection_size)
@@ -209,7 +208,6 @@ public:
     }
 
     static std::shared_ptr<TaskHeuristicFactory> func(
-        const Context&,
         Verbosity verbosity,
         lp::LPSolverType lp_solver,
         std::shared_ptr<PatternCollectionGenerator> generator)

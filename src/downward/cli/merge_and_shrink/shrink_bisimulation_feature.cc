@@ -79,7 +79,7 @@ public:
     }
 
     static shared_ptr<ShrinkStrategy>
-    func(const Context&, bool greedy, AtLimit at_limit)
+    func(bool greedy, AtLimit at_limit)
     {
         return make_shared<ShrinkBisimulation>(greedy, at_limit);
     }

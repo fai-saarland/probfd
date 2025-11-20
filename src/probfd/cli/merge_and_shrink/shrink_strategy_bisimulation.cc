@@ -61,7 +61,6 @@ public:
 
 protected:
     static shared_ptr<ShrinkStrategy> func(
-        const utils::Context&,
         ShrinkStrategyBisimulation::AtLimit at_limit,
         bool require_goal_distances)
     {

@@ -74,7 +74,7 @@ public:
     }
 
     static std::shared_ptr<PolicyPicker<Bisimulation, Fret>>
-    func(const Context&, bool stable_policy)
+    func(bool stable_policy)
     {
         return std::make_shared<R>(stable_policy);
     }
@@ -93,7 +93,7 @@ public:
     }
 
     static std::shared_ptr<FDRPolicyPicker>
-    func(const Context&, bool stable_policy, bool prefer_smaller)
+    func(bool stable_policy, bool prefer_smaller)
     {
         return make_shared_from_arg_tuples<OperatorIdTiebreaker>(
             stable_policy,
@@ -122,7 +122,7 @@ public:
     }
 
     static std::shared_ptr<PolicyPicker<Bisimulation, Fret>>
-    func(const Context&, bool stable_policy, int random_seed)
+    func(bool stable_policy, int random_seed)
     {
         return make_shared_from_arg_tuples<R>(stable_policy, random_seed);
     }
@@ -152,7 +152,7 @@ public:
     }
 
     static std::shared_ptr<PolicyPicker<Bisimulation, Fret>>
-    func(const Context&, bool stable_policy, bool prefer_large_gaps)
+    func(bool stable_policy, bool prefer_large_gaps)
     {
         return make_shared_from_arg_tuples<R>(stable_policy, prefer_large_gaps);
     }

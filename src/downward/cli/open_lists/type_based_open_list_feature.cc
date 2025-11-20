@@ -98,15 +98,10 @@ public:
 
     static shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
     func(
-        const Context& context,
         const std::vector<std::shared_ptr<
             downward::TaskDependentFactory<downward::Evaluator>>>& factories,
         int random_seed)
     {
-        if (factories.empty()) {
-            context.error("List of evaluators may not be empty.");
-        }
-
         return make_shared_from_arg_tuples<TypeBasedOpenListFactory<T>>(
             factories,
             random_seed);

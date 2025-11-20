@@ -122,7 +122,6 @@ public:
     }
 
     static shared_ptr<TaskDependentFactory<SearchAlgorithm>> func(
-        const utils::Context&,
         std::shared_ptr<TaskDependentFactory<Evaluator>> eval_factory,
         std::shared_ptr<PruningMethod> pruning,
         OperatorCost cost_type,
@@ -193,7 +192,6 @@ public:
     }
 
     static shared_ptr<TaskDependentFactory<SearchAlgorithm>> func(
-        const utils::Context&,
         std::shared_ptr<TaskDependentFactory<Evaluator>> eval_factory,
         std::shared_ptr<TaskDependentFactory<Evaluator>> lazy_evaluator_factory,
         std::shared_ptr<PruningMethod> pruning,

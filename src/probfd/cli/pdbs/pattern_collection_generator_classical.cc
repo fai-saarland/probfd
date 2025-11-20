@@ -53,7 +53,6 @@ public:
     }
 
     static std::shared_ptr<PatternCollectionGenerator> func(
-        const Context&,
         std::shared_ptr<pdbs::PatternCollectionGenerator> generator,
         std::shared_ptr<SubCollectionFinderFactory>
             subcollection_finder_factory,

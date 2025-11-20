@@ -155,14 +155,16 @@ class TieBreakingOpenListFactory : public TaskDependentFactory<OpenList<T>> {
 
 public:
     TieBreakingOpenListFactory(
-        const std::vector<std::shared_ptr<TaskDependentFactory<Evaluator>>>&
-            factories,
+        std::vector<std::shared_ptr<TaskDependentFactory<Evaluator>>> factories,
         bool unsafe_pruning,
         bool pref_only)
         : factories(std::move(factories))
         , unsafe_pruning(unsafe_pruning)
         , pref_only(pref_only)
     {
+        if (this->factories.empty()) {
+            throw std::domain_error("List of evaluators may not be empty.");
+        }
     }
 
     std::unique_ptr<OpenList<T>>
@@ -173,7 +175,8 @@ public:
         };
 
         return std::make_unique<TieBreakingOpenList<T>>(
-            factories | std::views::transform(f) | std::ranges::to<std::vector>(),
+            factories | std::views::transform(f) |
+                std::ranges::to<std::vector>(),
             unsafe_pruning,
             pref_only);
     }

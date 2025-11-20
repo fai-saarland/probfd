@@ -47,7 +47,6 @@ public:
     }
 
     static shared_ptr<ConstraintGenerator> func(
-        const Context&,
         const std::shared_ptr<downward::pdbs::PatternCollectionGenerator>&
             patterns)
     {

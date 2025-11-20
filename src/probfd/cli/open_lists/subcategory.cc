@@ -48,7 +48,7 @@ public:
     }
 
     [[nodiscard]]
-    static std::shared_ptr<OpenList<Fret>> func(const utils::Context&)
+    static std::shared_ptr<OpenList<Fret>> func()
     {
         return std::make_shared<Wrapped<FifoOpenList, Fret>>();
     }
@@ -65,7 +65,7 @@ public:
     }
 
     [[nodiscard]]
-    static std::shared_ptr<OpenList<Fret>> func(const utils::Context&)
+    static std::shared_ptr<OpenList<Fret>> func()
     {
         return std::make_shared<Wrapped<LifoOpenList, Fret>>();
     }

@@ -231,7 +231,7 @@ public:
     {
     }
 
-    static int func(const downward::utils::Context&)
+    static int func()
     {
         return std::numeric_limits<int>::max();
     }
@@ -247,7 +247,7 @@ public:
     {
     }
 
-    static T func(const downward::utils::Context& context, T v)
+    static T func(T v)
     {
         if constexpr (std::same_as<T, int>) {
             if (!downward::utils::is_product_within_limits(
@@ -255,7 +255,7 @@ public:
                     F,
                     std::numeric_limits<T>::min(),
                     std::numeric_limits<T>::max() - 1)) {
-                context.error("Integer would be out of range!");
+                throw std::overflow_error("Integer would be out of range!");
             }
         }
         return F * v;
@@ -272,7 +272,7 @@ public:
     {
     }
 
-    static R func(const downward::utils::Context&, T v) { return R{v}; }
+    static R func(T v) { return R{v}; }
 };
 
 template <typename R, auto S>
@@ -286,7 +286,7 @@ public:
         this->document_synopsis("Returns a maximum / infinite duration.");
     }
 
-    static R func(const downward::utils::Context&) { return R::max(); }
+    static R func() { return R::max(); }
 };
 
 } // namespace

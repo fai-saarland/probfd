@@ -108,7 +108,6 @@ public:
 
     static shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
     func(
-        const Context&,
         const std::shared_ptr<
             downward::TaskDependentFactory<downward::Evaluator>>& eval_factory,
         double epsilon,

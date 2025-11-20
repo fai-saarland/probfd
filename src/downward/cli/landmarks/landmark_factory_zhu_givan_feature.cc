@@ -42,7 +42,7 @@ public:
     }
 
     static shared_ptr<LandmarkFactory>
-    func(const Context&, bool use_orders, downward::utils::Verbosity verbosity)
+    func(bool use_orders, downward::utils::Verbosity verbosity)
     {
         return make_shared_from_arg_tuples<LandmarkFactoryZhuGivan>(
             use_orders,

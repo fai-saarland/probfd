@@ -66,6 +66,9 @@ public:
         , boost(boost)
         , w(w)
     {
+        if (this->eval_factories.empty()) {
+            throw std::domain_error("List of evaluators may not be empty.");
+        }
     }
 
     unique_ptr<SearchAlgorithm>
@@ -198,7 +201,6 @@ public:
     }
 
     static shared_ptr<TaskDependentFactory<SearchAlgorithm>> func(
-        const utils::Context& context,
         OperatorCost cost_type,
         int bound,
         utils::FSeconds max_time,
@@ -213,10 +215,6 @@ public:
         int boost,
         int w)
     {
-        if (eval_factories.empty()) {
-            context.error("List of evaluators may not be empty.");
-        }
-
         return make_shared_from_arg_tuples<LazyWAstarSearchFactory>(
             cost_type,
             bound,
