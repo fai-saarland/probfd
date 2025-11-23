@@ -10,7 +10,7 @@ using namespace downward::cli::plugins;
 namespace probfd::cli::merge_and_shrink {
 
 std::size_t add_bucket_based_shrink_options_to_feature(
-    Feature& feature,
+    InternalFunctionDefinitionBase& feature,
     std::size_t start_index)
 {
     return downward::cli::utils::add_rng_options_to_feature(

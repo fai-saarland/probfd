@@ -8,13 +8,13 @@
 #include <vector>
 
 namespace downward::cli::plugins {
-class CategoryPlugin;
-class EnumPlugin;
-class Feature;
-class FeatureType;
+class InternalTypeDeclarationBase;
+class InternalEnumDeclarationBase;
+class InternalFunctionDefinitionBase;
+class InternalType;
 class Plugin;
 class Registry;
-class SubcategoryPlugin;
+class DocumentationTopic;
 
 using EnumInfo = std::vector<std::pair<std::string, std::string>>;
 } // namespace downward::cli::plugins

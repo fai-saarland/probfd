@@ -10,72 +10,89 @@
 #include <vector>
 
 namespace downward::cli::plugins {
-class CategoryPlugin;
+class InternalTypeDeclarationBase;
 }
 
 namespace downward::cli::plugins {
-class Feature;
+class InternalFunctionDefinitionBase;
 class Registry;
 
 class DocPrinter {
-    virtual void print_category(const CategoryPlugin& category) const;
-    virtual void print_subcategory(const SubcategoryPlugin& subcategory) const;
-    virtual void print_feature(const Feature& plugin) const;
+    virtual void print_type_declaration(
+        const InternalTypeDeclarationBase& type_declaration) const;
+    virtual void print_topic(const DocumentationTopic& topic) const;
+    virtual void print_function_declaration(
+        const InternalFunctionDefinitionBase& function_def) const;
 
 protected:
     std::ostream& os;
     const Registry& registry;
 
-    virtual void print_header(const Feature& plugin) const = 0;
-    virtual void print_synopsis(const Feature& plugin) const = 0;
-    virtual void print_usage(const Feature& plugin) const = 0;
-    virtual void print_arguments(const Feature& plugin) const = 0;
-    virtual void print_notes(const Feature& plugin) const = 0;
-    virtual void print_language_features(const Feature& plugin) const = 0;
-    virtual void print_properties(const Feature& plugin) const = 0;
-
     virtual void
-    print_category_header(const CategoryPlugin& category) const = 0;
-    virtual void print_category_synopsis(const std::string& synopsis) const = 0;
+    print_header(const InternalFunctionDefinitionBase& function_def) const = 0;
+    virtual void print_synopsis(
+        const InternalFunctionDefinitionBase& function_def) const = 0;
+    virtual void
+    print_usage(const InternalFunctionDefinitionBase& function_def) const = 0;
+    virtual void print_arguments(
+        const InternalFunctionDefinitionBase& function_def) const = 0;
+    virtual void
+    print_notes(const InternalFunctionDefinitionBase& function_def) const = 0;
+    virtual void print_language_features(
+        const InternalFunctionDefinitionBase& function_def) const = 0;
+    virtual void print_properties(
+        const InternalFunctionDefinitionBase& function_def) const = 0;
 
-    virtual void print_category_members(
-        const CategoryPlugin&,
-        const std::vector<const Feature*>) const
+    virtual void print_type_declaration_header(
+        const InternalTypeDeclarationBase& type_declaration) const = 0;
+    virtual void
+    print_type_declaration_synopsis(const std::string& synopsis) const = 0;
+
+    virtual void print_type_declaration_related_functions(
+        const InternalTypeDeclarationBase&,
+        const std::vector<const InternalFunctionDefinitionBase*>) const
     {
     }
 
-    virtual void print_subcategory_members(
-        const SubcategoryPlugin&,
-        const std::vector<const Feature*>) const
+    virtual void print_type_declaration_footer() const = 0;
+
+    virtual void print_topic_members(
+        const DocumentationTopic&,
+        const std::vector<const InternalFunctionDefinitionBase*>) const
     {
     }
-
-    virtual void print_category_footer() const = 0;
 
 public:
     DocPrinter(std::ostream& out, Registry& registry);
     virtual ~DocPrinter() = default;
 
     void print_all() const;
-    void print_subcategory(const std::string& name) const;
-    void print_category(const std::string& name) const;
-    void print_feature(const std::string& name) const;
+    void print_topic(const std::string& name) const;
+    void print_type_declaration(const std::string& name) const;
+    void print_function_declaration(const std::string& name) const;
 };
 
 class Txt2TagsPrinter : public DocPrinter {
 protected:
-    virtual void print_header(const Feature& plugin) const override;
-    virtual void print_synopsis(const Feature& plugin) const override;
-    virtual void print_usage(const Feature& plugin) const override;
-    virtual void print_arguments(const Feature& plugin) const override;
-    virtual void print_notes(const Feature& plugin) const override;
-    virtual void print_language_features(const Feature& plugin) const override;
-    virtual void print_properties(const Feature& plugin) const override;
-    virtual void
-    print_category_header(const CategoryPlugin& category) const override;
-    virtual void
-    print_category_synopsis(const std::string& synopsis) const override;
-    virtual void print_category_footer() const override;
+    void print_header(
+        const InternalFunctionDefinitionBase& function_def) const override;
+    void print_synopsis(
+        const InternalFunctionDefinitionBase& function_def) const override;
+    void print_usage(
+        const InternalFunctionDefinitionBase& function_def) const override;
+    void print_arguments(
+        const InternalFunctionDefinitionBase& function_def) const override;
+    void print_notes(
+        const InternalFunctionDefinitionBase& function_def) const override;
+    void print_language_features(
+        const InternalFunctionDefinitionBase& function_def) const override;
+    void print_properties(
+        const InternalFunctionDefinitionBase& function_def) const override;
+    void print_type_declaration_header(
+        const InternalTypeDeclarationBase& type_declaration) const override;
+    void
+    print_type_declaration_synopsis(const std::string& synopsis) const override;
+    void print_type_declaration_footer() const override;
 
 public:
     Txt2TagsPrinter(std::ostream& out, Registry& registry);
@@ -86,18 +103,25 @@ class PlainPrinter : public DocPrinter {
     bool print_all;
 
 protected:
-    virtual void print_header(const Feature& plugin) const override;
-    virtual void print_synopsis(const Feature& plugin) const override;
-    virtual void print_usage(const Feature& plugin) const override;
-    virtual void print_arguments(const Feature& plugin) const override;
-    virtual void print_notes(const Feature& plugin) const override;
-    virtual void print_language_features(const Feature& plugin) const override;
-    virtual void print_properties(const Feature& plugin) const override;
-    virtual void
-    print_category_header(const CategoryPlugin& category) const override;
-    virtual void
-    print_category_synopsis(const std::string& synopsis) const override;
-    virtual void print_category_footer() const override;
+    void print_header(
+        const InternalFunctionDefinitionBase& function_def) const override;
+    void print_synopsis(
+        const InternalFunctionDefinitionBase& function_def) const override;
+    void print_usage(
+        const InternalFunctionDefinitionBase& function_def) const override;
+    void print_arguments(
+        const InternalFunctionDefinitionBase& function_def) const override;
+    void print_notes(
+        const InternalFunctionDefinitionBase& function_def) const override;
+    void print_language_features(
+        const InternalFunctionDefinitionBase& function_def) const override;
+    void print_properties(
+        const InternalFunctionDefinitionBase& function_def) const override;
+    void print_type_declaration_header(
+        const InternalTypeDeclarationBase& type_declaration) const override;
+    void
+    print_type_declaration_synopsis(const std::string& synopsis) const override;
+    void print_type_declaration_footer() const override;
 
 public:
     PlainPrinter(std::ostream& out, Registry& registry, bool print_all = false);

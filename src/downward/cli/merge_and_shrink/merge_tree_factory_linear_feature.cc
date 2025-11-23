@@ -19,11 +19,11 @@ using downward::cli::merge_and_shrink::add_merge_tree_options_to_feature;
 
 namespace {
 
-Feature& add_merge_strategy_factory_linear_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_merge_strategy_factory_linear_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "linear",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             MergeTreeFactory,
             MergeTreeFactoryLinear,
             downward::variable_order_finder::VariableOrderType,
@@ -63,7 +63,7 @@ namespace downward::cli::merge_and_shrink {
 void add_merge_tree_factory_linear_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_enum_plugin<downward::variable_order_finder::VariableOrderType>(
+    n.insert_enum_declaration<downward::variable_order_finder::VariableOrderType>(
         {{"cg_goal_level",
           "variables are prioritized first if they have an arc to a previously "
           "added variable, second if their goal value is defined "

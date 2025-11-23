@@ -100,11 +100,11 @@ public:
     }
 };
 
-Feature& add_lazy_greedy_search_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_lazy_greedy_search_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "lazy_greedy",
-        &cli::plugins::make_shared<
+        &cli::plugins::construct_shared<
             TaskDependentFactory<SearchAlgorithm>,
             LazyGreedySearchFactory,
             OperatorCost,

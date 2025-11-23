@@ -7,7 +7,7 @@ using namespace downward::cli::plugins;
 namespace probfd::cli::pdbs {
 
 std::size_t
-add_cegar_wildcard_option_to_feature(Feature& feature, std::size_t start_index)
+add_cegar_wildcard_option_to_feature(InternalFunctionDefinitionBase& feature, std::size_t start_index)
 {
     feature.make_optional_argument_with_default(
         start_index,

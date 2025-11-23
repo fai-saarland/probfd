@@ -75,11 +75,11 @@ public:
     }
 };
 
-Feature& add_eager_hill_climbing_search_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_eager_hill_climbing_search_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "ehc",
-        &cli::plugins::make_shared<
+        &cli::plugins::construct_shared<
             TaskDependentFactory<SearchAlgorithm>,
             EnforcedHillClimbingSearchFactory,
             shared_ptr<TaskDependentFactory<Evaluator>>,
@@ -117,7 +117,7 @@ namespace downward::cli::search_algorithms {
 void add_enforce_hill_climbing_search_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_enum_plugin<PreferredUsage>(
+    n.insert_enum_declaration<PreferredUsage>(
         {{"prune_by_preferred",
           "prune successors achieved by non-preferred operators"},
          {"rank_preferred_first",

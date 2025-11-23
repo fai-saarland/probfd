@@ -20,12 +20,12 @@ using downward::cli::add_open_list_options_to_feature;
 namespace {
 
 template <typename T>
-Feature&
+InternalFunctionDefinitionBase&
 add_best_first_open_list_to_namespace(Namespace& nspace, std::string name)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         std::move(name),
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             downward::TaskDependentFactory<downward::OpenList<T>>,
             BestFirstOpenListFactory<T>,
             bool>);
@@ -55,13 +55,13 @@ add_best_first_open_list_to_namespace(Namespace& nspace, std::string name)
 }
 
 template <typename T>
-Feature& add_best_first_open_list_with_eval_to_namespace(
+InternalFunctionDefinitionBase& add_best_first_open_list_with_eval_to_namespace(
     Namespace& nspace,
     std::string name)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         std::move(name),
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             downward::TaskDependentFactory<downward::OpenList<T>>,
             BestFirstOpenListFactory<T>,
             shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>,

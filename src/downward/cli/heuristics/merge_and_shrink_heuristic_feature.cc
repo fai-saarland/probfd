@@ -165,9 +165,9 @@ create_merge_and_shrink_heuristic_no_lr(
         main_loop_max_time);
 }
 
-Feature& add_merge_and_shrink_heuristic_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_merge_and_shrink_heuristic_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "merge_and_shrink",
         create_merge_and_shrink_heuristic);
 
@@ -357,9 +357,9 @@ Feature& add_merge_and_shrink_heuristic_to_namespace(Namespace& nspace)
     return f;
 }
 
-Feature& add_merge_and_shrink_heuristic_no_lr_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_merge_and_shrink_heuristic_no_lr_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "merge_and_shrink_no_lr",
         create_merge_and_shrink_heuristic_no_lr);
 

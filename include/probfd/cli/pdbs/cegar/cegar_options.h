@@ -5,13 +5,13 @@
 
 // Forward Declarations
 namespace downward::cli::plugins {
-class Feature;
+class InternalFunctionDefinitionBase;
 } // namespace downward::cli::plugins
 
 namespace probfd::cli::pdbs {
 
 extern std::size_t add_cegar_wildcard_option_to_feature(
-    downward::cli::plugins::Feature& feature,
+    downward::cli::plugins::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 
 } // namespace probfd::cli::pdbs

@@ -6,10 +6,10 @@
 using namespace downward::cli::plugins;
 
 namespace {
-class EvaluatorGroupPlugin : public SubcategoryPlugin {
+class EvaluatorGroupPlugin : public DocumentationTopic {
 public:
     EvaluatorGroupPlugin()
-        : SubcategoryPlugin("evaluators_basic")
+        : DocumentationTopic("evaluators_basic")
     {
         document_title("Basic Evaluators");
     }
@@ -20,7 +20,7 @@ namespace downward::cli::evaluators {
 
 void add_evaluator_subcategory(Registry& registry)
 {
-    registry.insert_subcategory_plugin<EvaluatorGroupPlugin>();
+    registry.insert_documentation_topic<EvaluatorGroupPlugin>();
 }
 
 } // namespace

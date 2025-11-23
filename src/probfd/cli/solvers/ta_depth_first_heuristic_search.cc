@@ -86,8 +86,7 @@ public:
 };
 
 class TrapAwareDFHSSolverFeature
-    : public SharedTypedFeature<
-          TaskSolverFactory,
+    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -104,10 +103,10 @@ class TrapAwareDFHSSolverFeature
           bool,
           bool,
           bool,
-          bool> {
+          bool)> {
 public:
     TrapAwareDFHSSolverFeature()
-        : TypedFeature("tadfhs", &TrapAwareDFHSSolverFeature::func)
+        : InternalFunctionDefinition("tadfhs", &TrapAwareDFHSSolverFeature::func)
     {
         document_title("Trap-aware depth-first heuristic search family");
         document_synopsis(
@@ -201,8 +200,7 @@ protected:
 };
 
 class TrapAwareILAOSolverFeature
-    : public SharedTypedFeature<
-          TaskSolverFactory,
+    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -214,10 +212,10 @@ class TrapAwareILAOSolverFeature
           bool,
           std::shared_ptr<PolicyPickerType<false, true>>,
           std::shared_ptr<QOpenList>,
-          bool> {
+          bool)> {
 public:
     TrapAwareILAOSolverFeature()
-        : TypedFeature("tailao", &TrapAwareILAOSolverFeature::func)
+        : InternalFunctionDefinition("tailao", &TrapAwareILAOSolverFeature::func)
     {
         document_title(
             "iLAO* variant of trap-aware depth-first heuristic search");
@@ -280,8 +278,7 @@ public:
 };
 
 class TrapAwareLILAOSolverFeature
-    : public SharedTypedFeature<
-          TaskSolverFactory,
+    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -293,10 +290,10 @@ class TrapAwareLILAOSolverFeature
           bool,
           std::shared_ptr<PolicyPickerType<false, true>>,
           std::shared_ptr<QOpenList>,
-          bool> {
+          bool)> {
 public:
     TrapAwareLILAOSolverFeature()
-        : TypedFeature("talilao", &TrapAwareLILAOSolverFeature::func)
+        : InternalFunctionDefinition("talilao", &TrapAwareLILAOSolverFeature::func)
     {
         document_title(
             "Labelled iLAO* variant of trap-aware depth-first "
@@ -356,8 +353,7 @@ public:
 };
 
 class TrapAwareHDPSolverFeature
-    : public SharedTypedFeature<
-          TaskSolverFactory,
+    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -369,10 +365,10 @@ class TrapAwareHDPSolverFeature
           bool,
           std::shared_ptr<PolicyPickerType<false, true>>,
           std::shared_ptr<QOpenList>,
-          bool> {
+          bool)> {
 public:
     TrapAwareHDPSolverFeature()
-        : TypedFeature("tahdp", &TrapAwareHDPSolverFeature::func)
+        : InternalFunctionDefinition("tahdp", &TrapAwareHDPSolverFeature::func)
     {
         document_title(
             "HDP variant of trap-aware depth-first heuristic search");
@@ -436,7 +432,7 @@ namespace probfd::cli::solvers {
 void add_ta_depth_first_heuristic_search_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_enum_plugin<BacktrackingUpdateType>(
+    n.insert_enum_declaration<BacktrackingUpdateType>(
         {{"disabled",
           "No update is performed when backtracking from a state during the "
           "dfs "
@@ -454,10 +450,10 @@ void add_ta_depth_first_heuristic_search_feature(Registry& registry)
           "the "
           "dfs exploration."}});
 
-    n.insert_feature_plugin<TrapAwareDFHSSolverFeature>();
-    n.insert_feature_plugin<TrapAwareILAOSolverFeature>();
-    n.insert_feature_plugin<TrapAwareLILAOSolverFeature>();
-    n.insert_feature_plugin<TrapAwareHDPSolverFeature>();
+    n.insert_function_definition<TrapAwareDFHSSolverFeature>();
+    n.insert_function_definition<TrapAwareILAOSolverFeature>();
+    n.insert_function_definition<TrapAwareLILAOSolverFeature>();
+    n.insert_function_definition<TrapAwareHDPSolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

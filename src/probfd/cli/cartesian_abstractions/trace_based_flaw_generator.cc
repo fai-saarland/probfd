@@ -14,12 +14,12 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-Feature& add_astar_flaw_generator_astar_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_astar_flaw_generator_astar_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "flaws_astar",
         &cli::plugins::
-            make_shared<FlawGeneratorFactory, AStarFlawGeneratorFactory>);
+            construct_shared<FlawGeneratorFactory, AStarFlawGeneratorFactory>);
 
     return f;
 }

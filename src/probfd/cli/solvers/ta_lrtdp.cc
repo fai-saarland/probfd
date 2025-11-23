@@ -68,8 +68,7 @@ public:
 };
 
 class TrapAwareLRTDPSolverFeature
-    : public SharedTypedFeature<
-          TaskSolverFactory,
+    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           Verbosity,
@@ -82,10 +81,10 @@ class TrapAwareLRTDPSolverFeature
           std::shared_ptr<PolicyPickerType<false, true>>,
           std::shared_ptr<QSuccessorSampler>,
           TrialTerminationCondition,
-          bool> {
+          bool)> {
 public:
     TrapAwareLRTDPSolverFeature()
-        : TypedFeature("talrtdp", &TrapAwareLRTDPSolverFeature::func)
+        : InternalFunctionDefinition("talrtdp", &TrapAwareLRTDPSolverFeature::func)
     {
         document_title("Trap-aware LRTDP");
         document_synopsis(
@@ -154,13 +153,13 @@ namespace probfd::cli::solvers {
 void add_ta_lrtdp_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_enum_plugin<TrialTerminationCondition>(
+    n.insert_enum_declaration<TrialTerminationCondition>(
         {{"terminal", "Stop trials at terminal states"},
          {"consistent", "Stop trials at epsilon consistent states"},
          {"inconsistent", "Stop trials at epsilon inconsistent states"},
          {"revisited", "Stop trials upon revisiting a state"}});
 
-    n.insert_feature_plugin<TrapAwareLRTDPSolverFeature>();
+    n.insert_function_definition<TrapAwareLRTDPSolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

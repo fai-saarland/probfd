@@ -20,11 +20,11 @@ using namespace probfd::merge_and_shrink;
 
 namespace {
 
-Feature& add_merge_scoring_function_total_order_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_merge_scoring_function_total_order_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "ptotal_order",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             MergeScoringFunction,
             MergeScoringFunctionTotalOrder,
             AtomicTSOrder,
@@ -92,12 +92,12 @@ namespace probfd::cli::merge_and_shrink {
 void add_merge_scoring_function_total_order_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_enum_plugin<AtomicTSOrder>(
+    n.insert_enum_declaration<AtomicTSOrder>(
         {{"reverse_level", "the variable order of Fast Downward"},
          {"level", "opposite of reverse_level"},
          {"random", "a randomized order"}});
 
-    n.insert_enum_plugin<ProductTSOrder>(
+    n.insert_enum_declaration<ProductTSOrder>(
         {{"old_to_new",
           "consider composite transition systems from oldest to most recent"},
          {"new_to_old", "opposite of old_to_new"},

@@ -62,8 +62,7 @@ public:
 };
 
 class I2DualSolverFeature
-    : public SharedTypedFeature<
-          TaskSolverFactory,
+    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -74,10 +73,10 @@ class I2DualSolverFeature
           bool,
           bool,
           lp::LPSolverType,
-          double> {
+          double)> {
 public:
     I2DualSolverFeature()
-        : TypedFeature("i2dual", &I2DualSolverFeature::func)
+        : InternalFunctionDefinition("i2dual", &I2DualSolverFeature::func)
     {
         document_title("i^2-dual");
 
@@ -136,7 +135,7 @@ namespace probfd::cli::solvers {
 void add_i2dual_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<I2DualSolverFeature>();
+    n.insert_function_definition<I2DualSolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

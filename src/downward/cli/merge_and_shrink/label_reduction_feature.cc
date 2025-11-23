@@ -21,11 +21,11 @@ using downward::cli::utils::add_rng_options_to_feature;
 
 namespace {
 
-Feature& add_label_reduction_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_label_reduction_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "exact",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             LabelReduction,
             LabelReduction,
             bool,
@@ -93,12 +93,12 @@ namespace downward::cli::merge_and_shrink {
 void add_label_reduction_category(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_shared_category_plugin<LabelReduction>(
+    n.insert_shared_type_declaration<LabelReduction>(
         "LabelReduction",
         "This page describes the current single 'option' for "
         "label reduction.");
 
-    n.insert_enum_plugin<LabelReductionMethod>(
+    n.insert_enum_declaration<LabelReductionMethod>(
         {{"two_transition_systems",
           "compute the 'combinable relation' only for the two transition "
           "systems being merged next"},
@@ -109,7 +109,7 @@ void add_label_reduction_category(Registry& registry)
           "keep computing the 'combinable relation' for labels iteratively "
           "for all transition systems until no more labels can be reduced"}});
 
-    n.insert_enum_plugin<LabelReductionSystemOrder>(
+    n.insert_enum_declaration<LabelReductionSystemOrder>(
         {{"regular",
           "transition systems are considered in the order given in the planner "
           "input if atomic and in the order of their creation if composite."},

@@ -21,7 +21,7 @@ namespace probfd::cli::solvers {
 
 template <bool Bisimulation, bool Fret>
 std::size_t
-add_mdp_hs_base_options_to_feature(Feature& feature, std::size_t start_index)
+add_mdp_hs_base_options_to_feature(InternalFunctionDefinitionBase& feature, std::size_t start_index)
 {
     feature.make_optional_argument_with_default(
         start_index,
@@ -48,7 +48,7 @@ add_mdp_hs_base_options_to_feature(Feature& feature, std::size_t start_index)
 
 template <bool Bisimulation, bool Fret>
 std::size_t
-add_mdp_hs_options_to_feature(Feature& feature, std::size_t start_index)
+add_mdp_hs_options_to_feature(InternalFunctionDefinitionBase& feature, std::size_t start_index)
 {
     if constexpr (Fret) {
         feature.make_optional_argument_with_default(
@@ -71,29 +71,29 @@ add_mdp_hs_options_to_feature(Feature& feature, std::size_t start_index)
 }
 
 template std::size_t add_mdp_hs_base_options_to_feature<true, true>(
-    Feature& feature,
+    InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 template std::size_t add_mdp_hs_base_options_to_feature<true, false>(
-    Feature& feature,
+    InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 template std::size_t add_mdp_hs_base_options_to_feature<false, true>(
-    Feature& feature,
+    InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 template std::size_t add_mdp_hs_base_options_to_feature<false, false>(
-    Feature& feature,
+    InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 
 template std::size_t add_mdp_hs_options_to_feature<true, true>(
-    Feature& feature,
+    InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 template std::size_t add_mdp_hs_options_to_feature<true, false>(
-    Feature& feature,
+    InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 template std::size_t add_mdp_hs_options_to_feature<false, true>(
-    Feature& feature,
+    InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 template std::size_t add_mdp_hs_options_to_feature<false, false>(
-    Feature& feature,
+    InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 
 } // namespace probfd::cli::solvers

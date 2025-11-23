@@ -13,7 +13,7 @@ namespace downward::cli::lp {
 void add_lp_solver_enum(downward::cli::plugins::Registry& registry)
 {
     plugins::Namespace& n = registry.get_global_name_space();
-    n.insert_enum_plugin<LPSolverType>(
+    n.insert_enum_declaration<LPSolverType>(
         {{"cplex", "commercial solver by IBM"},
          {"soplex", "open source solver by ZIB"}});
 }

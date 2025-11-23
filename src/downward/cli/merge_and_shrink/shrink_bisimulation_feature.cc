@@ -17,12 +17,12 @@ using namespace downward::merge_and_shrink;
 
 namespace {
 
-Feature& add_shrink_strategy_bisimulation_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_shrink_strategy_bisimulation_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "shrink_bisimulation",
         &downward::cli::plugins::
-            make_shared<ShrinkStrategy, ShrinkBisimulation, bool, AtLimit>);
+            construct_shared<ShrinkStrategy, ShrinkBisimulation, bool, AtLimit>);
     f.document_title("Bismulation based shrink strategy");
     f.document_synopsis(
         "This shrink strategy implements the algorithm described in"
@@ -88,7 +88,7 @@ namespace downward::cli::merge_and_shrink {
 void add_shrink_bisimulation_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_enum_plugin<AtLimit>(
+    n.insert_enum_declaration<AtLimit>(
         {{"return", "stop without refining the equivalence class further"},
          {"use_up",
           "continue refining the equivalence class until "

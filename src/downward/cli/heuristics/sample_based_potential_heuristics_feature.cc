@@ -114,11 +114,11 @@ public:
     }
 };
 
-Feature& add_sample_based_potential_heuristic_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_sample_based_potential_heuristic_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "sample_based_potentials",
-        &cli::plugins::make_shared<
+        &cli::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             PotentialMaxHeuristicFactory,
             shared_ptr<TaskTransformation>,
@@ -163,10 +163,10 @@ namespace downward::cli::heuristics {
 void add_sample_based_potential_heuristics_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    SubcategoryPlugin& subcategory =
-        registry.get_subcategory_plugin("heuristics_potentials");
-    const Feature& f = add_sample_based_potential_heuristic_to_namespace(n);
-    subcategory.add_feature(f);
+    DocumentationTopic& subcategory =
+        registry.get_topic_by_name("heuristics_potentials");
+    const InternalFunctionDefinitionBase& f = add_sample_based_potential_heuristic_to_namespace(n);
+    subcategory.add_function(f);
 }
 
 } // namespace downward::cli::heuristics

@@ -20,11 +20,11 @@ using downward::cli::merge_and_shrink::add_shrink_bucket_options_to_feature;
 
 namespace {
 
-Feature& add_shrink_strategy_fh_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_shrink_strategy_fh_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "shrink_fh",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             ShrinkStrategy,
             ShrinkFH,
             ShrinkFH::HighLow,
@@ -100,7 +100,7 @@ namespace downward::cli::merge_and_shrink {
 void add_shrink_fh_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_enum_plugin<ShrinkFH::HighLow>(
+    n.insert_enum_declaration<ShrinkFH::HighLow>(
         {{"high", "prefer shrinking states with high value"},
          {"low", "prefer shrinking states with low value"}});
 

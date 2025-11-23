@@ -5,7 +5,7 @@
 #include <string>
 
 namespace downward::cli::plugins {
-class Feature;
+class InternalFunctionDefinitionBase;
 } // namespace downward::cli::plugins
 
 namespace downward::cli::potentials {
@@ -13,7 +13,7 @@ namespace downward::cli::potentials {
 std::string get_admissible_potentials_reference();
 
 std::size_t add_admissible_potentials_options_to_feature(
-    plugins::Feature& feature,
+    plugins::InternalFunctionDefinitionBase& feature,
     const std::string& description,
     std::size_t start_index);
 

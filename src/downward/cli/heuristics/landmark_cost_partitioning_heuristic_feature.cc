@@ -89,11 +89,11 @@ public:
     }
 };
 
-Feature& add_landmarkcost_partitioning_heuristic_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_landmarkcost_partitioning_heuristic_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "landmark_cost_partitioning",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             LandmarkCostPartitioningHeuristicFactory,
             shared_ptr<TaskTransformation>,
@@ -206,7 +206,7 @@ namespace downward::cli::heuristics {
 void add_landmark_cost_partitioning_heuristic_categories(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_enum_plugin<CostPartitioningMethod>({
+    n.insert_enum_declaration<CostPartitioningMethod>({
         {"optimal", "use optimal (LP-based) cost partitioning"},
         {"uniform",
          "partition operator costs uniformly among all landmarks "

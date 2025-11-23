@@ -13,7 +13,7 @@ namespace probfd::cli::merge_and_shrink {
 void add_merge_selector_category(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_shared_category_plugin<MergeSelector>(
+    n.insert_shared_type_declaration<MergeSelector>(
         "PMergeSelector",
         "This page describes the available merge selectors. They are used "
         "to "

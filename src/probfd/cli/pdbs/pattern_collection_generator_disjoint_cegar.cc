@@ -30,7 +30,7 @@ using namespace probfd::cli::pdbs;
 namespace {
 
 std::size_t add_pattern_collection_generator_cegar_options_to_feature(
-    Feature& feature,
+    InternalFunctionDefinitionBase& feature,
     std::size_t start_index)
 {
     feature.make_optional_argument_with_default(
@@ -77,12 +77,12 @@ std::size_t add_pattern_collection_generator_cegar_options_to_feature(
     return n + n2 + 6;
 }
 
-Feature&
+InternalFunctionDefinitionBase&
 add_pattern_collection_generator_disjoint_cegar_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "ppdbs_disjoint_cegar",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             PatternCollectionGenerator,
             PatternCollectionGeneratorDisjointCegar,
             value_t,

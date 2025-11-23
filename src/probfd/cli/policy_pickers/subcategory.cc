@@ -57,12 +57,12 @@ template <bool Bisimulation, bool Fret>
 using PolicyPicker = Wrapper<algorithms::PolicyPicker, Bisimulation, Fret>;
 
 template <bool Bisimulation, bool Fret>
-Feature& add_arbitrary_policy_picker_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_arbitrary_policy_picker_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<Bisimulation, Fret>(
             "arbitrary_policy_tiebreaker"),
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             PolicyPicker<Bisimulation, Fret>,
             Wrapper<ArbitraryTiebreaker, Bisimulation, Fret>,
             bool>);
@@ -72,12 +72,12 @@ Feature& add_arbitrary_policy_picker_to_namespace(Namespace& nspace)
     return f;
 }
 
-Feature& add_operator_id_policy_picker_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_operator_id_policy_picker_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "operator_id_policy_tiebreaker",
         &downward::cli::plugins::
-            make_shared<FDRPolicyPicker, OperatorIdTiebreaker, bool, bool>);
+            construct_shared<FDRPolicyPicker, OperatorIdTiebreaker, bool, bool>);
 
     f.make_optional_argument_with_default(0, "stable_policy", "true");
     f.make_optional_argument_with_default(1, "prefer_smaller", "true");
@@ -86,11 +86,11 @@ Feature& add_operator_id_policy_picker_to_namespace(Namespace& nspace)
 }
 
 template <bool Bisimulation, bool Fret>
-Feature& add_random_tiebreaker_policy_picker_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_random_tiebreaker_policy_picker_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<Bisimulation, Fret>("random_policy_tiebreaker"),
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             PolicyPicker<Bisimulation, Fret>,
             Wrapper<RandomTiebreaker, Bisimulation, Fret>,
             bool,
@@ -103,12 +103,12 @@ Feature& add_random_tiebreaker_policy_picker_to_namespace(Namespace& nspace)
 }
 
 template <bool Bisimulation, bool Fret>
-Feature& add_value_gap_policy_picker_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_value_gap_policy_picker_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<Bisimulation, Fret>(
             "value_gap_policy_tiebreaker"),
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             PolicyPicker<Bisimulation, Fret>,
             Wrapper<VDiffTiebreaker, Bisimulation, Fret>,
             bool,
@@ -127,7 +127,7 @@ namespace probfd::cli::policy_pickers {
 void add_policy_picker_category(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_shared_category_plugins<PolicyPicker>(
+    n.insert_shared_type_declarations<PolicyPicker>(
         []<bool Bisimulation, bool Fret> {
             return add_mdp_type_to_category<Bisimulation, Fret>("PolicyPicker");
         },

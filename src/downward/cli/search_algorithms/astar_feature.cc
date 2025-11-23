@@ -121,9 +121,9 @@ create_astar_no_lazy_evaluator(
         verbosity);
 }
 
-Feature& add_astar_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_astar_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin("astar", create_astar);
+    auto& f = nspace.insert_function_definition("astar", create_astar);
 
     f.document_title("A* search (eager)");
     f.document_synopsis(
@@ -155,9 +155,9 @@ Feature& add_astar_to_namespace(Namespace& nspace)
     return f;
 }
 
-Feature& add_astar_no_lazy_evaluator_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_astar_no_lazy_evaluator_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "astar_no_lazy_eval",
         create_astar_no_lazy_evaluator);
 

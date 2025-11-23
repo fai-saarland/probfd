@@ -14,7 +14,7 @@ using namespace probfd::merge_and_shrink;
 namespace probfd::cli::merge_and_shrink {
 
 std::size_t add_merge_tree_factory_options_to_feature(
-    Feature& feature,
+    InternalFunctionDefinitionBase& feature,
     std::size_t start_index)
 {
     const int n =

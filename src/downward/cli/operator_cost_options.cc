@@ -10,7 +10,7 @@ namespace downward::cli {
 
 using namespace plugins;
 
-std::size_t add_cost_type_options_to_feature(Feature& feature, std::size_t start_index)
+std::size_t add_cost_type_options_to_feature(InternalFunctionDefinitionBase& feature, std::size_t start_index)
 {
     feature.make_optional_argument_with_default(
         start_index,

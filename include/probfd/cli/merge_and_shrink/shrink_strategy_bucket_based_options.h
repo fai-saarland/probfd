@@ -5,13 +5,13 @@
 #include <cstddef>
 
 namespace downward::cli::plugins {
-class Feature;
+class InternalFunctionDefinitionBase;
 }
 
 namespace probfd::cli::merge_and_shrink {
 
 extern std::size_t add_bucket_based_shrink_options_to_feature(
-    downward::cli::plugins::Feature& feature,
+    downward::cli::plugins::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 
 }

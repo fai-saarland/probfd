@@ -54,8 +54,7 @@ public:
 };
 
 class IntervalIterationSolverFeature
-    : public SharedTypedFeature<
-          TaskSolverFactory,
+    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -63,10 +62,10 @@ class IntervalIterationSolverFeature
           value_t,
           bool,
           Verbosity,
-          value_t> {
+          value_t)> {
 public:
     IntervalIterationSolverFeature()
-        : TypedFeature(
+        : InternalFunctionDefinition(
               "interval_iteration",
               &IntervalIterationSolverFeature::func)
     {
@@ -112,7 +111,7 @@ namespace probfd::cli::solvers {
 void add_interval_iteration_solver_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<IntervalIterationSolverFeature>();
+    n.insert_function_definition<IntervalIterationSolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

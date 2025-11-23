@@ -17,11 +17,11 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-Feature& add_delete_relaxation_rr_constraints_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_delete_relaxation_rr_constraints_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "delete_relaxation_rr_constraints",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             ConstraintGenerator,
             DeleteRelaxationRRConstraints,
             AcyclicityType,
@@ -96,7 +96,7 @@ namespace downward::cli::operator_counting {
 void add_delete_relaxation_rr_constraints_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_enum_plugin<AcyclicityType>(
+    n.insert_enum_declaration<AcyclicityType>(
         {{"time_labels",
           "introduces MIP variables that encode the time at which each fact is "
           "reached. Acyclicity is enforced with constraints that ensure that "

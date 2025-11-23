@@ -63,8 +63,7 @@ public:
 
 template <bool Bisimulation>
 class LRTDPSolverFeature
-    : public SharedTypedFeature<
-          TaskSolverFactory,
+    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -76,12 +75,12 @@ class LRTDPSolverFeature
           bool,
           std::shared_ptr<PolicyPickerType<Bisimulation, false>>,
           std::shared_ptr<SuccessorSampler<ActionType<Bisimulation, false>>>,
-          TrialTerminationCondition> {
+          TrialTerminationCondition)> {
     using Sampler = SuccessorSampler<ActionType<Bisimulation, false>>;
 
 public:
     LRTDPSolverFeature()
-        : LRTDPSolverFeature::TypedFeature(
+        : LRTDPSolverFeature::InternalFunctionDefinition(
               add_wrapper_algo_suffix<Bisimulation, false>("lrtdp"),
               &LRTDPSolverFeature::func)
     {
@@ -140,8 +139,8 @@ protected:
 
 template <bool Bisimulation>
 class LRTDPFretSolverFeature
-    : public SharedTypedFeatureWithContext<
-          TaskSolverFactory,
+    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
+          const Context&,
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -154,12 +153,12 @@ class LRTDPFretSolverFeature
           bool,
           std::shared_ptr<PolicyPickerType<Bisimulation, true>>,
           std::shared_ptr<SuccessorSampler<ActionType<Bisimulation, true>>>,
-          TrialTerminationCondition> {
+          TrialTerminationCondition)> {
     using Sampler = SuccessorSampler<ActionType<Bisimulation, true>>;
 
 public:
     LRTDPFretSolverFeature()
-        : LRTDPFretSolverFeature::TypedFeatureWithContext(
+        : LRTDPFretSolverFeature::InternalFunctionDefinition(
               add_wrapper_algo_suffix<Bisimulation, true>("lrtdp"),
               &LRTDPFretSolverFeature::func)
     {
@@ -233,14 +232,14 @@ namespace probfd::cli::solvers {
 void add_lrtdp_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_enum_plugin<TrialTerminationCondition>(
+    n.insert_enum_declaration<TrialTerminationCondition>(
         {{"terminal", "Stop trials at terminal states"},
          {"consistent", "Stop trials at epsilon consistent states"},
          {"inconsistent", "Stop trials at epsilon inconsistent states"},
          {"revisited", "Stop trials upon revisiting a state"}});
 
-    n.insert_feature_plugins<LRTDPSolverFeature>();
-    n.insert_feature_plugins<LRTDPFretSolverFeature>();
+    n.insert_function_definitions<LRTDPSolverFeature>();
+    n.insert_function_definitions<LRTDPFretSolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

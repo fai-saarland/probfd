@@ -18,12 +18,12 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-Feature&
+InternalFunctionDefinitionBase&
 add_probabilistic_additive_cartesian_cegar_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "pcegar",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             TaskHeuristicFactory,
             AdditiveCartesianHeuristicFactory,
             std::vector<std::shared_ptr<SubtaskGenerator>>,

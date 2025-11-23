@@ -15,7 +15,7 @@ using namespace downward::cli::plugins;
 namespace downward::cli::merge_and_shrink {
 
 std::size_t add_transition_system_size_limit_options_to_feature(
-    Feature& feature,
+    InternalFunctionDefinitionBase& feature,
     std::size_t start_index)
 {
     feature.make_optional_argument_with_default(

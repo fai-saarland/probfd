@@ -15,7 +15,7 @@ namespace downward::cli::mutexes {
 void add_mutex_factory_category(plugins::Registry& registry)
 {
     plugins::Namespace& n = registry.get_global_name_space();
-    n.insert_shared_category_plugin<TaskDependentFactory<MutexInformation>>(
+    n.insert_shared_type_declaration<TaskDependentFactory<MutexInformation>>(
         "MutexFactory",
         "A mutex factory computes mutually exclusive facts for a given "
         "planning task.");

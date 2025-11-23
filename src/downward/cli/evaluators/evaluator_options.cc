@@ -11,7 +11,7 @@ using namespace std;
 namespace downward::cli {
 
 std::size_t add_evaluator_options_to_feature(
-    plugins::Feature& feature,
+    plugins::InternalFunctionDefinitionBase& feature,
     const string& description,
     std::size_t start_index)
 {

@@ -54,11 +54,11 @@ public:
     }
 };
 
-Feature& add_context_enhanced_additive_heuristic_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_context_enhanced_additive_heuristic_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "cea",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             ContextEnhancedAdditiveHeuristicFactory,
             shared_ptr<TaskTransformation>,

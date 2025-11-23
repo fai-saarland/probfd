@@ -80,11 +80,11 @@ public:
     }
 };
 
-Feature& add_default_task_state_space_factory_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_default_task_state_space_factory_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "default_state_space",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             TaskStateSpaceFactory,
             DefaultTaskStateSpaceFactory,
             std::vector<std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>>);
@@ -101,11 +101,11 @@ Feature& add_default_task_state_space_factory_to_namespace(Namespace& nspace)
     return f;
 }
 
-Feature& add_caching_task_state_space_factory_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_caching_task_state_space_factory_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "caching_state_space",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             TaskStateSpaceFactory,
             CachingTaskStateSpaceFactory,
             std::vector<std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>>);

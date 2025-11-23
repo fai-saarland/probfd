@@ -16,7 +16,7 @@ using downward::cli::utils::add_rng_options_to_feature;
 namespace probfd::cli::pdbs {
 
 std::size_t
-add_multiple_options_to_feature(Feature& feature, std::size_t start_index)
+add_multiple_options_to_feature(InternalFunctionDefinitionBase& feature, std::size_t start_index)
 {
     feature.make_optional_argument_with_default(
         start_index,

@@ -12,7 +12,7 @@ namespace downward::cli::tasks {
 void add_task_transformation_category(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_shared_category_plugin<TaskTransformation>(
+    n.insert_shared_type_declaration<TaskTransformation>(
         "TaskTransformation",
         "");
 }

@@ -47,8 +47,7 @@ public:
 };
 
 class TATopologicalVISolverFeature
-    : public SharedTypedFeature<
-          TaskSolverFactory,
+    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -56,10 +55,10 @@ class TATopologicalVISolverFeature
           value_t,
           bool,
           utils::Verbosity,
-          value_t> {
+          value_t)> {
 public:
     TATopologicalVISolverFeature()
-        : TypedFeature(
+        : InternalFunctionDefinition(
               "ta_topological_value_iteration",
               &TATopologicalVISolverFeature::func)
     {
@@ -104,7 +103,7 @@ namespace probfd::cli::solvers {
 void add_ta_topological_value_iteration_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<TATopologicalVISolverFeature>();
+    n.insert_function_definition<TATopologicalVISolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

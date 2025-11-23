@@ -11,7 +11,7 @@ using namespace downward::cli::plugins;
 namespace downward::cli::combining_evaluator {
 
 std::size_t add_combining_evaluator_options_to_feature(
-    Feature& feature,
+    InternalFunctionDefinitionBase& feature,
     const string& description,
     std::size_t start_index)
 {

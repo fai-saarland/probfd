@@ -17,14 +17,14 @@ using downward::cli::utils::add_log_options_to_feature;
 namespace downward::cli::landmarks {
 
 std::size_t add_landmark_factory_options_to_feature(
-    Feature& feature,
+    InternalFunctionDefinitionBase& feature,
     std::size_t start_index)
 {
     return add_log_options_to_feature(feature, start_index);
 }
 
 std::size_t
-add_use_orders_option_to_feature(Feature& feature, std::size_t start_index)
+add_use_orders_option_to_feature(InternalFunctionDefinitionBase& feature, std::size_t start_index)
 {
     feature.make_optional_argument_with_default(
         start_index,

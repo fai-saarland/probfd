@@ -17,11 +17,11 @@ using downward::cli::merge_and_shrink::add_shrink_bucket_options_to_feature;
 
 namespace {
 
-Feature& add_shrink_strategy_random_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_shrink_strategy_random_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "shrink_random",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             ShrinkStrategy,
             ShrinkRandom,
             std::shared_ptr<RandomNumberGenerator>>);

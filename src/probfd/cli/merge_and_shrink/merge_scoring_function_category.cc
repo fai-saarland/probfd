@@ -11,7 +11,7 @@ namespace probfd::cli::merge_and_shrink {
 void add_merge_scoring_function_category(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_shared_category_plugin<MergeScoringFunction>(
+    n.insert_shared_type_declaration<MergeScoringFunction>(
         "PMergeScoringFunction",
         "This page describes various merge scoring functions. A scoring "
         "function, "

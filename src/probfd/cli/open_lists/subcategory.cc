@@ -38,10 +38,11 @@ template <bool Fret>
 using OpenList = Wrapped<OpenList, Fret>;
 
 template <bool Fret>
-class FifoOpenListFeature : public SharedTypedFeature<OpenList<Fret>> {
+class FifoOpenListFeature
+    : public InternalFunctionDefinition<std::shared_ptr<OpenList<Fret>>()> {
 public:
     FifoOpenListFeature()
-        : FifoOpenListFeature::TypedFeature(
+        : FifoOpenListFeature::InternalFunctionDefinition(
               add_mdp_type_to_option<false, Fret>("fifo_open_list"),
               &FifoOpenListFeature::create_open_list)
     {
@@ -55,10 +56,11 @@ public:
 };
 
 template <bool Fret>
-class LifoOpenListFeature : public SharedTypedFeature<OpenList<Fret>> {
+class LifoOpenListFeature
+    : public InternalFunctionDefinition<std::shared_ptr<OpenList<Fret>>()> {
 public:
     LifoOpenListFeature()
-        : LifoOpenListFeature::TypedFeature(
+        : LifoOpenListFeature::InternalFunctionDefinition(
               add_mdp_type_to_option<false, Fret>("lifo_open_list"),
               &LifoOpenListFeature::create_open_list)
     {
@@ -80,7 +82,7 @@ using OpenList = Wrapped<probfd::algorithms::OpenList, Fret>;
 void add_open_list_categories(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_shared_category_plugins<open_lists::OpenList>(
+    n.insert_shared_type_declarations<open_lists::OpenList>(
         []<bool Fret>() {
             return add_mdp_type_to_category<false, Fret>("ProbFDOpenList");
         },
@@ -90,8 +92,8 @@ void add_open_list_categories(Registry& registry)
 void add_open_list_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugins<FifoOpenListFeature>();
-    n.insert_feature_plugins<LifoOpenListFeature>();
+    n.insert_function_definitions<FifoOpenListFeature>();
+    n.insert_function_definitions<LifoOpenListFeature>();
 }
 
 } // namespace probfd::cli::open_lists

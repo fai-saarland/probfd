@@ -11,7 +11,7 @@ using downward::utils::Verbosity;
 namespace downward::cli::utils {
 
 std::size_t add_log_options_to_feature(
-    plugins::Feature& feature,
+    plugins::InternalFunctionDefinitionBase& feature,
     std::size_t start_index)
 {
     feature.make_optional_argument_with_default(

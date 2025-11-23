@@ -4,17 +4,17 @@
 #include <cstddef>
 
 namespace downward::cli::plugins {
-class Feature;
+class InternalFunctionDefinitionBase;
 } // namespace downward::cli::plugins
 
 namespace downward::cli::landmarks {
 
 extern std::size_t add_landmark_factory_options_to_feature(
-    plugins::Feature& feature,
+    plugins::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 
 extern std::size_t add_use_orders_option_to_feature(
-    plugins::Feature& feature,
+    plugins::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 
 } // namespace downward::cli::landmarks

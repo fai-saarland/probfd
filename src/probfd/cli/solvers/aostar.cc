@@ -56,8 +56,7 @@ public:
 
 template <bool Bisimulation>
 class AOStarSolverFeature
-    : public SharedTypedFeature<
-          TaskSolverFactory,
+    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           Verbosity,
@@ -68,12 +67,12 @@ class AOStarSolverFeature
           value_t,
           bool,
           std::shared_ptr<PolicyPickerType<Bisimulation, false>>,
-          std::shared_ptr<SuccessorSampler<ActionType<Bisimulation, false>>>> {
+          std::shared_ptr<SuccessorSampler<ActionType<Bisimulation, false>>>)> {
     using Sampler = SuccessorSampler<ActionType<Bisimulation, false>>;
 
 public:
     AOStarSolverFeature()
-        : AOStarSolverFeature::TypedFeature(
+        : AOStarSolverFeature::InternalFunctionDefinition(
               add_wrapper_algo_suffix<Bisimulation, false>("aostar"),
               &AOStarSolverFeature::func)
     {
@@ -127,7 +126,7 @@ namespace probfd::cli::solvers {
 void add_aostar_solver_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugins<AOStarSolverFeature>();
+    n.insert_function_definitions<AOStarSolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

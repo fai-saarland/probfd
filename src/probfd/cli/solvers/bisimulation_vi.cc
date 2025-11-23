@@ -233,10 +233,10 @@ public:
 };
 
 class BisimulationVISolverFeature
-    : public SharedTypedFeature<TaskSolverFactory, value_t> {
+    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(value_t)> {
 public:
     BisimulationVISolverFeature()
-        : TypedFeature("bisimulation_vi", &BisimulationVISolverFeature::func)
+        : InternalFunctionDefinition("bisimulation_vi", &BisimulationVISolverFeature::func)
     {
         document_title("Bisimulation Value Iteration");
 
@@ -248,8 +248,7 @@ public:
     }
 
 protected:
-    static std::shared_ptr<TaskSolverFactory>
-    func(value_t convergence_epsilon)
+    static std::shared_ptr<TaskSolverFactory> func(value_t convergence_epsilon)
     {
         return std::make_shared<BisimulationIterationFactory>(
             convergence_epsilon,
@@ -258,10 +257,10 @@ protected:
 };
 
 class BisimulationIISolverFeature
-    : public SharedTypedFeature<TaskSolverFactory, value_t> {
+    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(value_t)> {
 public:
     BisimulationIISolverFeature()
-        : TypedFeature("bisimulation_ii", &BisimulationIISolverFeature::func)
+        : InternalFunctionDefinition("bisimulation_ii", &BisimulationIISolverFeature::func)
     {
         document_title("Bisimulation Interval Iteration");
 
@@ -273,8 +272,7 @@ public:
     }
 
 protected:
-    static std::shared_ptr<TaskSolverFactory>
-    func(value_t convergence_epsilon)
+    static std::shared_ptr<TaskSolverFactory> func(value_t convergence_epsilon)
     {
         return std::make_shared<BisimulationIterationFactory>(
             convergence_epsilon,
@@ -288,8 +286,8 @@ namespace probfd::cli::solvers {
 void add_bisimulation_value_iteration_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<BisimulationVISolverFeature>();
-    n.insert_feature_plugin<BisimulationIISolverFeature>();
+    n.insert_function_definition<BisimulationVISolverFeature>();
+    n.insert_function_definition<BisimulationIISolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

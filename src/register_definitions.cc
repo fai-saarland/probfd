@@ -260,7 +260,7 @@ T max_duration()
 
 void add_infinity_feature_to_namespace(plugins::Namespace& nspace)
 {
-    nspace.insert_typed_feature_plugin("infinity", make_infinite_value);
+    nspace.insert_function_definition("infinity", make_infinite_value);
 }
 
 template <typename T, T F>
@@ -268,7 +268,7 @@ void add_scale_literal_feature_to_namespace(
     plugins::Namespace& nspace,
     std::string name)
 {
-    nspace.insert_typed_feature_plugin(std::move(name), scale<T, F>);
+    nspace.insert_function_definition(std::move(name), scale<T, F>);
 }
 
 template <typename R, typename T>
@@ -276,7 +276,7 @@ void add_cast_from_literal_to_namespace(
     plugins::Namespace& nspace,
     std::string name)
 {
-    nspace.insert_typed_feature_plugin(std::move(name), cast<R, T>);
+    nspace.insert_function_definition(std::move(name), cast<R, T>);
 }
 
 template <typename T>
@@ -285,7 +285,7 @@ void add_infinite_duration_feature_to_namespace(
     std::string name)
 {
     auto& f =
-        nspace.insert_typed_feature_plugin(std::move(name), max_duration<T>);
+        nspace.insert_function_definition(std::move(name), max_duration<T>);
     f.document_synopsis("Returns a maximum / infinite duration.");
 }
 
@@ -298,22 +298,22 @@ static void register_fast_downward_types(plugins::Registry& registry)
     // Duration types
     plugins::Namespace& n = registry.get_global_name_space();
 
-    n.insert_category_plugin<downward::utils::FNanoSeconds>(
+    n.insert_type_declaration<downward::utils::FNanoSeconds>(
         "nanoseconds",
         "Type representing a nanosecond.");
-    n.insert_category_plugin<downward::utils::FMicroSeconds>(
+    n.insert_type_declaration<downward::utils::FMicroSeconds>(
         "microseconds",
         "Type representing a microsecond.");
-    n.insert_category_plugin<downward::utils::FMilliSeconds>(
+    n.insert_type_declaration<downward::utils::FMilliSeconds>(
         "milliseconds",
         "Type representing a millisecond.");
-    n.insert_category_plugin<downward::utils::FSeconds>(
+    n.insert_type_declaration<downward::utils::FSeconds>(
         "seconds",
         "Type representing a second.");
-    n.insert_category_plugin<downward::utils::FMinutes>(
+    n.insert_type_declaration<downward::utils::FMinutes>(
         "minutes",
         "Type representing a minute.");
-    n.insert_category_plugin<downward::utils::FHours>(
+    n.insert_type_declaration<downward::utils::FHours>(
         "hours",
         "Type representing an hour.");
 

@@ -56,11 +56,11 @@ public:
     }
 };
 
-Feature& add_pdb_heuristic_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_pdb_heuristic_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "pdb",
-        &cli::plugins::make_shared<
+        &cli::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             PDBHeuristicFactory,
             shared_ptr<TaskTransformation>,
@@ -98,10 +98,10 @@ namespace downward::cli::heuristics {
 void add_pdb_heuristic_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    const Feature& f = add_pdb_heuristic_to_namespace(n);
-    SubcategoryPlugin& subcategory =
-        registry.get_subcategory_plugin("heuristics_pdb");
-    subcategory.add_feature(f);
+    const InternalFunctionDefinitionBase& f = add_pdb_heuristic_to_namespace(n);
+    DocumentationTopic& subcategory =
+        registry.get_topic_by_name("heuristics_pdb");
+    subcategory.add_function(f);
 }
 
 } // namespace downward::cli::heuristics

@@ -14,7 +14,7 @@ namespace downward::cli::merge_and_shrink {
 void add_merge_strategy_factory_category(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_shared_category_plugin<MergeStrategyFactory>(
+    n.insert_shared_type_declaration<MergeStrategyFactory>(
         "MergeStrategy",
         "This page describes the various merge strategies supported "
         "by the planner.");

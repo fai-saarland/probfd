@@ -22,12 +22,12 @@ using downward::cli::utils::add_rng_options_to_feature;
 
 namespace {
 
-Feature&
+InternalFunctionDefinitionBase&
 add_greedy_zero_one_cost_partitioning_heuristic_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "gzocp_heuristic",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             TaskHeuristicFactory,
             GZOCPHeuristicFactory,
             std::shared_ptr<PatternCollectionGenerator>,
@@ -66,7 +66,7 @@ namespace probfd::cli::heuristics {
 void add_gzocp_heuristic_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_enum_plugin<GZOCPHeuristicFactory::OrderingStrategy>(
+    n.insert_enum_declaration<GZOCPHeuristicFactory::OrderingStrategy>(
         {{"random", "the order is random"},
          {"size_asc", "orders the PDBs by increasing size"},
          {"size_desc", "orders the PDBs by decreasing size"},

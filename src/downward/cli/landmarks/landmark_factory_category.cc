@@ -14,7 +14,7 @@ namespace downward::cli::landmarks {
 void add_landmark_factory_category(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_shared_category_plugin<LandmarkFactory>(
+    n.insert_shared_type_declaration<LandmarkFactory>(
         "LandmarkFactory",
         "A landmark factory specification is either a newly created "
         "instance or a landmark factory that has been defined previously. "

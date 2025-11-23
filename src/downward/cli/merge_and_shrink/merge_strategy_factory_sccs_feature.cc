@@ -20,11 +20,11 @@ using downward::cli::merge_and_shrink::add_merge_strategy_options_to_feature;
 
 namespace {
 
-Feature& add_merge_strategy_factory_sccs_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_merge_strategy_factory_sccs_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "merge_sccs",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             MergeStrategyFactory,
             MergeStrategyFactorySCCs,
             const OrderOfSCCs&,
@@ -76,7 +76,7 @@ namespace downward::cli::merge_and_shrink {
 void add_merge_strategy_factory_sccs_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_enum_plugin<OrderOfSCCs>(
+    n.insert_enum_declaration<OrderOfSCCs>(
         {{"topological",
           "according to the topological ordering of the directed graph "
           "where each obtained SCC is a 'supervertex'"},

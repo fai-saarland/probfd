@@ -44,9 +44,9 @@ shared_ptr<MergeScoringFunction> create_merge_scoring_function_miasm(
         use_caching);
 }
 
-Feature& add_merge_scoring_function_miasm_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_merge_scoring_function_miasm_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "sf_miasm",
         &create_merge_scoring_function_miasm);
     f.document_title("MIASM");

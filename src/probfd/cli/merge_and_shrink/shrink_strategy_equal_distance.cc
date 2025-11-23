@@ -19,11 +19,11 @@ using namespace probfd::cli::merge_and_shrink;
 
 namespace {
 
-Feature& add_shrink_strategy_equal_distance_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_shrink_strategy_equal_distance_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "shrink_equal_distance",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             ShrinkStrategy,
             ShrinkStrategyEqualDistance,
             std::shared_ptr<utils::RandomNumberGenerator>,
@@ -55,7 +55,7 @@ namespace probfd::cli::merge_and_shrink {
 void add_shrink_strategy_equal_distance_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_enum_plugin<ShrinkStrategyEqualDistance::Priority>(
+    n.insert_enum_declaration<ShrinkStrategyEqualDistance::Priority>(
         {{"high", "prefer shrinking states with high value"},
          {"low", "prefer shrinking states with low value"}});
 

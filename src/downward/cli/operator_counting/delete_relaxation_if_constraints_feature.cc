@@ -15,11 +15,11 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-Feature& add_delete_relaxation_if_constraints_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_delete_relaxation_if_constraints_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "delete_relaxation_if_constraints",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             ConstraintGenerator,
             DeleteRelaxationIFConstraints,
             bool,

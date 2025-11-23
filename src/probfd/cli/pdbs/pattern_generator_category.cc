@@ -14,7 +14,7 @@ namespace probfd::cli::pdbs {
 void add_pattern_generator_category(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_shared_category_plugin<PatternGenerator>(
+    n.insert_shared_type_declaration<PatternGenerator>(
         "PPDBPatternGenerator",
         "Factory for a pattern and/or the corresponding "
         "probability-aware PDB");

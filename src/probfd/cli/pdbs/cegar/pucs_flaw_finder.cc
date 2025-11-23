@@ -14,12 +14,12 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-Feature& add_pucs_flaw_finder_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_pucs_flaw_finder_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "pucs_flaw_finder",
         &downward::cli::plugins::
-            make_shared<FlawFindingStrategy, PUCSFlawFinder, int>);
+            construct_shared<FlawFindingStrategy, PUCSFlawFinder, int>);
     f.make_optional_argument_with_default(
             0,
             "max_search_states",

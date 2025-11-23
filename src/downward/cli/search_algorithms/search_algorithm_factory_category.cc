@@ -13,7 +13,7 @@ namespace downward::cli::search_algorithms {
 void add_search_algorithm_factory_category(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_shared_category_plugin<TaskDependentFactory<SearchAlgorithm>>(
+    n.insert_shared_type_declaration<TaskDependentFactory<SearchAlgorithm>>(
         "SearchAlgorithmFactory",
         "");
 }

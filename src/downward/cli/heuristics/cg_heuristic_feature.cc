@@ -60,11 +60,11 @@ public:
     }
 };
 
-Feature& add_causal_graph_heuristic_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_causal_graph_heuristic_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "cg",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             CGHeuristicFactory,
             shared_ptr<TaskTransformation>,

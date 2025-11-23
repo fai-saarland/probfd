@@ -53,11 +53,11 @@ public:
     }
 };
 
-Feature& add_ff_heuristic_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_ff_heuristic_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "ff",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             FFHeuristicFactory,
             shared_ptr<TaskTransformation>,

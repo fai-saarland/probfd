@@ -13,11 +13,11 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-Feature& add_merge_selector_score_based_filtering_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_merge_selector_score_based_filtering_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "score_based_filtering",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             MergeSelector,
             MergeSelectorScoreBasedFiltering,
             const std::vector<std::shared_ptr<MergeScoringFunction>>&>);

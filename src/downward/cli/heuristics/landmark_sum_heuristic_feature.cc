@@ -73,11 +73,11 @@ public:
     }
 };
 
-Feature& add_landmark_sum_heuristic_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_landmark_sum_heuristic_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "landmark_sum",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             LandmarkSumHeuristicFactory,
             shared_ptr<TaskTransformation>,

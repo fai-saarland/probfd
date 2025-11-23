@@ -96,27 +96,34 @@ public:
     }
 
 protected:
-    void print_header(const Feature& feature) const override
+    void print_header(
+        const InternalFunctionDefinitionBase& function_def) const override
     {
-        assert(!feature.get_key().empty());
-        std::println(os, "===== Variable {} =====", feature.get_key());
+        assert(!function_def.get_identifier().empty());
+        std::println(
+            os,
+            "===== Variable {} =====",
+            function_def.get_identifier());
     }
 
-    void print_synopsis(const Feature& feature) const override
+    void print_synopsis(
+        const InternalFunctionDefinitionBase& function_def) const override
     {
-        if (const auto& syn = feature.get_synopsis(); !syn.empty()) {
+        if (const auto& syn = function_def.get_synopsis(); !syn.empty()) {
             std::println(os, "Description:\n{}\n", syn);
-        } else if (const auto& title = feature.get_title(); !title.empty()) {
+        } else if (const auto& title = function_def.get_title();
+                   !title.empty()) {
             std::println(os, "Description:\n{}\n", title);
         }
     }
 
-    void print_usage(const Feature& feature) const override
+    void print_usage(
+        const InternalFunctionDefinitionBase& function_def) const override
     {
         os << "Type:\n  ";
 
-        const auto& args_infos = feature.get_arguments();
-        const auto& arg_types = feature.get_type().get_argument_types();
+        const auto& args_infos = function_def.get_arguments();
+        const auto& arg_types = function_def.get_type().get_argument_types();
 
         const auto args = std::views::zip(args_infos, arg_types);
 
@@ -158,7 +165,7 @@ protected:
             }
         }
 
-        os << ") -> " << feature.get_type().get_return_type().name()
+        os << ") -> " << function_def.get_type().get_return_type().name()
            << std::endl;
 
         if (has_optional) {
@@ -175,10 +182,11 @@ protected:
         os << endl;
     }
 
-    void print_arguments(const Feature& feature) const override
+    void print_arguments(
+        const InternalFunctionDefinitionBase& function_def) const override
     {
-        if (feature.get_arguments().empty()) {
-            os << "This feature has no arguments.\n" << std::endl;
+        if (function_def.get_arguments().empty()) {
+            os << "This function_def has no arguments.\n" << std::endl;
             return;
         }
 
@@ -189,8 +197,8 @@ protected:
         std::vector<std::string> arg_strings;
 
         for (const auto& [arg_info, arg_type] : std::views::zip(
-                 feature.get_arguments(),
-                 feature.get_type().get_argument_types())) {
+                 function_def.get_arguments(),
+                 function_def.get_type().get_argument_types())) {
             std::string& s = arg_strings.emplace_back(
                 std::format("{} : {}", arg_info, arg_type->name()));
 
@@ -203,9 +211,9 @@ protected:
 
         for (const auto& [s, arg_info, arg_type, arg_help] : std::views::zip(
                  arg_strings,
-                 feature.get_arguments(),
-                 feature.get_type().get_argument_types(),
-                 feature.get_argument_docs())) {
+                 function_def.get_arguments(),
+                 function_def.get_type().get_argument_types(),
+                 function_def.get_argument_docs())) {
             std::stringstream ss;
             ss << arg_help;
 
@@ -245,10 +253,11 @@ protected:
         os << std::endl;
     }
 
-    void print_notes(const Feature& feature) const override
+    void print_notes(
+        const InternalFunctionDefinitionBase& function_def) const override
     {
         if (print_all) {
-            for (const NoteInfo& note : feature.get_notes()) {
+            for (const NoteInfo& note : function_def.get_notes()) {
                 if (note.long_text) {
                     os << "=== " << note.name << " ===" << endl
                        << note.description << endl
@@ -261,34 +270,38 @@ protected:
         }
     }
 
-    void print_language_features(const Feature& feature) const override
+    void print_language_features(
+        const InternalFunctionDefinitionBase& function_def) const override
     {
-        if (print_all && !feature.get_language_support().empty()) {
+        if (print_all && !function_def.get_language_support().empty()) {
             os << "Language features supported:" << endl;
             for (const LanguageSupportInfo& ls :
-                 feature.get_language_support()) {
+                 function_def.get_language_support()) {
                 os << " * " << ls.feature << ": " << ls.description << endl;
             }
         }
     }
 
-    void print_properties(const Feature& feature) const override
+    void print_properties(
+        const InternalFunctionDefinitionBase& function_def) const override
     {
-        if (print_all && !feature.get_properties().empty()) {
+        if (print_all && !function_def.get_properties().empty()) {
             os << "Properties:" << endl;
-            for (const PropertyInfo& prop : feature.get_properties()) {
+            for (const PropertyInfo& prop : function_def.get_properties()) {
                 os << " * " << prop.property << ": " << prop.description
                    << endl;
             }
         }
     }
 
-    void print_category_header(const CategoryPlugin& category) const override
+    void print_type_declaration_header(
+        const InternalTypeDeclarationBase& type_declaration) const override
     {
-        os << "##### Type " << category.get_category_name() << " #####\n\n";
+        os << "##### Type " << type_declaration.get_identifier()
+           << " #####\n\n";
     }
 
-    void print_category_synopsis(const string& synopsis) const override
+    void print_type_declaration_synopsis(const string& synopsis) const override
     {
         if (!synopsis.empty()) {
             std::println(os, "Description:\n{}\n", synopsis);
@@ -297,9 +310,10 @@ protected:
         }
     }
 
-    void print_category_members(
-        const CategoryPlugin&,
-        const std::vector<const Feature*> features) const override
+    void print_type_declaration_related_functions(
+        const InternalTypeDeclarationBase&,
+        const std::vector<const InternalFunctionDefinitionBase*> features)
+        const override
     {
         if (features.empty()) {
             os << "This type has no members.\n" << std::endl;
@@ -310,23 +324,25 @@ protected:
 
         std::size_t max_width = 0;
 
-        for (const auto& feature : features) {
-            if (const auto& name = feature->get_key(); name.size() > max_width)
+        for (const auto& function_def : features) {
+            if (const auto& name = function_def->get_identifier();
+                name.size() > max_width)
                 max_width = name.size();
         }
 
-        for (const auto& feature : features) {
-            const auto& name = feature->get_key();
-            const auto& synopsis = feature->get_title();
+        for (const auto& function_def : features) {
+            const auto& name = function_def->get_identifier();
+            const auto& synopsis = function_def->get_title();
             std::print(os, "  {:{}}  {}\n", name, max_width, synopsis);
         }
 
         std::println(os);
     }
 
-    void print_subcategory_members(
-        const SubcategoryPlugin&,
-        const std::vector<const Feature*> features) const override
+    void print_topic_members(
+        const DocumentationTopic&,
+        const std::vector<const InternalFunctionDefinitionBase*> features)
+        const override
     {
         if (features.empty()) {
             os << "This topic has no members.\n" << std::endl;
@@ -337,21 +353,22 @@ protected:
 
         std::size_t max_width = 0;
 
-        for (const auto& feature : features) {
-            if (const auto& name = feature->get_key(); name.size() > max_width)
+        for (const auto& function_def : features) {
+            if (const auto& name = function_def->get_identifier();
+                name.size() > max_width)
                 max_width = name.size();
         }
 
-        for (const auto& feature : features) {
-            const auto& name = feature->get_key();
-            const auto& synopsis = feature->get_title();
+        for (const auto& function_def : features) {
+            const auto& name = function_def->get_identifier();
+            const auto& synopsis = function_def->get_title();
             std::print(os, "  {:{}}  {}\n", name, max_width, synopsis);
         }
 
         std::println(os);
     }
 
-    void print_category_footer() const override {}
+    void print_type_declaration_footer() const override {}
 };
 
 } // namespace
@@ -374,8 +391,8 @@ static int list_features(argparse::ArgumentParser& parser)
         const auto types = parser.get<std::vector<std::string>>("--types");
         for (const string& name : types) {
             try {
-                doc_printer->print_category(name);
-            } catch (const MissingCategoryError&) {
+                doc_printer->print_type_declaration(name);
+            } catch (const MissingTypeDeclarationError&) {
                 std::println(std::cerr, "Type '{}' does not exist.", name);
                 exitcode = 1;
             }
@@ -384,12 +401,12 @@ static int list_features(argparse::ArgumentParser& parser)
 
     if (parser.present("--features")) {
         const auto features =
-            parser.get<std::vector<std::string>>("--features");
+            parser.get<std::vector<std::string>>("--functions");
         for (const string& name : features) {
             try {
-                doc_printer->print_feature(name);
-            } catch (const MissingFeatureError&) {
-                std::println(std::cerr, "Feature '{}' does not exist.", name);
+                doc_printer->print_function_declaration(name);
+            } catch (const MissingFunctionError&) {
+                std::println(std::cerr, "Function '{}' does not exist.", name);
                 exitcode = 1;
             }
         }
@@ -399,8 +416,8 @@ static int list_features(argparse::ArgumentParser& parser)
         const auto topics = parser.get<std::vector<std::string>>("--topics");
         for (const string& name : topics) {
             try {
-                doc_printer->print_subcategory(name);
-            } catch (const MissingSubCategoryError&) {
+                doc_printer->print_topic(name);
+            } catch (const MissingTopicError&) {
                 std::println(std::cerr, "Topic '{}' does not exist.", name);
                 exitcode = 1;
             }

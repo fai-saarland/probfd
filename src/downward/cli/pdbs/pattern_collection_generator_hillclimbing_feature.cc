@@ -56,12 +56,12 @@ std::string paper_references()
                "2012");
 }
 
-Feature&
+InternalFunctionDefinitionBase&
 add_pattern_collection_generator_hillclimbing_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "hillclimbing",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             PatternCollectionGenerator,
             PatternCollectionGeneratorHillclimbing,
             int,
