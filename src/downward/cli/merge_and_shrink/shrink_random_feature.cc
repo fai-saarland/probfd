@@ -16,22 +16,21 @@ using namespace downward::cli::plugins;
 using downward::cli::merge_and_shrink::add_shrink_bucket_options_to_feature;
 
 namespace {
-class ShrinkRandomFeature : public SharedTypedFeature<ShrinkStrategy, int> {
-public:
-    ShrinkRandomFeature()
-        : TypedFeature("shrink_random", &ShrinkRandomFeature::func)
-    {
-        document_title("Random");
-        document_synopsis("");
 
-        add_shrink_bucket_options_to_feature(*this, 0);
-    }
+Feature& add_shrink_strategy_random_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "shrink_random",
+        &downward::cli::plugins::
+            make_shared<ShrinkStrategy, ShrinkRandom, int>);
+    f.document_title("Random Shrinking");
+    f.document_synopsis("");
 
-    static shared_ptr<ShrinkStrategy> func(int random_seed)
-    {
-        return make_shared_from_arg_tuples<ShrinkRandom>(random_seed);
-    }
-};
+    add_shrink_bucket_options_to_feature(f, 0);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::merge_and_shrink {
@@ -39,7 +38,7 @@ namespace downward::cli::merge_and_shrink {
 void add_shrink_random_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<ShrinkRandomFeature>();
+    add_shrink_strategy_random_to_namespace(n);
 }
 
 } // namespace downward::cli::merge_and_shrink

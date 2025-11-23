@@ -15,30 +15,28 @@ using namespace downward;
 using namespace probfd::merge_and_shrink;
 
 namespace {
-class MergeScoringFunctionSingleRandomFeature
-    : public SharedTypedFeature<MergeScoringFunction, int> {
-public:
-    MergeScoringFunctionSingleRandomFeature()
-        : TypedFeature(
-              "psingle_random",
-              &MergeScoringFunctionSingleRandomFeature::func)
-    {
-        document_title("Single random");
-        document_synopsis(
-            "This scoring function assigns exactly one merge "
-            "candidate a score of "
-            "0, chosen randomly, and infinity to all others.");
 
-        downward::cli::utils::add_rng_options_to_feature(*this, 0);
-    }
+Feature&
+add_merge_scoring_function_single_random_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "psingle_random",
+        &downward::cli::plugins::make_shared<
+            MergeScoringFunction,
+            MergeScoringFunctionSingleRandom,
+            int>);
 
-protected:
-    static shared_ptr<MergeScoringFunction> func(int random_seed)
-    {
-        return make_shared_from_arg_tuples<MergeScoringFunctionSingleRandom>(
-            random_seed);
-    }
-};
+    f.document_title("Single random");
+    f.document_synopsis(
+        "This scoring function assigns exactly one merge "
+        "candidate a score of "
+        "0, chosen randomly, and infinity to all others.");
+
+    downward::cli::utils::add_rng_options_to_feature(f, 0);
+
+    return f;
+}
+
 } // namespace
 
 namespace probfd::cli::merge_and_shrink {
@@ -46,7 +44,7 @@ namespace probfd::cli::merge_and_shrink {
 void add_merge_scoring_function_single_random_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<MergeScoringFunctionSingleRandomFeature>();
+    add_merge_scoring_function_single_random_to_namespace(n);
 }
 
 } // namespace probfd::cli::merge_and_shrink

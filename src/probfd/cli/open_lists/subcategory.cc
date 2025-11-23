@@ -43,12 +43,12 @@ public:
     FifoOpenListFeature()
         : FifoOpenListFeature::TypedFeature(
               add_mdp_type_to_option<false, Fret>("fifo_open_list"),
-              &FifoOpenListFeature::func)
+              &FifoOpenListFeature::create_open_list)
     {
     }
 
     [[nodiscard]]
-    static std::shared_ptr<OpenList<Fret>> func()
+    static std::shared_ptr<OpenList<Fret>> create_open_list()
     {
         return std::make_shared<Wrapped<FifoOpenList, Fret>>();
     }
@@ -60,12 +60,12 @@ public:
     LifoOpenListFeature()
         : LifoOpenListFeature::TypedFeature(
               add_mdp_type_to_option<false, Fret>("lifo_open_list"),
-              &LifoOpenListFeature::func)
+              &LifoOpenListFeature::create_open_list)
     {
     }
 
     [[nodiscard]]
-    static std::shared_ptr<OpenList<Fret>> func()
+    static std::shared_ptr<OpenList<Fret>> create_open_list()
     {
         return std::make_shared<Wrapped<LifoOpenList, Fret>>();
     }

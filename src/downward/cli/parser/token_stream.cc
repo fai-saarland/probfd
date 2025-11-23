@@ -9,6 +9,8 @@
 #include <sstream>
 
 #undef IN
+#undef TRUE
+#undef FALSE
 
 using namespace std;
 

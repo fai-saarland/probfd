@@ -18,135 +18,80 @@ using namespace downward::cli::plugins;
 using downward::cli::add_open_list_options_to_feature;
 
 namespace {
-template <typename T>
-class BestFirstOpenListFeature
-    : public SharedTypedFeature<
-          downward::TaskDependentFactory<downward::OpenList<T>>,
-          bool> {
-public:
-    BestFirstOpenListFeature()
-        requires(std::same_as<T, downward::StateOpenListEntry>)
-        : BestFirstOpenListFeature::TypedFeature(
-              "state_single",
-              &BestFirstOpenListFeature::func)
-    {
-        this->document_title("Best-first state open list");
-        this->document_synopsis(
-            "Open list that uses a single evaluator and FIFO tiebreaking.");
-
-        this->document_note(
-            "Implementation Notes",
-            "Elements with the same evaluator value are stored in double-ended "
-            "queues, called \"buckets\". The open list stores a map from "
-            "evaluator "
-            "values to buckets. Pushing and popping from a bucket runs in "
-            "constant "
-            "time. Therefore, inserting and removing an entry from the open "
-            "list "
-            "takes time O(log(n)), where n is the number of buckets.");
-
-        add_open_list_options_to_feature(*this, 0);
-    }
-
-    BestFirstOpenListFeature()
-        requires(std::same_as<T, downward::EdgeOpenListEntry>)
-        : BestFirstOpenListFeature::TypedFeature(
-              "edge_single",
-              &BestFirstOpenListFeature::func)
-    {
-        this->document_title("Best-first edge open list");
-        this->document_synopsis(
-            "Open list that uses a single evaluator and FIFO tiebreaking.");
-
-        this->document_note(
-            "Implementation Notes",
-            "Elements with the same evaluator value are stored in double-ended "
-            "queues, called \"buckets\". The open list stores a map from "
-            "evaluator "
-            "values to buckets. Pushing and popping from a bucket runs in "
-            "constant "
-            "time. Therefore, inserting and removing an entry from the open "
-            "list "
-            "takes time O(log(n)), where n is the number of buckets.");
-
-        add_open_list_options_to_feature(*this, 0);
-    }
-
-    static shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
-    func(bool pref_only)
-    {
-        return make_shared<BestFirstOpenListFactory<T>>(nullptr, pref_only);
-    }
-};
 
 template <typename T>
-class BestFirstOpenListFeatureOverload
-    : public SharedTypedFeature<
-          downward::TaskDependentFactory<downward::OpenList<T>>,
-          shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>,
-          bool> {
-public:
-    BestFirstOpenListFeatureOverload()
-        requires(std::same_as<T, downward::StateOpenListEntry>)
-        : BestFirstOpenListFeatureOverload::TypedFeature(
-              "state_single_with_eval",
-              &BestFirstOpenListFeatureOverload::func)
-    {
-        this->document_title("Best-first state open list");
-        this->document_synopsis(
-            "Open list that uses a single evaluator and FIFO tiebreaking.");
+Feature&
+add_best_first_open_list_to_namespace(Namespace& nspace, std::string name)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        std::move(name),
+        &downward::cli::plugins::make_shared<
+            downward::TaskDependentFactory<downward::OpenList<T>>,
+            BestFirstOpenListFactory<T>,
+            bool>);
 
-        this->document_note(
-            "Implementation Notes",
-            "Elements with the same evaluator value are stored in double-ended "
-            "queues, called \"buckets\". The open list stores a map from "
-            "evaluator "
-            "values to buckets. Pushing and popping from a bucket runs in "
-            "constant "
-            "time. Therefore, inserting and removing an entry from the open "
-            "list "
-            "takes time O(log(n)), where n is the number of buckets.");
+    if constexpr (std::same_as<T, downward::StateOpenListEntry>) {
+        f.document_title("Best-first state open list");
+    } else {
+        f.document_title("Best-first edge open list");
+    }
+    f.document_synopsis(
+        "Open list that uses a single evaluator and FIFO tiebreaking.");
 
-        this->make_required_argument(0, "eval", "evaluator");
-        add_open_list_options_to_feature(*this, 1);
+    f.document_note(
+        "Implementation Notes",
+        "Elements with the same evaluator value are stored in double-ended "
+        "queues, called \"buckets\". The open list stores a map from "
+        "evaluator "
+        "values to buckets. Pushing and popping from a bucket runs in "
+        "constant "
+        "time. Therefore, inserting and removing an entry from the open "
+        "list "
+        "takes time O(log(n)), where n is the number of buckets.");
+
+    add_open_list_options_to_feature(f, 0);
+
+    return f;
+}
+
+template <typename T>
+Feature& add_best_first_open_list_with_eval_to_namespace(
+    Namespace& nspace,
+    std::string name)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        std::move(name),
+        &downward::cli::plugins::make_shared<
+            downward::TaskDependentFactory<downward::OpenList<T>>,
+            BestFirstOpenListFactory<T>,
+            shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>,
+            bool>);
+
+    if constexpr (std::same_as<T, downward::StateOpenListEntry>) {
+        f.document_title("Best-first state open list");
+    } else {
+        f.document_title("Best-first edge open list");
     }
 
-    BestFirstOpenListFeatureOverload()
-        requires(std::same_as<T, downward::EdgeOpenListEntry>)
-        : BestFirstOpenListFeatureOverload::TypedFeature(
-              "edge_single_with_eval",
-              &BestFirstOpenListFeatureOverload::func)
-    {
-        this->document_title("Best-first edge open list");
-        this->document_synopsis(
-            "Open list that uses a single evaluator and FIFO tiebreaking.");
+    f.document_synopsis(
+        "Open list that uses a single evaluator and FIFO tiebreaking.");
 
-        this->document_note(
-            "Implementation Notes",
-            "Elements with the same evaluator value are stored in double-ended "
-            "queues, called \"buckets\". The open list stores a map from "
-            "evaluator "
-            "values to buckets. Pushing and popping from a bucket runs in "
-            "constant "
-            "time. Therefore, inserting and removing an entry from the open "
-            "list "
-            "takes time O(log(n)), where n is the number of buckets.");
+    f.document_note(
+        "Implementation Notes",
+        "Elements with the same evaluator value are stored in double-ended "
+        "queues, called \"buckets\". The open list stores a map from "
+        "evaluator "
+        "values to buckets. Pushing and popping from a bucket runs in "
+        "constant "
+        "time. Therefore, inserting and removing an entry from the open "
+        "list "
+        "takes time O(log(n)), where n is the number of buckets.");
 
-        this->make_required_argument(0, "eval", "evaluator");
-        add_open_list_options_to_feature(*this, 1);
-    }
+    f.make_required_argument(0, "eval", "evaluator");
+    add_open_list_options_to_feature(f, 1);
 
-    static shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
-    func(
-        shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>
-            evaluator,
-        bool pref_only)
-    {
-        return make_shared<BestFirstOpenListFactory<T>>(
-            std::move(evaluator),
-            pref_only);
-    }
-};
+    return f;
+}
 
 } // namespace
 
@@ -155,15 +100,17 @@ namespace downward::cli::open_lists {
 void add_best_first_open_list_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<
-        BestFirstOpenListFeature<downward::StateOpenListEntry>>();
-    n.insert_feature_plugin<
-        BestFirstOpenListFeature<downward::EdgeOpenListEntry>>();
+    add_best_first_open_list_to_namespace<StateOpenListEntry>(
+        n,
+        "state_single");
+    add_best_first_open_list_to_namespace<EdgeOpenListEntry>(n, "edge_single");
 
-    n.insert_feature_plugin<
-        BestFirstOpenListFeatureOverload<downward::StateOpenListEntry>>();
-    n.insert_feature_plugin<
-        BestFirstOpenListFeatureOverload<downward::EdgeOpenListEntry>>();
+    add_best_first_open_list_with_eval_to_namespace<StateOpenListEntry>(
+        n,
+        "state_single_with_eval");
+    add_best_first_open_list_with_eval_to_namespace<EdgeOpenListEntry>(
+        n,
+        "edge_single_with_eval");
 }
 
 } // namespace downward::cli::open_lists

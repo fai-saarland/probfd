@@ -22,64 +22,55 @@ using namespace downward::cli::plugins;
 using downward::cli::landmarks::add_landmark_factory_options_to_feature;
 
 namespace {
-class LandmarkFactoryReasonableOrdersHPSFeature
-    : public SharedTypedFeature<
-          LandmarkFactory,
-          const std::shared_ptr<LandmarkFactory>&,
-          std::shared_ptr<TaskDependentFactory<MutexInformation>>,
-          utils::Verbosity> {
-public:
-    LandmarkFactoryReasonableOrdersHPSFeature()
-        : TypedFeature(
-              "lm_reasonable_orders_hps",
-              &LandmarkFactoryReasonableOrdersHPSFeature::func)
-    {
-        document_title("HPS Orders");
-        document_synopsis(
-            "Adds reasonable orders described in the following paper" +
-            format_journal_reference(
-                {"Jörg Hoffmann", "Julie Porteous", "Laura Sebastia"},
-                "Ordered Landmarks in Planning",
-                "https://jair.org/index.php/jair/article/view/10390/24882",
-                "Journal of Artificial Intelligence Research",
-                "22",
-                "215-278",
-                "2004"));
 
-        document_note(
-            "Obedient-reasonable orders",
-            "Hoffmann et al. (2004) suggest obedient-reasonable orders in "
-            "addition to reasonable orders. Obedient-reasonable orders were "
-            "later also used by the LAMA planner (Richter and Westphal, 2010). "
-            "They are \"reasonable orders\" under the assumption that all "
-            "(non-obedient) reasonable orders are actually \"natural\", i.e., "
-            "every plan obeys the reasonable orders. We observed "
-            "experimentally that obedient-reasonable orders have minimal "
-            "effect on the performance of LAMA (Büchner et al., 2023) and "
-            "decided to remove them in issue1089.");
+Feature&
+add_landmark_factory_reasonable_orders_hps_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "lm_reasonable_orders_hps",
+        &downward::cli::plugins::make_shared<
+            LandmarkFactory,
+            LandmarkFactoryReasonableOrdersHPS,
+            const std::shared_ptr<LandmarkFactory>&,
+            std::shared_ptr<TaskDependentFactory<MutexInformation>>,
+            utils::Verbosity>);
+    f.document_title("HPS Orders");
+    f.document_synopsis(
+        "Adds reasonable orders described in the following paper" +
+        format_journal_reference(
+            {"Jörg Hoffmann", "Julie Porteous", "Laura Sebastia"},
+            "Ordered Landmarks in Planning",
+            "https://jair.org/index.php/jair/article/view/10390/24882",
+            "Journal of Artificial Intelligence Research",
+            "22",
+            "215-278",
+            "2004"));
 
-        // TODO: correct?
-        document_language_support(
-            "conditional_effects",
-            "supported if subcomponent supports them");
+    f.document_note(
+        "Obedient-reasonable orders",
+        "Hoffmann et al. (2004) suggest obedient-reasonable orders in "
+        "addition to reasonable orders. Obedient-reasonable orders were "
+        "later also used by the LAMA planner (Richter and Westphal, 2010). "
+        "They are \"reasonable orders\" under the assumption that all "
+        "(non-obedient) reasonable orders are actually \"natural\", i.e., "
+        "every plan obeys the reasonable orders. We observed "
+        "experimentally that obedient-reasonable orders have minimal "
+        "effect on the performance of LAMA (Büchner et al., 2023) and "
+        "decided to remove them in issue1089.");
 
-        make_required_argument(0, "lm_factory");
-        make_required_argument(1, "mutexes", "factory for mutexes");
+    // TODO: correct?
+    f.document_language_support(
+        "conditional_effects",
+        "supported if subcomponent supports them");
 
-        add_landmark_factory_options_to_feature(*this, 2);
-    }
+    f.make_required_argument(0, "lm_factory");
+    f.make_required_argument(1, "mutexes", "factory for mutexes");
 
-    static shared_ptr<LandmarkFactory> func(
-        const std::shared_ptr<LandmarkFactory>& lm_factory,
-        std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory,
-        utils::Verbosity verbosity)
-    {
-        return make_shared_from_arg_tuples<LandmarkFactoryReasonableOrdersHPS>(
-            lm_factory,
-            std::move(mutex_factory),
-            verbosity);
-    }
-};
+    add_landmark_factory_options_to_feature(f, 2);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::landmarks {
@@ -87,7 +78,7 @@ namespace downward::cli::landmarks {
 void add_landmark_factory_reasonable_orders_hps_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<LandmarkFactoryReasonableOrdersHPSFeature>();
+    add_landmark_factory_reasonable_orders_hps_to_namespace(n);
 }
 
 } // namespace downward::cli::landmarks

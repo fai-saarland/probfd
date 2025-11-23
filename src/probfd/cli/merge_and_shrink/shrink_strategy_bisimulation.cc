@@ -20,55 +20,49 @@ using namespace downward::cli::plugins;
 using namespace probfd::merge_and_shrink;
 
 namespace {
-class ShrinkBisimulationFeature
-    : public SharedTypedFeature<
-          ShrinkStrategy,
-          ShrinkStrategyBisimulation::AtLimit,
-          bool> {
-public:
-    ShrinkBisimulationFeature()
-        : TypedFeature("pshrink_bisimulation", &ShrinkBisimulationFeature::func)
-    {
-        document_title("Bismulation based shrink strategy");
-        document_synopsis(
-            "This shrink strategy implements the algorithm described in"
-            " the paper:" +
-            utils::format_conference_reference(
-                {"Raz Nissim", "Joerg Hoffmann", "Malte Helmert"},
-                "Computing Perfect Heuristics in Polynomial Time: On "
-                "Bisimulation"
-                " and Merge-and-Shrink Abstractions in Optimal Planning.",
-                "https://ai.dmi.unibas.ch/papers/nissim-et-al-ijcai2011.pdf",
-                "Proceedings of the Twenty-Second International Joint "
-                "Conference"
-                " on Artificial Intelligence (IJCAI 2011)",
-                "1983-1990",
-                "AAAI Press",
-                "2011"));
 
-        make_optional_argument_with_default(
-            0,
-            "at_limit",
-            "return",
-            "what to do when the size limit is hit");
+Feature& add_shrink_strategy_bisimulation_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "pshrink_bisimulation",
+        &downward::cli::plugins::make_shared<
+            ShrinkStrategy,
+            ShrinkStrategyBisimulation,
+            ShrinkStrategyBisimulation::AtLimit,
+            bool>);
 
-        make_optional_argument_with_default(
-            1,
-            "require_goal_distances",
-            "true",
-            "whether goal distances are required");
-    }
+    f.document_title("Bismulation based shrink strategy");
+    f.document_synopsis(
+        "This shrink strategy implements the algorithm described in"
+        " the paper:" +
+        utils::format_conference_reference(
+            {"Raz Nissim", "Joerg Hoffmann", "Malte Helmert"},
+            "Computing Perfect Heuristics in Polynomial Time: On "
+            "Bisimulation"
+            " and Merge-and-Shrink Abstractions in Optimal Planning.",
+            "https://ai.dmi.unibas.ch/papers/nissim-et-al-ijcai2011.pdf",
+            "Proceedings of the Twenty-Second International Joint "
+            "Conference"
+            " on Artificial Intelligence (IJCAI 2011)",
+            "1983-1990",
+            "AAAI Press",
+            "2011"));
 
-protected:
-    static shared_ptr<ShrinkStrategy> func(
-        ShrinkStrategyBisimulation::AtLimit at_limit,
-        bool require_goal_distances)
-    {
-        return make_shared_from_arg_tuples<ShrinkStrategyBisimulation>(
-            at_limit,
-            require_goal_distances);
-    }
-};
+    f.make_optional_argument_with_default(
+        0,
+        "at_limit",
+        "return",
+        "what to do when the size limit is hit");
+
+    f.make_optional_argument_with_default(
+        1,
+        "require_goal_distances",
+        "true",
+        "whether goal distances are required");
+
+    return f;
+}
+
 } // namespace
 
 namespace probfd::cli::merge_and_shrink {
@@ -82,7 +76,7 @@ void add_shrink_strategy_bisimulation_feature(Registry& registry)
           "continue refining the equivalence class until "
           "the size limit is hit"}});
 
-    n.insert_feature_plugin<ShrinkBisimulationFeature>();
+    add_shrink_strategy_bisimulation_to_namespace(n);
 }
 
 } // namespace probfd::cli::merge_and_shrink

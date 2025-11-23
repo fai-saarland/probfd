@@ -16,51 +16,43 @@ using namespace downward::cli::plugins;
 using downward::cli::merge_and_shrink::add_merge_strategy_options_to_feature;
 
 namespace {
-class MergeStrategyFactoryPrecomputedFeature
-    : public SharedTypedFeature<
-          MergeStrategyFactory,
-          const std::shared_ptr<MergeTreeFactory>&,
-          downward::utils::Verbosity> {
-public:
-    MergeStrategyFactoryPrecomputedFeature()
-        : TypedFeature(
-              "merge_precomputed",
-              &MergeStrategyFactoryPrecomputedFeature::func)
-    {
-        document_title("Precomputed merge strategy");
-        document_synopsis(
-            "This merge strategy has a precomputed merge tree. Note that this "
-            "merge strategy does not take into account the current state of "
-            "the factored transition system. This also means that this merge "
-            "strategy relies on the factored transition system being "
-            "synchronized "
-            "with this merge tree, i.e. all merges are performed exactly as "
-            "given "
-            "by the merge tree.");
 
-        document_note(
-            "Note",
-            "An example of a precomputed merge startegy is a linear merge "
-            "strategy, "
-            "which can be obtained using:\n"
-            "{{{\n"
-            "merge_strategy=merge_precomputed(merge_tree=linear(<variable_"
-            "order>))"
-            "\n}}}");
+Feature& add_merge_strategy_factory_precomputed_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "merge_precomputed",
+        &downward::cli::plugins::make_shared<
+            MergeStrategyFactory,
+            MergeStrategyFactoryPrecomputed,
+            const std::shared_ptr<MergeTreeFactory>&,
+            downward::utils::Verbosity>);
+    f.document_title("Precomputed merge strategy");
+    f.document_synopsis(
+        "This merge strategy has a precomputed merge tree. Note that this "
+        "merge strategy does not take into account the current state of "
+        "the factored transition system. This also means that this merge "
+        "strategy relies on the factored transition system being "
+        "synchronized "
+        "with this merge tree, i.e. all merges are performed exactly as "
+        "given "
+        "by the merge tree.");
 
-        make_required_argument(0, "merge_tree", "The precomputed merge tree.");
-        add_merge_strategy_options_to_feature(*this, 1);
-    }
+    f.document_note(
+        "Note",
+        "An example of a precomputed merge startegy is a linear merge "
+        "strategy, "
+        "which can be obtained using:\n"
+        "{{{\n"
+        "merge_strategy=merge_precomputed(merge_tree=linear(<variable_"
+        "order>))"
+        "\n}}}");
 
-    static shared_ptr<MergeStrategyFactory> func(
-        const std::shared_ptr<MergeTreeFactory>& merge_tree,
-        downward::utils::Verbosity verbosity)
-    {
-        return make_shared_from_arg_tuples<MergeStrategyFactoryPrecomputed>(
-            merge_tree,
-            verbosity);
-    }
-};
+    f.make_required_argument(0, "merge_tree", "The precomputed merge tree.");
+    add_merge_strategy_options_to_feature(f, 1);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::merge_and_shrink {
@@ -68,7 +60,7 @@ namespace downward::cli::merge_and_shrink {
 void add_merge_strategy_factory_precomputed_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<MergeStrategyFactoryPrecomputedFeature>();
+    add_merge_strategy_factory_precomputed_to_namespace(n);
 }
 
 } // namespace downward::cli::merge_and_shrink

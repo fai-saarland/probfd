@@ -53,44 +53,34 @@ public:
     }
 };
 
-class LandmarkCutHeuristicFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<Evaluator>,
-          shared_ptr<TaskTransformation>,
-          bool,
-          string,
-          utils::Verbosity> {
-public:
-    LandmarkCutHeuristicFeature()
-        : TypedFeature("lmcut", &LandmarkCutHeuristicFeature::func)
-    {
-        document_title("Landmark-cut heuristic");
+Feature& add_landmark_cut_heuristic_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "lmcut",
+        &downward::cli::plugins::make_shared<
+            TaskDependentFactory<Evaluator>,
+            LMCutHeuristicFactory,
+            shared_ptr<TaskTransformation>,
+            bool,
+            string,
+            Verbosity>);
 
-        document_language_support("action costs", "supported");
-        document_language_support("conditional effects", "not supported");
-        document_language_support("axioms", "not supported");
+    f.document_title("Landmark-cut heuristic");
 
-        document_property("admissible", "yes");
-        document_property("consistent", "no");
-        document_property("safe", "yes");
-        document_property("preferred operators", "no");
+    f.document_language_support("action costs", "supported");
+    f.document_language_support("conditional effects", "not supported");
+    f.document_language_support("axioms", "not supported");
 
-        add_heuristic_options_to_feature(*this, "lmcut", 0);
-    }
+    f.document_property("admissible", "yes");
+    f.document_property("consistent", "no");
+    f.document_property("safe", "yes");
+    f.document_property("preferred operators", "no");
 
-    static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        shared_ptr<TaskTransformation> transformation,
-        bool cache_estimates,
-        string description,
-        utils::Verbosity verbosity)
-    {
-        return make_shared<LMCutHeuristicFactory>(
-            std::move(transformation),
-            cache_estimates,
-            std::move(description),
-            verbosity);
-    }
-};
+    add_heuristic_options_to_feature(f, "lmcut", 0);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::heuristics {
@@ -98,7 +88,7 @@ namespace downward::cli::heuristics {
 void add_landmark_cut_heuristic_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<LandmarkCutHeuristicFeature>();
+    add_landmark_cut_heuristic_to_namespace(n);
 }
 
 } // namespace downward::cli::heuristics

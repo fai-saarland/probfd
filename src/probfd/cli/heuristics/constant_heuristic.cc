@@ -14,23 +14,21 @@ using namespace probfd::heuristics;
 using namespace downward::cli::plugins;
 
 namespace {
-class BlindHeuristicFactoryFeature
-    : public SharedTypedFeature<TaskHeuristicFactory> {
-public:
-    BlindHeuristicFactoryFeature()
-        : TypedFeature("blind_heuristic", &BlindHeuristicFactoryFeature::func)
-    {
-        document_title("Blind Heuristic");
-        document_synopsis(
-            "This heuristic always returns an estimate of 0 for every state.");
-    }
 
-    [[nodiscard]]
-    static std::shared_ptr<TaskHeuristicFactory> func()
-    {
-        return std::make_shared<BlindHeuristicFactory>();
-    }
-};
+Feature& add_blind_heuristic_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "blind_heuristic",
+        &downward::cli::plugins::
+            make_shared<TaskHeuristicFactory, BlindHeuristicFactory>);
+
+    f.document_title("Blind Heuristic");
+    f.document_synopsis(
+        "This heuristic always returns an estimate of 0 for every state.");
+
+    return f;
+}
+
 } // namespace
 
 namespace probfd::cli::heuristics {
@@ -38,7 +36,7 @@ namespace probfd::cli::heuristics {
 void add_blind_heuristic_factory_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<BlindHeuristicFactoryFeature>();
+    add_blind_heuristic_to_namespace(n);
 }
 
 } // namespace probfd::cli::heuristics

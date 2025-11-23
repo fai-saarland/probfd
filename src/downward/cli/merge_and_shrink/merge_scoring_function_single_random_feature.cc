@@ -18,30 +18,27 @@ using namespace downward::cli::plugins;
 using downward::cli::utils::add_rng_options_to_feature;
 
 namespace {
-class MergeScoringFunctionSingleRandomFeature
-    : public SharedTypedFeature<MergeScoringFunction, int> {
-public:
-    MergeScoringFunctionSingleRandomFeature()
-        : TypedFeature(
-              "single_random",
-              &MergeScoringFunctionSingleRandomFeature::func)
-    {
-        document_title("Single random");
-        document_synopsis(
-            "This scoring function assigns exactly one merge "
-            "candidate a score of "
-            "0, chosen randomly, and infinity to all others.");
 
-        add_rng_options_to_feature(*this, 0);
-    }
+Feature&
+add_merge_scoring_function_single_random_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "single_random",
+        &downward::cli::plugins::make_shared<
+            MergeScoringFunction,
+            MergeScoringFunctionSingleRandom,
+            int>);
+    f.document_title("Single random");
+    f.document_synopsis(
+        "This scoring function assigns exactly one merge "
+        "candidate a score of "
+        "0, chosen randomly, and infinity to all others.");
 
-    static shared_ptr<MergeScoringFunction>
-    func(int random_seed)
-    {
-        return make_shared_from_arg_tuples<MergeScoringFunctionSingleRandom>(
-            random_seed);
-    }
-};
+    add_rng_options_to_feature(f, 0);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::merge_and_shrink {
@@ -49,7 +46,7 @@ namespace downward::cli::merge_and_shrink {
 void add_merge_scoring_function_single_random_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<MergeScoringFunctionSingleRandomFeature>();
+    add_merge_scoring_function_single_random_to_namespace(n);
 }
 
 } // namespace downward::cli::merge_and_shrink

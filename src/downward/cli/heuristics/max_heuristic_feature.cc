@@ -51,48 +51,38 @@ public:
     }
 };
 
-class HSPMaxHeuristicFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<Evaluator>,
-          shared_ptr<TaskTransformation>,
-          bool,
-          string,
-          utils::Verbosity> {
-public:
-    HSPMaxHeuristicFeature()
-        : TypedFeature("hmax", &HSPMaxHeuristicFeature::func)
-    {
-        document_title("Max heuristic");
+Feature& add_hmax_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "hmax",
+        &downward::cli::plugins::make_shared<
+            TaskDependentFactory<Evaluator>,
+            HMaxHeuristicFactory,
+            shared_ptr<TaskTransformation>,
+            bool,
+            string,
+            Verbosity>);
 
-        document_language_support("action costs", "supported");
-        document_language_support("conditional effects", "supported");
-        document_language_support(
-            "axioms",
-            "supported (in the sense that the planner won't complain -- "
-            "handling of axioms might be very stupid "
-            "and even render the heuristic unsafe)");
+    f.document_title("Max heuristic");
 
-        document_property("admissible", "yes for tasks without axioms");
-        document_property("consistent", "yes for tasks without axioms");
-        document_property("safe", "yes for tasks without axioms");
-        document_property("preferred operators", "no");
+    f.document_language_support("action costs", "supported");
+    f.document_language_support("conditional effects", "supported");
+    f.document_language_support(
+        "axioms",
+        "supported (in the sense that the planner won't complain -- "
+        "handling of axioms might be very stupid "
+        "and even render the heuristic unsafe)");
 
-        add_heuristic_options_to_feature(*this, "hmax", 0);
-    }
+    f.document_property("admissible", "yes for tasks without axioms");
+    f.document_property("consistent", "yes for tasks without axioms");
+    f.document_property("safe", "yes for tasks without axioms");
+    f.document_property("preferred operators", "no");
 
-    static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        shared_ptr<TaskTransformation> transformation,
-        bool cache_estimates,
-        string description,
-        utils::Verbosity verbosity)
-    {
-        return make_shared_from_arg_tuples<HMaxHeuristicFactory>(
-            std::move(transformation),
-            cache_estimates,
-            std::move(description),
-            verbosity);
-    }
-};
+    add_heuristic_options_to_feature(f, "hmax", 0);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::heuristics {
@@ -100,7 +90,7 @@ namespace downward::cli::heuristics {
 void add_max_heuristic_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<HSPMaxHeuristicFeature>();
+    add_hmax_to_namespace(n);
 }
 
 } // namespace downward::cli::heuristics

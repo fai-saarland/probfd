@@ -224,70 +224,69 @@ using namespace downward::cli;
 
 namespace {
 
-class InfinityFeature : public plugins::TypedFeature<int> {
-public:
-    InfinityFeature()
-        : TypedFeature("infinity", &InfinityFeature::func)
-    {
-    }
+int make_infinite_value()
+{
+    return std::numeric_limits<int>::max();
+}
 
-    static int func()
-    {
-        return std::numeric_limits<int>::max();
-    }
-};
-
-template <typename T, T F, auto S>
-class LiteralFeature : public plugins::TypedFeature<T, T> {
-public:
-    LiteralFeature()
-        : LiteralFeature::TypedFeature(
-              static_cast<std::string>(static_cast<std::string_view>(S)),
-              &LiteralFeature::func)
-    {
-    }
-
-    static T func(T v)
-    {
-        if constexpr (std::same_as<T, int>) {
-            if (!downward::utils::is_product_within_limits(
-                    v,
-                    F,
-                    std::numeric_limits<T>::min(),
-                    std::numeric_limits<T>::max() - 1)) {
-                throw std::overflow_error("Integer would be out of range!");
-            }
+template <typename T, T F>
+T scale(T v)
+{
+    if constexpr (std::same_as<T, int>) {
+        if (!downward::utils::is_product_within_limits(
+                v,
+                F,
+                std::numeric_limits<T>::min(),
+                std::numeric_limits<T>::max() - 1)) {
+            throw std::overflow_error("Integer would be out of range!");
         }
-        return F * v;
     }
-};
+    return F * v;
+}
 
-template <typename R, typename T, auto S>
-class CastFromLiteralFeature : public plugins::TypedFeature<R, T> {
-public:
-    CastFromLiteralFeature()
-        : CastFromLiteralFeature::TypedFeature(
-              static_cast<std::string>(static_cast<std::string_view>(S)),
-              &CastFromLiteralFeature::func)
-    {
-    }
+template <typename R, typename T>
+    requires std::constructible_from<R, T>
+R cast(T v)
+{
+    return static_cast<R>(v);
+}
 
-    static R func(T v) { return R{v}; }
-};
+template <typename T>
+T max_duration()
+{
+    return T::max();
+}
 
-template <typename R, auto S>
-class ConstructInfiniteFeature : public plugins::TypedFeature<R> {
-public:
-    ConstructInfiniteFeature()
-        : ConstructInfiniteFeature::TypedFeature(
-              static_cast<std::string>(static_cast<std::string_view>(S)),
-              &ConstructInfiniteFeature::func)
-    {
-        this->document_synopsis("Returns a maximum / infinite duration.");
-    }
+void add_infinity_feature_to_namespace(plugins::Namespace& nspace)
+{
+    nspace.insert_typed_feature_plugin("infinity", make_infinite_value);
+}
 
-    static R func() { return R::max(); }
-};
+template <typename T, T F>
+void add_scale_literal_feature_to_namespace(
+    plugins::Namespace& nspace,
+    std::string name)
+{
+    nspace.insert_typed_feature_plugin(std::move(name), scale<T, F>);
+}
+
+template <typename R, typename T>
+void add_cast_from_literal_to_namespace(
+    plugins::Namespace& nspace,
+    std::string name)
+{
+    nspace.insert_typed_feature_plugin(std::move(name), cast<R, T>);
+}
+
+template <typename T>
+void add_infinite_duration_feature_to_namespace(
+    plugins::Namespace& nspace,
+    std::string name)
+{
+    auto& f =
+        nspace.insert_typed_feature_plugin(std::move(name), max_duration<T>);
+    f.document_synopsis("Returns a maximum / infinite duration.");
+}
 
 } // namespace
 
@@ -382,92 +381,85 @@ static void register_fast_downward_definitions(plugins::Registry& registry)
     plugins::Namespace& n = registry.get_global_name_space();
 
     // Infinity
-    n.insert_feature_plugin<InfinityFeature>();
+    add_infinity_feature_to_namespace(n);
 
     // Generic literal suffixes
-    n.insert_feature_plugin<
-        LiteralFeature<int, 1'000, "__operator_int_k__"_sl>>();
-    n.insert_feature_plugin<
-        LiteralFeature<int, 1'000'000, "__operator_int_m__"_sl>>();
-    n.insert_feature_plugin<
-        LiteralFeature<int, 1'000'000'000, "__operator_int_g__"_sl>>();
+    add_scale_literal_feature_to_namespace<int, 1'000>(n, "__operator_int_k__");
+    add_scale_literal_feature_to_namespace<int, 1'000'000>(
+        n,
+        "__operator_int_m__");
+    add_scale_literal_feature_to_namespace<int, 1'000'000'000>(
+        n,
+        "__operator_int_g__");
 
-    n.insert_feature_plugin<
-        LiteralFeature<double, 1'000., "__operator_float_k__"_sl>>();
-    n.insert_feature_plugin<
-        LiteralFeature<double, 1'000'000., "__operator_float_m__"_sl>>();
-    n.insert_feature_plugin<
-        LiteralFeature<double, 1'000'000'000., "__operator_float_g__"_sl>>();
+    add_scale_literal_feature_to_namespace<double, 1'000.>(
+        n,
+        "__operator_float_k__");
+    add_scale_literal_feature_to_namespace<double, 1'000'000.>(
+        n,
+        "__operator_float_m__");
+    add_scale_literal_feature_to_namespace<double, 1'000'000'000.>(
+        n,
+        "__operator_float_g__");
 
     // Duration literals
-    n.insert_feature_plugin<CastFromLiteralFeature<
-        downward::utils::FNanoSeconds,
-        int,
-        "__operator_int_ns__"_sl>>();
-    n.insert_feature_plugin<CastFromLiteralFeature<
-        downward::utils::FMicroSeconds,
-        int,
-        "__operator_int_us__"_sl>>();
-    n.insert_feature_plugin<CastFromLiteralFeature<
-        downward::utils::FMilliSeconds,
-        int,
-        "__operator_int_ms__"_sl>>();
-    n.insert_feature_plugin<CastFromLiteralFeature<
-        downward::utils::FSeconds,
-        int,
-        "__operator_int_s__"_sl>>();
-    n.insert_feature_plugin<CastFromLiteralFeature<
-        downward::utils::FMinutes,
-        int,
-        "__operator_int_min__"_sl>>();
-    n.insert_feature_plugin<CastFromLiteralFeature<
-        downward::utils::FHours,
-        int,
-        "__operator_int_h__"_sl>>();
+    add_cast_from_literal_to_namespace<downward::utils::FNanoSeconds, int>(
+        n,
+        "__operator_int_ns__");
+    add_cast_from_literal_to_namespace<downward::utils::FMicroSeconds, int>(
+        n,
+        "__operator_int_us__");
+    add_cast_from_literal_to_namespace<downward::utils::FMilliSeconds, int>(
+        n,
+        "__operator_int_ms__");
+    add_cast_from_literal_to_namespace<downward::utils::FSeconds, int>(
+        n,
+        "__operator_int_s__");
+    add_cast_from_literal_to_namespace<downward::utils::FMinutes, int>(
+        n,
+        "__operator_int_min__");
+    add_cast_from_literal_to_namespace<downward::utils::FHours, int>(
+        n,
+        "__operator_int_h__");
 
-    n.insert_feature_plugin<CastFromLiteralFeature<
-        downward::utils::FNanoSeconds,
-        double,
-        "__operator_float_ns__"_sl>>();
-    n.insert_feature_plugin<CastFromLiteralFeature<
-        downward::utils::FMicroSeconds,
-        double,
-        "__operator_float_us__"_sl>>();
-    n.insert_feature_plugin<CastFromLiteralFeature<
-        downward::utils::FMilliSeconds,
-        double,
-        "__operator_float_ms__"_sl>>();
-    n.insert_feature_plugin<CastFromLiteralFeature<
-        downward::utils::FSeconds,
-        double,
-        "__operator_float_s__"_sl>>();
-    n.insert_feature_plugin<CastFromLiteralFeature<
-        downward::utils::FMinutes,
-        double,
-        "__operator_float_min__"_sl>>();
-    n.insert_feature_plugin<CastFromLiteralFeature<
-        downward::utils::FHours,
-        double,
-        "__operator_float_h__"_sl>>();
+    add_cast_from_literal_to_namespace<downward::utils::FNanoSeconds, double>(
+        n,
+        "__operator_float_ns__");
+    add_cast_from_literal_to_namespace<downward::utils::FMicroSeconds, double>(
+        n,
+        "__operator_float_us__");
+    add_cast_from_literal_to_namespace<downward::utils::FMilliSeconds, double>(
+        n,
+        "__operator_float_ms__");
+    add_cast_from_literal_to_namespace<downward::utils::FSeconds, double>(
+        n,
+        "__operator_float_s__");
+    add_cast_from_literal_to_namespace<downward::utils::FMinutes, double>(
+        n,
+        "__operator_float_min__");
+    add_cast_from_literal_to_namespace<downward::utils::FHours, double>(
+        n,
+        "__operator_float_h__");
 
     // Infinite durations
-    n.insert_feature_plugin<ConstructInfiniteFeature<
-        downward::utils::FNanoSeconds,
-        "nanoseconds_max"_sl>>();
-    n.insert_feature_plugin<ConstructInfiniteFeature<
-        downward::utils::FMicroSeconds,
-        "microseconds_max"_sl>>();
-    n.insert_feature_plugin<ConstructInfiniteFeature<
-        downward::utils::FMilliSeconds,
-        "milliseconds_max"_sl>>();
-    n.insert_feature_plugin<ConstructInfiniteFeature<
-        downward::utils::FSeconds,
-        "seconds_max"_sl>>();
-    n.insert_feature_plugin<ConstructInfiniteFeature<
-        downward::utils::FMinutes,
-        "minutes_max"_sl>>();
-    n.insert_feature_plugin<
-        ConstructInfiniteFeature<downward::utils::FHours, "hours_max"_sl>>();
+    add_infinite_duration_feature_to_namespace<downward::utils::FNanoSeconds>(
+        n,
+        "nanoseconds_max");
+    add_infinite_duration_feature_to_namespace<downward::utils::FMicroSeconds>(
+        n,
+        "microseconds_max");
+    add_infinite_duration_feature_to_namespace<downward::utils::FMilliSeconds>(
+        n,
+        "milliseconds_max");
+    add_infinite_duration_feature_to_namespace<downward::utils::FSeconds>(
+        n,
+        "seconds_max");
+    add_infinite_duration_feature_to_namespace<downward::utils::FMinutes>(
+        n,
+        "minutes_max");
+    add_infinite_duration_feature_to_namespace<downward::utils::FHours>(
+        n,
+        "hours_max");
 
     // Cartesian abstractions
     cartesian_abstractions::add_subtask_generators_features(registry);

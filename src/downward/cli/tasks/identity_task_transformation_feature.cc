@@ -10,20 +10,20 @@ using namespace downward;
 using namespace downward::cli::plugins;
 
 namespace {
-class IdentityTaskTransformationFeature
-    : public SharedTypedFeature<TaskTransformation> {
-public:
-    IdentityTaskTransformationFeature()
-        : TypedFeature("no_transform", &IdentityTaskTransformationFeature::func)
-    {
-    }
 
-    [[nodiscard]]
-    static shared_ptr<TaskTransformation> func()
-    {
-        return std::make_shared<IdentityTaskTransformation>();
-    }
-};
+Feature& add_identity_task_transformation_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "no_transform",
+        &cli::plugins::make_shared<
+            TaskTransformation,
+            IdentityTaskTransformation>);
+    f.document_title("Identity task transformation");
+    f.document_synopsis("Applies no transformation to the task.");
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::tasks {
@@ -31,7 +31,7 @@ namespace downward::cli::tasks {
 void add_identity_task_transformation_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<IdentityTaskTransformationFeature>();
+    add_identity_task_transformation_to_namespace(n);
 }
 
 } // namespace downward::cli::tasks

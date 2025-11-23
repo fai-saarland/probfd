@@ -45,27 +45,22 @@ public:
     }
 };
 
-class CostAdaptedTaskTransformationFeature
-    : public SharedTypedFeature<TaskTransformation, OperatorCost> {
-public:
-    CostAdaptedTaskTransformationFeature()
-        : TypedFeature(
-              "adapt_costs",
-              &CostAdaptedTaskTransformationFeature::func)
-    {
-        document_title("Cost-adapted task");
-        document_synopsis("A cost-adapting transformation of the root task.");
+Feature& add_cost_adapted_task_transformation_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "adapt_costs",
+        &cli::plugins::make_shared<
+            TaskTransformation,
+            CostAdaptedTaskTransformation,
+            OperatorCost>);
+    f.document_title("Cost-adapted task");
+    f.document_synopsis("A cost-adapting transformation of the root task.");
 
-        add_cost_type_options_to_feature(*this, 0);
-    }
+    add_cost_type_options_to_feature(f, 0);
 
-    static shared_ptr<TaskTransformation>
-    func(OperatorCost cost_type)
-    {
-        return make_shared_from_arg_tuples<CostAdaptedTaskTransformation>(
-            cost_type);
-    }
-};
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::tasks {
@@ -73,7 +68,7 @@ namespace downward::cli::tasks {
 void add_cost_task_transformation_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<CostAdaptedTaskTransformationFeature>();
+    add_cost_adapted_task_transformation_to_namespace(n);
 }
 
 } // namespace downward::cli::tasks

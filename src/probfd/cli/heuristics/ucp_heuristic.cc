@@ -19,39 +19,36 @@ using namespace probfd::cli::heuristics;
 using namespace downward::cli::plugins;
 
 namespace {
-class UCPHeuristicFactoryFeature
-    : public SharedTypedFeature<
-          TaskHeuristicFactory,
-          std::shared_ptr<PatternCollectionGenerator>> {
-public:
-    UCPHeuristicFactoryFeature()
-        : TypedFeature("ucp_heuristic", &UCPHeuristicFactoryFeature::func)
-    {
-        document_title("Uniform Cost Partitioning Heuristic");
-        document_synopsis(
-            "This heuristic computes a uniform cost-partitioning estimate "
-            "over a set of projections. "
-            "Given n projections, every corresponding projection heuristic is "
-            "constructed under the cost function that assigns each operator o "
-            "the cost 1/n * c(o), where c(o) is the original operator cost of "
-            "o according to the planning task. "
-            "The estimate of a state is the sum over all estimates of these "
-            "projection heuristics for this state.");
 
-        make_optional_argument_with_default(
-            0,
-            "patterns",
-            "classical_generator(generator=systematic(pattern_max_size=2))",
-            "The pattern generation algorithm to construct the projections.");
-    }
+Feature& add_uniform_cost_partitioning_heuristic_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "ucp_heuristic",
+        &downward::cli::plugins::make_shared<
+            TaskHeuristicFactory,
+            UCPHeuristicFactory,
+            std::shared_ptr<PatternCollectionGenerator>>);
 
-    static std::shared_ptr<TaskHeuristicFactory> func(
-        std::shared_ptr<PatternCollectionGenerator> generator)
-    {
-        return make_shared_from_arg_tuples<UCPHeuristicFactory>(
-            std::move(generator));
-    }
-};
+    f.document_title("Uniform Cost Partitioning Heuristic");
+    f.document_synopsis(
+        "This heuristic computes a uniform cost-partitioning estimate "
+        "over a set of projections. "
+        "Given n projections, every corresponding projection heuristic is "
+        "constructed under the cost function that assigns each operator o "
+        "the cost 1/n * c(o), where c(o) is the original operator cost of "
+        "o according to the planning task. "
+        "The estimate of a state is the sum over all estimates of these "
+        "projection heuristics for this state.");
+
+    f.make_optional_argument_with_default(
+        0,
+        "patterns",
+        "classical_generator(generator=systematic(pattern_max_size=2))",
+        "The pattern generation algorithm to construct the projections.");
+
+    return f;
+}
+
 } // namespace
 
 namespace probfd::cli::heuristics {
@@ -59,7 +56,7 @@ namespace probfd::cli::heuristics {
 void add_ucp_heuristic_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<UCPHeuristicFactoryFeature>();
+    add_uniform_cost_partitioning_heuristic_to_namespace(n);
 }
 
 } // namespace probfd::cli::heuristics

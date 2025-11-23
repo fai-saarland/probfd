@@ -13,37 +13,30 @@ using namespace probfd::pdbs;
 using namespace downward::cli::plugins;
 
 namespace {
-class AdditiveMaxOrthogonalityFinderFactoryFeature
-    : public SharedTypedFeature<SubCollectionFinderFactory> {
-public:
-    AdditiveMaxOrthogonalityFinderFactoryFeature()
-        : TypedFeature(
-              "additive_max_orthogonality_factory",
-              &AdditiveMaxOrthogonalityFinderFactoryFeature::func)
-    {
-    }
 
-    static std::shared_ptr<SubCollectionFinderFactory> func()
-    {
-        return std::make_shared<AdditiveMaxOrthogonalityFinderFactory>();
-    }
-};
+Feature& add_additive_max_orthogonality_factory_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "additive_max_orthogonality_factory",
+        &downward::cli::plugins::make_shared<
+            SubCollectionFinderFactory,
+            AdditiveMaxOrthogonalityFinderFactory>);
 
-class MultiplicativeMaxOrthogonalityFinderFactoryFeature
-    : public SharedTypedFeature<SubCollectionFinderFactory> {
-public:
-    MultiplicativeMaxOrthogonalityFinderFactoryFeature()
-        : TypedFeature(
-              "multiplicative_max_orthogonality_factory",
-              &MultiplicativeMaxOrthogonalityFinderFactoryFeature::func)
-    {
-    }
+    return f;
+}
 
-    static std::shared_ptr<SubCollectionFinderFactory> func()
-    {
-        return std::make_shared<MultiplicativeMaxOrthogonalityFinderFactory>();
-    }
-};
+Feature&
+add_multiplicative_max_orthogonality_factory_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "multiplicative_max_orthogonality_factory",
+        &downward::cli::plugins::make_shared<
+            SubCollectionFinderFactory,
+            AdditiveMaxOrthogonalityFinderFactory>);
+
+    return f;
+}
+
 } // namespace
 
 namespace probfd::cli::pdbs {
@@ -51,9 +44,8 @@ namespace probfd::cli::pdbs {
 void add_max_orthogonal_finder_factory_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<AdditiveMaxOrthogonalityFinderFactoryFeature>();
-    n.insert_feature_plugin<
-        MultiplicativeMaxOrthogonalityFinderFactoryFeature>();
+    add_additive_max_orthogonality_factory_to_namespace(n);
+    add_multiplicative_max_orthogonality_factory_to_namespace(n);
 }
 
 } // namespace probfd::cli::pdbs

@@ -74,108 +74,90 @@ public:
     }
 };
 
-class OperatorCountingHeuristicFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<Evaluator>,
-          shared_ptr<TaskTransformation>,
-          bool,
-          string,
-          utils::Verbosity,
-          std::vector<std::shared_ptr<ConstraintGenerator>>,
-          bool,
-          lp::LPSolverType> {
-public:
-    OperatorCountingHeuristicFeature()
-        : TypedFeature(
-              "operatorcounting",
-              &OperatorCountingHeuristicFeature::func)
-    {
-        document_title("Operator-counting heuristic");
-        document_synopsis(
-            "An operator-counting heuristic computes a linear program (LP) in "
-            "each "
-            "state. The LP has one variable Count_o for each operator o that "
-            "represents how often the operator is used in a plan. Operator-"
-            "counting constraints are linear constraints over these varaibles "
-            "that "
-            "are guaranteed to have a solution with Count_o = occurrences(o, "
-            "pi) "
-            "for every plan pi. Minimizing the total cost of operators subject "
-            "to "
-            "some operator-counting constraints is an admissible heuristic. "
-            "For details, see" +
-            format_conference_reference(
-                {"Florian Pommerening",
-                 "Gabriele Roeger",
-                 "Malte Helmert",
-                 "Blai Bonet"},
-                "LP-based Heuristics for Cost-optimal Planning",
-                "http://www.aaai.org/ocs/index.php/ICAPS/ICAPS14/paper/view/"
-                "7892/8031",
-                "Proceedings of the Twenty-Fourth International Conference"
-                " on Automated Planning and Scheduling (ICAPS 2014)",
-                "226-234",
-                "AAAI Press",
-                "2014"));
+Feature& add_operator_counting_heuristic_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "operator_counting",
+        &cli::plugins::make_shared<
+            TaskDependentFactory<Evaluator>,
+            OperatorCountingHeuristicFactory,
+            shared_ptr<TaskTransformation>,
+            bool,
+            string,
+            Verbosity,
+            std::vector<std::shared_ptr<ConstraintGenerator>>,
+            bool,
+            lp::LPSolverType>);
 
-        document_language_support("action costs", "supported");
-        document_language_support(
-            "conditional effects",
-            "not supported (the heuristic supports them in theory, but none of "
-            "the currently implemented constraint generators do)");
-        document_language_support(
-            "axioms",
-            "not supported (the heuristic supports them in theory, but none of "
-            "the currently implemented constraint generators do)");
+    f.document_title("Operator-counting heuristic");
+    f.document_synopsis(
+        "An operator-counting heuristic computes a linear program (LP) in "
+        "each "
+        "state. The LP has one variable Count_o for each operator o that "
+        "represents how often the operator is used in a plan. Operator-"
+        "counting constraints are linear constraints over these varaibles "
+        "that "
+        "are guaranteed to have a solution with Count_o = occurrences(o, "
+        "pi) "
+        "for every plan pi. Minimizing the total cost of operators subject "
+        "to "
+        "some operator-counting constraints is an admissible heuristic. "
+        "For details, see" +
+        format_conference_reference(
+            {"Florian Pommerening",
+             "Gabriele Roeger",
+             "Malte Helmert",
+             "Blai Bonet"},
+            "LP-based Heuristics for Cost-optimal Planning",
+            "http://www.aaai.org/ocs/index.php/ICAPS/ICAPS14/paper/view/"
+            "7892/8031",
+            "Proceedings of the Twenty-Fourth International Conference"
+            " on Automated Planning and Scheduling (ICAPS 2014)",
+            "226-234",
+            "AAAI Press",
+            "2014"));
 
-        document_property("admissible", "yes");
-        document_property(
-            "consistent",
-            "yes, if all constraint generators represent consistent "
-            "heuristics");
-        document_property("safe", "yes");
-        // TODO: prefer operators that are non-zero in the solution.
-        document_property("preferred operators", "no");
+    f.document_language_support("action costs", "supported");
+    f.document_language_support(
+        "conditional effects",
+        "not supported (the heuristic supports them in theory, but none of "
+        "the currently implemented constraint generators do)");
+    f.document_language_support(
+        "axioms",
+        "not supported (the heuristic supports them in theory, but none of "
+        "the currently implemented constraint generators do)");
 
-        make_required_argument(
-            0,
-            "constraint_generators",
-            "methods that generate constraints over operator-counting "
-            "variables");
-        make_optional_argument_with_default(
-            1,
-            "use_integer_operator_counts",
-            "false",
-            "restrict operator-counting variables to integer values. Computing "
-            "the "
-            "heuristic with integer variables can produce higher values but "
-            "requires solving a MIP instead of an LP which is generally more "
-            "computationally expensive. Turning this option on can thus "
-            "drastically "
-            "increase the runtime.");
-        const auto n = add_lp_solver_option_to_feature(*this, 2);
-        add_heuristic_options_to_feature(*this, "operatorcounting", n + 2);
-    }
+    f.document_property("admissible", "yes");
+    f.document_property(
+        "consistent",
+        "yes, if all constraint generators represent consistent "
+        "heuristics");
+    f.document_property("safe", "yes");
+    // TODO: prefer operators that are non-zero in the solution.
+    f.document_property("preferred operators", "no");
 
-    static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        shared_ptr<TaskTransformation> transformation,
-        bool cache_estimates,
-        string description,
-        utils::Verbosity verbosity,
-        std::vector<std::shared_ptr<ConstraintGenerator>> constraint_generators,
-        bool use_integer_operator_counts,
-        lp::LPSolverType lp_solver)
-    {
-        return make_shared_from_arg_tuples<OperatorCountingHeuristicFactory>(
-            std::move(transformation),
-            cache_estimates,
-            std::move(description),
-            verbosity,
-            std::move(constraint_generators),
-            use_integer_operator_counts,
-            lp_solver);
-    }
-};
+    f.make_required_argument(
+        0,
+        "constraint_generators",
+        "methods that generate constraints over operator-counting "
+        "variables");
+    f.make_optional_argument_with_default(
+        1,
+        "use_integer_operator_counts",
+        "false",
+        "restrict operator-counting variables to integer values. Computing "
+        "the "
+        "heuristic with integer variables can produce higher values but "
+        "requires solving a MIP instead of an LP which is generally more "
+        "computationally expensive. Turning this option on can thus "
+        "drastically "
+        "increase the runtime.");
+    const auto n = add_lp_solver_option_to_feature(f, 2);
+    add_heuristic_options_to_feature(f, "operatorcounting", n + 2);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::heuristics {
@@ -183,7 +165,7 @@ namespace downward::cli::heuristics {
 void add_operator_counting_heuristic_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<OperatorCountingHeuristicFeature>();
+    add_operator_counting_heuristic_to_namespace(n);
 }
 
 } // namespace downward::cli::heuristics

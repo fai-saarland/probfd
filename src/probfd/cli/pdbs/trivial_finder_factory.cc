@@ -13,21 +13,17 @@ using namespace probfd::pdbs;
 using namespace downward::cli::plugins;
 
 namespace {
-class TrivialFinderFactoryFeature
-    : public SharedTypedFeature<SubCollectionFinderFactory> {
-public:
-    TrivialFinderFactoryFeature()
-        : TypedFeature(
-              "finder_trivial_factory",
-              &TrivialFinderFactoryFeature::func)
-    {
-    }
 
-    static std::shared_ptr<SubCollectionFinderFactory> func()
-    {
-        return std::make_shared<TrivialFinderFactory>();
-    }
-};
+Feature& add_trivial_finder_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "finder_trivial_factory",
+        &downward::cli::plugins::
+            make_shared<SubCollectionFinderFactory, TrivialFinderFactory>);
+
+    return f;
+}
+
 } // namespace
 
 namespace probfd::cli::pdbs {
@@ -35,7 +31,7 @@ namespace probfd::cli::pdbs {
 void add_trivial_finder_factory_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<TrivialFinderFactoryFeature>();
+    add_trivial_finder_to_namespace(n);
 }
 
 } // namespace probfd::cli::pdbs

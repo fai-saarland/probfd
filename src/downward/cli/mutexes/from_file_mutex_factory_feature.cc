@@ -14,26 +14,23 @@ using namespace downward::cli;
 using namespace downward::cli::plugins;
 
 namespace {
-class FromFileMutexFactoryFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<MutexInformation>,
-          const std::string&> {
-public:
-    FromFileMutexFactoryFeature()
-        : TypedFeature("mutexes_from_file", &FromFileMutexFactoryFeature::func)
-    {
-        document_title("Mutexes from a mutex file");
-        document_synopsis("Produces pre-computed mutexes as read from a file.");
 
-        make_required_argument(0, "file", "The mutex file");
-    }
+Feature& add_from_file_mutex_factory_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "mutexes_from_file",
+        &cli::plugins::make_shared<
+            TaskDependentFactory<MutexInformation>,
+            FromFileMutexFactory,
+            std::string>);
+    f.document_title("Mutexes from a mutex file");
+    f.document_synopsis("Produces pre-computed mutexes as read from a file.");
 
-    static shared_ptr<TaskDependentFactory<MutexInformation>>
-    func(const std::string& filename)
-    {
-        return make_shared_from_arg_tuples<FromFileMutexFactory>(filename);
-    }
-};
+    f.make_required_argument(0, "file", "The mutex file");
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::mutexes {
@@ -41,7 +38,7 @@ namespace downward::cli::mutexes {
 void add_from_file_mutex_factory_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<FromFileMutexFactoryFeature>();
+    add_from_file_mutex_factory_to_namespace(n);
 }
 
 } // namespace downward::cli::mutexes

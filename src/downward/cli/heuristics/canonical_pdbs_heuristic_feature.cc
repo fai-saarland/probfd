@@ -64,64 +64,50 @@ public:
     }
 };
 
-class CanonicalPDBsHeuristicFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<Evaluator>,
-          shared_ptr<TaskTransformation>,
-          bool,
-          string,
-          utils::Verbosity,
-          std::shared_ptr<PatternCollectionGenerator>,
-          FSeconds> {
-public:
-    CanonicalPDBsHeuristicFeature()
-        : TypedFeature("cpdbs", &CanonicalPDBsHeuristicFeature::func)
-    {
-        document_title("Canonical PDB");
-        document_synopsis(
-            "The canonical pattern database heuristic is calculated as "
-            "follows. "
-            "For a given pattern collection C, the value of the "
-            "canonical heuristic function is the maximum over all "
-            "maximal additive subsets A in C, where the value for one subset "
-            "S in A is the sum of the heuristic values for all patterns in S "
-            "for a given state.");
+Feature& add_canonical_pdb_heuristic_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "cpdbs",
+        &downward::cli::plugins::make_shared<
+            TaskDependentFactory<Evaluator>,
+            CanonicalPDBsHeuristicFactory,
+            shared_ptr<TaskTransformation>,
+            bool,
+            string,
+            Verbosity,
+            std::shared_ptr<PatternCollectionGenerator>,
+            FSeconds>);
 
-        document_language_support("action costs", "supported");
-        document_language_support("conditional effects", "not supported");
-        document_language_support("axioms", "not supported");
+    f.document_title("Canonical PDB");
+    f.document_synopsis(
+        "The canonical pattern database heuristic is calculated as "
+        "follows. "
+        "For a given pattern collection C, the value of the "
+        "canonical heuristic function is the maximum over all "
+        "maximal additive subsets A in C, where the value for one subset "
+        "S in A is the sum of the heuristic values for all patterns in S "
+        "for a given state.");
 
-        document_property("admissible", "yes");
-        document_property("consistent", "yes");
-        document_property("safe", "yes");
-        document_property("preferred operators", "no");
+    f.document_language_support("action costs", "supported");
+    f.document_language_support("conditional effects", "not supported");
+    f.document_language_support("axioms", "not supported");
 
-        make_optional_argument_with_default(
-            0,
-            "patterns",
-            "systematic(1)",
-            "pattern generation method");
-        const auto n = add_canonical_pdbs_options_to_feature(*this, 1);
-        add_heuristic_options_to_feature(*this, "cpdbs", n + 1);
-    }
+    f.document_property("admissible", "yes");
+    f.document_property("consistent", "yes");
+    f.document_property("safe", "yes");
+    f.document_property("preferred operators", "no");
 
-    static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        shared_ptr<TaskTransformation> transformation,
-        bool cache_estimates,
-        string description,
-        utils::Verbosity verbosity,
-        std::shared_ptr<PatternCollectionGenerator> generator,
-        FSeconds max_time_dominance_pruning)
-    {
-        return make_shared_from_arg_tuples<CanonicalPDBsHeuristicFactory>(
-            std::move(transformation),
-            cache_estimates,
-            std::move(description),
-            verbosity,
-            std::move(generator),
-            max_time_dominance_pruning);
-    }
-};
+    f.make_optional_argument_with_default(
+        0,
+        "patterns",
+        "systematic(1)",
+        "pattern generation method");
+    const auto n = add_canonical_pdbs_options_to_feature(f, 1);
+    add_heuristic_options_to_feature(f, "cpdbs", n + 1);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::heuristics {
@@ -129,7 +115,7 @@ namespace downward::cli::heuristics {
 void add_canonical_pdbs_heuristic_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    const Feature& f = n.insert_feature_plugin<CanonicalPDBsHeuristicFeature>();
+    const Feature& f = add_canonical_pdb_heuristic_to_namespace(n);
     SubcategoryPlugin& subcategory =
         registry.get_subcategory_plugin("heuristics_pdb");
     subcategory.add_feature(f);

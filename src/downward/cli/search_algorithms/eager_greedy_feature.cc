@@ -92,110 +92,91 @@ public:
     }
 };
 
-class EagerGreedySearchFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<SearchAlgorithm>,
-          std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
-          std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
-          int,
-          std::shared_ptr<PruningMethod>,
-          OperatorCost,
-          int,
-          utils::FSeconds,
-          const std::string&,
-          utils::Verbosity> {
-public:
-    EagerGreedySearchFeature()
-        : TypedFeature("eager_greedy", &EagerGreedySearchFeature::func)
-    {
-        document_title("Greedy search (eager)");
-        document_synopsis("");
-        document_note(
-            "Open list",
-            "In most cases, eager greedy best first search uses "
-            "an alternation open list with one queue for each evaluator. "
-            "If preferred operator evaluators are used, it adds an extra queue "
-            "for each of these evaluators that includes only the nodes that "
-            "are generated with a preferred operator. "
-            "If only one evaluator and no preferred operator evaluator is "
-            "used, "
-            "the search does not use an alternation open list but a "
-            "standard open list with only one queue.");
-        document_note("Closed nodes", "Closed node are not re-opened");
-        document_note(
-            "Equivalent statements using general eager search",
-            "\n```\n--evaluator h2=eval2\n"
-            "--search eager_greedy([eval1, h2], preferred=[h2], boost=100)"
-            "\n```\n"
-            "is equivalent to\n"
-            "```\n--evaluator h1=eval1 --heuristic h2=eval2\n"
-            "--search eager(alt([single(h1), single(h1, pref_only=true), "
-            "single(h2), \n"
-            "                    single(h2, pref_only=true)], boost=100),\n"
-            "               preferred=[h2])\n```\n"
-            "------------------------------------------------------------\n"
-            "```\n--search eager_greedy([eval1, eval2])\n```\n"
-            "is equivalent to\n"
-            "```\n--search eager(alt([single(eval1), single(eval2)]))\n```\n"
-            "------------------------------------------------------------\n"
-            "```\n--evaluator h1=eval1\n"
-            "--search eager_greedy(h1, preferred=[h1])\n```\n"
-            "is equivalent to\n"
-            "```\n--evaluator h1=eval1\n"
-            "--search eager(alt([single(h1), single(h1, pref_only=true)]),\n"
-            "               preferred=[h1])\n```\n"
-            "------------------------------------------------------------\n"
-            "```\n--search eager_greedy([eval1])\n```\n"
-            "is equivalent to\n"
-            "```\n--search eager(single(eval1))\n```\n",
-            true);
+Feature& add_eager_greedy_search_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "eager_greedy",
+        &cli::plugins::make_shared<
+            TaskDependentFactory<SearchAlgorithm>,
+            EagerGreedySearchFactory,
+            std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
+            std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
+            int,
+            std::shared_ptr<PruningMethod>,
+            OperatorCost,
+            int,
+            utils::FSeconds,
+            const std::string&,
+            utils::Verbosity>);
 
-        make_required_argument(0, "evals", "evaluators");
-        make_optional_argument_with_default(
-            1,
-            "preferred",
-            "[]",
-            "use preferred operators of these evaluators");
-        make_optional_argument_with_default(
-            2,
-            "boost",
-            "0",
-            "boost value for preferred operator open lists");
-        add_eager_search_options_to_feature(*this, "eager_greedy", 3);
-    }
+    f.document_title("Greedy search (eager)");
+    f.document_synopsis("");
+    f.document_note(
+        "Open list",
+        "In most cases, eager greedy best first search uses "
+        "an alternation open list with one queue for each evaluator. "
+        "If preferred operator evaluators are used, it adds an extra queue "
+        "for each of these evaluators that includes only the nodes that "
+        "are generated with a preferred operator. "
+        "If only one evaluator and no preferred operator evaluator is "
+        "used, "
+        "the search does not use an alternation open list but a "
+        "standard open list with only one queue.");
+    f.document_note("Closed nodes", "Closed node are not re-opened");
+    f.document_note(
+        "Equivalent statements using general eager search",
+        "\n```\n--evaluator h2=eval2\n"
+        "--search eager_greedy([eval1, h2], preferred=[h2], boost=100)"
+        "\n```\n"
+        "is equivalent to\n"
+        "```\n--evaluator h1=eval1 --heuristic h2=eval2\n"
+        "--search eager(alt([single(h1), single(h1, pref_only=true), "
+        "single(h2), \n"
+        "                    single(h2, pref_only=true)], boost=100),\n"
+        "               preferred=[h2])\n```\n"
+        "------------------------------------------------------------\n"
+        "```\n--search eager_greedy([eval1, eval2])\n```\n"
+        "is equivalent to\n"
+        "```\n--search eager(alt([single(eval1), single(eval2)]))\n```\n"
+        "------------------------------------------------------------\n"
+        "```\n--evaluator h1=eval1\n"
+        "--search eager_greedy(h1, preferred=[h1])\n```\n"
+        "is equivalent to\n"
+        "```\n--evaluator h1=eval1\n"
+        "--search eager(alt([single(h1), single(h1, pref_only=true)]),\n"
+        "               preferred=[h1])\n```\n"
+        "------------------------------------------------------------\n"
+        "```\n--search eager_greedy([eval1])\n```\n"
+        "is equivalent to\n"
+        "```\n--search eager(single(eval1))\n```\n",
+        true);
 
-    static shared_ptr<TaskDependentFactory<SearchAlgorithm>> func(
-        std::vector<shared_ptr<TaskDependentFactory<Evaluator>>> eval_factories,
-        std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>
-            preferred_factories,
-        int boost,
-        std::shared_ptr<PruningMethod> pruning,
-        OperatorCost cost_type,
-        int bound,
-        utils::FSeconds max_time,
-        const std::string& description,
-        utils::Verbosity verbosity)
-    {
-        return make_shared_from_arg_tuples<EagerGreedySearchFactory>(
-            std::move(eval_factories),
-            std::move(preferred_factories),
-            boost,
-            std::move(pruning),
-            cost_type,
-            bound,
-            max_time,
-            description,
-            verbosity);
-    }
-};
+    f.make_required_argument(0, "evals", "evaluators");
+    f.make_optional_argument_with_default(
+        1,
+        "preferred",
+        "[]",
+        "use preferred operators of these evaluators");
+    f.make_optional_argument_with_default(
+        2,
+        "boost",
+        "0",
+        "boost value for preferred operator open lists");
+    add_eager_search_options_to_feature(f, "eager_greedy", 3);
+
+    return f;
+}
+
 } // namespace
 
-namespace downward::cli::search_algorithms {
+namespace downward::cli::search_algorithms
+
+{
 
 void add_eager_greedy_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<EagerGreedySearchFeature>();
+    add_eager_greedy_search_to_namespace(n);
 }
 
 } // namespace downward::cli::search_algorithms

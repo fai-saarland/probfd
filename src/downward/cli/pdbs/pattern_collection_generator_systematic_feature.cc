@@ -17,61 +17,51 @@ using namespace downward::cli::pdbs;
 using namespace downward::cli::plugins;
 
 namespace {
-class PatternCollectionGeneratorSystematicFeature
-    : public SharedTypedFeature<
-          PatternCollectionGenerator,
-          int,
-          bool,
-          Verbosity> {
-public:
-    PatternCollectionGeneratorSystematicFeature()
-        : TypedFeature(
-              "systematic",
-              &PatternCollectionGeneratorSystematicFeature::func)
-    {
-        document_title("Systematically generated patterns");
-        document_synopsis(
-            "Generates all (interesting) patterns with up to pattern_max_size "
-            "variables. "
-            "For details, see" +
-            format_conference_reference(
-                {"Florian Pommerening", "Gabriele Roeger", "Malte Helmert"},
-                "Getting the Most Out of Pattern Databases for Classical "
-                "Planning",
-                "https://ai.dmi.unibas.ch/papers/"
-                "pommerening-et-al-ijcai2013.pdf",
-                "Proceedings of the Twenty-Third International Joint"
-                " Conference on Artificial Intelligence (IJCAI 2013)",
-                "2357-2364",
-                "AAAI Press",
-                "2013"));
 
-        make_optional_argument_with_default(
-            0,
-            "pattern_max_size",
-            "1",
-            "max number of variables per pattern");
-        make_optional_argument_with_default(
-            1,
-            "only_interesting_patterns",
-            "true",
-            "Only consider the union of two disjoint patterns if the union has "
-            "more information than the individual patterns.");
-        add_generator_options_to_feature(*this, 2);
-    }
+Feature&
+add_pattern_collection_generator_systematic_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "systematic",
+        &downward::cli::plugins::make_shared<
+            PatternCollectionGenerator,
+            PatternCollectionGeneratorSystematic,
+            int,
+            bool,
+            Verbosity>);
+    f.document_title("Systematically generated patterns");
+    f.document_synopsis(
+        "Generates all (interesting) patterns with up to pattern_max_size "
+        "variables. "
+        "For details, see" +
+        format_conference_reference(
+            {"Florian Pommerening", "Gabriele Roeger", "Malte Helmert"},
+            "Getting the Most Out of Pattern Databases for Classical "
+            "Planning",
+            "https://ai.dmi.unibas.ch/papers/"
+            "pommerening-et-al-ijcai2013.pdf",
+            "Proceedings of the Twenty-Third International Joint"
+            " Conference on Artificial Intelligence (IJCAI 2013)",
+            "2357-2364",
+            "AAAI Press",
+            "2013"));
 
-    static shared_ptr<PatternCollectionGenerator> func(
-        int pattern_max_size,
-        bool only_interesting_patterns,
-        Verbosity verbosity)
-    {
-        return make_shared_from_arg_tuples<
-            PatternCollectionGeneratorSystematic>(
-            pattern_max_size,
-            only_interesting_patterns,
-            verbosity);
-    }
-};
+    f.make_optional_argument_with_default(
+        0,
+        "pattern_max_size",
+        "1",
+        "max number of variables per pattern");
+    f.make_optional_argument_with_default(
+        1,
+        "only_interesting_patterns",
+        "true",
+        "Only consider the union of two disjoint patterns if the union has "
+        "more information than the individual patterns.");
+    add_generator_options_to_feature(f, 2);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::pdbs {
@@ -79,7 +69,7 @@ namespace downward::cli::pdbs {
 void add_pattern_collection_generator_systematic_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<PatternCollectionGeneratorSystematicFeature>();
+    add_pattern_collection_generator_systematic_to_namespace(n);
 }
 
 } // namespace downward::cli::pdbs

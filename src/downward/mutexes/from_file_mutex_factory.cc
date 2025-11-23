@@ -8,6 +8,7 @@
 #include "downward/utils/collections.h"
 #include "downward/utils/system.h"
 
+#include <filesystem>
 #include <format>
 #include <fstream>
 #include <memory>

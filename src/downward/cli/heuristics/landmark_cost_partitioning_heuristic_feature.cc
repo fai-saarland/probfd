@@ -89,145 +89,116 @@ public:
     }
 };
 
-class LandmarkCostPartitioningHeuristicFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<Evaluator>,
-          shared_ptr<TaskTransformation>,
-          bool,
-          string,
-          utils::Verbosity,
-          shared_ptr<LandmarkFactory>,
-          bool,
-          bool,
-          bool,
-          bool,
-          CostPartitioningMethod,
-          bool,
-          lp::LPSolverType> {
-public:
-    LandmarkCostPartitioningHeuristicFeature()
-        : TypedFeature(
-              "landmark_cost_partitioning",
-              &LandmarkCostPartitioningHeuristicFeature::func)
-    {
-        document_title("Landmark cost partitioning heuristic");
-        document_synopsis(
-            "Formerly known as the admissible landmark heuristic.\n"
-            "See the papers" +
-            downward::utils::format_conference_reference(
-                {"Erez Karpas", "Carmel Domshlak"},
-                "Cost-Optimal Planning with Landmarks",
-                "https://www.ijcai.org/Proceedings/09/Papers/288.pdf",
-                "Proceedings of the 21st International Joint Conference on "
-                "Artificial Intelligence (IJCAI 2009)",
-                "1728-1733",
-                "AAAI Press",
-                "2009") +
-            "and" +
-            downward::utils::format_conference_reference(
-                {"Emil Keyder and Silvia Richter and Malte Helmert"},
-                "Sound and Complete Landmarks for And/Or Graphs",
-                "https://ai.dmi.unibas.ch/papers/keyder-et-al-ecai2010.pdf",
-                "Proceedings of the 19th European Conference on Artificial "
-                "Intelligence (ECAI 2010)",
-                "335-340",
-                "IOS Press",
-                "2010"));
+Feature& add_landmarkcost_partitioning_heuristic_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "landmark_cost_partitioning",
+        &downward::cli::plugins::make_shared<
+            TaskDependentFactory<Evaluator>,
+            LandmarkCostPartitioningHeuristicFactory,
+            shared_ptr<TaskTransformation>,
+            bool,
+            string,
+            utils::Verbosity,
+            shared_ptr<LandmarkFactory>,
+            bool,
+            bool,
+            bool,
+            bool,
+            CostPartitioningMethod,
+            bool,
+            lp::LPSolverType>);
 
-        document_note(
-            "Usage with A*",
-            "We recommend to add this heuristic as lazy_evaluator when using "
-            "it in the A* algorithm. This way, the heuristic is recomputed "
-            "before a state is expanded, leading to improved estimates that "
-            "incorporate all knowledge gained from paths that were found after "
-            "the state was inserted into the open list.");
-        document_note(
-            "Consistency",
-            "The heuristic is consistent along single paths if it is "
-            "set as lazy_evaluator; i.e. when expanding s then we have "
-            "h(s) <= h(s')+cost(a) for all successors s' of s reached "
-            "with a. But newly found paths to s can increase h(s), at "
-            "which point the above inequality might not hold anymore.");
-        document_note(
-            "Optimal Cost Partitioning",
-            "To use ``cost_partitioning=optimal``, you must build the planner "
-            "with LP support. See [build instructions "
-            "https://github.com/aibasel/downward/blob/main/BUILD.md].");
-        document_note(
-            "Preferred operators",
-            "Preferred operators should not be used for optimal planning. "
-            "See Heuristic#Landmark_sum_heuristic for more information "
-            "on using preferred operators; the comments there also apply "
-            "to this heuristic.");
+    f.document_title("Landmark cost partitioning heuristic");
+    f.document_synopsis(
+        "Formerly known as the admissible landmark heuristic.\n"
+        "See the papers" +
+        downward::utils::format_conference_reference(
+            {"Erez Karpas", "Carmel Domshlak"},
+            "Cost-Optimal Planning with Landmarks",
+            "https://www.ijcai.org/Proceedings/09/Papers/288.pdf",
+            "Proceedings of the 21st International Joint Conference on "
+            "Artificial Intelligence (IJCAI 2009)",
+            "1728-1733",
+            "AAAI Press",
+            "2009") +
+        "and" +
+        downward::utils::format_conference_reference(
+            {"Emil Keyder and Silvia Richter and Malte Helmert"},
+            "Sound and Complete Landmarks for And/Or Graphs",
+            "https://ai.dmi.unibas.ch/papers/keyder-et-al-ecai2010.pdf",
+            "Proceedings of the 19th European Conference on Artificial "
+            "Intelligence (ECAI 2010)",
+            "335-340",
+            "IOS Press",
+            "2010"));
 
-        document_language_support("action costs", "supported");
-        document_language_support(
-            "conditional_effects",
-            "supported if the LandmarkFactory supports them; otherwise "
-            "not supported");
-        document_language_support("axioms", "not allowed");
+    f.document_note(
+        "Usage with A*",
+        "We recommend to add this heuristic as lazy_evaluator when using "
+        "it in the A* algorithm. This way, the heuristic is recomputed "
+        "before a state is expanded, leading to improved estimates that "
+        "incorporate all knowledge gained from paths that were found after "
+        "the state was inserted into the open list.");
+    f.document_note(
+        "Consistency",
+        "The heuristic is consistent along single paths if it is "
+        "set as lazy_evaluator; i.e. when expanding s then we have "
+        "h(s) <= h(s')+cost(a) for all successors s' of s reached "
+        "with a. But newly found paths to s can increase h(s), at "
+        "which point the above inequality might not hold anymore.");
+    f.document_note(
+        "Optimal Cost Partitioning",
+        "To use ``cost_partitioning=optimal``, you must build the planner "
+        "with LP support. See [build instructions "
+        "https://github.com/aibasel/downward/blob/main/BUILD.md].");
+    f.document_note(
+        "Preferred operators",
+        "Preferred operators should not be used for optimal planning. "
+        "See Heuristic#Landmark_sum_heuristic for more information "
+        "on using preferred operators; the comments there also apply "
+        "to this heuristic.");
 
-        document_property("admissible", "yes");
-        document_property(
-            "consistent",
-            "no; see document note about consistency");
-        document_property("safe", "yes");
+    f.document_language_support("action costs", "supported");
+    f.document_language_support(
+        "conditional_effects",
+        "supported if the LandmarkFactory supports them; otherwise "
+        "not supported");
+    f.document_language_support("axioms", "not allowed");
 
-        /*
-          We usually have the options of base classes behind the options
-          of specific implementations. In the case of landmark
-          heuristics, we decided to have the common options at the front
-          because it feels more natural to specify the landmark factory
-          before the more specific arguments like the used LP solver in
-          the case of an optimal cost partitioning heuristic.
-        */
-        const auto n = add_landmark_heuristic_options_to_feature(
-            *this,
-            "landmark_cost_partitioning",
-            0);
-        make_optional_argument_with_default(
-            n,
-            "cost_partitioning",
-            "uniform",
-            "strategy for partitioning operator costs among landmarks");
-        make_optional_argument_with_default(
-            n + 1,
-            "alm",
-            "true",
-            "use action landmarks");
-        add_lp_solver_option_to_feature(*this, n + 2);
-    }
+    f.document_property("admissible", "yes");
+    f.document_property(
+        "consistent",
+        "no; see document note about consistency");
+    f.document_property("safe", "yes");
 
-    static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        shared_ptr<TaskTransformation> transformation,
-        bool cache_estimates,
-        string description,
-        utils::Verbosity verbosity,
-        shared_ptr<LandmarkFactory> landmark_factory,
-        bool pref,
-        bool prog_goal,
-        bool prog_gn,
-        bool prog_r,
-        CostPartitioningMethod cost_partitioning_method,
-        bool alm,
-        lp::LPSolverType lp_solver_type)
-    {
-        return make_shared_from_arg_tuples<
-            LandmarkCostPartitioningHeuristicFactory>(
-            std::move(transformation),
-            cache_estimates,
-            std::move(description),
-            verbosity,
-            std::move(landmark_factory),
-            pref,
-            prog_goal,
-            prog_gn,
-            prog_r,
-            cost_partitioning_method,
-            alm,
-            lp_solver_type);
-    }
-};
+    /*
+      We usually have the options of base classes behind the options
+      of specific implementations. In the case of landmark
+      heuristics, we decided to have the common options at the front
+      because it feels more natural to specify the landmark factory
+      before the more specific arguments like the used LP solver in
+      the case of an optimal cost partitioning heuristic.
+    */
+    const auto n = add_landmark_heuristic_options_to_feature(
+        f,
+        "landmark_cost_partitioning",
+        0);
+    f.make_optional_argument_with_default(
+        n,
+        "cost_partitioning",
+        "uniform",
+        "strategy for partitioning operator costs among landmarks");
+    f.make_optional_argument_with_default(
+        n + 1,
+        "alm",
+        "true",
+        "use action landmarks");
+    add_lp_solver_option_to_feature(f, n + 2);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::heuristics {
@@ -246,7 +217,7 @@ void add_landmark_cost_partitioning_heuristic_categories(Registry& registry)
 void add_landmark_cost_partitioning_heuristic_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<LandmarkCostPartitioningHeuristicFeature>();
+    add_landmarkcost_partitioning_heuristic_to_namespace(n);
 }
 
 } // namespace downward::cli::heuristics

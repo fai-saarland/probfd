@@ -38,186 +38,167 @@ using downward::cli::utils::add_log_options_to_feature;
 using downward::cli::lp::add_lp_solver_option_to_feature;
 
 namespace {
-class HROCFactoryFeature
-    : public SharedTypedFeature<
-          TaskHeuristicFactory,
-          Verbosity,
-          lp::LPSolverType> {
-public:
-    HROCFactoryFeature()
-        : TypedFeature("hroc", &HROCFactoryFeature::func)
-    {
-        document_title("Regrouped operator-counting heuristic");
-        document_synopsis(
-            "For details, see" +
-            format_conference_reference(
-                {"Felipe Trevizan", "Sylvie Thiebaux", "Patrik Haslum"},
-                "Occupation Measure Heuristics for Probabilistic Planning",
-                "https://ojs.aaai.org/index.php/ICAPS/article/view/13840",
-                "Proceedings of 27th International Conference on Automated"
-                "Planning and Scheduling (ICAPS 2017)",
-                "306-315",
-                "AAAI Press",
-                "2017"));
 
-        document_language_support("conditional effects", "not supported");
-        document_language_support("axioms", "not supported");
+std::shared_ptr<TaskHeuristicFactory>
+create_hroc(Verbosity verbosity, lp::LPSolverType lp_solver_type)
+{
+    return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
+        verbosity,
+        lp_solver_type,
+        std::make_shared<HROCGeneratorFactory>());
+}
 
-        document_property("admissible", "yes");
-        document_property("consistent", "yes");
+std::shared_ptr<TaskHeuristicFactory>
+create_hpom(Verbosity verbosity, lp::LPSolverType lp_solver_type)
+{
+    return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
+        verbosity,
+        lp_solver_type,
+        std::make_shared<HPOMGeneratorFactory>());
+}
 
-        const auto n = add_log_options_to_feature(*this, 0);
-        add_lp_solver_option_to_feature(*this, n);
-    }
+std::shared_ptr<TaskHeuristicFactory> create_higher_order_hpom_heuristic(
+    Verbosity verbosity,
+    lp::LPSolverType lp_solver_type,
+    int projection_size)
+{
+    return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
+        verbosity,
+        lp_solver_type,
+        std::make_shared<HigherOrderHPOMGeneratorFactory>(projection_size));
+}
 
-    static std::shared_ptr<TaskHeuristicFactory>
-    func(Verbosity verbosity, lp::LPSolverType lp_solver_type)
-    {
-        return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
-            verbosity,
-            lp_solver_type,
-            std::make_shared<HROCGeneratorFactory>());
-    }
-};
+std::shared_ptr<TaskHeuristicFactory> create_pho_heuristic(
+    Verbosity verbosity,
+    lp::LPSolverType lp_solver,
+    std::shared_ptr<PatternCollectionGenerator> generator)
+{
+    return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
+        verbosity,
+        lp_solver,
+        std::make_shared<PHOGeneratorFactory>(std::move(generator)));
+}
 
-class HPOMFactoryFeature
-    : public SharedTypedFeature<
-          TaskHeuristicFactory,
-          Verbosity,
-          lp::LPSolverType> {
-public:
-    HPOMFactoryFeature()
-        : TypedFeature("hpom", &HPOMFactoryFeature::func)
-    {
-        document_title("Projection Occupation Measure Heuristic");
+Feature& add_hroc_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin("hroc", create_hroc);
+    f.document_title("Regrouped operator-counting heuristic");
+    f.document_synopsis(
+        "For details, see" +
+        format_conference_reference(
+            {"Felipe Trevizan", "Sylvie Thiebaux", "Patrik Haslum"},
+            "Occupation Measure Heuristics for Probabilistic Planning",
+            "https://ojs.aaai.org/index.php/ICAPS/article/view/13840",
+            "Proceedings of 27th International Conference on Automated"
+            "Planning and Scheduling (ICAPS 2017)",
+            "306-315",
+            "AAAI Press",
+            "2017"));
 
-        document_synopsis(
-            "The projection occupation measure heuristic. "
-            "For details, see" +
-            format_conference_reference(
-                {"Felipe Trevizan", "Sylvie Thiebaux", "Patrik Haslum"},
-                "Occupation Measure Heuristics for Probabilistic Planning",
-                "https://ojs.aaai.org/index.php/ICAPS/article/view/13840",
-                "Proceedings of 27th International Conference on Automated"
-                "Planning and Scheduling (ICAPS 2017)",
-                "306-315",
-                "AAAI Press",
-                "2017"));
+    f.document_language_support("conditional effects", "not supported");
+    f.document_language_support("axioms", "not supported");
 
-        document_language_support("conditional effects", "not supported");
-        document_language_support("axioms", "not supported");
+    f.document_property("admissible", "yes");
+    f.document_property("consistent", "yes");
 
-        document_property("admissible", "yes");
-        document_property("consistent", "yes");
+    const auto n = add_log_options_to_feature(f, 0);
+    add_lp_solver_option_to_feature(f, n);
 
-        const auto n = add_log_options_to_feature(*this, 0);
-        add_lp_solver_option_to_feature(*this, n);
-    }
+    return f;
+}
 
-    static std::shared_ptr<TaskHeuristicFactory>
-    func(Verbosity verbosity, lp::LPSolverType lp_solver_type)
-    {
-        return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
-            verbosity,
-            lp_solver_type,
-            std::make_shared<HPOMGeneratorFactory>());
-    }
-};
+Feature& add_hpom_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin("hpom", create_hpom);
 
-class HOHPOMFactoryFeature
-    : public SharedTypedFeature<
-          TaskHeuristicFactory,
-          Verbosity,
-          lp::LPSolverType,
-          int> {
-public:
-    HOHPOMFactoryFeature()
-        : TypedFeature("ho_hpom", &HOHPOMFactoryFeature::func)
-    {
-        document_title("Higher-Order Projection Occupation Measure Heuristic");
-        document_synopsis(
-            "The projection occupation measure heuristic with general "
-            "projections"
-            "beyond atomic projections. "
-            "For details, see" +
-            format_conference_reference(
-                {"Felipe Trevizan", "Sylvie Thiebaux", "Patrik Haslum"},
-                "Occupation Measure Heuristics for Probabilistic Planning",
-                "https://ojs.aaai.org/index.php/ICAPS/article/view/13840",
-                "Proceedings of 27th International Conference on Automated"
-                "Planning and Scheduling (ICAPS 2017)",
-                "306-315",
-                "AAAI Press",
-                "2017"));
+    f.document_title("Projection Occupation Measure Heuristic");
 
-        document_language_support("conditional effects", "not supported");
-        document_language_support("axioms", "not supported");
+    f.document_synopsis(
+        "The projection occupation measure heuristic. "
+        "For details, see" +
+        format_conference_reference(
+            {"Felipe Trevizan", "Sylvie Thiebaux", "Patrik Haslum"},
+            "Occupation Measure Heuristics for Probabilistic Planning",
+            "https://ojs.aaai.org/index.php/ICAPS/article/view/13840",
+            "Proceedings of 27th International Conference on Automated"
+            "Planning and Scheduling (ICAPS 2017)",
+            "306-315",
+            "AAAI Press",
+            "2017"));
 
-        document_property("admissible", "yes");
-        document_property("consistent", "yes");
+    f.document_language_support("conditional effects", "not supported");
+    f.document_language_support("axioms", "not supported");
 
-        const auto n = add_log_options_to_feature(*this, 0);
-        const auto n2 = add_lp_solver_option_to_feature(*this, n);
+    f.document_property("admissible", "yes");
+    f.document_property("consistent", "yes");
 
-        make_optional_argument_with_default(
-            n + n2,
-            "projection_size",
-            "1",
-            "The size of the projections");
-    }
+    const auto n = add_log_options_to_feature(f, 0);
+    add_lp_solver_option_to_feature(f, n);
 
-    static std::shared_ptr<TaskHeuristicFactory> func(
-        Verbosity verbosity,
-        lp::LPSolverType lp_solver_type,
-        int projection_size)
-    {
-        return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
-            verbosity,
-            lp_solver_type,
-            std::make_shared<HigherOrderHPOMGeneratorFactory>(projection_size));
-    }
-};
+    return f;
+}
 
-class HPHOFactoryFeature
-    : public SharedTypedFeature<
-          TaskHeuristicFactory,
-          Verbosity,
-          lp::LPSolverType,
-          std::shared_ptr<PatternCollectionGenerator>> {
-public:
-    HPHOFactoryFeature()
-        : TypedFeature("pho", &HPHOFactoryFeature::func)
-    {
-        document_title("Post-hoc Optimization Heuristic");
+Feature& add_higher_order_hpom_heuristic_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "ho_hpom",
+        create_higher_order_hpom_heuristic);
+    f.document_title("Higher-Order Projection Occupation Measure Heuristic");
+    f.document_synopsis(
+        "The projection occupation measure heuristic with general "
+        "projections"
+        "beyond atomic projections. "
+        "For details, see" +
+        format_conference_reference(
+            {"Felipe Trevizan", "Sylvie Thiebaux", "Patrik Haslum"},
+            "Occupation Measure Heuristics for Probabilistic Planning",
+            "https://ojs.aaai.org/index.php/ICAPS/article/view/13840",
+            "Proceedings of 27th International Conference on Automated"
+            "Planning and Scheduling (ICAPS 2017)",
+            "306-315",
+            "AAAI Press",
+            "2017"));
 
-        document_language_support("conditional effects", "not supported");
-        document_language_support("axioms", "not supported");
+    f.document_language_support("conditional effects", "not supported");
+    f.document_language_support("axioms", "not supported");
 
-        document_property("admissible", "yes");
-        document_property("consistent", "yes");
+    f.document_property("admissible", "yes");
+    f.document_property("consistent", "yes");
 
-        const auto n = add_log_options_to_feature(*this, 0);
-        const auto n2 = add_lp_solver_option_to_feature(*this, n);
+    const auto n = add_log_options_to_feature(f, 0);
+    const auto n2 = add_lp_solver_option_to_feature(f, n);
 
-        make_optional_argument_with_default(
-            n + n2,
-            "patterns",
-            "det_adapter(generator=systematic(pattern_max_size=2))",
-            "The pattern generator used to construct the PDB collection which "
-            "is subject to post-hoc optimization.");
-    }
+    f.make_required_argument(
+        n + n2,
+        "projection_size",
+        "The size of the projections");
 
-    static std::shared_ptr<TaskHeuristicFactory> func(
-        Verbosity verbosity,
-        lp::LPSolverType lp_solver,
-        std::shared_ptr<PatternCollectionGenerator> generator)
-    {
-        return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
-            verbosity,
-            lp_solver,
-            std::make_shared<PHOGeneratorFactory>(std::move(generator)));
-    }
-};
+    return f;
+}
+
+Feature& add_hpho_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin("hpho", create_pho_heuristic);
+    f.document_title("Post-hoc Optimization Heuristic");
+
+    f.document_language_support("conditional effects", "not supported");
+    f.document_language_support("axioms", "not supported");
+
+    f.document_property("admissible", "yes");
+    f.document_property("consistent", "yes");
+
+    const auto n = add_log_options_to_feature(f, 0);
+    const auto n2 = add_lp_solver_option_to_feature(f, n);
+
+    f.make_required_argument(
+        n + n2,
+        "patterns",
+        "The pattern generator used to construct the PDB collection which "
+        "is subject to post-hoc optimization.");
+
+    return f;
+}
+
 } // namespace
 
 namespace probfd::cli::occupation_measures {
@@ -225,10 +206,10 @@ namespace probfd::cli::occupation_measures {
 void add_occupation_measure_heuristics_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<HROCFactoryFeature>();
-    n.insert_feature_plugin<HPOMFactoryFeature>();
-    n.insert_feature_plugin<HOHPOMFactoryFeature>();
-    n.insert_feature_plugin<HPHOFactoryFeature>();
+    add_hroc_to_namespace(n);
+    add_hpom_to_namespace(n);
+    add_higher_order_hpom_heuristic_to_namespace(n);
+    add_hpho_to_namespace(n);
 }
 
 } // namespace probfd::cli::occupation_measures

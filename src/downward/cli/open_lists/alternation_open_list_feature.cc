@@ -12,66 +12,42 @@ using namespace downward::alternation_open_list;
 using namespace downward::cli::plugins;
 
 namespace {
+
 template <typename T>
-class AlternationOpenListFeature
-    : public SharedTypedFeature<
-          downward::TaskDependentFactory<downward::OpenList<T>>,
-          const std::vector<shared_ptr<
-              downward::TaskDependentFactory<downward::OpenList<T>>>>&,
-          int> {
-public:
-    AlternationOpenListFeature()
-        requires(std::same_as<T, downward::StateOpenListEntry>)
-        : AlternationOpenListFeature::TypedFeature(
-              "state_alt",
-              &AlternationOpenListFeature::func)
-    {
-        this->document_title("Alternation state open list");
-        this->document_synopsis("alternates between several open lists.");
+Feature&
+add_alternation_open_list_to_namespace(Namespace& nspace, std::string name)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        std::move(name),
+        &downward::cli::plugins::make_shared<
+            downward::TaskDependentFactory<downward::OpenList<T>>,
+            AlternationOpenListFactory<T>,
+            const std::vector<shared_ptr<
+                downward::TaskDependentFactory<downward::OpenList<T>>>>&,
+            int>);
 
-        this->make_required_argument(
-            0,
-            "sublists",
-            "open lists between which this one alternates");
-        this->make_optional_argument_with_default(
-            1,
-            "boost",
-            "0",
-            "boost value for contained open lists that are restricted "
-            "to preferred successors");
+    if constexpr (std::same_as<T, downward::StateOpenListEntry>) {
+        f.document_title("Alternation state open list");
+    } else {
+        f.document_title("Alternation edge open list");
     }
 
-    AlternationOpenListFeature()
-        requires(std::same_as<T, downward::EdgeOpenListEntry>)
-        : AlternationOpenListFeature::TypedFeature(
-              "edge_alt",
-              &AlternationOpenListFeature::func)
-    {
-        this->document_title("Alternation edge open list");
-        this->document_synopsis("alternates between several open lists.");
+    f.document_synopsis("alternates between several open lists.");
 
-        this->make_required_argument(
-            0,
-            "sublists",
-            "open lists between which this one alternates");
-        this->make_optional_argument_with_default(
-            1,
-            "boost",
-            "0",
-            "boost value for contained open lists that are restricted "
-            "to preferred successors");
-    }
+    f.make_required_argument(
+        0,
+        "sublists",
+        "open lists between which this one alternates");
+    f.make_optional_argument_with_default(
+        1,
+        "boost",
+        "0",
+        "boost value for contained open lists that are restricted "
+        "to preferred successors");
 
-    static shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
-    func(
-        const std::vector<
-            shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>>&
-            sublists,
-        int boost)
-    {
-        return make_shared<AlternationOpenListFactory<T>>(sublists, boost);
-    }
-};
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::open_lists {
@@ -79,10 +55,8 @@ namespace downward::cli::open_lists {
 void add_alternation_open_list_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<
-        AlternationOpenListFeature<downward::StateOpenListEntry>>();
-    n.insert_feature_plugin<
-        AlternationOpenListFeature<downward::EdgeOpenListEntry>>();
+    add_alternation_open_list_to_namespace<StateOpenListEntry>(n, "state_alt");
+    add_alternation_open_list_to_namespace<EdgeOpenListEntry>(n, "edge_alt");
 }
 
 } // namespace downward::cli::open_lists

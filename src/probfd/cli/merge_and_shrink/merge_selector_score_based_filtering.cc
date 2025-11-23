@@ -13,39 +13,33 @@ using namespace downward;
 using namespace probfd::merge_and_shrink;
 
 namespace {
-class MergeSelectorScoreBasedFilteringFeature
-    : public SharedTypedFeature<
-          MergeSelector,
-          std::vector<std::shared_ptr<MergeScoringFunction>>> {
-public:
-    MergeSelectorScoreBasedFilteringFeature()
-        : TypedFeature(
-              "pscore_based_filtering",
-              &MergeSelectorScoreBasedFilteringFeature::func)
-    {
-        document_title("Score based filtering merge selector");
-        document_synopsis(
-            "This merge selector has a list of scoring "
-            "functions, which are used "
-            "iteratively to compute scores for merge candidates, "
-            "keeping the best "
-            "ones (with minimal scores) until only one is left.");
 
-        make_required_argument(
-            0,
-            "scoring_functions",
-            "The list of scoring functions used to compute scores for "
-            "candidates.");
-    }
+Feature& add_merge_selector_Score_based_filtering_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "pscore_based_filtering",
+        &downward::cli::plugins::make_shared<
+            MergeSelector,
+            MergeSelectorScoreBasedFiltering,
+            std::vector<std::shared_ptr<MergeScoringFunction>>>);
 
-protected:
-    static shared_ptr<MergeSelector> func(
-        std::vector<std::shared_ptr<MergeScoringFunction>> scoring_functions)
-    {
-        return make_shared_from_arg_tuples<MergeSelectorScoreBasedFiltering>(
-            std::move(scoring_functions));
-    }
-};
+    f.document_title("Score based filtering merge selector");
+    f.document_synopsis(
+        "This merge selector has a list of scoring "
+        "functions, which are used "
+        "iteratively to compute scores for merge candidates, "
+        "keeping the best "
+        "ones (with minimal scores) until only one is left.");
+
+    f.make_required_argument(
+        0,
+        "scoring_functions",
+        "The list of scoring functions used to compute scores for "
+        "candidates.");
+
+    return f;
+}
+
 } // namespace
 
 namespace probfd::cli::merge_and_shrink {
@@ -53,7 +47,7 @@ namespace probfd::cli::merge_and_shrink {
 void add_merge_selector_score_based_filtering_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<MergeSelectorScoreBasedFilteringFeature>();
+    add_merge_selector_Score_based_filtering_to_namespace(n);
 }
 
 } // namespace probfd::cli::merge_and_shrink

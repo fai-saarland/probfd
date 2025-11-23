@@ -307,7 +307,7 @@ public:
                 f.get_key());
         }
 
-        return static_cast<TypedFeature<R, Args...>>(f);
+        return static_cast<TypedFeature<R, Args...>&>(f);
     }
 
     template <template <bool...> typename T, bool... b>

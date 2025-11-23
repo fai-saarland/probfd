@@ -38,29 +38,22 @@ public:
     }
 };
 
-class GEvaluatorFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<Evaluator>,
-          std::string,
-          Verbosity> {
-public:
-    GEvaluatorFeature()
-        : TypedFeature("g", &GEvaluatorFeature::func)
-    {
-        document_title("g-value evaluator");
-        document_synopsis(
-            "Returns the g-value (path cost) of the search node.");
-        add_evaluator_options_to_feature(*this, "g", 0);
-    }
+Feature& add_g_evaluator_feature_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "g",
+        &cli::plugins::make_shared<
+            TaskDependentFactory<Evaluator>,
+            GEvaluatorFactory,
+            std::string,
+            Verbosity>);
+    f.document_title("g-value evaluator");
+    f.document_synopsis("Returns the g-value (path cost) of the search node.");
 
-    static shared_ptr<TaskDependentFactory<Evaluator>>
-    func(std::string description, Verbosity verbosity)
-    {
-        return make_shared<GEvaluatorFactory>(
-            std::move(description),
-            verbosity);
-    }
-};
+    add_evaluator_options_to_feature(f, "g", 0);
+
+    return f;
+}
 
 } // namespace
 
@@ -69,7 +62,7 @@ namespace downward::cli::evaluators {
 void add_g_evaluator_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    const Feature& f = n.insert_feature_plugin<GEvaluatorFeature>();
+    const Feature& f = add_g_evaluator_feature_to_namespace(n);
     SubcategoryPlugin& subcategory =
         registry.get_subcategory_plugin("evaluators_basic");
     subcategory.add_feature(f);

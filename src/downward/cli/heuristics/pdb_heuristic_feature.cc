@@ -56,53 +56,41 @@ public:
     }
 };
 
-class PDBHeuristicFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<Evaluator>,
-          shared_ptr<TaskTransformation>,
-          bool,
-          string,
-          utils::Verbosity,
-          std::shared_ptr<PatternGenerator>> {
-public:
-    PDBHeuristicFeature()
-        : TypedFeature("pdb", &PDBHeuristicFeature::func)
-    {
-        document_title("Pattern database heuristic");
-        document_synopsis("TODO");
+Feature& add_pdb_heuristic_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "pdb",
+        &cli::plugins::make_shared<
+            TaskDependentFactory<Evaluator>,
+            PDBHeuristicFactory,
+            shared_ptr<TaskTransformation>,
+            bool,
+            string,
+            Verbosity,
+            std::shared_ptr<PatternGenerator>>);
 
-        document_language_support("action costs", "supported");
-        document_language_support("conditional effects", "not supported");
-        document_language_support("axioms", "not supported");
+    f.document_title("Pattern database heuristic");
+    f.document_synopsis("TODO");
 
-        document_property("admissible", "yes");
-        document_property("consistent", "yes");
-        document_property("safe", "yes");
-        document_property("preferred operators", "no");
+    f.document_language_support("action costs", "supported");
+    f.document_language_support("conditional effects", "not supported");
+    f.document_language_support("axioms", "not supported");
 
-        make_optional_argument_with_default(
-            0,
-            "pattern",
-            "greedy()",
-            "pattern generation method");
-        add_heuristic_options_to_feature(*this, "pdb", 1);
-    }
+    f.document_property("admissible", "yes");
+    f.document_property("consistent", "yes");
+    f.document_property("safe", "yes");
+    f.document_property("preferred operators", "no");
 
-    static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        shared_ptr<TaskTransformation> transformation,
-        bool cache_estimates,
-        string description,
-        Verbosity verbosity,
-        std::shared_ptr<PatternGenerator> generator)
-    {
-        return make_shared_from_arg_tuples<PDBHeuristicFactory>(
-            std::move(transformation),
-            cache_estimates,
-            std::move(description),
-            verbosity,
-            std::move(generator));
-    }
-};
+    f.make_optional_argument_with_default(
+        0,
+        "pattern",
+        "greedy()",
+        "pattern generation method");
+    add_heuristic_options_to_feature(f, "pdb", 1);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::heuristics {
@@ -110,7 +98,7 @@ namespace downward::cli::heuristics {
 void add_pdb_heuristic_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    const Feature& f = n.insert_feature_plugin<PDBHeuristicFeature>();
+    const Feature& f = add_pdb_heuristic_to_namespace(n);
     SubcategoryPlugin& subcategory =
         registry.get_subcategory_plugin("heuristics_pdb");
     subcategory.add_feature(f);

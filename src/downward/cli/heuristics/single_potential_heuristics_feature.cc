@@ -97,91 +97,75 @@ public:
     }
 };
 
-class InitialStatePotentialHeuristicFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<Evaluator>,
-          shared_ptr<TaskTransformation>,
-          bool,
-          string,
-          utils::Verbosity,
-          double,
-          lp::LPSolverType> {
-public:
-    InitialStatePotentialHeuristicFeature()
-        : TypedFeature(
-              "initial_state_potential",
-              &InitialStatePotentialHeuristicFeature::func)
-    {
-        document_title("Potential heuristic optimized for initial state");
-        document_synopsis(get_admissible_potentials_reference());
+shared_ptr<TaskDependentFactory<Evaluator>>
+create_initial_state_potential_heuristic(
+    shared_ptr<TaskTransformation> transformation,
+    bool cache_estimates,
+    string description,
+    utils::Verbosity verbosity,
+    double max_potential,
+    lp::LPSolverType lp_solver)
+{
+    return make_shared<PotentialHeuristicFactory>(
+        std::move(transformation),
+        cache_estimates,
+        std::move(description),
+        verbosity,
+        max_potential,
+        lp_solver,
+        OptimizeFor::INITIAL_STATE);
+}
 
-        add_admissible_potentials_options_to_feature(
-            *this,
-            "initial_state_potential",
-            0);
-    }
+shared_ptr<TaskDependentFactory<Evaluator>>
+create_all_states_potential_heuristic(
+    shared_ptr<TaskTransformation> transformation,
+    bool cache_estimates,
+    string description,
+    utils::Verbosity verbosity,
+    double max_potential,
+    lp::LPSolverType lp_solver)
+{
+    return make_shared<PotentialHeuristicFactory>(
+        std::move(transformation),
+        cache_estimates,
+        std::move(description),
+        verbosity,
+        max_potential,
+        lp_solver,
+        OptimizeFor::ALL_STATES);
+}
 
-    static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        shared_ptr<TaskTransformation> transformation,
-        bool cache_estimates,
-        string description,
-        utils::Verbosity verbosity,
-        double max_potential,
-        lp::LPSolverType lp_solver)
-    {
-        return make_shared<PotentialHeuristicFactory>(
-            std::move(transformation),
-            cache_estimates,
-            std::move(description),
-            verbosity,
-            max_potential,
-            lp_solver,
-            OptimizeFor::INITIAL_STATE);
-    }
-};
+Feature& add_initial_state_potential_heuristic_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "initial_state_potential",
+        create_initial_state_potential_heuristic);
 
-class AllStatesPotentialHeuristicFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<Evaluator>,
-          shared_ptr<TaskTransformation>,
-          bool,
-          string,
-          utils::Verbosity,
-          double,
-          lp::LPSolverType> {
-public:
-    AllStatesPotentialHeuristicFeature()
-        : TypedFeature(
-              "all_states_potential",
-              &AllStatesPotentialHeuristicFeature::func)
-    {
-        document_title("Potential heuristic optimized for all states");
-        document_synopsis(get_admissible_potentials_reference());
+    f.document_title("Potential heuristic optimized for initial state");
+    f.document_synopsis(get_admissible_potentials_reference());
 
-        add_admissible_potentials_options_to_feature(
-            *this,
-            "all_states_potential",
-            0);
-    }
+    add_admissible_potentials_options_to_feature(
+        f,
+        "initial_state_potential",
+        0);
 
-    static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        shared_ptr<TaskTransformation> transformation,
-        bool cache_estimates,
-        string description,
-        utils::Verbosity verbosity,
-        double max_potential,
-        lp::LPSolverType lp_solver)
-    {
-        return make_shared<PotentialHeuristicFactory>(
-            std::move(transformation),
-            cache_estimates,
-            std::move(description),
-            verbosity,
-            max_potential,
-            lp_solver,
-            OptimizeFor::ALL_STATES);
-    }
-};
+    return f;
+}
+
+Feature& add_all_states_potential_heuristic_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "all_states_potential",
+        create_all_states_potential_heuristic);
+
+    f.document_title("Potential heuristic optimized for all states");
+    f.document_synopsis(get_admissible_potentials_reference());
+
+    add_admissible_potentials_options_to_feature(f, "all_states_potential", 0);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::heuristics {
@@ -191,10 +175,8 @@ void add_single_potential_heuristics_features(Registry& registry)
     Namespace& n = registry.get_global_name_space();
     SubcategoryPlugin& subcategory =
         registry.get_subcategory_plugin("heuristics_potentials");
-    const Feature& f =
-        n.insert_feature_plugin<InitialStatePotentialHeuristicFeature>();
-    const Feature& f2 =
-        n.insert_feature_plugin<AllStatesPotentialHeuristicFeature>();
+    const Feature& f = add_initial_state_potential_heuristic_to_namespace(n);
+    const Feature& f2 = add_all_states_potential_heuristic_to_namespace(n);
     subcategory.add_feature(f);
     subcategory.add_feature(f2);
 }

@@ -59,104 +59,69 @@ template <bool Bisimulation, bool Fret>
 using PolicyPicker = Wrapper<algorithms::PolicyPicker, Bisimulation, Fret>;
 
 template <bool Bisimulation, bool Fret>
-class ArbitraryTieBreakerFeature
-    : public SharedTypedFeature<PolicyPicker<Bisimulation, Fret>, bool> {
-    using R = Wrapper<ArbitraryTiebreaker, Bisimulation, Fret>;
+Feature& add_arbitrary_policy_picker_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        add_mdp_type_to_option<Bisimulation, Fret>(
+            "arbitrary_policy_tiebreaker"),
+        &downward::cli::plugins::make_shared<
+            PolicyPicker<Bisimulation, Fret>,
+            Wrapper<ArbitraryTiebreaker, Bisimulation, Fret>,
+            bool>);
 
-public:
-    ArbitraryTieBreakerFeature()
-        : ArbitraryTieBreakerFeature::TypedFeature(
-              add_mdp_type_to_option<Bisimulation, Fret>(
-                  "arbitrary_policy_tiebreaker"),
-              &ArbitraryTieBreakerFeature::func)
-    {
-        this->make_optional_argument_with_default(0, "stable_policy", "true");
-    }
+    f.make_optional_argument_with_default(0, "stable_policy", "true");
 
-    static std::shared_ptr<PolicyPicker<Bisimulation, Fret>>
-    func(bool stable_policy)
-    {
-        return std::make_shared<R>(stable_policy);
-    }
-};
+    return f;
+}
 
-class OperatorIDTieBreakerFeature
-    : public SharedTypedFeature<FDRPolicyPicker, bool, bool> {
-public:
-    OperatorIDTieBreakerFeature()
-        : TypedFeature(
-              "operator_id_policy_tiebreaker",
-              &OperatorIDTieBreakerFeature::func)
-    {
-        make_optional_argument_with_default(0, "stable_policy", "true");
-        make_optional_argument_with_default(1, "prefer_smaller", "true");
-    }
+Feature& add_operator_id_policy_picker_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "operator_id_policy_tiebreaker",
+        &downward::cli::plugins::
+            make_shared<FDRPolicyPicker, OperatorIdTiebreaker, bool, bool>);
 
-    static std::shared_ptr<FDRPolicyPicker>
-    func(bool stable_policy, bool prefer_smaller)
-    {
-        return make_shared_from_arg_tuples<OperatorIdTiebreaker>(
-            stable_policy,
-            prefer_smaller);
-    }
-};
+    f.make_optional_argument_with_default(0, "stable_policy", "true");
+    f.make_optional_argument_with_default(1, "prefer_smaller", "true");
+
+    return f;
+}
 
 template <bool Bisimulation, bool Fret>
-class RandomTieBreakerFeature
-    : public SharedTypedFeature<PolicyPicker<Bisimulation, Fret>, bool, int> {
+Feature& add_random_tiebreaker_policy_picker_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        add_mdp_type_to_option<Bisimulation, Fret>("random_policy_tiebreaker"),
+        &downward::cli::plugins::make_shared<
+            PolicyPicker<Bisimulation, Fret>,
+            Wrapper<RandomTiebreaker, Bisimulation, Fret>,
+            bool,
+            int>);
 
-    using R = Wrapper<RandomTiebreaker, Bisimulation, Fret>;
+    f.make_optional_argument_with_default(0, "stable_policy", "true");
+    add_rng_options_to_feature(f, 1);
 
-public:
-    RandomTieBreakerFeature()
-        : RandomTieBreakerFeature::TypedFeature(
-              add_mdp_type_to_option<Bisimulation, Fret>(
-                  "random_policy_tiebreaker"),
-              &RandomTieBreakerFeature::func)
-    {
-        this->make_optional_argument_with_default(
-            0,
-            "stable_policy",
-            "true");
-        add_rng_options_to_feature(*this, 1);
-    }
-
-    static std::shared_ptr<PolicyPicker<Bisimulation, Fret>>
-    func(bool stable_policy, int random_seed)
-    {
-        return make_shared_from_arg_tuples<R>(stable_policy, random_seed);
-    }
-};
+    return f;
+}
 
 template <bool Bisimulation, bool Fret>
-class ValueGapTieBreakerFeature
-    : public SharedTypedFeature<PolicyPicker<Bisimulation, Fret>, bool, bool> {
-    using R = Wrapper<VDiffTiebreaker, Bisimulation, Fret>;
+Feature& add_value_gap_policy_picker_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        add_mdp_type_to_option<Bisimulation, Fret>(
+            "value_gap_policy_tiebreaker"),
+        &downward::cli::plugins::make_shared<
+            PolicyPicker<Bisimulation, Fret>,
+            Wrapper<VDiffTiebreaker, Bisimulation, Fret>,
+            bool,
+            bool>);
 
-public:
-    ValueGapTieBreakerFeature()
-        : ValueGapTieBreakerFeature::TypedFeature(
-              add_mdp_type_to_option<Bisimulation, Fret>(
-                  "value_gap_policy_tiebreaker"),
-              &ValueGapTieBreakerFeature::func)
-    {
-        this->make_optional_argument_with_default(
-            0,
-            "stable_policy",
-            "true");
+    f.make_optional_argument_with_default(0, "stable_policy", "true");
+    f.make_optional_argument_with_default(1, "prefer_large_gaps", "true");
 
-        this->make_optional_argument_with_default(
-            1,
-            "prefer_large_gaps",
-            "true");
-    }
+    return f;
+}
 
-    static std::shared_ptr<PolicyPicker<Bisimulation, Fret>>
-    func(bool stable_policy, bool prefer_large_gaps)
-    {
-        return make_shared_from_arg_tuples<R>(stable_policy, prefer_large_gaps);
-    }
-};
 } // namespace
 
 namespace probfd::cli::policy_pickers {
@@ -174,10 +139,23 @@ void add_policy_picker_category(Registry& registry)
 void add_policy_picker_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<OperatorIDTieBreakerFeature>();
-    n.insert_feature_plugins<ArbitraryTieBreakerFeature>();
-    n.insert_feature_plugins<RandomTieBreakerFeature>();
-    n.insert_feature_plugins<ValueGapTieBreakerFeature>();
+
+    add_arbitrary_policy_picker_to_namespace<false, false>(n);
+    add_arbitrary_policy_picker_to_namespace<false, true>(n);
+    add_arbitrary_policy_picker_to_namespace<true, false>(n);
+    add_arbitrary_policy_picker_to_namespace<true, true>(n);
+
+    add_operator_id_policy_picker_to_namespace(n);
+
+    add_random_tiebreaker_policy_picker_to_namespace<false, false>(n);
+    add_random_tiebreaker_policy_picker_to_namespace<false, true>(n);
+    add_random_tiebreaker_policy_picker_to_namespace<true, false>(n);
+    add_random_tiebreaker_policy_picker_to_namespace<true, true>(n);
+
+    add_value_gap_policy_picker_to_namespace<false, false>(n);
+    add_value_gap_policy_picker_to_namespace<false, true>(n);
+    add_value_gap_policy_picker_to_namespace<true, false>(n);
+    add_value_gap_policy_picker_to_namespace<true, true>(n);
 }
 
 } // namespace probfd::cli::policy_pickers

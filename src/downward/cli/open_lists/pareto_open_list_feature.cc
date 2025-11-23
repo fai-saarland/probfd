@@ -24,80 +24,46 @@ using downward::cli::add_open_list_options_to_feature;
 using downward::cli::utils::add_rng_options_to_feature;
 
 namespace {
+
 template <typename T>
-class ParetoOpenListFeature
-    : public SharedTypedFeature<
-          downward::TaskDependentFactory<downward::OpenList<T>>,
-          const std::vector<std::shared_ptr<
-              downward::TaskDependentFactory<downward::Evaluator>>>&,
-          bool,
-          int,
-          bool> {
-public:
-    ParetoOpenListFeature()
-        requires(std::same_as<T, downward::StateOpenListEntry>)
-        : ParetoOpenListFeature::TypedFeature(
-              "state_pareto",
-              &ParetoOpenListFeature::func)
-    {
-        this->document_title("Pareto state open list");
-        this->document_synopsis(
-            "Selects one of the Pareto-optimal (regarding the sub-evaluators) "
-            "entries for removal.");
+Feature& add_pareto_open_list_to_namespace(Namespace& nspace, std::string name)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        std::move(name),
+        &downward::cli::plugins::make_shared<
+            downward::TaskDependentFactory<downward::OpenList<T>>,
+            ParetoOpenListFactory<T>,
+            const std::vector<std::shared_ptr<
+                downward::TaskDependentFactory<downward::Evaluator>>>&,
+            bool,
+            int,
+            bool>);
 
-        this->make_required_argument(0, "evals", "evaluators");
-        this->make_optional_argument_with_default(
-            1,
-            "state_uniform_selection",
-            "false",
-            "When removing an entry, we select a non-dominated bucket "
-            "and return its oldest entry. If this option is false, we select "
-            "uniformly from the non-dominated buckets; if the option is true, "
-            "we weight the buckets with the number of entries.");
-        const auto n = add_rng_options_to_feature(*this, 2);
-        add_open_list_options_to_feature(*this, n + 2);
+    if constexpr (std::same_as<T, downward::StateOpenListEntry>) {
+        f.document_title("Pareto state open list");
+    } else {
+        f.document_title("Pareto edge open list");
     }
 
-    ParetoOpenListFeature()
-        requires(std::same_as<T, downward::EdgeOpenListEntry>)
-        : ParetoOpenListFeature::TypedFeature(
-              "edge_pareto",
-              &ParetoOpenListFeature::func)
-    {
-        this->document_title("Pareto edge open list");
-        this->document_synopsis(
-            "Selects one of the Pareto-optimal (regarding the sub-evaluators) "
-            "entries for removal.");
+    f.document_synopsis(
+        "Selects one of the Pareto-optimal (regarding the sub-evaluators) "
+        "entries for removal.");
 
-        this->make_required_argument(0, "evals", "evaluators");
-        this->make_optional_argument_with_default(
-            1,
-            "state_uniform_selection",
-            "false",
-            "When removing an entry, we select a non-dominated bucket "
-            "and return its oldest entry. If this option is false, we select "
-            "uniformly from the non-dominated buckets; if the option is true, "
-            "we weight the buckets with the number of entries.");
-        const auto n = add_rng_options_to_feature(*this, 2);
-        add_open_list_options_to_feature(*this, n + 2);
-    }
+    f.make_required_argument(0, "evals", "evaluators");
+    f.make_optional_argument_with_default(
+        1,
+        "state_uniform_selection",
+        "false",
+        "When removing an entry, we select a non-dominated bucket "
+        "and return its oldest entry. If this option is false, we select "
+        "uniformly from the non-dominated buckets; if the option is true, "
+        "we weight the buckets with the number of entries.");
+    const auto n = add_rng_options_to_feature(f, 2);
+    add_open_list_options_to_feature(f, n + 2);
 
-    static shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
-    func(
-        const std::vector<std::shared_ptr<
-            downward::TaskDependentFactory<downward::Evaluator>>>&
-            eval_factories,
-        bool state_uniform_selection,
-        int random_seed,
-        bool pref_only)
-    {
-        return make_shared<ParetoOpenListFactory<T>>(
-            eval_factories,
-            state_uniform_selection,
-            random_seed,
-            pref_only);
-    }
-};
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::open_lists {
@@ -105,10 +71,8 @@ namespace downward::cli::open_lists {
 void add_pareto_open_list_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<
-        ParetoOpenListFeature<downward::StateOpenListEntry>>();
-    n.insert_feature_plugin<
-        ParetoOpenListFeature<downward::EdgeOpenListEntry>>();
+    add_pareto_open_list_to_namespace<StateOpenListEntry>(n, "state_pareto");
+    add_pareto_open_list_to_namespace<EdgeOpenListEntry>(n, "edge_pareto");
 }
 
 } // namespace downward::cli::open_lists

@@ -56,68 +56,56 @@ public:
     }
 };
 
-class ZeroOnePDBsHeuristicFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<Evaluator>,
-          shared_ptr<TaskTransformation>,
-          bool,
-          string,
-          utils::Verbosity,
-          std::shared_ptr<PatternCollectionGenerator>> {
-public:
-    ZeroOnePDBsHeuristicFeature()
-        : TypedFeature("zopdbs", &ZeroOnePDBsHeuristicFeature::func)
-    {
-        document_title("Zero-One PDB");
-        document_synopsis(
-            "The zero/one pattern database heuristic is simply the sum of the "
-            "heuristic values of all patterns in the pattern collection. In "
-            "contrast "
-            "to the canonical pattern database heuristic, there is no need to "
-            "check "
-            "for additive subsets, because the additivity of the patterns is "
-            "guaranteed by action cost partitioning. This heuristic uses the "
-            "most "
-            "simple form of action cost partitioning, i.e. if an operator "
-            "affects "
-            "more than one pattern in the collection, its costs are entirely "
-            "taken "
-            "into account for one pattern (the first one which it affects) and "
-            "set "
-            "to zero for all other affected patterns.");
+Feature& add_zero_one_pdbs_heuristic_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "zopdbs",
+        &cli::plugins::make_shared<
+            TaskDependentFactory<Evaluator>,
+            ZOPDBsHeuristicFactory,
+            shared_ptr<TaskTransformation>,
+            bool,
+            string,
+            Verbosity,
+            std::shared_ptr<PatternCollectionGenerator>>);
 
-        document_language_support("action costs", "supported");
-        document_language_support("conditional effects", "not supported");
-        document_language_support("axioms", "not supported");
+    f.document_title("Zero-One PDB");
+    f.document_synopsis(
+        "The zero/one pattern database heuristic is simply the sum of the "
+        "heuristic values of all patterns in the pattern collection. In "
+        "contrast "
+        "to the canonical pattern database heuristic, there is no need to "
+        "check "
+        "for additive subsets, because the additivity of the patterns is "
+        "guaranteed by action cost partitioning. This heuristic uses the "
+        "most "
+        "simple form of action cost partitioning, i.e. if an operator "
+        "affects "
+        "more than one pattern in the collection, its costs are entirely "
+        "taken "
+        "into account for one pattern (the first one which it affects) and "
+        "set "
+        "to zero for all other affected patterns.");
 
-        document_property("admissible", "yes");
-        document_property("consistent", "yes");
-        document_property("safe", "yes");
-        document_property("preferred operators", "no");
+    f.document_language_support("action costs", "supported");
+    f.document_language_support("conditional effects", "not supported");
+    f.document_language_support("axioms", "not supported");
 
-        make_optional_argument_with_default(
-            0,
-            "patterns",
-            "systematic(1)",
-            "pattern generation method");
-        add_heuristic_options_to_feature(*this, "zopdbs", 1);
-    }
+    f.document_property("admissible", "yes");
+    f.document_property("consistent", "yes");
+    f.document_property("safe", "yes");
+    f.document_property("preferred operators", "no");
 
-    static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        shared_ptr<TaskTransformation> transformation,
-        bool cache_estimates,
-        string description,
-        utils::Verbosity verbosity,
-        std::shared_ptr<PatternCollectionGenerator> generator)
-    {
-        return make_shared_from_arg_tuples<ZOPDBsHeuristicFactory>(
-            std::move(transformation),
-            cache_estimates,
-            std::move(description),
-            verbosity,
-            std::move(generator));
-    }
-};
+    f.make_optional_argument_with_default(
+        0,
+        "patterns",
+        "systematic(1)",
+        "pattern generation method");
+    add_heuristic_options_to_feature(f, "zopdbs", 1);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::heuristics {
@@ -125,7 +113,7 @@ namespace downward::cli::heuristics {
 void add_zero_one_pdbs_heuristic_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    const Feature& f = n.insert_feature_plugin<ZeroOnePDBsHeuristicFeature>();
+    const Feature& f = add_zero_one_pdbs_heuristic_to_namespace(n);
     SubcategoryPlugin& subcategory =
         registry.get_subcategory_plugin("heuristics_pdb");
     subcategory.add_feature(f);

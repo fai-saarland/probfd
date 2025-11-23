@@ -15,31 +15,26 @@ using namespace downward::cli::pdbs;
 using namespace downward::cli::plugins;
 
 namespace {
-class PatternGeneratorManualFeature
-    : public SharedTypedFeature<
-          PatternGenerator,
-          const std::vector<int>&,
-          Verbosity> {
-public:
-    PatternGeneratorManualFeature()
-        : TypedFeature("manual_pattern", &PatternGeneratorManualFeature::func)
-    {
-        make_required_argument(
-            0,
-            "pattern",
-            "list of variable numbers of the planning task that should be used "
-            "as the pattern.");
-        add_generator_options_to_feature(*this, 1);
-    }
 
-    static shared_ptr<PatternGenerator>
-    func(const std::vector<int>& pattern, Verbosity verbosity)
-    {
-        return make_shared_from_arg_tuples<PatternGeneratorManual>(
-            pattern,
-            verbosity);
-    }
-};
+Feature& add_pattern_generator_manual_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "manual_pattern",
+        &downward::cli::plugins::make_shared<
+            PatternGenerator,
+            PatternGeneratorManual,
+            const std::vector<int>&,
+            Verbosity>);
+    f.make_required_argument(
+        0,
+        "pattern",
+        "list of variable numbers of the planning task that should be used "
+        "as the pattern.");
+    add_generator_options_to_feature(f, 1);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::pdbs {
@@ -47,7 +42,7 @@ namespace downward::cli::pdbs {
 void add_pattern_generator_manual_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<PatternGeneratorManualFeature>();
+    add_pattern_generator_manual_to_namespace(n);
 }
 
 } // namespace downward::cli::pdbs

@@ -480,7 +480,9 @@ TypedDecoratedAstNodePtr DirectFunctionCallNode::decorate(
 
                 arguments.emplace_back(move(decorated_arg), true);
             } else {
-                context.error("Missing argument '{}' is mandatory.", arg_info.key);
+                context.error(
+                    "Missing argument '{}' is mandatory.",
+                    arg_info.key);
             }
         }
     } else {
@@ -832,10 +834,11 @@ LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
             &plugins::TypeRegistry::instance()->get_type<string>()};
     }
     case TokenType::INTEGER: {
-        std::string_view sv{value.content.begin(), value.content.end()};
+        const char* first = value.content.data();
+        const char* last = value.content.data() + value.content.size();
 
         int x;
-        const auto [data, ec] = std::from_chars(sv.begin(), sv.end(), x);
+        const auto [data, ec] = std::from_chars(first, last, x);
 
         switch (ec) {
         case std::errc::invalid_argument:
@@ -847,7 +850,7 @@ LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
                 "Integer value is out of range: '{}'.",
                 value.content);
         default:
-            if (data == sv.end()) {
+            if (data == last) {
                 return {
                     std::make_unique<IntLiteralNode>(x),
                     &plugins::TypeRegistry::instance()->get_type<int>()};
@@ -856,7 +859,7 @@ LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
             const auto& n = env.get_registry().get_global_name_space();
             const auto operator_fname = std::format(
                 "__operator_int_{}__",
-                std::string_view{data, sv.end()});
+                std::string_view{data, last});
 
             if (!n.has_feature(operator_fname)) {
                 context.error(
@@ -878,10 +881,11 @@ LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
         }
     }
     case TokenType::FLOAT: {
-        std::string_view sv{value.content.begin(), value.content.end()};
+        const char* first = value.content.data();
+        const char* last = value.content.data() + value.content.size();
 
         double x;
-        const auto [data, ec] = std::from_chars(sv.begin(), sv.end(), x);
+        const auto [data, ec] = std::from_chars(first, last, x);
 
         switch (ec) {
         case std::errc::invalid_argument:
@@ -891,16 +895,15 @@ LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
         case std::errc::result_out_of_range:
             context.error("Float value is out of range: '{}'.", value.content);
         default:
-            if (data == sv.end()) {
+            if (data == last) {
                 return {
                     std::make_unique<FloatLiteralNode>(x),
                     &plugins::TypeRegistry::instance()->get_type<double>()};
             }
 
             const auto& n = env.get_registry().get_global_name_space();
-            const auto operator_fname = std::format(
-                "__operator_float_{}__",
-                string_view{data, sv.end()});
+            const auto operator_fname =
+                std::format("__operator_float_{}__", string_view{data, last});
 
             if (!n.has_feature(operator_fname)) {
                 context.error(

@@ -10,6 +10,8 @@
 
 // The MSVC standard library defines this...
 #undef IN
+#undef TRUE
+#undef FALSE
 
 using namespace std;
 

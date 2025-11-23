@@ -20,52 +20,44 @@ using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
 
 namespace {
-class MergeTreeFactoryLinearFeature
-    : public SharedTypedFeature<
-          MergeTreeFactory,
-          int,
-          UpdateOption,
-          variable_order_finder::VariableOrderType> {
-public:
-    MergeTreeFactoryLinearFeature()
-        : TypedFeature("plinear", &MergeTreeFactoryLinearFeature::func)
-    {
-        document_title("Linear merge trees");
-        document_synopsis(
-            "These merge trees implement several linear merge orders, which "
-            "are described in the paper:" +
-            utils::format_conference_reference(
-                {"Malte Helmert", "Patrik Haslum", "Joerg Hoffmann"},
-                "Flexible Abstraction Heuristics for Optimal Sequential "
-                "Planning",
-                "https://ai.dmi.unibas.ch/papers/helmert-et-al-icaps2007.pdf",
-                "Proceedings of the Seventeenth International Conference on"
-                " Automated Planning and Scheduling (ICAPS 2007)",
-                "176-183",
-                "AAAI Press",
-                "2007"));
 
-        const auto n = add_merge_tree_factory_options_to_feature(*this, 0);
+Feature& add_merge_strategy_linear_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "plinear",
+        &downward::cli::plugins::make_shared<
+            MergeTreeFactory,
+            MergeTreeFactoryLinear,
+            int,
+            UpdateOption,
+            variable_order_finder::VariableOrderType>);
 
-        make_optional_argument_with_default(
-            n,
-            "variable_order",
-            "cg_goal_level",
-            "the order in which atomic transition systems are merged");
-    }
+    f.document_title("Linear merge trees");
+    f.document_synopsis(
+        "These merge trees implement several linear merge orders, which "
+        "are described in the paper:" +
+        utils::format_conference_reference(
+            {"Malte Helmert", "Patrik Haslum", "Joerg Hoffmann"},
+            "Flexible Abstraction Heuristics for Optimal Sequential "
+            "Planning",
+            "https://ai.dmi.unibas.ch/papers/helmert-et-al-icaps2007.pdf",
+            "Proceedings of the Seventeenth International Conference on"
+            " Automated Planning and Scheduling (ICAPS 2007)",
+            "176-183",
+            "AAAI Press",
+            "2007"));
 
-protected:
-    static shared_ptr<MergeTreeFactory> func(
-        int random_seed,
-        UpdateOption update_option,
-        downward::variable_order_finder::VariableOrderType variable_order)
-    {
-        return make_shared_from_arg_tuples<MergeTreeFactoryLinear>(
-            random_seed,
-            update_option,
-            variable_order);
-    }
-};
+    const auto n = add_merge_tree_factory_options_to_feature(f, 0);
+
+    f.make_optional_argument_with_default(
+        n,
+        "variable_order",
+        "cg_goal_level",
+        "the order in which atomic transition systems are merged");
+
+    return f;
+}
+
 } // namespace
 
 namespace probfd::cli::merge_and_shrink {
@@ -73,7 +65,7 @@ namespace probfd::cli::merge_and_shrink {
 void add_merge_tree_factory_linear_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<MergeTreeFactoryLinearFeature>();
+    add_merge_strategy_linear_to_namespace(n);
 }
 
 } // namespace probfd::cli::merge_and_shrink

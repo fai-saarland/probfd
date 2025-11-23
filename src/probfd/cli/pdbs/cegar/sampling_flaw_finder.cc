@@ -19,29 +19,32 @@ using namespace downward::cli::plugins;
 using downward::cli::utils::add_rng_options_to_feature;
 
 namespace {
-class SamplingFlawFinderFeature
-    : public SharedTypedFeature<FlawFindingStrategy, int, int> {
-public:
-    SamplingFlawFinderFeature()
-        : TypedFeature("sampling_flaw_finder", &SamplingFlawFinderFeature::func)
-    {
-        const auto n = add_rng_options_to_feature(*this, 0);
-        make_optional_argument_with_default(
-            n,
-            "max_search_states",
-            "20M",
-            "Maximal number of generated states after which the flaw search is "
-            "aborted.");
-    }
 
-    static std::shared_ptr<FlawFindingStrategy>
-    func(int random_seed, int max_search_states)
-    {
-        return make_shared_from_arg_tuples<SamplingFlawFinder>(
-            get_rng(random_seed),
-            max_search_states);
-    }
-};
+std::shared_ptr<FlawFindingStrategy>
+create_sampling_flaw_finder(int random_seed, int max_search_states)
+{
+    return make_shared_from_arg_tuples<SamplingFlawFinder>(
+        get_rng(random_seed),
+        max_search_states);
+}
+
+Feature& add_pucs_flaw_finder_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "sampling_flaw_finder",
+        &create_sampling_flaw_finder);
+
+    const auto n = add_rng_options_to_feature(f, 0);
+    f.make_optional_argument_with_default(
+        n,
+        "max_search_states",
+        "20M",
+        "Maximal number of generated states after which the flaw search is "
+        "aborted.");
+
+    return f;
+}
+
 } // namespace
 
 namespace probfd::cli::pdbs::cegar {
@@ -49,7 +52,7 @@ namespace probfd::cli::pdbs::cegar {
 void add_sampling_flaw_finder_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<SamplingFlawFinderFeature>();
+    add_pucs_flaw_finder_to_namespace(n);
 }
 
 } // namespace probfd::cli::pdbs::cegar

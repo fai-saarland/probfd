@@ -80,102 +80,79 @@ public:
     }
 };
 
-class IteratedSearchFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<SearchAlgorithm>,
-          OperatorCost,
-          int,
-          utils::FSeconds,
-          std::string,
-          utils::Verbosity,
-          std::vector<std::shared_ptr<TaskDependentFactory<SearchAlgorithm>>>,
-          bool,
-          bool,
-          bool,
-          bool> {
-public:
-    IteratedSearchFeature()
-        : TypedFeature("iterated", &IteratedSearchFeature::func)
-    {
-        document_title("Iterated search");
-        document_synopsis("");
-        document_note(
-            "Note 1",
-            "We don't cache heuristic values between search iterations at"
-            " the moment. If you perform a LAMA-style iterative search,"
-            " heuristic values and other per-state information will be computed"
-            " multiple times.");
-        document_note(
-            "Note 2",
-            "The configuration\n```\n"
-            "--search \"iterated([lazy_wastar([ipdb()],w=10), "
-            "lazy_wastar([ipdb()],w=5), lazy_wastar([ipdb()],w=3), "
-            "lazy_wastar([ipdb()],w=2), lazy_wastar([ipdb()],w=1)])\"\n"
-            "```\nwould perform the preprocessing phase of the ipdb heuristic "
-            "5 times (once before each iteration).\n\n"
-            "To avoid this, use heuristic predefinition, which avoids "
-            "duplicate preprocessing, as follows:\n```\n"
-            "\"let(h,ipdb(),iterated([lazy_wastar([h],w=10), "
-            "lazy_wastar([h],w=5), lazy_wastar([h],w=3), lazy_wastar([h],w=2), "
-            "lazy_wastar([h],w=1)]))\"\n"
-            "```");
+Feature& add_iterated_search_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "iterated",
+        &cli::plugins::make_shared<
+            TaskDependentFactory<SearchAlgorithm>,
+            IteratedSearchFactory,
+            OperatorCost,
+            int,
+            utils::FSeconds,
+            std::string,
+            utils::Verbosity,
+            std::vector<std::shared_ptr<TaskDependentFactory<SearchAlgorithm>>>,
+            bool,
+            bool,
+            bool,
+            bool>);
 
-        make_required_argument(
-            0,
-            "algorithm_configs",
-            "list of search algorithms for each phase");
-        make_optional_argument_with_default(
-            1,
-            "pass_bound",
-            "true",
-            "use the bound of iterated search as a bound for its component "
-            "search algorithms, unless these already have a lower bound set. "
-            "The iterated search bound is tightened whenever a component finds "
-            "a cheaper plan.");
-        make_optional_argument_with_default(
-            2,
-            "repeat_last",
-            "false",
-            "repeat last phase of search");
-        make_optional_argument_with_default(
-            3,
-            "continue_on_fail",
-            "false",
-            "continue search after no solution found");
-        make_optional_argument_with_default(
-            4,
-            "continue_on_solve",
-            "true",
-            "continue search after solution found");
-        add_search_algorithm_options_to_feature(*this, "iterated", 5);
-    }
+    f.document_title("Iterated search");
+    f.document_synopsis("");
+    f.document_note(
+        "Note 1",
+        "We don't cache heuristic values between search iterations at"
+        " the moment. If you perform a LAMA-style iterative search,"
+        " heuristic values and other per-state information will be computed"
+        " multiple times.");
+    f.document_note(
+        "Note 2",
+        "The configuration\n```\n"
+        "--search \"iterated([lazy_wastar([ipdb()],w=10), "
+        "lazy_wastar([ipdb()],w=5), lazy_wastar([ipdb()],w=3), "
+        "lazy_wastar([ipdb()],w=2), lazy_wastar([ipdb()],w=1)])\"\n"
+        "```\nwould perform the preprocessing phase of the ipdb heuristic "
+        "5 times (once before each iteration).\n\n"
+        "To avoid this, use heuristic predefinition, which avoids "
+        "duplicate preprocessing, as follows:\n```\n"
+        "\"let(h,ipdb(),iterated([lazy_wastar([h],w=10), "
+        "lazy_wastar([h],w=5), lazy_wastar([h],w=3), lazy_wastar([h],w=2), "
+        "lazy_wastar([h],w=1)]))\"\n"
+        "```");
 
-    static shared_ptr<TaskDependentFactory<SearchAlgorithm>> func(
-        OperatorCost cost_type,
-        int bound,
-        utils::FSeconds max_time,
-        std::string description,
-        utils::Verbosity verbosity,
-        std::vector<std::shared_ptr<TaskDependentFactory<SearchAlgorithm>>>
-            algorithm_configs,
-        bool pass_bound,
-        bool repeat_last,
-        bool continue_on_fail,
-        bool continue_on_solve)
-    {
-        return make_shared<IteratedSearchFactory>(
-            cost_type,
-            bound,
-            max_time,
-            std::move(description),
-            verbosity,
-            std::move(algorithm_configs),
-            pass_bound,
-            repeat_last,
-            continue_on_fail,
-            continue_on_solve);
-    }
-};
+    f.make_required_argument(
+        0,
+        "algorithm_configs",
+        "list of search algorithms for each phase");
+    f.make_optional_argument_with_default(
+        1,
+        "pass_bound",
+        "true",
+        "use the bound of iterated search as a bound for its component "
+        "search algorithms, unless these already have a lower bound set. "
+        "The iterated search bound is tightened whenever a component finds "
+        "a cheaper plan.");
+    f.make_optional_argument_with_default(
+        2,
+        "repeat_last",
+        "false",
+        "repeat last phase of search");
+    f.make_optional_argument_with_default(
+        3,
+        "continue_on_fail",
+        "false",
+        "continue search after no solution found");
+    f.make_optional_argument_with_default(
+        4,
+        "continue_on_solve",
+        "true",
+        "continue search after solution found");
+    add_search_algorithm_options_to_feature(f, "iterated", 5);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::search_algorithms {
@@ -183,7 +160,7 @@ namespace downward::cli::search_algorithms {
 void add_iterated_search_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<IteratedSearchFeature>();
+    add_iterated_search_to_namespace(n);
 }
 
 } // namespace downward::cli::search_algorithms

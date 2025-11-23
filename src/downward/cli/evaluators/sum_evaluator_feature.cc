@@ -57,33 +57,23 @@ public:
     }
 };
 
-class SumEvaluatorFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<Evaluator>,
-          std::string,
-          Verbosity,
-          vector<shared_ptr<TaskDependentFactory<Evaluator>>>> {
-public:
-    SumEvaluatorFeature()
-        : TypedFeature("sum", &SumEvaluatorFeature::func)
-    {
-        document_title("Sum evaluator");
-        document_synopsis("Calculates the sum of the sub-evaluators.");
+Feature& add_sum_evaluator_feature_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "sum",
+        &cli::plugins::make_shared<
+            TaskDependentFactory<Evaluator>,
+            SumEvaluatorFactory,
+            std::string,
+            Verbosity,
+            vector<shared_ptr<TaskDependentFactory<Evaluator>>>>);
+    f.document_title("Sum evaluator");
+    f.document_synopsis("Calculates the sum of the sub-evaluators.");
 
-        add_combining_evaluator_options_to_feature(*this, "sum", 0);
-    }
+    add_combining_evaluator_options_to_feature(f, "sum", 0);
 
-    static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        std::string description,
-        Verbosity verbosity,
-        vector<shared_ptr<TaskDependentFactory<Evaluator>>> evaluator_factories)
-    {
-        return make_shared_from_arg_tuples<SumEvaluatorFactory>(
-            std::move(description),
-            verbosity,
-            std::move(evaluator_factories));
-    }
-};
+    return f;
+}
 
 } // namespace
 
@@ -92,7 +82,7 @@ namespace downward::cli::evaluators {
 void add_sum_evaluator_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    const Feature& f = n.insert_feature_plugin<SumEvaluatorFeature>();
+    const Feature& f = add_sum_evaluator_feature_to_namespace(n);
     SubcategoryPlugin& subcategory =
         registry.get_subcategory_plugin("evaluators_basic");
     subcategory.add_feature(f);

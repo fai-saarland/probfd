@@ -15,47 +15,39 @@ using namespace downward::cli::plugins;
 using namespace probfd::merge_and_shrink;
 
 namespace {
-class ShrinkProbabilisticBisimulationFeature
-    : public SharedTypedFeature<
-          ShrinkStrategy,
-          ShrinkStrategyProbabilisticBisimulation::AtLimit,
-          bool> {
-public:
-    ShrinkProbabilisticBisimulationFeature()
-        : TypedFeature(
-              "pshrink_probabilistic_bisimulation",
-              &ShrinkProbabilisticBisimulationFeature::func)
-    {
-        document_title("Probabilistic Bisimulation-based shrink strategy");
-        document_synopsis(
-            "Computes a probabilistic bisimulation over the induced "
-            "probabilistic transition system and emits the corresponding "
-            "abstraction mapping. This strategy is not exact.");
 
-        make_optional_argument_with_default(
-            0,
-            "at_limit",
-            "return",
-            "what to do when the size limit is hit");
+Feature&
+add_shrink_strategy_probabilistic_bisimulation_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "pshrink_probabilistic_bisimulation",
+        &downward::cli::plugins::make_shared<
+            ShrinkStrategy,
+            ShrinkStrategyProbabilisticBisimulation,
+            ShrinkStrategyProbabilisticBisimulation::AtLimit,
+            bool>);
 
-        make_optional_argument_with_default(
-            1,
-            "require_goal_distances",
-            "true",
-            "whether goal distances are required");
-    }
+    f.document_title("Probabilistic Bisimulation-based shrink strategy");
+    f.document_synopsis(
+        "Computes a probabilistic bisimulation over the induced "
+        "probabilistic transition system and emits the corresponding "
+        "abstraction mapping. This strategy is not exact.");
 
-protected:
-    static shared_ptr<ShrinkStrategy> func(
-        ShrinkStrategyProbabilisticBisimulation::AtLimit at_limit,
-        bool require_goal_distance)
-    {
-        return make_shared_from_arg_tuples<
-            ShrinkStrategyProbabilisticBisimulation>(
-            at_limit,
-            require_goal_distance);
-    }
-};
+    f.make_optional_argument_with_default(
+        0,
+        "at_limit",
+        "return",
+        "what to do when the size limit is hit");
+
+    f.make_optional_argument_with_default(
+        1,
+        "require_goal_distances",
+        "true",
+        "whether goal distances are required");
+
+    return f;
+}
+
 } // namespace
 
 namespace probfd::cli::merge_and_shrink {
@@ -69,7 +61,7 @@ void add_shrink_strategy_probabilistic_bisimulation_feature(Registry& registry)
           "continue refining the equivalence class until "
           "the size limit is hit"}});
 
-    n.insert_feature_plugin<ShrinkProbabilisticBisimulationFeature>();
+    add_shrink_strategy_probabilistic_bisimulation_to_namespace(n);
 }
 
 } // namespace probfd::cli::merge_and_shrink
