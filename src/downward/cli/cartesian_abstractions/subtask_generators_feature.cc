@@ -27,9 +27,9 @@ namespace {
 
 void add_task_duplicator_feature(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "original",
-        &plugins::make_shared<SubtaskGenerator, TaskDuplicator, int>);
+        &plugins::construct_shared<SubtaskGenerator, TaskDuplicator, int>);
     f.make_optional_argument_with_default(
         0,
         "copies",
@@ -39,9 +39,9 @@ void add_task_duplicator_feature(Namespace& nspace)
 
 void add_goal_decomposition_feature(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "goals",
-        &plugins::make_shared<
+        &plugins::construct_shared<
             SubtaskGenerator,
             GoalDecomposition,
             FactOrder,
@@ -57,9 +57,9 @@ void add_goal_decomposition_feature(Namespace& nspace)
 
 void add_landmark_decomposition_feature(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "landmarks",
-        &plugins::make_shared<
+        &plugins::construct_shared<
             SubtaskGenerator,
             LandmarkDecomposition,
             std::shared_ptr<TaskDependentFactory<MutexInformation>>,

@@ -14,7 +14,7 @@ namespace downward::cli::operator_counting {
 void add_constraint_generator_category(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_shared_category_plugin<ConstraintGenerator>(
+    n.insert_shared_type_declaration<ConstraintGenerator>(
         "ConstraintGenerator",
         "");
 }

@@ -11,12 +11,12 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-Feature& add_prune_strategy_identity_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_prune_strategy_identity_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "prune_identity",
         &downward::cli::plugins::
-            make_shared<PruneStrategy, PruneStrategyIdentity>);
+            construct_shared<PruneStrategy, PruneStrategyIdentity>);
 
     f.document_title("Identity prune strategy");
     f.document_synopsis("This prune strategy leaves the TS unchanged.");

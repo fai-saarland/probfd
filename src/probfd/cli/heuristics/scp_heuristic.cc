@@ -24,12 +24,12 @@ using downward::cli::utils::add_rng_options_to_feature;
 
 namespace {
 
-Feature&
+InternalFunctionDefinitionBase&
 add_saturated_cost_partitioning_heuristic_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "scp_heuristic",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             TaskHeuristicFactory,
             SCPHeuristicFactory,
             std::shared_ptr<PatternCollectionGenerator>,
@@ -78,7 +78,7 @@ namespace probfd::cli::heuristics {
 void add_scp_heuristic_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_enum_plugin<SCPHeuristicFactory::OrderingStrategy>(
+    n.insert_enum_declaration<SCPHeuristicFactory::OrderingStrategy>(
         {{"random", "the order is random"},
          {"size_asc", "orders the PDBs by increasing size"},
          {"size_desc", "orders the PDBs by decreasing size"},

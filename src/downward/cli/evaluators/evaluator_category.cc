@@ -13,7 +13,7 @@ namespace downward::cli::evaluators {
 void add_evaluator_category(plugins::Registry& registry)
 {
     plugins::Namespace& n = registry.get_global_name_space();
-    n.insert_shared_category_plugin<TaskDependentFactory<Evaluator>>(
+    n.insert_shared_type_declaration<TaskDependentFactory<Evaluator>>(
         "Heuristic",
         "An evaluator specification is either a newly created evaluator "
         "instance or an evaluator that has been defined previously. "

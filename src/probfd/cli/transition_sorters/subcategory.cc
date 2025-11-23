@@ -15,12 +15,12 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-Feature& add_vdiff_sorter_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_vdiff_sorter_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "value_gap_sort",
         &downward::cli::plugins::
-            make_shared<FDRTransitionSorter, VDiffSorter, bool>);
+            construct_shared<FDRTransitionSorter, VDiffSorter, bool>);
     f.make_optional_argument_with_default(0, "prefer_large_gaps", "false");
 
     return f;
@@ -33,7 +33,7 @@ namespace probfd::cli::transiton_sorters {
 void add_transition_sorter_category(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_shared_category_plugin<FDRTransitionSorter>(
+    n.insert_shared_type_declaration<FDRTransitionSorter>(
         "FDRTransitionSorter",
         "");
 }

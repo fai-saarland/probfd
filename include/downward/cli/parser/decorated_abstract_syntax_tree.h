@@ -164,10 +164,10 @@ public:
 };
 
 class FeatureLiteralNode : public DecoratedASTNode {
-    const plugins::Feature& feature;
+    const plugins::InternalFunctionDefinitionBase& feature;
 
 public:
-    explicit FeatureLiteralNode(const plugins::Feature& feature);
+    explicit FeatureLiteralNode(const plugins::InternalFunctionDefinitionBase& feature);
 
     void remove_variable_usages() override {}
 

@@ -14,11 +14,11 @@ using namespace probfd::cartesian_abstractions;
 
 namespace {
 
-Feature& add_adaptive_flaw_generator_astar_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_adaptive_flaw_generator_astar_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "flaws_adaptive",
-        &cli::plugins::make_shared<
+        &cli::plugins::construct_shared<
             FlawGeneratorFactory,
             AdaptiveFlawGeneratorFactory,
             std::vector<std::shared_ptr<FlawGeneratorFactory>>>);

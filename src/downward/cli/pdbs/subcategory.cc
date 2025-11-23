@@ -7,10 +7,10 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-class PDBGroupPlugin : public SubcategoryPlugin {
+class PDBGroupPlugin : public DocumentationTopic {
 public:
     PDBGroupPlugin()
-        : SubcategoryPlugin("heuristics_pdb")
+        : DocumentationTopic("heuristics_pdb")
     {
         document_title("Pattern Database Heuristics");
     }
@@ -22,7 +22,7 @@ namespace downward::cli::pdbs {
 
 void add_pdb_heuristic_subcategory(Registry& registry)
 {
-    registry.insert_subcategory_plugin<PDBGroupPlugin>();
+    registry.insert_documentation_topic<PDBGroupPlugin>();
 }
 
 } // namespace downward::cli::pdbs

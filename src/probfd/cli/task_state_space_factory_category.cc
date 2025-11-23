@@ -12,7 +12,7 @@ namespace probfd::cli {
 void add_task_state_space_factory_category(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_shared_category_plugin<TaskStateSpaceFactory>(
+    n.insert_shared_type_declaration<TaskStateSpaceFactory>(
         "TaskStateSpaceFactory",
         "");
 }

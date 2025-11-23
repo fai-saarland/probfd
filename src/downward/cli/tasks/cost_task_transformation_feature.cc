@@ -45,11 +45,11 @@ public:
     }
 };
 
-Feature& add_cost_adapted_task_transformation_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_cost_adapted_task_transformation_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "adapt_costs",
-        &cli::plugins::make_shared<
+        &cli::plugins::construct_shared<
             TaskTransformation,
             CostAdaptedTaskTransformation,
             OperatorCost>);

@@ -15,12 +15,12 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-Feature& add_delete_relaxation_rr_constraints_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_delete_relaxation_rr_constraints_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "lmcut_constraints",
         &downward::cli::plugins::
-            make_shared<ConstraintGenerator, LMCutConstraints>);
+            construct_shared<ConstraintGenerator, LMCutConstraints>);
     f.document_title("LM-cut landmark constraints");
     f.document_synopsis(
         "Computes a set of landmarks in each state using the LM-cut "

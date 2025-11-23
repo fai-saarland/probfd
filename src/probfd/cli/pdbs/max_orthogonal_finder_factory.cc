@@ -14,23 +14,23 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-Feature& add_additive_max_orthogonality_factory_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_additive_max_orthogonality_factory_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "additive_max_orthogonality_factory",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             SubCollectionFinderFactory,
             AdditiveMaxOrthogonalityFinderFactory>);
 
     return f;
 }
 
-Feature&
+InternalFunctionDefinitionBase&
 add_multiplicative_max_orthogonality_factory_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "multiplicative_max_orthogonality_factory",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             SubCollectionFinderFactory,
             AdditiveMaxOrthogonalityFinderFactory>);
 

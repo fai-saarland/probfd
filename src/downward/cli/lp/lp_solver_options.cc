@@ -7,7 +7,7 @@ using namespace std;
 namespace downward::cli::lp {
 
 std::size_t add_lp_solver_option_to_feature(
-    plugins::Feature& feature,
+    plugins::InternalFunctionDefinitionBase& feature,
     std::size_t start_index)
 {
     feature.make_optional_argument_with_default(

@@ -6,10 +6,10 @@
 namespace {
 
 class PotentialHeuristicsGroupPlugin
-    : public downward::cli::plugins::SubcategoryPlugin {
+    : public downward::cli::plugins::DocumentationTopic {
 public:
     PotentialHeuristicsGroupPlugin()
-        : SubcategoryPlugin("heuristics_potentials")
+        : DocumentationTopic("heuristics_potentials")
     {
         document_title("Potential Heuristics");
     }
@@ -21,7 +21,7 @@ namespace downward::cli::potentials {
 
 void add_potential_heuristics_subcategory(plugins::Registry& registry)
 {
-    registry.insert_subcategory_plugin<PotentialHeuristicsGroupPlugin>();
+    registry.insert_documentation_topic<PotentialHeuristicsGroupPlugin>();
 }
 
 }

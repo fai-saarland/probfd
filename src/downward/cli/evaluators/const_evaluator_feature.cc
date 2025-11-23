@@ -46,11 +46,11 @@ public:
     }
 };
 
-Feature& add_constant_evaluator_feature(Namespace& nspace)
+InternalFunctionDefinitionBase& add_constant_evaluator_feature(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "const",
-        &cli::plugins::make_shared<
+        &cli::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             ConstEvaluatorFactory,
             std::string,
@@ -74,9 +74,9 @@ void add_const_evaluator_feature(Registry& registry)
     Namespace& n = registry.get_global_name_space();
     const auto& f = add_constant_evaluator_feature(n);
 
-    SubcategoryPlugin& subcategory =
-        registry.get_subcategory_plugin("evaluators_basic");
-    subcategory.add_feature(f);
+    DocumentationTopic& subcategory =
+        registry.get_topic_by_name("evaluators_basic");
+    subcategory.add_function(f);
 }
 
 } // namespace downward::cli::evaluators

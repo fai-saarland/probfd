@@ -16,12 +16,12 @@ using namespace probfd::merge_and_shrink;
 
 namespace {
 
-Feature&
+InternalFunctionDefinitionBase&
 add_shrink_strategy_probabilistic_bisimulation_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "pshrink_probabilistic_bisimulation",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             ShrinkStrategy,
             ShrinkStrategyProbabilisticBisimulation,
             ShrinkStrategyProbabilisticBisimulation::AtLimit,
@@ -55,7 +55,7 @@ namespace probfd::cli::merge_and_shrink {
 void add_shrink_strategy_probabilistic_bisimulation_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_enum_plugin<ShrinkStrategyProbabilisticBisimulation::AtLimit>(
+    n.insert_enum_declaration<ShrinkStrategyProbabilisticBisimulation::AtLimit>(
         {{"return", "stop without refining the equivalence class further"},
          {"use_up",
           "continue refining the equivalence class until "

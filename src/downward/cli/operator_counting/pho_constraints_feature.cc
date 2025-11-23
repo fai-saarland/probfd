@@ -16,11 +16,11 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-Feature& add_pho_constraints_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_pho_constraints_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "pho_constraints",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             ConstraintGenerator,
             PhOConstraints,
             const std::shared_ptr<

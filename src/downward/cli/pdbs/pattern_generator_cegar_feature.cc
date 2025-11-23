@@ -24,11 +24,11 @@ using downward::cli::utils::add_rng_options_to_feature;
 
 namespace {
 
-Feature& add_pattern_generator_cegar_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_pattern_generator_cegar_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "cegar_pattern",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             PatternGenerator,
             PatternGeneratorCEGAR,
             int,

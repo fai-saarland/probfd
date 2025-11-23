@@ -14,11 +14,11 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-Feature& add_fully_additive_factory_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_fully_additive_factory_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "fully_additive_factory",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             SubCollectionFinderFactory,
             FullyAdditiveFinderFactory>);
 

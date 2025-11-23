@@ -19,11 +19,11 @@ using downward::cli::utils::add_rng_options_to_feature;
 
 namespace {
 
-Feature& add_task_duplicator_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_task_duplicator_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "pcegar_original",
-        &cli::plugins::make_shared<SubtaskGenerator, TaskDuplicator, int>);
+        &cli::plugins::construct_shared<SubtaskGenerator, TaskDuplicator, int>);
 
     f.make_optional_argument_with_default(
         0,
@@ -34,12 +34,12 @@ Feature& add_task_duplicator_to_namespace(Namespace& nspace)
     return f;
 }
 
-Feature& add_goal_decomposition_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_goal_decomposition_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "pcegar_goals",
         &cli::plugins::
-            make_shared<SubtaskGenerator, GoalDecomposition, FactOrder, std::shared_ptr<RandomNumberGenerator>>);
+            construct_shared<SubtaskGenerator, GoalDecomposition, FactOrder, std::shared_ptr<RandomNumberGenerator>>);
 
     f.make_optional_argument_with_default(
         0,
@@ -51,11 +51,11 @@ Feature& add_goal_decomposition_to_namespace(Namespace& nspace)
     return f;
 }
 
-Feature& add_landmark_decomposition_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_landmark_decomposition_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "pcegar_landmarks",
-        &cli::plugins::make_shared<
+        &cli::plugins::construct_shared<
             SubtaskGenerator,
             LandmarkDecomposition,
             std::shared_ptr<TaskDependentFactory<MutexInformation>>,
@@ -93,7 +93,7 @@ namespace probfd::cli::cartesian_abstractions {
 void add_subtask_generator_category(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_shared_category_plugin<SubtaskGenerator>(
+    n.insert_shared_type_declaration<SubtaskGenerator>(
         "PSubtaskGenerator",
         "Subtask generator (used by the CEGAR heuristic).");
 }
@@ -101,7 +101,7 @@ void add_subtask_generator_category(Registry& registry)
 void add_subtask_generator_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_enum_plugin<FactOrder>(
+    n.insert_enum_declaration<FactOrder>(
         {{"original", "according to their (internal) variable index"},
          {"random", "according to a random permutation"},
          {"hadd_up", "according to their h^add value, lowest first"},

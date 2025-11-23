@@ -25,12 +25,12 @@ using downward::cli::utils::add_rng_options_to_feature;
 
 namespace {
 
-Feature&
+InternalFunctionDefinitionBase&
 add_pattern_collection_generator_disjoint_cegar_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "disjoint_cegar",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             PatternCollectionGenerator,
             PatternCollectionGeneratorDisjointCegar,
             int,

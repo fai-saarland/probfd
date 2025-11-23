@@ -17,12 +17,12 @@ using namespace probfd::merge_and_shrink;
 
 namespace {
 
-Feature& add_merge_scoring_function_dfp_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_merge_scoring_function_dfp_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "pdfp",
         &downward::cli::plugins::
-            make_shared<MergeScoringFunction, MergeScoringFunctionDFP>);
+            construct_shared<MergeScoringFunction, MergeScoringFunctionDFP>);
 
     f.document_title("DFP scoring");
     f.document_synopsis(

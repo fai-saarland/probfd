@@ -18,11 +18,12 @@ using downward::cli::utils::add_rng_options_to_feature;
 
 namespace {
 
-Feature& add_sampling_flaw_finder_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_sampling_flaw_finder_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "sampling_flaw_finder",
-        &cli::plugins::make_shared<
+        &cli::plugins::construct_shared<
             SamplingFlawFinder,
             SamplingFlawFinder,
             std::shared_ptr<RandomNumberGenerator>,

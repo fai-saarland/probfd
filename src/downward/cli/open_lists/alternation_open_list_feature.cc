@@ -14,12 +14,12 @@ using namespace downward::cli::plugins;
 namespace {
 
 template <typename T>
-Feature&
+InternalFunctionDefinitionBase&
 add_alternation_open_list_to_namespace(Namespace& nspace, std::string name)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         std::move(name),
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             downward::TaskDependentFactory<downward::OpenList<T>>,
             AlternationOpenListFactory<T>,
             const std::vector<shared_ptr<

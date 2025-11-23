@@ -80,11 +80,11 @@ public:
     }
 };
 
-Feature& add_iterated_search_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_iterated_search_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "iterated",
-        &cli::plugins::make_shared<
+        &cli::plugins::construct_shared<
             TaskDependentFactory<SearchAlgorithm>,
             IteratedSearchFactory,
             OperatorCost,

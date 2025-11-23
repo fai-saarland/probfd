@@ -14,7 +14,7 @@ namespace probfd::cli::solvers {
 void add_statistical_mdp_algorithm_factory_category(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_shared_category_plugin<StatisticalMDPAlgorithmFactory>(
+    n.insert_shared_type_declaration<StatisticalMDPAlgorithmFactory>(
         "StatisticalMDPAlgorithmFactory",
         "Represents a factory that produces an MDP algorithm with "
         "statistics output for a given probabilistic planning task.");

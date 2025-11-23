@@ -19,11 +19,11 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-Feature& add_stubborn_sets_atomic_centric_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_stubborn_sets_atomic_centric_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "atom_centric_stubborn_sets",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             downward::PruningMethod,
             StubbornSetsAtomCentric,
             bool,
@@ -79,7 +79,7 @@ namespace downward::cli::pruning {
 void add_stubborn_sets_atom_centric_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_enum_plugin<AtomSelectionStrategy>(
+    n.insert_enum_declaration<AtomSelectionStrategy>(
         {{"fast_downward",
           "select the atom (v, d) with the variable v that comes first in the "
           "Fast "

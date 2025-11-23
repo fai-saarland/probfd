@@ -21,11 +21,11 @@ using namespace probfd::cli::merge_and_shrink;
 
 namespace {
 
-Feature& add_merge_strategy_linear_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_merge_strategy_linear_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "plinear",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             MergeTreeFactory,
             MergeTreeFactoryLinear,
             std::shared_ptr<utils::RandomNumberGenerator>,

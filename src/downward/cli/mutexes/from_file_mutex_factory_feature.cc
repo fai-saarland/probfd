@@ -15,11 +15,11 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-Feature& add_from_file_mutex_factory_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_from_file_mutex_factory_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "mutexes_from_file",
-        &cli::plugins::make_shared<
+        &cli::plugins::construct_shared<
             TaskDependentFactory<MutexInformation>,
             FromFileMutexFactory,
             std::string>);

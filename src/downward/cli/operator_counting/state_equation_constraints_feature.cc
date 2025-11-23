@@ -20,11 +20,11 @@ using downward::cli::utils::add_log_options_to_feature;
 
 namespace {
 
-Feature& add_state_equation_constraints_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_state_equation_constraints_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "state_equation_constraints",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             ConstraintGenerator,
             StateEquationConstraints,
             downward::utils::Verbosity>);

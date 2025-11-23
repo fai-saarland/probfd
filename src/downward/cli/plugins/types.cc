@@ -17,7 +17,7 @@ bool Type::is_basic_type() const
     return false;
 }
 
-bool Type::is_feature_type() const
+bool Type::is_internal_type() const
 {
     return false;
 }
@@ -140,35 +140,35 @@ size_t BasicType::get_hash() const
     return hash<type_index>()(type);
 }
 
-FeatureType::FeatureType(type_index pointer_type, const string& type_name)
+InternalType::InternalType(type_index pointer_type, const string& type_name)
     : pointer_type(pointer_type)
     , type_name(type_name)
 {
 }
 
-bool FeatureType::operator==(const Type& other) const
+bool InternalType::operator==(const Type& other) const
 {
-    const FeatureType* other_ptr = dynamic_cast<const FeatureType*>(&other);
+    const InternalType* other_ptr = dynamic_cast<const InternalType*>(&other);
     return other_ptr && pointer_type == other_ptr->pointer_type;
 }
 
-bool FeatureType::is_feature_type() const
+bool InternalType::is_internal_type() const
 {
     return true;
 }
 
-string FeatureType::name() const
+string InternalType::name() const
 {
     return type_name;
 }
 
-size_t FeatureType::get_hash() const
+size_t InternalType::get_hash() const
 {
-    return hash<type_index>()(typeid(FeatureType)) ^
+    return hash<type_index>()(typeid(InternalType)) ^
            hash<type_index>()(pointer_type);
 }
 
-std::type_index FeatureType::get_type_index() const
+std::type_index InternalType::get_type_index() const
 {
     return pointer_type;
 }
@@ -408,14 +408,14 @@ void TypeRegistry::insert_basic_type()
     registered_types[type] = std::make_unique<BasicType>(type, name);
 }
 
-const FeatureType&
-TypeRegistry::create_feature_type(const CategoryPlugin& plugin)
+const InternalType&
+TypeRegistry::create_feature_type(const InternalTypeDeclarationBase& plugin)
 {
     auto [it, inserted] = registered_types.emplace(
         plugin.get_pointer_type(),
-        std::make_unique<FeatureType>(
+        std::make_unique<InternalType>(
             plugin.get_pointer_type(),
-            plugin.get_category_name()));
+            plugin.get_identifier()));
 
     if (!inserted) {
         throw utils::CriticalError(
@@ -425,10 +425,11 @@ TypeRegistry::create_feature_type(const CategoryPlugin& plugin)
             it->second->name());
     }
 
-    return static_cast<const FeatureType&>(*it->second);
+    return static_cast<const InternalType&>(*it->second);
 }
 
-const EnumType& TypeRegistry::create_enum_type(const EnumPlugin& plugin)
+const EnumType&
+TypeRegistry::create_enum_type(const InternalEnumDeclarationBase& plugin)
 {
     auto [it, inserted] = registered_types.emplace(
         plugin.get_type(),

@@ -11,12 +11,12 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-Feature& add_prune_strategy_alive_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_prune_strategy_alive_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "prune_alive",
         &downward::cli::plugins::
-            make_shared<PruneStrategy, PruneStrategyAlive>);
+            construct_shared<PruneStrategy, PruneStrategyAlive>);
 
     f.document_title("Alive states prune strategy");
     f.document_synopsis("This prune strategy keeps only alive states.");

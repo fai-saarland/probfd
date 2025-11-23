@@ -79,9 +79,9 @@ std::shared_ptr<TaskHeuristicFactory> create_pho_heuristic(
         std::make_shared<PHOGeneratorFactory>(std::move(generator)));
 }
 
-Feature& add_hroc_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_hroc_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin("hroc", create_hroc);
+    auto& f = nspace.insert_function_definition("hroc", create_hroc);
     f.document_title("Regrouped operator-counting heuristic");
     f.document_synopsis(
         "For details, see" +
@@ -107,9 +107,9 @@ Feature& add_hroc_to_namespace(Namespace& nspace)
     return f;
 }
 
-Feature& add_hpom_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_hpom_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin("hpom", create_hpom);
+    auto& f = nspace.insert_function_definition("hpom", create_hpom);
 
     f.document_title("Projection Occupation Measure Heuristic");
 
@@ -138,9 +138,9 @@ Feature& add_hpom_to_namespace(Namespace& nspace)
     return f;
 }
 
-Feature& add_higher_order_hpom_heuristic_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_higher_order_hpom_heuristic_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "ho_hpom",
         create_higher_order_hpom_heuristic);
     f.document_title("Higher-Order Projection Occupation Measure Heuristic");
@@ -176,9 +176,9 @@ Feature& add_higher_order_hpom_heuristic_to_namespace(Namespace& nspace)
     return f;
 }
 
-Feature& add_hpho_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_hpho_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin("hpho", create_pho_heuristic);
+    auto& f = nspace.insert_function_definition("hpho", create_pho_heuristic);
     f.document_title("Post-hoc Optimization Heuristic");
 
     f.document_language_support("conditional effects", "not supported");

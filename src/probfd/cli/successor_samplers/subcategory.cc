@@ -45,11 +45,11 @@ template <bool Fret>
 using SuccessorSampler = Wrapper<algorithms::SuccessorSampler, Fret>;
 
 template <bool Fret>
-Feature& add_arbitrary_successor_sampler_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_arbitrary_successor_sampler_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<false, Fret>("arbitrary_successor_sampler"),
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             SuccessorSampler<Fret>,
             Wrapper<ArbitrarySuccessorSampler, Fret>>);
 
@@ -57,11 +57,11 @@ Feature& add_arbitrary_successor_sampler_to_namespace(Namespace& nspace)
 }
 
 template <bool Fret>
-Feature& add_most_likely_successor_sampler_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_most_likely_successor_sampler_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<false, Fret>("most_likely_successor_Sampler"),
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             SuccessorSampler<Fret>,
             Wrapper<MostLikelySuccessorSampler, Fret>>);
 
@@ -69,11 +69,11 @@ Feature& add_most_likely_successor_sampler_to_namespace(Namespace& nspace)
 }
 
 template <bool Fret>
-Feature& add_uniform_successor_sampler_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_uniform_successor_sampler_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<false, Fret>("uniform_random_successor_sampler"),
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             SuccessorSampler<Fret>,
             Wrapper<UniformSuccessorSampler, Fret>,
             std::shared_ptr<RandomNumberGenerator>>);
@@ -84,11 +84,11 @@ Feature& add_uniform_successor_sampler_to_namespace(Namespace& nspace)
 }
 
 template <bool Fret>
-Feature& add_random_successor_sampler_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_random_successor_sampler_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<false, Fret>("random_successor_sampler"),
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             SuccessorSampler<Fret>,
             Wrapper<RandomSuccessorSampler, Fret>,
             std::shared_ptr<RandomNumberGenerator>>);
@@ -99,11 +99,11 @@ Feature& add_random_successor_sampler_to_namespace(Namespace& nspace)
 }
 
 template <bool Fret>
-Feature& add_vbiased_successor_sampler_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_vbiased_successor_sampler_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<false, Fret>("vbiased_successor_sampler"),
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             SuccessorSampler<Fret>,
             Wrapper<VBiasedSuccessorSampler, Fret>,
             std::shared_ptr<RandomNumberGenerator>>);
@@ -114,11 +114,11 @@ Feature& add_vbiased_successor_sampler_to_namespace(Namespace& nspace)
 }
 
 template <bool Fret>
-Feature& add_vdiff_successor_sampler_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_vdiff_successor_sampler_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<false, Fret>("value_gap_successor_sampler"),
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             SuccessorSampler<Fret>,
             Wrapper<VDiffSuccessorSampler, Fret>,
             std::shared_ptr<RandomNumberGenerator>,
@@ -137,7 +137,7 @@ namespace probfd::cli::successor_samplers {
 void add_successor_sampler_category(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_shared_category_plugins<SuccessorSampler>(
+    n.insert_shared_type_declarations<SuccessorSampler>(
         []<bool Fret> {
             return add_mdp_type_to_category<false, Fret>("SuccessorSampler");
         },

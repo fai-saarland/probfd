@@ -32,75 +32,86 @@ concept strict_suffix_instantiable =
 template <template <bool...> typename T, bool... b>
 concept partial_specialization = !strict_suffix_instantiable<T, b...>;
 
-class MissingFeatureError : public std::runtime_error {
+class MissingFunctionError : public std::runtime_error {
 public:
-    explicit MissingFeatureError(const std::string& message)
+    explicit MissingFunctionError(const std::string& message)
         : runtime_error(message.c_str())
     {
     }
 
-    explicit MissingFeatureError(const char* message)
+    explicit MissingFunctionError(const char* message)
         : runtime_error(message)
     {
     }
 };
 
-class MissingCategoryError : public std::runtime_error {
+class MissingTypeDeclarationError : public std::runtime_error {
 public:
-    explicit MissingCategoryError(const std::string& message)
+    explicit MissingTypeDeclarationError(const std::string& message)
         : runtime_error(message.c_str())
     {
     }
 
-    explicit MissingCategoryError(const char* message)
+    explicit MissingTypeDeclarationError(const char* message)
         : runtime_error(message)
     {
     }
 };
 
-class MissingSubCategoryError : public std::runtime_error {
+class MissingTopicError : public std::runtime_error {
 public:
-    explicit MissingSubCategoryError(const std::string& message)
+    explicit MissingTopicError(const std::string& message)
         : runtime_error(message.c_str())
     {
     }
 
-    explicit MissingSubCategoryError(const char* message)
+    explicit MissingTopicError(const char* message)
         : runtime_error(message)
     {
     }
 };
 
-struct CategoryComparator {
+struct TypeDeclarationComparator {
     using is_transparent = void;
 
-    bool operator()(const CategoryPlugin& lhs, const CategoryPlugin& rhs) const;
-    bool operator()(const std::string& lhs, const CategoryPlugin& rhs) const;
-    bool operator()(const CategoryPlugin& lhs, const std::string& rhs) const;
+    bool operator()(
+        const InternalTypeDeclarationBase& lhs,
+        const InternalTypeDeclarationBase& rhs) const;
+    bool
+    operator()(const std::string& lhs, const InternalTypeDeclarationBase& rhs)
+        const;
+    bool
+    operator()(const InternalTypeDeclarationBase& lhs, const std::string& rhs)
+        const;
 };
 
-struct SubCategoryComparator {
+struct TopicComparator {
     using is_transparent = void;
 
-    bool operator()(const SubcategoryPlugin& lhs, const SubcategoryPlugin& rhs)
+    bool
+    operator()(const DocumentationTopic& lhs, const DocumentationTopic& rhs)
         const;
 
-    bool operator()(const std::string& lhs, const SubcategoryPlugin& rhs) const;
-    bool operator()(const SubcategoryPlugin& lhs, const std::string& rhs) const;
+    bool
+    operator()(const std::string& lhs, const DocumentationTopic& rhs) const;
+    bool
+    operator()(const DocumentationTopic& lhs, const std::string& rhs) const;
 };
 
 struct FeatureComparator {
     using is_transparent = void;
 
     bool operator()(
-        const std::unique_ptr<Feature>& lhs,
-        const std::unique_ptr<Feature>& rhs) const;
+        const std::unique_ptr<InternalFunctionDefinitionBase>& lhs,
+        const std::unique_ptr<InternalFunctionDefinitionBase>& rhs) const;
 
-    bool operator()(const std::string& lhs, const std::unique_ptr<Feature>& rhs)
-        const;
+    bool operator()(
+        const std::string& lhs,
+        const std::unique_ptr<InternalFunctionDefinitionBase>& rhs) const;
 
-    bool operator()(const std::unique_ptr<Feature>& lhs, const std::string& rhs)
-        const;
+    bool operator()(
+        const std::unique_ptr<InternalFunctionDefinitionBase>& lhs,
+        const std::string& rhs) const;
 };
 
 class Namespace;
@@ -108,8 +119,8 @@ class Namespace;
 class Registry {
     std::unique_ptr<Namespace> global_namespace;
 
-    std::deque<SubcategoryPlugin> subcategory_plugins;
-    std::map<std::string, SubcategoryPlugin*> subcategories_by_name;
+    std::deque<DocumentationTopic> topics;
+    std::map<std::string, DocumentationTopic*> topics_by_name;
 
 public:
     Registry();
@@ -152,40 +163,38 @@ public:
         return get_namespace(std::vector<std::string>{name_parts...});
     }
 
-    template <std::derived_from<SubcategoryPlugin> T>
-    SubcategoryPlugin& insert_subcategory_plugin()
+    template <std::derived_from<DocumentationTopic> T>
+    DocumentationTopic& insert_documentation_topic()
     {
-        auto& s = subcategory_plugins.emplace_back(T());
-        auto [it, inserted] =
-            subcategories_by_name.emplace(s.get_subcategory_name(), &s);
+        auto& s = topics.emplace_back(T());
+        auto [it, inserted] = topics_by_name.emplace(s.get_topic_name(), &s);
 
         if (!inserted) {
             throw downward::utils::CriticalError(
-                "Sub-category with name {} already exists.",
-                s.get_subcategory_name());
+                "Documentation topic with name {} already exists.",
+                s.get_topic_name());
         }
 
         return s;
     }
 
-    SubcategoryPlugin& get_subcategory_plugin(const std::string& subcategory);
+    DocumentationTopic& get_topic_by_name(const std::string& subcategory);
 
-    const SubcategoryPlugin&
-    get_subcategory_plugin(const std::string& subcategory) const;
+    const DocumentationTopic&
+    get_topic_by_name(const std::string& subcategory) const;
 
-    auto get_subcategory_plugins() const
-    {
-        return std::views::all(subcategory_plugins);
-    }
+    auto get_topics() const { return std::views::all(topics); }
 };
 
 class Namespace {
-    std::map<std::string, std::unique_ptr<Namespace>> children;
+    std::map<std::string, std::unique_ptr<Namespace>> nested_namespaces;
 
-    std::set<CategoryPlugin, CategoryComparator> category_plugins;
-    std::vector<EnumPlugin> enum_plugins;
-    std::deque<std::unique_ptr<Feature>> features;
-    std::map<std::string, const Feature*> features_by_name;
+    std::set<InternalTypeDeclarationBase, TypeDeclarationComparator>
+        types_declarations;
+    std::vector<InternalEnumDeclarationBase> enum_declarations;
+    std::deque<std::unique_ptr<InternalFunctionDefinitionBase>> functions;
+    std::map<std::string, const InternalFunctionDefinitionBase*>
+        functions_by_name;
 
 public:
     Namespace& get_or_create_nested_namespace(const std::string& name);
@@ -196,34 +205,34 @@ public:
     const Namespace& get_nested_namespace(const std::string& name) const;
 
     template <typename T>
-    const CategoryPlugin&
-    insert_shared_category_plugin(std::string name, std::string synopsis)
+    const InternalTypeDeclarationBase&
+    insert_shared_type_declaration(std::string name, std::string synopsis)
     {
-        return insert_category_plugin<std::shared_ptr<T>>(
+        return insert_type_declaration<std::shared_ptr<T>>(
             std::move(name),
             std::move(synopsis));
     }
 
     template <typename T>
-    const CategoryPlugin&
-    insert_category_plugin(std::string name, std::string synopsis)
+    const InternalTypeDeclarationBase&
+    insert_type_declaration(std::string name, std::string synopsis)
     {
-        for (const auto& c : category_plugins) {
+        for (const auto& c : types_declarations) {
             if (const std::type_index t = typeid(T);
                 c.get_pointer_type() == t) {
                 throw downward::utils::CriticalError(
-                    "CategoryPlugin for class '{}' already defined.",
+                    "Type for class '{}' already defined.",
                     t.name());
             }
         }
 
-        auto [it, inserted] = category_plugins.emplace(
-            TypedCategoryPlugin<T>(std::move(name), std::move(synopsis)));
+        auto [it, inserted] = types_declarations.emplace(
+            InternalTypeDeclaration<T>(std::move(name), std::move(synopsis)));
 
         if (!inserted) {
             throw downward::utils::CriticalError(
-                "Category with name {} already exists.",
-                it->get_category_name());
+                "Type with name {} already exists.",
+                it->get_identifier());
         }
 
         TypeRegistry::instance()->create_feature_type(*it);
@@ -236,17 +245,17 @@ public:
         bool... b,
         typename F1,
         typename F2>
-    auto insert_category_plugins(const F1& name, const F2& synopsis)
+    auto insert_type_declarations(const F1& name, const F2& synopsis)
     {
         if constexpr (instantiable<T, b...>) {
             return std::tie(
-                insert_category_plugin<T<b...>>(
+                insert_type_declaration<T<b...>>(
                     name.template operator()<b...>(),
                     synopsis.template operator()<b...>()));
         } else {
             return std::tuple_cat(
-                insert_category_plugins<T, b..., true>(name, synopsis),
-                insert_category_plugins<T, b..., false>(name, synopsis));
+                insert_type_declarations<T, b..., true>(name, synopsis),
+                insert_type_declarations<T, b..., false>(name, synopsis));
         }
     }
 
@@ -255,83 +264,98 @@ public:
         bool... b,
         typename F1,
         typename F2>
-    auto insert_shared_category_plugins(const F1& name, const F2& synopsis)
+    auto insert_shared_type_declarations(const F1& name, const F2& synopsis)
     {
         if constexpr (instantiable<T, b...>) {
             return std::tie(
-                insert_shared_category_plugin<T<b...>>(
+                insert_shared_type_declaration<T<b...>>(
                     name.template operator()<b...>(),
                     synopsis.template operator()<b...>()));
         } else {
             return std::tuple_cat(
-                insert_shared_category_plugins<T, b..., true>(name, synopsis),
-                insert_shared_category_plugins<T, b..., false>(name, synopsis));
+                insert_shared_type_declarations<T, b..., true>(name, synopsis),
+                insert_shared_type_declarations<T, b..., false>(
+                    name,
+                    synopsis));
         }
     }
 
     template <typename T>
-    void insert_enum_plugin(
+    void insert_enum_declaration(
         std::initializer_list<std::pair<std::string, std::string>> enum_values)
     {
-        auto& enum_plugin =
-            enum_plugins.emplace_back(TypedEnumPlugin<T>(enum_values));
+        auto& enum_plugin = enum_declarations.emplace_back(
+            InternalEnumDeclaration<T>(enum_values));
         TypeRegistry::instance()->create_enum_type(enum_plugin);
     }
 
-    template <std::derived_from<Feature> T>
-    T& insert_feature_plugin()
+    template <std::derived_from<InternalFunctionDefinitionBase> T>
+    T& insert_function_definition()
     {
-        auto& f = *features.emplace_back(std::make_unique<T>());
-        const auto [it, inserted] = features_by_name.emplace(f.get_key(), &f);
+        auto& f = *functions.emplace_back(std::make_unique<T>());
+        const auto [it, inserted] =
+            functions_by_name.emplace(f.get_identifier(), &f);
 
         if (!inserted) {
             throw downward::utils::CriticalError(
-                "Feature with name {} already defined.",
-                f.get_key());
+                "Function with name {} already defined.",
+                f.get_identifier());
         }
 
         return static_cast<T&>(f);
     }
 
-    template <typename R, typename... Args>
-    TypedFeature<R, Args...>&
-    insert_typed_feature_plugin(std::string name, R (*func)(Args...))
+    template <typename F>
+    auto& insert_function_definition(std::string name, F&& func)
     {
-        auto& f = *features.emplace_back(
-            std::make_unique<TypedFeature<R, Args...>>(name, func));
-        const auto [it, inserted] = features_by_name.emplace(f.get_key(), &f);
+        auto* f = new InternalFunctionDefinition(name, std::forward<F>(func));
+
+        functions.emplace_back(f);
+        const auto [it, inserted] =
+            functions_by_name.emplace(f->get_identifier(), f);
 
         if (!inserted) {
             throw downward::utils::CriticalError(
-                "Feature with name {} already defined.",
-                f.get_key());
+                "Function with name {} already defined.",
+                f->get_identifier());
         }
 
-        return static_cast<TypedFeature<R, Args...>&>(f);
+        return *f;
     }
 
     template <template <bool...> typename T, bool... b>
         requires partial_specialization<T, b...>
-    void insert_feature_plugins()
+    void insert_function_definitions()
     {
         if constexpr (instantiable<T, b...>) {
-            insert_feature_plugin<T<b...>>();
+            insert_function_definition<T<b...>>();
         } else {
-            insert_feature_plugins<T, b..., true>();
-            insert_feature_plugins<T, b..., false>();
+            insert_function_definitions<T, b..., true>();
+            insert_function_definitions<T, b..., false>();
         }
     }
 
-    bool has_feature(const std::string& name) const;
-    const Feature& get_feature(const std::string& name) const;
+    bool has_function(const std::string& name) const;
 
-    auto get_features() const { return features_by_name | std::views::values; }
+    const InternalFunctionDefinitionBase&
+    get_function_definition(const std::string& name) const;
 
-    auto get_categories() const { return std::views::all(category_plugins); }
+    auto get_function_definitions() const
+    {
+        return functions_by_name | std::views::values;
+    }
 
-    auto get_nested_namespaces() { return std::views::all(children); }
+    auto get_type_declarations() const
+    {
+        return std::views::all(types_declarations);
+    }
 
-    auto get_nested_namespaces() const { return std::views::all(children); }
+    auto get_nested_namespaces() { return std::views::all(nested_namespaces); }
+
+    auto get_nested_namespaces() const
+    {
+        return std::views::all(nested_namespaces);
+    }
 };
 } // namespace downward::cli::plugins
 

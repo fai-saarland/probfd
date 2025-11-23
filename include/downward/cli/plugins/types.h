@@ -18,7 +18,7 @@ class Context;
 }
 
 namespace downward::cli::plugins {
-class CategoryPlugin;
+class InternalTypeDeclarationBase;
 
 class Type {
 public:
@@ -27,7 +27,7 @@ public:
     virtual bool operator==(const Type& other) const = 0;
 
     virtual bool is_basic_type() const;
-    virtual bool is_feature_type() const;
+    virtual bool is_internal_type() const;
     virtual bool is_list_type() const;
     virtual bool is_empty_list_type() const;
     virtual bool is_enum_type() const;
@@ -103,15 +103,15 @@ public:
     const std::type_index& get_basic_type_index() const;
 };
 
-class FeatureType : public Type {
+class InternalType : public Type {
     std::type_index pointer_type;
     std::string type_name;
 
 public:
-    FeatureType(std::type_index pointer_type, const std::string& type_name);
+    InternalType(std::type_index pointer_type, const std::string& type_name);
 
     bool operator==(const Type& other) const override;
-    bool is_feature_type() const override;
+    bool is_internal_type() const override;
     std::string name() const override;
     size_t get_hash() const override;
 
@@ -181,7 +181,12 @@ class TypeRegistry {
 
     template <typename T>
     struct TypeOf<std::vector<T>> {
-        static const Type& value(TypeRegistry& registry);
+        static const ListType& value(TypeRegistry& registry);
+    };
+
+    template <typename R, typename... Args>
+    struct TypeOf<R(Args...)> {
+        static const FunctionType& value(TypeRegistry& registry);
     };
 
     struct SemanticHash {
@@ -222,8 +227,9 @@ public:
 
     TypeRegistry();
 
-    const FeatureType& create_feature_type(const CategoryPlugin& plugin);
-    const EnumType& create_enum_type(const EnumPlugin& plugin);
+    const InternalType&
+    create_feature_type(const InternalTypeDeclarationBase& plugin);
+    const EnumType& create_enum_type(const InternalEnumDeclarationBase& plugin);
     const ListType& create_list_type(const Type& element_type);
     const FunctionType& create_function_type(
         const Type& return_type,
@@ -232,7 +238,8 @@ public:
     template <typename T>
     const Type& get_type();
 
-    template <typename T, typename... ArgTypes>
+    template <typename T>
+        requires std::is_function_v<T>
     const FunctionType& get_function_type();
 
     static TypeRegistry* instance()
@@ -249,9 +256,19 @@ const Type& TypeRegistry::TypeOf<T>::value(TypeRegistry& registry)
 }
 
 template <typename T>
-const Type& TypeRegistry::TypeOf<std::vector<T>>::value(TypeRegistry& registry)
+const ListType&
+TypeRegistry::TypeOf<std::vector<T>>::value(TypeRegistry& registry)
 {
     return registry.create_list_type(registry.get_type<T>());
+}
+
+template <typename R, typename... Args>
+const FunctionType&
+TypeRegistry::TypeOf<R(Args...)>::value(TypeRegistry& registry)
+{
+    return registry.create_function_type(
+        registry.get_type<R>(),
+        std::vector<const Type*>{&registry.get_type<Args>()...});
 }
 
 template <typename T>
@@ -260,12 +277,11 @@ const Type& TypeRegistry::get_type()
     return TypeOf<T>::value(*this);
 }
 
-template <typename T, typename... ArgTypes>
+template <typename T>
+    requires std::is_function_v<T>
 const FunctionType& TypeRegistry::get_function_type()
 {
-    return create_function_type(
-        TypeOf<T>::value(*this),
-        std::vector<const Type*>{&TypeOf<ArgTypes>::value(*this)...});
+    return TypeOf<T>::value(*this);
 }
 
 extern std::any convert(

@@ -25,11 +25,11 @@ using namespace probfd::cli::merge_and_shrink;
 
 namespace {
 
-Feature& add_merge_strategy_sccs_tree_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_merge_strategy_sccs_tree_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "pmerge_sccs_tree",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             MergeStrategyFactory,
             MergeStrategyFactorySCCsTree,
             utils::Verbosity,
@@ -77,11 +77,11 @@ Feature& add_merge_strategy_sccs_tree_to_namespace(Namespace& nspace)
     return f;
 }
 
-Feature& add_merge_strategy_sccs_selector_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_merge_strategy_sccs_selector_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "pmerge_sccs_selector",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             MergeStrategyFactory,
             MergeStrategyFactorySCCsSelector,
             utils::Verbosity,
@@ -136,7 +136,7 @@ namespace probfd::cli::merge_and_shrink {
 void add_merge_strategy_factory_sccs_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_enum_plugin<OrderOfSCCs>(
+    n.insert_enum_declaration<OrderOfSCCs>(
         {{"topological",
           "according to the topological ordering of the directed graph "
           "where each obtained SCC is a 'supervertex'"},

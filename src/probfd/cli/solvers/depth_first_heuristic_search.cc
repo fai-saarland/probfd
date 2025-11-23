@@ -97,8 +97,7 @@ public:
 
 template <bool Bisimulation>
 class DFHSSolverFeature
-    : public SharedTypedFeature<
-          TaskSolverFactory,
+    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -113,10 +112,10 @@ class DFHSSolverFeature
           BacktrackingUpdateType,
           bool,
           bool,
-          bool> {
+          bool)> {
 public:
     DFHSSolverFeature()
-        : DFHSSolverFeature::TypedFeature(
+        : DFHSSolverFeature::InternalFunctionDefinition(
               add_wrapper_algo_suffix<Bisimulation, false>("dfhs"),
               &DFHSSolverFeature::func)
     {
@@ -175,8 +174,7 @@ protected:
 
 template <bool Bisimulation>
 class ILAOSolverFeature
-    : public SharedTypedFeature<
-          TaskSolverFactory,
+    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -186,10 +184,10 @@ class ILAOSolverFeature
           utils::Verbosity,
           value_t,
           bool,
-          std::shared_ptr<PolicyPickerType<Bisimulation, false>>> {
+          std::shared_ptr<PolicyPickerType<Bisimulation, false>>)> {
 public:
     ILAOSolverFeature()
-        : ILAOSolverFeature::TypedFeature(
+        : ILAOSolverFeature::InternalFunctionDefinition(
               add_wrapper_algo_suffix<Bisimulation, false>("ilao"),
               &ILAOSolverFeature::func)
     {
@@ -236,8 +234,7 @@ public:
 
 template <bool Bisimulation>
 class LILAOSolverFeature
-    : public SharedTypedFeature<
-          TaskSolverFactory,
+    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -247,10 +244,10 @@ class LILAOSolverFeature
           utils::Verbosity,
           value_t,
           bool,
-          std::shared_ptr<PolicyPickerType<Bisimulation, false>>> {
+          std::shared_ptr<PolicyPickerType<Bisimulation, false>>)> {
 public:
     LILAOSolverFeature()
-        : LILAOSolverFeature::TypedFeature(
+        : LILAOSolverFeature::InternalFunctionDefinition(
               add_wrapper_algo_suffix<Bisimulation, false>("lilao"),
               &LILAOSolverFeature::func)
     {
@@ -296,8 +293,7 @@ public:
 
 template <bool Bisimulation>
 class HDPSolverFeature
-    : public SharedTypedFeature<
-          TaskSolverFactory,
+    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -307,10 +303,10 @@ class HDPSolverFeature
           utils::Verbosity,
           value_t,
           bool,
-          std::shared_ptr<PolicyPickerType<Bisimulation, false>>> {
+          std::shared_ptr<PolicyPickerType<Bisimulation, false>>)> {
 public:
     HDPSolverFeature()
-        : HDPSolverFeature::TypedFeature(
+        : HDPSolverFeature::InternalFunctionDefinition(
               add_wrapper_algo_suffix<Bisimulation, false>("hdp"),
               &HDPSolverFeature::func)
     {
@@ -356,8 +352,7 @@ public:
 
 template <bool Bisimulation>
 class DFHSFretSolverFeature
-    : public SharedTypedFeature<
-          TaskSolverFactory,
+    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -373,10 +368,10 @@ class DFHSFretSolverFeature
           BacktrackingUpdateType,
           bool,
           bool,
-          bool> {
+          bool)> {
 public:
     DFHSFretSolverFeature()
-        : DFHSFretSolverFeature::TypedFeature(
+        : DFHSFretSolverFeature::InternalFunctionDefinition(
               add_wrapper_algo_suffix<Bisimulation, true>("dfhs"),
               &DFHSFretSolverFeature::func)
     {
@@ -437,8 +432,7 @@ protected:
 
 template <bool Bisimulation>
 class ILAOFretSolverFeature
-    : public SharedTypedFeature<
-          TaskSolverFactory,
+    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -449,10 +443,10 @@ class ILAOFretSolverFeature
           bool,
           value_t,
           bool,
-          std::shared_ptr<PolicyPickerType<Bisimulation, true>>> {
+          std::shared_ptr<PolicyPickerType<Bisimulation, true>>)> {
 public:
     ILAOFretSolverFeature()
-        : ILAOFretSolverFeature::TypedFeature(
+        : ILAOFretSolverFeature::InternalFunctionDefinition(
               add_wrapper_algo_suffix<Bisimulation, true>("ilao"),
               &ILAOFretSolverFeature::func)
     {
@@ -500,8 +494,7 @@ public:
 
 template <bool Bisimulation>
 class LILAOFretSolverFeature
-    : public SharedTypedFeature<
-          TaskSolverFactory,
+    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -512,10 +505,10 @@ class LILAOFretSolverFeature
           bool,
           value_t,
           bool,
-          std::shared_ptr<PolicyPickerType<Bisimulation, true>>> {
+          std::shared_ptr<PolicyPickerType<Bisimulation, true>>)> {
 public:
     LILAOFretSolverFeature()
-        : LILAOFretSolverFeature::TypedFeature(
+        : LILAOFretSolverFeature::InternalFunctionDefinition(
               add_wrapper_algo_suffix<Bisimulation, true>("lilao"),
               &LILAOFretSolverFeature::func)
     {
@@ -563,8 +556,7 @@ public:
 
 template <bool Bisimulation>
 class HDPFretSolverFeature
-    : public SharedTypedFeature<
-          TaskSolverFactory,
+    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -575,10 +567,10 @@ class HDPFretSolverFeature
           bool,
           value_t,
           bool,
-          std::shared_ptr<PolicyPickerType<Bisimulation, true>>> {
+          std::shared_ptr<PolicyPickerType<Bisimulation, true>>)> {
 public:
     HDPFretSolverFeature()
-        : HDPFretSolverFeature::TypedFeature(
+        : HDPFretSolverFeature::InternalFunctionDefinition(
               add_wrapper_algo_suffix<Bisimulation, true>("hdp"),
               &HDPFretSolverFeature::func)
     {
@@ -631,7 +623,7 @@ namespace probfd::cli::solvers {
 void add_depth_first_heuristic_search_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_enum_plugin<BacktrackingUpdateType>(
+    n.insert_enum_declaration<BacktrackingUpdateType>(
         {{"disabled",
           "No update is performed when backtracking from a state during the "
           "dfs "
@@ -649,15 +641,15 @@ void add_depth_first_heuristic_search_features(Registry& registry)
           "the "
           "dfs exploration."}});
 
-    n.insert_feature_plugins<DFHSSolverFeature>();
-    n.insert_feature_plugins<ILAOSolverFeature>();
-    n.insert_feature_plugins<LILAOSolverFeature>();
-    n.insert_feature_plugins<HDPSolverFeature>();
+    n.insert_function_definitions<DFHSSolverFeature>();
+    n.insert_function_definitions<ILAOSolverFeature>();
+    n.insert_function_definitions<LILAOSolverFeature>();
+    n.insert_function_definitions<HDPSolverFeature>();
 
-    n.insert_feature_plugins<DFHSFretSolverFeature>();
-    n.insert_feature_plugins<ILAOFretSolverFeature>();
-    n.insert_feature_plugins<LILAOFretSolverFeature>();
-    n.insert_feature_plugins<HDPFretSolverFeature>();
+    n.insert_function_definitions<DFHSFretSolverFeature>();
+    n.insert_function_definitions<ILAOFretSolverFeature>();
+    n.insert_function_definitions<LILAOFretSolverFeature>();
+    n.insert_function_definitions<HDPFretSolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

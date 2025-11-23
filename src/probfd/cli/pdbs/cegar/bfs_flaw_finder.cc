@@ -13,12 +13,12 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-Feature& add_bfs_flaw_finder_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_bfs_flaw_finder_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "bfs_flaw_finder",
         &downward::cli::plugins::
-            make_shared<FlawFindingStrategy, BFSFlawFinder, int>);
+            construct_shared<FlawFindingStrategy, BFSFlawFinder, int>);
     f.make_optional_argument_with_default(
             0,
             "max_search_states",

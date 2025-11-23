@@ -102,9 +102,9 @@ std::shared_ptr<TaskSolverFactory> create_acyclic_vi_solver(
         verbosity);
 }
 
-Feature& add_state_equation_constraints_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_state_equation_constraints_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "acyclic_value_iteration",
         &create_acyclic_vi_solver);
     f.document_title("Acyclic Value Iteration");

@@ -56,8 +56,7 @@ public:
 };
 
 class IDualSolverFeature
-    : public SharedTypedFeature<
-          TaskSolverFactory,
+    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -66,10 +65,10 @@ class IDualSolverFeature
           bool,
           utils::Verbosity,
           lp::LPSolverType,
-          double> {
+          double)> {
 public:
     IDualSolverFeature()
-        : TypedFeature("idual", &IDualSolverFeature::func)
+        : InternalFunctionDefinition("idual", &IDualSolverFeature::func)
     {
         document_title("i-dual");
 
@@ -118,7 +117,7 @@ namespace probfd::cli::solvers {
 void add_idual_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<IDualSolverFeature>();
+    n.insert_function_definition<IDualSolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

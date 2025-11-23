@@ -42,9 +42,9 @@ shared_ptr<MergeScoringFunction> create_merge_scoring_function_miasm(
         threshold_before_merge);
 }
 
-Feature& add_merge_scoring_function_miasm_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_merge_scoring_function_miasm_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "psf_miasm",
         create_merge_scoring_function_miasm);
 

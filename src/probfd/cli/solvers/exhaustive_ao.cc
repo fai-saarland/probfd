@@ -59,8 +59,7 @@ public:
 
 template <bool Bisimulation>
 class ExhaustiveAOSolverFeature
-    : public SharedTypedFeature<
-          TaskSolverFactory,
+    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -71,12 +70,12 @@ class ExhaustiveAOSolverFeature
           value_t,
           bool,
           std::shared_ptr<PolicyPickerType<Bisimulation, false>>,
-          std::shared_ptr<OpenList<ActionType<Bisimulation, false>>>> {
+          std::shared_ptr<OpenList<ActionType<Bisimulation, false>>>)> {
     using OpenListType = OpenList<ActionType<Bisimulation, false>>;
 
 public:
     ExhaustiveAOSolverFeature()
-        : ExhaustiveAOSolverFeature::TypedFeature(
+        : ExhaustiveAOSolverFeature::InternalFunctionDefinition(
               add_wrapper_algo_suffix<Bisimulation, false>("exhaustive_ao"),
               &ExhaustiveAOSolverFeature::func)
     {
@@ -129,7 +128,7 @@ namespace probfd::cli::solvers {
 void add_exhaustive_ao_solver_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugins<ExhaustiveAOSolverFeature>();
+    n.insert_function_definitions<ExhaustiveAOSolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

@@ -222,9 +222,9 @@ shared_ptr<TaskHeuristicFactory> create_merge_and_shrink_no_lr(
         verbosity);
 }
 
-Feature& add_merge_and_shrink_with_lr_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_merge_and_shrink_with_lr_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "pa_merge_and_shrink",
         &create_merge_and_shrink_with_lr);
 
@@ -280,9 +280,9 @@ Feature& add_merge_and_shrink_with_lr_to_namespace(Namespace& nspace)
     return f;
 }
 
-Feature& add_merge_and_shrink_no_lr_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_merge_and_shrink_no_lr_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "pa_merge_and_shrink_no_lr",
         &create_merge_and_shrink_no_lr);
     f.document_title("Merge-and-shrink heuristic");

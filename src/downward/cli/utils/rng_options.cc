@@ -12,7 +12,7 @@ void add_rng_type(plugins::Registry& registry)
 {
     auto& n = registry.get_global_name_space();
 
-    n.insert_shared_category_plugin<downward::utils::RandomNumberGenerator>(
+    n.insert_shared_type_declaration<downward::utils::RandomNumberGenerator>(
         "RandomNumberGenerator",
         "");
 }
@@ -33,18 +33,19 @@ void add_default_rng_function(plugins::Registry& registry)
 {
     auto& n = registry.get_global_name_space();
 
-    n.insert_typed_feature_plugin("get_default_rng", get_default_rng);
+    n.insert_function_definition("get_default_rng", get_default_rng);
 }
 
 void add_seeded_rng_function(plugins::Registry& registry)
 {
     auto& n = registry.get_global_name_space();
 
-    n.insert_typed_feature_plugin("get_seeded_rng", get_seeded_rng);
+    n.insert_function_definition("get_seeded_rng", get_seeded_rng);
 }
 
-std::size_t
-add_rng_options_to_feature(plugins::Feature& feature, std::size_t start_index)
+std::size_t add_rng_options_to_feature(
+    plugins::InternalFunctionDefinitionBase& feature,
+    std::size_t start_index)
 {
     feature.make_optional_argument_with_default(
         start_index,

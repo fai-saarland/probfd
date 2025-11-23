@@ -10,7 +10,7 @@ using namespace downward::pdbs;
 namespace downward::cli::pdbs {
 
 std::size_t add_canonical_pdbs_options_to_feature(
-    plugins::Feature& feature,
+    plugins::InternalFunctionDefinitionBase& feature,
     std::size_t start_index)
 {
     feature.make_optional_argument_with_default(

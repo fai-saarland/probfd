@@ -23,12 +23,12 @@ using downward::cli::landmarks::add_landmark_factory_options_to_feature;
 
 namespace {
 
-Feature&
+InternalFunctionDefinitionBase&
 add_landmark_factory_reasonable_orders_hps_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "lm_reasonable_orders_hps",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             LandmarkFactory,
             LandmarkFactoryReasonableOrdersHPS,
             const std::shared_ptr<LandmarkFactory>&,

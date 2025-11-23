@@ -11,12 +11,12 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-Feature& add_prune_strategy_solvable_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_prune_strategy_solvable_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "prune_solvable",
         &downward::cli::plugins::
-            make_shared<PruneStrategy, PruneStrategySolvable>);
+            construct_shared<PruneStrategy, PruneStrategySolvable>);
 
     f.document_title("Solvable states prune strategy");
     f.document_synopsis("This prune strategy keeps only solvable states.");

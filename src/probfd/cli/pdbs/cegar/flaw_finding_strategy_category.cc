@@ -14,7 +14,7 @@ namespace probfd::cli::pdbs::cegar {
 void add_flaw_finding_strategy_category(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_shared_category_plugin<FlawFindingStrategy>(
+    n.insert_shared_type_declaration<FlawFindingStrategy>(
         "FlawFindingStrategy",
         "Policy CEGAR flaw finding strategy.");
 }

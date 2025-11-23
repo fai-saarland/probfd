@@ -11,7 +11,7 @@ using namespace downward;
 namespace probfd::cli::merge_and_shrink {
 
 std::size_t
-add_merge_strategy_options_to_feature(Feature& feature, std::size_t start_index)
+add_merge_strategy_options_to_feature(InternalFunctionDefinitionBase& feature, std::size_t start_index)
 {
     return downward::cli::utils::add_log_options_to_feature(
         feature,

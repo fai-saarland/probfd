@@ -15,11 +15,11 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-Feature& add_dead_end_pruning_heuristic_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_dead_end_pruning_heuristic_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "prune_dead_ends",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             TaskHeuristicFactory,
             DeadEndPruningHeuristicFactory,
             std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>);

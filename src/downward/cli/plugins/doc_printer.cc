@@ -23,23 +23,21 @@ void DocPrinter::print_all() const
 {
     const Namespace& n = registry.get_global_name_space();
 
-    for (const auto& subcategory : registry.get_subcategory_plugins()) {
-        print_subcategory(subcategory);
-    }
+    for (const auto& topic : registry.get_topics()) { print_topic(topic); }
 
-    for (const auto categories = n.get_categories();
-         const auto& category : categories) {
-        print_category(category);
+    for (const auto type_declarations = n.get_type_declarations();
+         const auto& type_declaration : type_declarations) {
+        print_type_declaration(type_declaration);
     }
 }
 
-void DocPrinter::print_subcategory(const string& name) const
+void DocPrinter::print_topic(const string& name) const
 {
-    const SubcategoryPlugin& s = registry.get_subcategory_plugin(name);
-    print_subcategory(s);
+    const DocumentationTopic& s = registry.get_topic_by_name(name);
+    print_topic(s);
 }
 
-void DocPrinter::print_category(const string& qname) const
+void DocPrinter::print_type_declaration(const string& qname) const
 {
     auto parts = std::views::split(qname, ".") |
                  std::ranges::to<std::vector<std::string>>();
@@ -47,47 +45,47 @@ void DocPrinter::print_category(const string& qname) const
     parts.pop_back();
 
     const Namespace& n = registry.get_namespace(parts);
-    const auto categories = n.get_categories();
+    const auto categories = n.get_type_declarations();
     const auto it = std::ranges::lower_bound(
         categories,
         name,
         {},
         [](const auto& category_plugin) {
-            return category_plugin.get_category_name();
+            return category_plugin.get_identifier();
         });
 
-    if (it == categories.end() || it->get_category_name() != name) {
-        throw MissingCategoryError(
-            "could not find a category named '" + name + "' in the registry");
+    if (it == categories.end() || it->get_identifier() != name) {
+        throw MissingTypeDeclarationError(
+            std::format(
+                "could not find a type named '{}' in the registry",
+                name));
     }
 
-    print_category(*it);
+    print_type_declaration(*it);
 }
 
-void DocPrinter::print_feature(const string& qname) const
+void DocPrinter::print_function_declaration(const string& qname) const
 {
     auto parts = std::views::split(qname, ".") |
                  std::ranges::to<std::vector<std::string>>();
     const auto name = std::move(parts.back());
     parts.pop_back();
     const auto& n = registry.get_namespace(parts);
-    print_feature(n.get_feature(name));
+    print_function_declaration(n.get_function_definition(name));
 }
 
-void DocPrinter::print_category(const CategoryPlugin& category) const
+void DocPrinter::print_type_declaration(
+    const InternalTypeDeclarationBase& type_declaration) const
 {
-    const auto& subcategories = registry.get_subcategory_plugins();
+    const auto& topics = registry.get_topics();
 
-    std::vector sorted_subcategories(std::from_range, subcategories);
-    std::ranges::sort(
-        sorted_subcategories,
-        {},
-        &SubcategoryPlugin::get_subcategory_name);
+    std::vector sorted_topics(std::from_range, topics);
+    std::ranges::sort(sorted_topics, {}, &DocumentationTopic::get_topic_name);
 
-    print_category_header(category);
-    print_category_synopsis(category.get_synopsis());
+    print_type_declaration_header(type_declaration);
+    print_type_declaration_synopsis(type_declaration.get_synopsis());
 
-    vector<const Feature*> features;
+    vector<const InternalFunctionDefinitionBase*> function_definitions;
 
     std::stack<const Namespace*> s;
     s.push(&registry.get_global_name_space());
@@ -96,12 +94,13 @@ void DocPrinter::print_category(const CategoryPlugin& category) const
         const auto* n = s.top();
         s.pop();
 
-        for (const auto& feature : n->get_features()) {
-            if (const Type& type = feature->get_type();
-                type.is_feature_type() &&
-                static_cast<const FeatureType&>(type).get_type_index() ==
-                    category.get_pointer_type()) {
-                features.push_back(feature);
+        for (const auto& function_definition : n->get_function_definitions()) {
+            if (const Type& type =
+                    function_definition->get_type().get_return_type();
+                type.is_internal_type() &&
+                static_cast<const InternalType&>(type).get_type_index() ==
+                    type_declaration.get_pointer_type()) {
+                function_definitions.push_back(function_definition);
             }
         }
 
@@ -110,46 +109,56 @@ void DocPrinter::print_category(const CategoryPlugin& category) const
         }
     }
 
-    std::vector sorted_features(std::from_range, features);
-    std::ranges::sort(sorted_features, {}, [](const Feature* f) {
-        return f->get_key();
-    });
+    std::vector sorted_function_definitions(
+        std::from_range,
+        function_definitions);
 
-    print_category_members(category, sorted_features);
+    std::ranges::sort(
+        sorted_function_definitions,
+        {},
+        [](const InternalFunctionDefinitionBase* f) {
+            return f->get_identifier();
+        });
 
-    print_category_footer();
+    print_type_declaration_related_functions(
+        type_declaration,
+        sorted_function_definitions);
+
+    print_type_declaration_footer();
 }
 
-void DocPrinter::print_subcategory(const SubcategoryPlugin& subcategory) const
+void DocPrinter::print_topic(const DocumentationTopic& topic) const
 {
-    if (const auto& subcategory_name = subcategory.get_subcategory_name();
-        !subcategory_name.empty()) {
-        os << endl
-           << "===== Topic " << subcategory.get_title() << " =====" << endl;
-        if (!subcategory.get_synopsis().empty()) {
-            os << subcategory.get_synopsis() << endl;
+    if (const auto& topic_name = topic.get_topic_name(); !topic_name.empty()) {
+        os << endl << "===== Topic " << topic.get_title() << " =====" << endl;
+        if (!topic.get_synopsis().empty()) {
+            os << topic.get_synopsis() << endl;
         }
         os << endl;
     }
 
-    std::vector features(std::from_range, subcategory.get_features());
+    std::vector functions(std::from_range, topic.get_functions());
 
-    std::ranges::sort(features, {}, [](const Feature* f) {
-        return f->get_key();
-    });
+    std::ranges::sort(
+        functions,
+        {},
+        [](const InternalFunctionDefinitionBase* f) {
+            return f->get_identifier();
+        });
 
-    print_subcategory_members(subcategory, features);
+    print_topic_members(topic, functions);
 }
 
-void DocPrinter::print_feature(const Feature& feature) const
+void DocPrinter::print_function_declaration(
+    const InternalFunctionDefinitionBase& function_def) const
 {
-    print_header(feature);
-    print_synopsis(feature);
-    print_usage(feature);
-    print_arguments(feature);
-    print_notes(feature);
-    print_language_features(feature);
-    print_properties(feature);
+    print_header(function_def);
+    print_synopsis(function_def);
+    print_usage(function_def);
+    print_arguments(function_def);
+    print_notes(function_def);
+    print_language_features(function_def);
+    print_properties(function_def);
 }
 
 Txt2TagsPrinter::Txt2TagsPrinter(ostream& out, Registry& registry)
@@ -157,24 +166,28 @@ Txt2TagsPrinter::Txt2TagsPrinter(ostream& out, Registry& registry)
 {
 }
 
-void Txt2TagsPrinter::print_header(const Feature& feature) const
+void Txt2TagsPrinter::print_header(
+    const InternalFunctionDefinitionBase& function_def) const
 {
-    string title = feature.get_title();
-    if (title.empty()) { title = feature.get_key(); }
+    string title = function_def.get_title();
+    if (title.empty()) { title = function_def.get_identifier(); }
     os << "== " << title << " ==" << endl;
 }
 
-void Txt2TagsPrinter::print_synopsis(const Feature& feature) const
+void Txt2TagsPrinter::print_synopsis(
+    const InternalFunctionDefinitionBase& function_def) const
 {
-    if (!feature.get_synopsis().empty()) os << feature.get_synopsis() << endl;
+    if (!function_def.get_synopsis().empty())
+        os << function_def.get_synopsis() << endl;
 }
 
-void Txt2TagsPrinter::print_usage(const Feature& feature) const
+void Txt2TagsPrinter::print_usage(
+    const InternalFunctionDefinitionBase& function_def) const
 {
-    if (!feature.get_key().empty()) {
-        os << "``` " << feature.get_key() << "(";
+    if (!function_def.get_identifier().empty()) {
+        os << "``` " << function_def.get_identifier() << "(";
         vector<string> argument_help_strings;
-        for (const ArgumentInfo& arg_info : feature.get_arguments()) {
+        for (const ArgumentInfo& arg_info : function_def.get_arguments()) {
             string arg_help = arg_info.key;
             if (!arg_info.default_value.empty()) {
                 arg_help += "=" + arg_info.default_value;
@@ -186,14 +199,15 @@ void Txt2TagsPrinter::print_usage(const Feature& feature) const
     }
 }
 
-void Txt2TagsPrinter::print_arguments(const Feature& feature) const
+void Txt2TagsPrinter::print_arguments(
+    const InternalFunctionDefinitionBase& function_def) const
 {
-    const auto& ftype = feature.get_type();
+    const auto& ftype = function_def.get_type();
 
     for (const auto& [arg_type, arg_info, arg_help] : std::views::zip(
              ftype.get_argument_types(),
-             feature.get_arguments(),
-             feature.get_argument_docs())) {
+             function_def.get_arguments(),
+             function_def.get_argument_docs())) {
         os << "- //" << arg_info.key << "// (" << arg_type->name()
            << "): " << arg_help << endl;
         if (arg_type->is_enum_type()) {
@@ -207,9 +221,10 @@ void Txt2TagsPrinter::print_arguments(const Feature& feature) const
     }
 }
 
-void Txt2TagsPrinter::print_notes(const Feature& feature) const
+void Txt2TagsPrinter::print_notes(
+    const InternalFunctionDefinitionBase& function_def) const
 {
-    for (const NoteInfo& note : feature.get_notes()) {
+    for (const NoteInfo& note : function_def.get_notes()) {
         if (note.long_text) {
             os << "=== " << note.name << " ===" << endl
                << note.description << endl
@@ -221,38 +236,43 @@ void Txt2TagsPrinter::print_notes(const Feature& feature) const
     }
 }
 
-void Txt2TagsPrinter::print_language_features(const Feature& feature) const
+void Txt2TagsPrinter::print_language_features(
+    const InternalFunctionDefinitionBase& function_def) const
 {
-    if (!feature.get_language_support().empty()) {
+    if (!function_def.get_language_support().empty()) {
         os << "Language features supported:" << endl;
-        for (const LanguageSupportInfo& ls : feature.get_language_support()) {
+        for (const LanguageSupportInfo& ls :
+             function_def.get_language_support()) {
             os << "- **" << ls.feature << ":** " << ls.description << endl;
         }
     }
 }
 
-void Txt2TagsPrinter::print_properties(const Feature& feature) const
+void Txt2TagsPrinter::print_properties(
+    const InternalFunctionDefinitionBase& function_def) const
 {
-    if (!feature.get_properties().empty()) {
+    if (!function_def.get_properties().empty()) {
         os << "Properties:" << endl;
-        for (const PropertyInfo& prop : feature.get_properties()) {
+        for (const PropertyInfo& prop : function_def.get_properties()) {
             os << "- **" << prop.property << ":** " << prop.description << endl;
         }
     }
 }
 
-void Txt2TagsPrinter::print_category_header(
-    const CategoryPlugin& category) const
+void Txt2TagsPrinter::print_type_declaration_header(
+    const InternalTypeDeclarationBase& type_declarations) const
 {
-    os << ">>>>CATEGORY: " << category.get_category_name() << "<<<<" << endl;
+    os << ">>>>CATEGORY: " << type_declarations.get_identifier() << "<<<<"
+       << endl;
 }
 
-void Txt2TagsPrinter::print_category_synopsis(const string& synopsis) const
+void Txt2TagsPrinter::print_type_declaration_synopsis(
+    const string& synopsis) const
 {
     if (!synopsis.empty()) { os << synopsis << endl; }
 }
 
-void Txt2TagsPrinter::print_category_footer() const
+void Txt2TagsPrinter::print_type_declaration_footer() const
 {
     os << endl << ">>>>CATEGORYEND<<<<" << endl;
 }
@@ -263,39 +283,43 @@ PlainPrinter::PlainPrinter(ostream& out, Registry& registry, bool print_all)
 {
 }
 
-void PlainPrinter::print_header(const Feature& feature) const
+void PlainPrinter::print_header(
+    const InternalFunctionDefinitionBase& function_def) const
 {
-    string title = feature.get_title();
-    if (title.empty()) { title = feature.get_key(); }
+    string title = function_def.get_title();
+    if (title.empty()) { title = function_def.get_identifier(); }
     os << "== " << title << " ==" << endl;
 }
 
-void PlainPrinter::print_synopsis(const Feature& feature) const
+void PlainPrinter::print_synopsis(
+    const InternalFunctionDefinitionBase& function_def) const
 {
-    if (print_all && !feature.get_synopsis().empty()) {
-        os << feature.get_synopsis() << endl;
+    if (print_all && !function_def.get_synopsis().empty()) {
+        os << function_def.get_synopsis() << endl;
     }
 }
 
-void PlainPrinter::print_usage(const Feature& feature) const
+void PlainPrinter::print_usage(
+    const InternalFunctionDefinitionBase& function_def) const
 {
-    if (!feature.get_key().empty()) {
+    if (!function_def.get_identifier().empty()) {
         std::println(
             os,
             "{}({:n:d})",
-            feature.get_key(),
-            feature.get_arguments());
+            function_def.get_identifier(),
+            function_def.get_arguments());
     }
 }
 
-void PlainPrinter::print_arguments(const Feature& feature) const
+void PlainPrinter::print_arguments(
+    const InternalFunctionDefinitionBase& function_def) const
 {
-    const auto& ftype = feature.get_type();
+    const auto& ftype = function_def.get_type();
 
     for (const auto& [arg_type, arg_info, arg_help] : std::views::zip(
              ftype.get_argument_types(),
-             feature.get_arguments(),
-             feature.get_argument_docs())) {
+             function_def.get_arguments(),
+             function_def.get_argument_docs())) {
         os << " " << arg_info.key << " (" << arg_type->name()
            << "): " << arg_help << endl;
         if (arg_type->is_enum_type()) {
@@ -309,10 +333,11 @@ void PlainPrinter::print_arguments(const Feature& feature) const
     }
 }
 
-void PlainPrinter::print_notes(const Feature& feature) const
+void PlainPrinter::print_notes(
+    const InternalFunctionDefinitionBase& function_def) const
 {
     if (print_all) {
-        for (const NoteInfo& note : feature.get_notes()) {
+        for (const NoteInfo& note : function_def.get_notes()) {
             if (note.long_text) {
                 os << "=== " << note.name << " ===" << endl
                    << note.description << endl
@@ -325,37 +350,41 @@ void PlainPrinter::print_notes(const Feature& feature) const
     }
 }
 
-void PlainPrinter::print_language_features(const Feature& feature) const
+void PlainPrinter::print_language_features(
+    const InternalFunctionDefinitionBase& function_def) const
 {
-    if (print_all && !feature.get_language_support().empty()) {
+    if (print_all && !function_def.get_language_support().empty()) {
         os << "Language features supported:" << endl;
-        for (const LanguageSupportInfo& ls : feature.get_language_support()) {
+        for (const LanguageSupportInfo& ls :
+             function_def.get_language_support()) {
             os << " * " << ls.feature << ": " << ls.description << endl;
         }
     }
 }
 
-void PlainPrinter::print_properties(const Feature& feature) const
+void PlainPrinter::print_properties(
+    const InternalFunctionDefinitionBase& function_def) const
 {
-    if (print_all && !feature.get_properties().empty()) {
+    if (print_all && !function_def.get_properties().empty()) {
         os << "Properties:" << endl;
-        for (const PropertyInfo& prop : feature.get_properties()) {
+        for (const PropertyInfo& prop : function_def.get_properties()) {
             os << " * " << prop.property << ": " << prop.description << endl;
         }
     }
 }
 
-void PlainPrinter::print_category_header(const CategoryPlugin& category) const
+void PlainPrinter::print_type_declaration_header(
+    const InternalTypeDeclarationBase& type_declarations) const
 {
-    os << "Help for " << category.get_category_name() << endl << endl;
+    os << "Help for " << type_declarations.get_identifier() << endl << endl;
 }
 
-void PlainPrinter::print_category_synopsis(const string& synopsis) const
+void PlainPrinter::print_type_declaration_synopsis(const string& synopsis) const
 {
     if (!synopsis.empty()) { os << synopsis << endl; }
 }
 
-void PlainPrinter::print_category_footer() const
+void PlainPrinter::print_type_declaration_footer() const
 {
     os << endl;
 }

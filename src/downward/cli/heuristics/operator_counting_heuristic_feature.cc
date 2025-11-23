@@ -74,11 +74,11 @@ public:
     }
 };
 
-Feature& add_operator_counting_heuristic_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_operator_counting_heuristic_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "operator_counting",
-        &cli::plugins::make_shared<
+        &cli::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             OperatorCountingHeuristicFactory,
             shared_ptr<TaskTransformation>,

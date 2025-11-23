@@ -38,11 +38,11 @@ public:
     }
 };
 
-Feature& add_g_evaluator_feature_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_g_evaluator_feature_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "g",
-        &cli::plugins::make_shared<
+        &cli::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             GEvaluatorFactory,
             std::string,
@@ -62,10 +62,10 @@ namespace downward::cli::evaluators {
 void add_g_evaluator_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    const Feature& f = add_g_evaluator_feature_to_namespace(n);
-    SubcategoryPlugin& subcategory =
-        registry.get_subcategory_plugin("evaluators_basic");
-    subcategory.add_feature(f);
+    const InternalFunctionDefinitionBase& f = add_g_evaluator_feature_to_namespace(n);
+    DocumentationTopic& subcategory =
+        registry.get_topic_by_name("evaluators_basic");
+    subcategory.add_function(f);
 }
 
 } // namespace downward::cli::evaluators

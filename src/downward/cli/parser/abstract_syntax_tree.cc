@@ -399,8 +399,8 @@ TypedDecoratedAstNodePtr DirectFunctionCallNode::decorate(
 
         callee_type = static_cast<const plugins::FunctionType*>(type);
     } else if (const auto& n = env.get_registry().get_namespace(qualification);
-               n.has_feature(name)) {
-        const auto& f = n.get_feature(name);
+               n.has_function(name)) {
+        const auto& f = n.get_function_definition(name);
         callee_node = std::make_unique<FeatureLiteralNode>(f);
         callee_type = &f.get_type();
         argument_infos = f.get_arguments();
@@ -751,8 +751,8 @@ IdentifierNode::decorate(utils::Context& context, VariableEnvironment& env)
     }
 
     if (const auto& n = env.get_registry().get_namespace(qualification);
-        n.has_feature(name)) {
-        const auto& f = n.get_feature(name);
+        n.has_function(name)) {
+        const auto& f = n.get_function_definition(name);
         auto node = std::make_unique<FeatureLiteralNode>(f);
         return {std::move(node), &f.get_type()};
     }
@@ -861,13 +861,13 @@ LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
                 "__operator_int_{}__",
                 std::string_view{data, last});
 
-            if (!n.has_feature(operator_fname)) {
+            if (!n.has_function(operator_fname)) {
                 context.error(
                     "User-defined int literal function '{}' not found.",
                     operator_fname);
             }
 
-            const auto& feature = n.get_feature(operator_fname);
+            const auto& feature = n.get_function_definition(operator_fname);
 
             std::vector<FunctionArgument> arguments;
             arguments.emplace_back(std::make_unique<IntLiteralNode>(x), false);
@@ -905,13 +905,13 @@ LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
             const auto operator_fname =
                 std::format("__operator_float_{}__", string_view{data, last});
 
-            if (!n.has_feature(operator_fname)) {
+            if (!n.has_function(operator_fname)) {
                 context.error(
                     "User-defined float literal function '{}' not found.",
                     operator_fname);
             }
 
-            const auto& feature = n.get_feature(operator_fname);
+            const auto& feature = n.get_function_definition(operator_fname);
 
             std::vector<FunctionArgument> arguments;
             arguments.emplace_back(

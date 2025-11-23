@@ -24,11 +24,11 @@ using downward::cli::landmarks::add_landmark_factory_options_to_feature;
 
 namespace {
 
-Feature& add_landmark_factory_hm_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_landmark_factory_hm_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "lm_hm",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             LandmarkFactory,
             LandmarkFactoryHM,
             std::shared_ptr<TaskDependentFactory<MutexInformation>>,

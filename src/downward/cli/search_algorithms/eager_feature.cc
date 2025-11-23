@@ -134,9 +134,9 @@ create_eager_search_no_f_evaluator(
         verbosity);
 }
 
-Feature& add_eager_search_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_eager_search_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin("eager", create_eager_search);
+    auto& f = nspace.insert_function_definition("eager", create_eager_search);
 
     f.document_title("Eager best-first search");
     f.document_synopsis("");
@@ -158,9 +158,9 @@ Feature& add_eager_search_to_namespace(Namespace& nspace)
     return f;
 }
 
-Feature& add_eager_search_no_f_evaluator_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_eager_search_no_f_evaluator_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "eager_no_f_evaluator",
         create_eager_search_no_f_evaluator);
 

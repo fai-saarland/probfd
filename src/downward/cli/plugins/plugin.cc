@@ -6,36 +6,40 @@ using namespace std;
 
 namespace downward::cli::plugins {
 
-Feature::Feature(string key, std::size_t num_args)
-    : arguments(num_args, ArgumentInfo::make_required())
+InternalFunctionDefinitionBase::InternalFunctionDefinitionBase(
+    string identifier,
+    std::size_t num_args)
+    : identifier(std::move(identifier))
+    , arguments(num_args, ArgumentInfo::make_required())
     , argument_docs(num_args)
-    , key(std::move(key))
 {
 }
 
-void Feature::document_title(const string& title)
+void InternalFunctionDefinitionBase::document_title(const string& title)
 {
     this->title = title;
 }
 
-void Feature::document_synopsis(const string& note)
+void InternalFunctionDefinitionBase::document_synopsis(const string& note)
 {
     synopsis = note;
 }
 
-void Feature::document_property(const string& property, const string& note)
+void InternalFunctionDefinitionBase::document_property(
+    const string& property,
+    const string& note)
 {
     properties.emplace_back(property, note);
 }
 
-void Feature::document_language_support(
+void InternalFunctionDefinitionBase::document_language_support(
     const string& feature,
     const string& note)
 {
     language_support.emplace_back(feature, note);
 }
 
-void Feature::document_note(
+void InternalFunctionDefinitionBase::document_note(
     const string& name,
     const string& note,
     bool long_text)
@@ -43,122 +47,129 @@ void Feature::document_note(
     notes.emplace_back(name, note, long_text);
 }
 
-string Feature::get_key() const
+string InternalFunctionDefinitionBase::get_identifier() const
 {
-    return key;
+    return identifier;
 }
 
-string Feature::get_title() const
+string InternalFunctionDefinitionBase::get_title() const
 {
     return title;
 }
 
-string Feature::get_synopsis() const
+string InternalFunctionDefinitionBase::get_synopsis() const
 {
     return synopsis;
 }
 
-const vector<ArgumentInfo>& Feature::get_arguments() const
+const vector<ArgumentInfo>&
+InternalFunctionDefinitionBase::get_arguments() const
 {
     return arguments;
 }
 
-const vector<std::string>& Feature::get_argument_docs() const
+const vector<std::string>&
+InternalFunctionDefinitionBase::get_argument_docs() const
 {
     return argument_docs;
 }
 
-const vector<PropertyInfo>& Feature::get_properties() const
+const vector<PropertyInfo>&
+InternalFunctionDefinitionBase::get_properties() const
 {
     return properties;
 }
 
-const vector<LanguageSupportInfo>& Feature::get_language_support() const
+const vector<LanguageSupportInfo>&
+InternalFunctionDefinitionBase::get_language_support() const
 {
     return language_support;
 }
 
-const vector<NoteInfo>& Feature::get_notes() const
+const vector<NoteInfo>& InternalFunctionDefinitionBase::get_notes() const
 {
     return notes;
 }
 
-CategoryPlugin::CategoryPlugin(
+InternalTypeDeclarationBase::InternalTypeDeclarationBase(
     type_index pointer_type,
-    std::string category_name,
+    std::string type_identifier,
     std::string synopsis)
     : pointer_type(pointer_type)
-    , category_name(std::move(category_name))
+    , identifier(std::move(type_identifier))
     , synopsis(std::move(synopsis))
 {
 }
 
-type_index CategoryPlugin::get_pointer_type() const
+type_index InternalTypeDeclarationBase::get_pointer_type() const
 {
     return pointer_type;
 }
 
-string CategoryPlugin::get_category_name() const
+string InternalTypeDeclarationBase::get_identifier() const
 {
-    return category_name;
+    return identifier;
 }
 
-string CategoryPlugin::get_class_name() const
+string InternalTypeDeclarationBase::get_class_name() const
 {
     return pointer_type.name();
 }
 
-string CategoryPlugin::get_synopsis() const
+string InternalTypeDeclarationBase::get_synopsis() const
 {
     return synopsis;
 }
 
-SubcategoryPlugin::SubcategoryPlugin(const string& subcategory)
-    : subcategory_name(subcategory)
+DocumentationTopic::DocumentationTopic(const string& subcategory)
+    : topic_name(subcategory)
 {
 }
 
-void SubcategoryPlugin::document_title(const string& title)
+void DocumentationTopic::document_title(const string& title)
 {
     this->title = title;
 }
 
-void SubcategoryPlugin::document_synopsis(const string& synopsis)
+void DocumentationTopic::document_synopsis(const string& synopsis)
 {
     this->synopsis = synopsis;
 }
 
-void SubcategoryPlugin::add_category(const CategoryPlugin& category)
+void DocumentationTopic::add_type_declaration(
+    const InternalTypeDeclarationBase& type_declaration)
 {
-    member_types.push_back(&category);
+    member_types.push_back(&type_declaration);
 }
 
-void SubcategoryPlugin::add_enum(const EnumPlugin& enum_plugin)
+void DocumentationTopic::add_enum(
+    const InternalEnumDeclarationBase& enum_declaration)
 {
-    enum_types.push_back(&enum_plugin);
+    enum_types.push_back(&enum_declaration);
 }
 
-void SubcategoryPlugin::add_feature(const Feature& feature)
+void DocumentationTopic::add_function(
+    const InternalFunctionDefinitionBase& function)
 {
-    features.push_back(&feature);
+    features.push_back(&function);
 }
 
-string SubcategoryPlugin::get_subcategory_name() const
+string DocumentationTopic::get_topic_name() const
 {
-    return subcategory_name;
+    return topic_name;
 }
 
-string SubcategoryPlugin::get_title() const
+string DocumentationTopic::get_title() const
 {
     return title;
 }
 
-string SubcategoryPlugin::get_synopsis() const
+string DocumentationTopic::get_synopsis() const
 {
     return synopsis;
 }
 
-EnumPlugin::EnumPlugin(
+InternalEnumDeclarationBase::InternalEnumDeclarationBase(
     type_index type,
     initializer_list<pair<string, string>> enum_values)
     : type(type)
@@ -166,17 +177,17 @@ EnumPlugin::EnumPlugin(
 {
 }
 
-type_index EnumPlugin::get_type() const
+type_index InternalEnumDeclarationBase::get_type() const
 {
     return type;
 }
 
-string EnumPlugin::get_class_name() const
+string InternalEnumDeclarationBase::get_class_name() const
 {
     return type.name();
 }
 
-const EnumInfo& EnumPlugin::get_enum_info() const
+const EnumInfo& InternalEnumDeclarationBase::get_enum_info() const
 {
     return enum_info;
 }

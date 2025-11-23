@@ -18,11 +18,11 @@ using namespace probfd::cli::merge_and_shrink;
 
 namespace {
 
-Feature& add_shrink_strategy_random_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_shrink_strategy_random_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "pshrink_random",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             ShrinkStrategy,
             ShrinkStrategyRandom,
             std::shared_ptr<utils::RandomNumberGenerator>>);

@@ -14,7 +14,7 @@ using namespace downward::landmarks;
 namespace downward::cli::landmarks {
 
 std::size_t add_landmark_heuristic_options_to_feature(
-    plugins::Feature& feature,
+    plugins::InternalFunctionDefinitionBase& feature,
     const string& description,
     std::size_t start_index)
 {

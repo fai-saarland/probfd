@@ -135,9 +135,9 @@ create_all_states_potential_heuristic(
         OptimizeFor::ALL_STATES);
 }
 
-Feature& add_initial_state_potential_heuristic_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_initial_state_potential_heuristic_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "initial_state_potential",
         create_initial_state_potential_heuristic);
 
@@ -152,9 +152,9 @@ Feature& add_initial_state_potential_heuristic_to_namespace(Namespace& nspace)
     return f;
 }
 
-Feature& add_all_states_potential_heuristic_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_all_states_potential_heuristic_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "all_states_potential",
         create_all_states_potential_heuristic);
 
@@ -173,12 +173,12 @@ namespace downward::cli::heuristics {
 void add_single_potential_heuristics_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    SubcategoryPlugin& subcategory =
-        registry.get_subcategory_plugin("heuristics_potentials");
-    const Feature& f = add_initial_state_potential_heuristic_to_namespace(n);
-    const Feature& f2 = add_all_states_potential_heuristic_to_namespace(n);
-    subcategory.add_feature(f);
-    subcategory.add_feature(f2);
+    DocumentationTopic& subcategory =
+        registry.get_topic_by_name("heuristics_potentials");
+    const InternalFunctionDefinitionBase& f = add_initial_state_potential_heuristic_to_namespace(n);
+    const InternalFunctionDefinitionBase& f2 = add_all_states_potential_heuristic_to_namespace(n);
+    subcategory.add_function(f);
+    subcategory.add_function(f2);
 }
 
 } // namespace downward::cli::heuristics

@@ -13,7 +13,7 @@ namespace probfd::cli::merge_and_shrink {
 void add_prune_strategy_category(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_shared_category_plugin<PruneStrategy>(
+    n.insert_shared_type_declaration<PruneStrategy>(
         "PruneStrategy",
         "This page describes the various pruning strategies "
         "supported by the planner.");

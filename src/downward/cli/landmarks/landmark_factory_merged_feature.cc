@@ -19,11 +19,11 @@ using downward::cli::landmarks::add_landmark_factory_options_to_feature;
 
 namespace {
 
-Feature& add_landmark_factory_merged_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_landmark_factory_merged_to_namespace(Namespace& nspace)
 {
-    auto& f = nspace.insert_typed_feature_plugin(
+    auto& f = nspace.insert_function_definition(
         "lm_merged",
-        &downward::cli::plugins::make_shared<
+        &downward::cli::plugins::construct_shared<
             LandmarkFactory,
             LandmarkFactoryMerged,
             const std::vector<std::shared_ptr<LandmarkFactory>>&,

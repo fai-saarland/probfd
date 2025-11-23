@@ -10,67 +10,67 @@ using namespace std;
 
 namespace downward::cli::plugins {
 
-bool CategoryComparator::operator()(
-    const CategoryPlugin& lhs,
-    const CategoryPlugin& rhs) const
+bool TypeDeclarationComparator::operator()(
+    const InternalTypeDeclarationBase& lhs,
+    const InternalTypeDeclarationBase& rhs) const
 {
-    return lhs.get_category_name() < rhs.get_category_name();
+    return lhs.get_identifier() < rhs.get_identifier();
 }
 
-bool CategoryComparator::operator()(
+bool TypeDeclarationComparator::operator()(
     const std::string& lhs,
-    const CategoryPlugin& rhs) const
+    const InternalTypeDeclarationBase& rhs) const
 {
-    return lhs < rhs.get_category_name();
+    return lhs < rhs.get_identifier();
 }
 
-bool CategoryComparator::operator()(
-    const CategoryPlugin& lhs,
+bool TypeDeclarationComparator::operator()(
+    const InternalTypeDeclarationBase& lhs,
     const std::string& rhs) const
 {
-    return lhs.get_category_name() < rhs;
+    return lhs.get_identifier() < rhs;
 }
 
-bool SubCategoryComparator::operator()(
-    const SubcategoryPlugin& lhs,
-    const SubcategoryPlugin& rhs) const
+bool TopicComparator::operator()(
+    const DocumentationTopic& lhs,
+    const DocumentationTopic& rhs) const
 {
-    return lhs.get_subcategory_name() < rhs.get_subcategory_name();
+    return lhs.get_topic_name() < rhs.get_topic_name();
 }
 
-bool SubCategoryComparator::operator()(
+bool TopicComparator::operator()(
     const std::string& lhs,
-    const SubcategoryPlugin& rhs) const
+    const DocumentationTopic& rhs) const
 {
-    return lhs < rhs.get_subcategory_name();
+    return lhs < rhs.get_topic_name();
 }
 
-bool SubCategoryComparator::operator()(
-    const SubcategoryPlugin& lhs,
+bool TopicComparator::operator()(
+    const DocumentationTopic& lhs,
     const std::string& rhs) const
 {
-    return lhs.get_subcategory_name() < rhs;
+    return lhs.get_topic_name() < rhs;
 }
 
 bool FeatureComparator::operator()(
-    const std::unique_ptr<Feature>& lhs,
-    const std::unique_ptr<Feature>& rhs) const
+    const std::unique_ptr<InternalFunctionDefinitionBase>& lhs,
+    const std::unique_ptr<InternalFunctionDefinitionBase>& rhs) const
 {
-    return lhs->get_key() < rhs->get_key();
+    return lhs->get_identifier() < rhs->get_identifier();
 }
 
 bool FeatureComparator::operator()(
     const std::string& lhs,
-    const std::unique_ptr<Feature>& rhs) const
+    const std::unique_ptr<InternalFunctionDefinitionBase>& rhs) const
 {
-    return lhs < rhs->get_key();
+    return lhs < rhs->get_identifier();
 }
 
 bool FeatureComparator::operator()(
-    const std::unique_ptr<Feature>& lhs,
+    const std::unique_ptr<InternalFunctionDefinitionBase>& lhs,
     const std::string& rhs) const
 {
-    return lhs->get_key() < rhs;
+    return lhs->get_identifier() < rhs;
 }
 
 Registry::Registry()
@@ -125,29 +125,31 @@ Namespace& Registry::get_namespace(const std::vector<std::string>& name)
     return *n;
 }
 
-SubcategoryPlugin& Registry::get_subcategory_plugin(const string& subcategory)
+DocumentationTopic& Registry::get_topic_by_name(const string& subcategory)
 {
-    if (const auto it = subcategories_by_name.find(subcategory);
-        it != subcategories_by_name.end()) {
+    if (const auto it = topics_by_name.find(subcategory);
+        it != topics_by_name.end()) {
         return *it->second;
     }
 
-    throw MissingSubCategoryError(
-        "attempt to retrieve non-existing group info from registry: " +
-        subcategory);
+    throw MissingTopicError(
+        std::format(
+            "attempt to retrieve non-existing topic from registry: {}",
+            subcategory));
 }
 
-const SubcategoryPlugin&
-Registry::get_subcategory_plugin(const string& subcategory) const
+const DocumentationTopic&
+Registry::get_topic_by_name(const string& subcategory) const
 {
-    if (const auto it = subcategories_by_name.find(subcategory);
-        it != subcategories_by_name.end()) {
+    if (const auto it = topics_by_name.find(subcategory);
+        it != topics_by_name.end()) {
         return *it->second;
     }
 
-    throw MissingSubCategoryError(
-        "attempt to retrieve non-existing group info from registry: " +
-        subcategory);
+    throw MissingTopicError(
+        std::format(
+            "Attempt to retrieve non-existing topic from registry: {}",
+            subcategory));
 }
 
 const Namespace&
@@ -162,18 +164,20 @@ Registry::get_namespace(const std::vector<std::string>& name) const
 
 Namespace& Namespace::get_or_create_nested_namespace(const std::string& name)
 {
-    return *children.emplace(name, std::make_unique<Namespace>()).first->second;
+    return *nested_namespaces.emplace(name, std::make_unique<Namespace>())
+                .first->second;
 }
 
 Namespace& Namespace::create_nested_namespace(const std::string& name)
 {
-    auto [it, inserted] = children.emplace(
+    auto [it, inserted] = nested_namespaces.emplace(
         std::piecewise_construct,
         std::forward_as_tuple(name),
         std::forward_as_tuple());
 
     if (!inserted) {
-        throw std::domain_error("Nested namespace already exists.");
+        throw std::domain_error(
+            std::format("Nested namespace {} already exists.", name));
     }
 
     return *it->second;
@@ -181,7 +185,8 @@ Namespace& Namespace::create_nested_namespace(const std::string& name)
 
 Namespace& Namespace::get_nested_namespace(const std::string& name)
 {
-    if (const auto it = children.find(name); it != children.end()) {
+    if (const auto it = nested_namespaces.find(name);
+        it != nested_namespaces.end()) {
         return *it->second;
     }
 
@@ -191,7 +196,8 @@ Namespace& Namespace::get_nested_namespace(const std::string& name)
 
 const Namespace& Namespace::get_nested_namespace(const std::string& name) const
 {
-    if (const auto it = children.find(name); it != children.end()) {
+    if (const auto it = nested_namespaces.find(name);
+        it != nested_namespaces.end()) {
         return *it->second;
     }
 
@@ -199,20 +205,23 @@ const Namespace& Namespace::get_nested_namespace(const std::string& name) const
         std::format("Nested namespace {} does not exist.", name));
 }
 
-const Feature& Namespace::get_feature(const string& name) const
+const InternalFunctionDefinitionBase&
+Namespace::get_function_definition(const string& name) const
 {
-    if (const auto it = features_by_name.find(name);
-        it != features_by_name.end()) {
+    if (const auto it = functions_by_name.find(name);
+        it != functions_by_name.end()) {
         return *it->second;
     }
 
-    throw MissingFeatureError(
-        "could not find a feature named '" + name + "' in the registry");
+    throw MissingFunctionError(
+        std::format(
+            "Could not find a function named '{}' in the registry.",
+            name));
 }
 
-bool Namespace::has_feature(const string& name) const
+bool Namespace::has_function(const string& name) const
 {
-    return features_by_name.contains(name);
+    return functions_by_name.contains(name);
 }
 
 } // namespace downward::cli::plugins

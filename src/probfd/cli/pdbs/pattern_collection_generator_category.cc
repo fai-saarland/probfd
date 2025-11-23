@@ -14,7 +14,7 @@ namespace probfd::cli::pdbs {
 void add_pattern_collection_generator_category(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_shared_category_plugin<PatternCollectionGenerator>(
+    n.insert_shared_type_declaration<PatternCollectionGenerator>(
         "PPDBPatternCollectionGenerator",
         "Factory for pattern collections and/or "
         "corresponding probability-aware "
