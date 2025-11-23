@@ -10,20 +10,20 @@ using namespace downward;
 using namespace downward::cli::plugins;
 
 namespace {
-class PruneStrategySolvableFeature : public SharedTypedFeature<PruneStrategy> {
-public:
-    PruneStrategySolvableFeature()
-        : TypedFeature("prune_solvable", &PruneStrategySolvableFeature::func)
-    {
-        document_title("Solvable states prune strategy");
-        document_synopsis("This prune strategy keeps only solvable states.");
-    }
 
-    static std::shared_ptr<PruneStrategy> func()
-    {
-        return std::make_shared<PruneStrategySolvable>();
-    }
-};
+Feature& add_prune_strategy_solvable_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "prune_solvable",
+        &downward::cli::plugins::
+            make_shared<PruneStrategy, PruneStrategySolvable>);
+
+    f.document_title("Solvable states prune strategy");
+    f.document_synopsis("This prune strategy keeps only solvable states.");
+
+    return f;
+}
+
 } // namespace
 
 namespace probfd::cli::merge_and_shrink {
@@ -31,7 +31,7 @@ namespace probfd::cli::merge_and_shrink {
 void add_prune_strategy_solvable_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<PruneStrategySolvableFeature>();
+    add_prune_strategy_solvable_to_namespace(n);
 }
 
 } // namespace probfd::cli::merge_and_shrink

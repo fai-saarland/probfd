@@ -18,45 +18,37 @@ using namespace downward::cli::plugins;
 using downward::cli::landmarks::add_landmark_factory_options_to_feature;
 
 namespace {
-class LandmarkFactoryMergedFeature
-    : public SharedTypedFeature<
-          LandmarkFactory,
-          const std::vector<std::shared_ptr<LandmarkFactory>>&,
-          downward::utils::Verbosity> {
-public:
-    LandmarkFactoryMergedFeature()
-        : TypedFeature("lm_merged", &LandmarkFactoryMergedFeature::func)
-    {
-        document_title("Merged Landmarks");
-        document_synopsis(
-            "Merges the landmarks and orderings from the parameter landmarks");
 
-        document_note(
-            "Precedence",
-            "Fact landmarks take precedence over disjunctive landmarks, "
-            "orderings take precedence in the usual manner "
-            "(gn > nat > reas > o_reas). ");
-        document_note(
-            "Note",
-            "Does not currently support conjunctive landmarks");
+Feature& add_landmark_factory_merged_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "lm_merged",
+        &downward::cli::plugins::make_shared<
+            LandmarkFactory,
+            LandmarkFactoryMerged,
+            const std::vector<std::shared_ptr<LandmarkFactory>>&,
+            downward::utils::Verbosity>);
+    f.document_title("Merged Landmarks");
+    f.document_synopsis(
+        "Merges the landmarks and orderings from the parameter landmarks");
 
-        document_language_support(
-            "conditional_effects",
-            "supported if all components support them");
+    f.document_note(
+        "Precedence",
+        "Fact landmarks take precedence over disjunctive landmarks, "
+        "orderings take precedence in the usual manner "
+        "(gn > nat > reas > o_reas). ");
+    f.document_note("Note", "Does not currently support conjunctive landmarks");
 
-        make_required_argument(0, "lm_factories");
-        add_landmark_factory_options_to_feature(*this, 1);
-    }
+    f.document_language_support(
+        "conditional_effects",
+        "supported if all components support them");
 
-    static shared_ptr<LandmarkFactory> func(
-        const std::vector<std::shared_ptr<LandmarkFactory>>& lm_factories,
-        downward::utils::Verbosity verbosity)
-    {
-        return make_shared_from_arg_tuples<LandmarkFactoryMerged>(
-            lm_factories,
-            verbosity);
-    }
-};
+    f.make_required_argument(0, "lm_factories");
+    add_landmark_factory_options_to_feature(f, 1);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::landmarks {
@@ -64,7 +56,7 @@ namespace downward::cli::landmarks {
 void add_landmark_factory_merged_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<LandmarkFactoryMergedFeature>();
+    add_landmark_factory_merged_to_namespace(n);
 }
 
 } // namespace downward::cli::landmarks

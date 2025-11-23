@@ -12,29 +12,27 @@ using namespace downward::utils;
 using namespace downward::cli::plugins;
 
 namespace {
-class MergeScoringFunctionGoalRelevanceFeature
-    : public SharedTypedFeature<MergeScoringFunction> {
-public:
-    MergeScoringFunctionGoalRelevanceFeature()
-        : TypedFeature(
-              "goal_relevance",
-              &MergeScoringFunctionGoalRelevanceFeature::func)
-    {
-        document_title("Goal relevance scoring");
-        document_synopsis(
-            "This scoring function assigns a merge candidate a value of 0 iff "
-            "at "
-            "least one of the two transition systems of the merge candidate is "
-            "goal relevant in the sense that there is an abstract non-goal "
-            "state. "
-            "All other candidates get a score of positive infinity.");
-    }
 
-    static shared_ptr<MergeScoringFunction> func()
-    {
-        return make_shared<MergeScoringFunctionGoalRelevance>();
-    }
-};
+Feature&
+add_merge_scoring_function_goal_relevance_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "goal_relevance",
+        &downward::cli::plugins::make_shared<
+            MergeScoringFunction,
+            MergeScoringFunctionGoalRelevance>);
+    f.document_title("Goal relevance scoring");
+    f.document_synopsis(
+        "This scoring function assigns a merge candidate a value of 0 iff "
+        "at "
+        "least one of the two transition systems of the merge candidate is "
+        "goal relevant in the sense that there is an abstract non-goal "
+        "state. "
+        "All other candidates get a score of positive infinity.");
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::merge_and_shrink {
@@ -42,7 +40,7 @@ namespace downward::cli::merge_and_shrink {
 void add_merge_scoring_function_goal_relevance_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<MergeScoringFunctionGoalRelevanceFeature>();
+    add_merge_scoring_function_goal_relevance_to_namespace(n);
 }
 
 } // namespace downward::cli::merge_and_shrink

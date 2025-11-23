@@ -45,127 +45,91 @@ template <bool Fret>
 using SuccessorSampler = Wrapper<algorithms::SuccessorSampler, Fret>;
 
 template <bool Fret>
-class ArbitrarySuccessorSamplerFeature
-    : public SharedTypedFeature<SuccessorSampler<Fret>> {
-public:
-    ArbitrarySuccessorSamplerFeature()
-        : ArbitrarySuccessorSamplerFeature::TypedFeature(
-              add_mdp_type_to_option<false, Fret>(
-                  "arbitrary_successor_sampler"),
-              &ArbitrarySuccessorSamplerFeature::func)
-    {
-    }
+Feature& add_arbitrary_successor_sampler_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        add_mdp_type_to_option<false, Fret>("arbitrary_successor_sampler"),
+        &downward::cli::plugins::make_shared<
+            SuccessorSampler<Fret>,
+            Wrapper<ArbitrarySuccessorSampler, Fret>>);
 
-    [[nodiscard]]
-    static std::shared_ptr<SuccessorSampler<Fret>> func()
-    {
-        return std::make_shared<Wrapper<ArbitrarySuccessorSampler, Fret>>();
-    }
-};
+    return f;
+}
 
 template <bool Fret>
-class MostLikelySuccessorSamplerFeature
-    : public SharedTypedFeature<SuccessorSampler<Fret>> {
-public:
-    MostLikelySuccessorSamplerFeature()
-        : MostLikelySuccessorSamplerFeature::TypedFeature(
-              add_mdp_type_to_option<false, Fret>(
-                  "most_likely_successor_Sampler"),
-              &MostLikelySuccessorSamplerFeature::func)
-    {
-    }
+Feature& add_most_likely_successor_sampler_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        add_mdp_type_to_option<false, Fret>("most_likely_successor_Sampler"),
+        &downward::cli::plugins::make_shared<
+            SuccessorSampler<Fret>,
+            Wrapper<MostLikelySuccessorSampler, Fret>>);
 
-    [[nodiscard]]
-    static std::shared_ptr<SuccessorSampler<Fret>> func()
-    {
-        return std::make_shared<Wrapper<MostLikelySuccessorSampler, Fret>>();
-    }
-};
+    return f;
+}
 
 template <bool Fret>
-class UniformSuccessorSamplerFeature
-    : public SharedTypedFeature<SuccessorSampler<Fret>, int> {
-public:
-    UniformSuccessorSamplerFeature()
-        : UniformSuccessorSamplerFeature::TypedFeature(
-              add_mdp_type_to_option<false, Fret>(
-                  "uniform_random_successor_sampler"),
-              &UniformSuccessorSamplerFeature::func)
-    {
-        add_rng_options_to_feature(*this, 0);
-    }
+Feature& add_uniform_successor_sampler_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        add_mdp_type_to_option<false, Fret>("uniform_random_successor_sampler"),
+        &downward::cli::plugins::make_shared<
+            SuccessorSampler<Fret>,
+            Wrapper<UniformSuccessorSampler, Fret>,
+            std::shared_ptr<RandomNumberGenerator>>);
 
-    static std::shared_ptr<SuccessorSampler<Fret>> func(int random_seed)
-    {
-        return make_shared_from_arg_tuples<
-            Wrapper<UniformSuccessorSampler, Fret>>(random_seed);
-    }
-};
+    add_rng_options_to_feature(f, 0);
+
+    return f;
+}
 
 template <bool Fret>
-class RandomSuccessorSamplerFeature
-    : public SharedTypedFeature<SuccessorSampler<Fret>, int> {
-public:
-    RandomSuccessorSamplerFeature()
-        : RandomSuccessorSamplerFeature::TypedFeature(
-              add_mdp_type_to_option<false, Fret>("random_successor_sampler"),
-              &RandomSuccessorSamplerFeature::func)
-    {
-        add_rng_options_to_feature(*this, 0);
-    }
+Feature& add_random_successor_sampler_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        add_mdp_type_to_option<false, Fret>("random_successor_sampler"),
+        &downward::cli::plugins::make_shared<
+            SuccessorSampler<Fret>,
+            Wrapper<RandomSuccessorSampler, Fret>,
+            int>);
 
-    static std::shared_ptr<SuccessorSampler<Fret>> func(int random_seed)
-    {
-        return make_shared_from_arg_tuples<
-            Wrapper<RandomSuccessorSampler, Fret>>(random_seed);
-    }
-};
+    add_rng_options_to_feature(f, 0);
+
+    return f;
+}
 
 template <bool Fret>
-class VBiasedSuccessorSamplerFeature
-    : public SharedTypedFeature<SuccessorSampler<Fret>, int> {
-public:
-    VBiasedSuccessorSamplerFeature()
-        : VBiasedSuccessorSamplerFeature::TypedFeature(
-              add_mdp_type_to_option<false, Fret>("vbiased_successor_sampler"),
-              &VBiasedSuccessorSamplerFeature::func)
-    {
-        add_rng_options_to_feature(*this, 0);
-    }
+Feature& add_vbiased_successor_sampler_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        add_mdp_type_to_option<false, Fret>("vbiased_successor_sampler"),
+        &downward::cli::plugins::make_shared<
+            SuccessorSampler<Fret>,
+            Wrapper<VBiasedSuccessorSampler, Fret>,
+            int>);
 
-    static std::shared_ptr<SuccessorSampler<Fret>> func(int random_seed)
-    {
-        return make_shared_from_arg_tuples<
-            Wrapper<VBiasedSuccessorSampler, Fret>>(random_seed);
-    }
-};
+    add_rng_options_to_feature(f, 0);
+
+    return f;
+}
 
 template <bool Fret>
-class VDiffSuccessorSamplerFeature
-    : public SharedTypedFeature<SuccessorSampler<Fret>, int, bool> {
-public:
-    VDiffSuccessorSamplerFeature()
-        : VDiffSuccessorSamplerFeature::TypedFeature(
-              add_mdp_type_to_option<false, Fret>(
-                  "value_gap_successor_sampler"),
-              &VDiffSuccessorSamplerFeature::func)
-    {
-        const auto n = add_rng_options_to_feature(*this, 0);
-        this->make_optional_argument_with_default(
-            n,
-            "prefer_large_gaps",
-            "true");
-    }
+Feature& add_vdiff_successor_sampler_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        add_mdp_type_to_option<false, Fret>("value_gap_successor_sampler"),
+        &downward::cli::plugins::make_shared<
+            SuccessorSampler<Fret>,
+            Wrapper<VDiffSuccessorSampler, Fret>,
+            int,
+            bool>);
 
-    static std::shared_ptr<SuccessorSampler<Fret>>
-    func(int random_seed, bool prefer_large_gaps)
-    {
-        return make_shared_from_arg_tuples<
-            Wrapper<VDiffSuccessorSampler, Fret>>(
-            random_seed,
-            prefer_large_gaps);
-    }
-};
+    const auto n = add_rng_options_to_feature(f, 0);
+    f.make_optional_argument_with_default(n, "prefer_large_gaps", "true");
+
+    return f;
+}
+
 } // namespace
 
 namespace probfd::cli::successor_samplers {
@@ -183,12 +147,18 @@ void add_successor_sampler_category(Registry& registry)
 void add_successor_sampler_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugins<ArbitrarySuccessorSamplerFeature>();
-    n.insert_feature_plugins<MostLikelySuccessorSamplerFeature>();
-    n.insert_feature_plugins<RandomSuccessorSamplerFeature>();
-    n.insert_feature_plugins<UniformSuccessorSamplerFeature>();
-    n.insert_feature_plugins<VBiasedSuccessorSamplerFeature>();
-    n.insert_feature_plugins<VDiffSuccessorSamplerFeature>();
+    add_arbitrary_successor_sampler_to_namespace<true>(n);
+    add_arbitrary_successor_sampler_to_namespace<false>(n);
+    add_most_likely_successor_sampler_to_namespace<true>(n);
+    add_most_likely_successor_sampler_to_namespace<false>(n);
+    add_random_successor_sampler_to_namespace<true>(n);
+    add_random_successor_sampler_to_namespace<false>(n);
+    add_uniform_successor_sampler_to_namespace<true>(n);
+    add_uniform_successor_sampler_to_namespace<false>(n);
+    add_vbiased_successor_sampler_to_namespace<true>(n);
+    add_vbiased_successor_sampler_to_namespace<false>(n);
+    add_vdiff_successor_sampler_to_namespace<true>(n);
+    add_vdiff_successor_sampler_to_namespace<false>(n);
 }
 
 } // namespace probfd::cli::successor_samplers

@@ -16,31 +16,26 @@ using namespace downward::cli::plugins;
 using downward::cli::pdbs::add_generator_options_to_feature;
 
 namespace {
-class PatternCollectionGeneratorComboFeature
-    : public SharedTypedFeature<
-          PatternCollectionGenerator,
-          int,
-          downward::utils::Verbosity> {
-public:
-    PatternCollectionGeneratorComboFeature()
-        : TypedFeature("combo", &PatternCollectionGeneratorComboFeature::func)
-    {
-        make_optional_argument_with_default(
-            0,
-            "max_states",
-            "1000000",
-            "maximum abstraction size for combo strategy");
-        add_generator_options_to_feature(*this, 1);
-    }
 
-    static shared_ptr<PatternCollectionGenerator>
-    func(int max_states, downward::utils::Verbosity verbosity)
-    {
-        return make_shared_from_arg_tuples<PatternCollectionGeneratorCombo>(
-            max_states,
-            verbosity);
-    }
-};
+Feature& add_pattern_collection_generator_combo_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "combo",
+        &downward::cli::plugins::make_shared<
+            PatternCollectionGenerator,
+            PatternCollectionGeneratorCombo,
+            int,
+            Verbosity>);
+    f.make_optional_argument_with_default(
+        0,
+        "max_states",
+        "1000000",
+        "maximum abstraction size for combo strategy");
+    add_generator_options_to_feature(f, 1);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::pdbs {
@@ -48,7 +43,7 @@ namespace downward::cli::pdbs {
 void add_pattern_collection_generator_combo_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<PatternCollectionGeneratorComboFeature>();
+    add_pattern_collection_generator_combo_to_namespace(n);
 }
 
 } // namespace downward::cli::pdbs

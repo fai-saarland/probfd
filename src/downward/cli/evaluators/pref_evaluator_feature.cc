@@ -39,29 +39,21 @@ public:
     }
 };
 
-class PrefEvaluatorFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<Evaluator>,
-          std::string,
-          Verbosity> {
-public:
-    PrefEvaluatorFeature()
-        : TypedFeature("pref", &PrefEvaluatorFeature::func)
-    {
-        document_title("Preference evaluator");
-        document_synopsis("Returns 0 if preferred is true and 1 otherwise.");
+Feature& add_pref_evaluator_feature_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "pref",
+        &cli::plugins::make_shared<
+            TaskDependentFactory<Evaluator>,
+            PrefEvaluatorFactory,
+            std::string,
+            Verbosity>);
+    f.document_title("Preference evaluator");
+    f.document_synopsis("Returns 0 if preferred is true and 1 otherwise.");
+    add_evaluator_options_to_feature(f, "pref", 0);
 
-        add_evaluator_options_to_feature(*this, "pref", 0);
-    }
-
-    static shared_ptr<TaskDependentFactory<Evaluator>>
-    func(std::string description, Verbosity verbosity)
-    {
-        return make_shared_from_arg_tuples<PrefEvaluatorFactory>(
-            std::move(description),
-            verbosity);
-    }
-};
+    return f;
+}
 
 } // namespace
 
@@ -70,7 +62,7 @@ namespace downward::cli::evaluators {
 void add_pref_evaluator_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    const Feature& f = n.insert_feature_plugin<PrefEvaluatorFeature>();
+    const Feature& f = add_pref_evaluator_feature_to_namespace(n);
     SubcategoryPlugin& subcategory =
         registry.get_subcategory_plugin("evaluators_basic");
     subcategory.add_feature(f);

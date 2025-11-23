@@ -13,31 +13,25 @@ using namespace downward::cli::plugins;
 using namespace probfd::cartesian_abstractions;
 
 namespace {
-class AdaptiveFlawGeneratorFactoryFeature
-    : public SharedTypedFeature<
-          FlawGeneratorFactory,
-          std::vector<std::shared_ptr<FlawGeneratorFactory>>> {
-public:
-    AdaptiveFlawGeneratorFactoryFeature()
-        : TypedFeature(
-              "flaws_adaptive",
-              &AdaptiveFlawGeneratorFactoryFeature::func)
-    {
-        make_optional_argument_with_default(
-            0,
-            "generators",
-            "[flaws_astar(), flaws_ilao()]",
-            "The linear hierarchy of flaw generators.");
-    }
 
-protected:
-    static std::shared_ptr<FlawGeneratorFactory> func(
-        std::vector<std::shared_ptr<FlawGeneratorFactory>> generators)
-    {
-        return std::make_shared<AdaptiveFlawGeneratorFactory>(
-            std::move(generators));
-    }
-};
+Feature& add_adaptive_flaw_generator_astar_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "flaws_adaptive",
+        &cli::plugins::make_shared<
+            FlawGeneratorFactory,
+            AdaptiveFlawGeneratorFactory,
+            std::vector<std::shared_ptr<FlawGeneratorFactory>>>);
+
+    f.make_optional_argument_with_default(
+        0,
+        "generators",
+        "[flaws_astar(), flaws_ilao()]",
+        "The linear hierarchy of flaw generators.");
+
+    return f;
+}
+
 } // namespace
 
 namespace probfd::cli::cartesian_abstractions {
@@ -45,7 +39,7 @@ namespace probfd::cli::cartesian_abstractions {
 void add_adaptive_flaw_generator_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<AdaptiveFlawGeneratorFactoryFeature>();
+    add_adaptive_flaw_generator_astar_to_namespace(n);
 }
 
 } // namespace probfd::cli::cartesian_abstractions

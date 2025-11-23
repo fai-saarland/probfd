@@ -116,70 +116,48 @@ public:
     }
 };
 
-class SampleBasedPotentialMaxHeuristicFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<Evaluator>,
-          shared_ptr<TaskTransformation>,
-          bool,
-          string,
-          utils::Verbosity,
-          int,
-          int,
-          double,
-          lp::LPSolverType,
-          int> {
-public:
-    SampleBasedPotentialMaxHeuristicFeature()
-        : TypedFeature(
-              "sample_based_potentials",
-              &SampleBasedPotentialMaxHeuristicFeature::func)
-    {
-        document_title("Sample-based potential heuristics");
-        document_synopsis(
-            "Maximum over multiple potential heuristics optimized for "
-            "samples. " +
-            get_admissible_potentials_reference());
+Feature& add_sample_based_potential_heuristic_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "sample_based_potentials",
+        &cli::plugins::make_shared<
+            TaskDependentFactory<Evaluator>,
+            PotentialMaxHeuristicFactory,
+            shared_ptr<TaskTransformation>,
+            bool,
+            string,
+            Verbosity,
+            int,
+            int,
+            double,
+            lp::LPSolverType,
+            int>);
 
-        make_optional_argument_with_default(
-            0,
-            "num_heuristics",
-            "1",
-            "number of potential heuristics");
-        make_optional_argument_with_default(
-            1,
-            "num_samples",
-            "1000",
-            "Number of states to sample");
-        const auto n = add_admissible_potentials_options_to_feature(
-            *this,
-            "sample_based_potentials",
-            2);
-        add_rng_options_to_feature(*this, n + 2);
-    }
+    f.document_title("Sample-based potential heuristics");
+    f.document_synopsis(
+        "Maximum over multiple potential heuristics optimized for "
+        "samples. " +
+        get_admissible_potentials_reference());
 
-    static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        shared_ptr<TaskTransformation> transformation,
-        bool cache_estimates,
-        string description,
-        utils::Verbosity verbosity,
-        int num_samples,
-        int num_heuristics,
-        double max_potential,
-        lp::LPSolverType lp_solver,
-        int random_seed)
-    {
-        return make_shared<PotentialMaxHeuristicFactory>(
-            std::move(transformation),
-            cache_estimates,
-            std::move(description),
-            verbosity,
-            num_samples,
-            num_heuristics,
-            max_potential,
-            lp_solver,
-            random_seed);
-    }
-};
+    f.make_optional_argument_with_default(
+        0,
+        "num_heuristics",
+        "1",
+        "number of potential heuristics");
+    f.make_optional_argument_with_default(
+        1,
+        "num_samples",
+        "1000",
+        "Number of states to sample");
+    const auto n = add_admissible_potentials_options_to_feature(
+        f,
+        "sample_based_potentials",
+        2);
+    add_rng_options_to_feature(f, n + 2);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::heuristics {
@@ -189,8 +167,7 @@ void add_sample_based_potential_heuristics_feature(Registry& registry)
     Namespace& n = registry.get_global_name_space();
     SubcategoryPlugin& subcategory =
         registry.get_subcategory_plugin("heuristics_potentials");
-    const Feature& f =
-        n.insert_feature_plugin<SampleBasedPotentialMaxHeuristicFeature>();
+    const Feature& f = add_sample_based_potential_heuristic_to_namespace(n);
     subcategory.add_feature(f);
 }
 

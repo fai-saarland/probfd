@@ -46,38 +46,25 @@ public:
     }
 };
 
-class ConstEvaluatorFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<Evaluator>,
-          std::string,
-          Verbosity,
-          int> {
-public:
-    ConstEvaluatorFeature()
-        : TypedFeature("const", &ConstEvaluatorFeature::func)
-    {
-        document_title("Constant evaluator");
-        document_synopsis("Returns a constant value.");
+Feature& add_constant_evaluator_feature(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "const",
+        &cli::plugins::make_shared<
+            TaskDependentFactory<Evaluator>,
+            ConstEvaluatorFactory,
+            std::string,
+            Verbosity,
+            int>);
+    f.document_title("Constant evaluator");
+    f.document_synopsis("Returns a constant value.");
 
-        make_optional_argument_with_default(
-            0,
-            "value",
-            "1",
-            "the constant value");
-        add_evaluator_options_to_feature(*this, "const", 1);
-    }
+    f.make_optional_argument_with_default(0, "value", "1", "the constant value");
+    add_evaluator_options_to_feature(f, "const", 1);
 
-    static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        std::string description,
-        Verbosity verbosity,
-        int value)
-    {
-        return make_shared_from_arg_tuples<ConstEvaluatorFactory>(
-            std::move(description),
-            verbosity,
-            value);
-    }
-};
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::evaluators {
@@ -85,7 +72,7 @@ namespace downward::cli::evaluators {
 void add_const_evaluator_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    const Feature& f = n.insert_feature_plugin<ConstEvaluatorFeature>();
+    const auto& f = add_constant_evaluator_feature(n);
 
     SubcategoryPlugin& subcategory =
         registry.get_subcategory_plugin("evaluators_basic");

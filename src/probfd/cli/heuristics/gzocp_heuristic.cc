@@ -21,51 +21,44 @@ using namespace downward::cli::plugins;
 using downward::cli::utils::add_rng_options_to_feature;
 
 namespace {
-class GZOCPHeuristicFactoryFeature
-    : public SharedTypedFeature<
-          TaskHeuristicFactory,
-          std::shared_ptr<PatternCollectionGenerator>,
-          GZOCPHeuristicFactory::OrderingStrategy,
-          int> {
-public:
-    GZOCPHeuristicFactoryFeature()
-        : TypedFeature("gzocp_heuristic", &GZOCPHeuristicFactoryFeature::func)
-    {
-        document_title("Greedy Zero-One Operator Cost Partitioning Heuristic");
-        document_synopsis(
-            "This heuristic computes a greedy cost-partitioning estimate over "
-            "a set of projections. The cost-partitioning assigns the full "
-            "operator cost to the first projection in the sequence that is "
-            "affected by it (induces a non-self-loop) and assigns a cost of "
-            "zero for this operator for all subsequent projections.");
 
-        make_optional_argument_with_default(
-            0,
-            "patterns",
-            "classical_generator(generator=systematic(pattern_max_size=2))",
-            "The pattern generation algorithm to construct the projections.");
+Feature&
+add_greedy_zero_one_cost_partitioning_heuristic_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "gzocp_heuristic",
+        &downward::cli::plugins::make_shared<
+            TaskHeuristicFactory,
+            GZOCPHeuristicFactory,
+            std::shared_ptr<PatternCollectionGenerator>,
+            GZOCPHeuristicFactory::OrderingStrategy,
+            int>);
 
-        make_optional_argument_with_default(
-            1,
-            "order",
-            "random",
-            "The order in which the projections are considered.");
+    f.document_title("Greedy Zero-One Operator Cost Partitioning Heuristic");
+    f.document_synopsis(
+        "This heuristic computes a greedy cost-partitioning estimate over "
+        "a set of projections. The cost-partitioning assigns the full "
+        "operator cost to the first projection in the sequence that is "
+        "affected by it (induces a non-self-loop) and assigns a cost of "
+        "zero for this operator for all subsequent projections.");
 
-        add_rng_options_to_feature(*this, 2);
-    }
+    f.make_optional_argument_with_default(
+        0,
+        "patterns",
+        "classical_generator(generator=systematic(pattern_max_size=2))",
+        "The pattern generation algorithm to construct the projections.");
 
-    static std::shared_ptr<TaskHeuristicFactory> func(
-        std::shared_ptr<PatternCollectionGenerator>
-            pattern_collection_generator,
-        GZOCPHeuristicFactory::OrderingStrategy ordering,
-        int random_seed)
-    {
-        return make_shared_from_arg_tuples<GZOCPHeuristicFactory>(
-            std::move(pattern_collection_generator),
-            ordering,
-            random_seed);
-    }
-};
+    f.make_optional_argument_with_default(
+        1,
+        "order",
+        "random",
+        "The order in which the projections are considered.");
+
+    add_rng_options_to_feature(f, 2);
+
+    return f;
+}
+
 } // namespace
 
 namespace probfd::cli::heuristics {
@@ -81,7 +74,7 @@ void add_gzocp_heuristic_feature(Registry& registry)
           "inherits the order from the underlying pattern generation "
           "algorithm"}});
 
-    n.insert_feature_plugin<GZOCPHeuristicFactoryFeature>();
+    add_greedy_zero_one_cost_partitioning_heuristic_to_namespace(n);
 }
 
 } // namespace probfd::cli::heuristics

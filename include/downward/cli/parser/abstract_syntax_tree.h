@@ -203,7 +203,7 @@ struct std::formatter<downward::cli::parser::QualifiedName, CharT> {
         return std::format_to(
             ctx.out(),
             "{}.{}",
-            downward::utils::join_view{name.qualification_prefix, "."},
+            downward::utils::join_view(name.qualification_prefix, "."),
             name.name);
     }
 };

@@ -82,129 +82,106 @@ public:
     }
 };
 
-class EagerSearchWithFEvalFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<SearchAlgorithm>,
-          std::shared_ptr<TaskDependentFactory<StateOpenList>>,
-          bool,
-          std::shared_ptr<TaskDependentFactory<Evaluator>>,
-          std::vector<std::shared_ptr<TaskDependentFactory<Evaluator>>>,
-          std::shared_ptr<PruningMethod>,
-          OperatorCost,
-          int,
-          utils::FSeconds,
-          const std::string&,
-          utils::Verbosity> {
-public:
-    EagerSearchWithFEvalFeature()
-        : TypedFeature("eager", &EagerSearchWithFEvalFeature::func)
-    {
-        document_title("Eager best-first search");
-        document_synopsis("");
+shared_ptr<TaskDependentFactory<SearchAlgorithm>> create_eager_search(
+    std::shared_ptr<TaskDependentFactory<StateOpenList>> open_list_factory,
+    bool reopen_closed,
+    std::shared_ptr<TaskDependentFactory<Evaluator>> f_eval_factory,
+    std::vector<std::shared_ptr<TaskDependentFactory<Evaluator>>>
+        preferred_factories,
+    std::shared_ptr<PruningMethod> pruning,
+    OperatorCost cost_type,
+    int bound,
+    utils::FSeconds max_time,
+    const std::string& description,
+    utils::Verbosity verbosity)
+{
+    return make_shared_from_arg_tuples<EagerSearchFactory>(
+        std::move(open_list_factory),
+        reopen_closed,
+        std::move(f_eval_factory),
+        std::move(preferred_factories),
+        std::move(pruning),
+        cost_type,
+        bound,
+        max_time,
+        description,
+        verbosity);
+}
 
-        make_required_argument(0, "open", "open list");
-        make_optional_argument_with_default(
-            1,
-            "reopen_closed",
-            "false",
-            "reopen closed nodes");
-        make_required_argument(
-            2,
-            "f_eval",
-            "set evaluator for jump statistics.");
-        make_optional_argument_with_default(
-            3,
-            "preferred",
-            "[]",
-            "use preferred operators of these evaluators");
-        add_eager_search_options_to_feature(*this, "eager", 4);
-    }
+shared_ptr<TaskDependentFactory<SearchAlgorithm>>
+create_eager_search_no_f_evaluator(
+    std::shared_ptr<TaskDependentFactory<StateOpenList>> open_list_factory,
+    bool reopen_closed,
+    std::vector<std::shared_ptr<TaskDependentFactory<Evaluator>>>
+        preferred_factories,
+    std::shared_ptr<PruningMethod> pruning,
+    OperatorCost cost_type,
+    int bound,
+    utils::FSeconds max_time,
+    const std::string& description,
+    utils::Verbosity verbosity)
+{
+    return create_eager_search(
+        std::move(open_list_factory),
+        reopen_closed,
+        nullptr,
+        std::move(preferred_factories),
+        std::move(pruning),
+        cost_type,
+        bound,
+        max_time,
+        description,
+        verbosity);
+}
 
-    static shared_ptr<TaskDependentFactory<SearchAlgorithm>> func(
-        std::shared_ptr<TaskDependentFactory<StateOpenList>> open_list_factory,
-        bool reopen_closed,
-        std::shared_ptr<TaskDependentFactory<Evaluator>> f_eval_factory,
-        std::vector<std::shared_ptr<TaskDependentFactory<Evaluator>>>
-            preferred_factories,
-        std::shared_ptr<PruningMethod> pruning,
-        OperatorCost cost_type,
-        int bound,
-        utils::FSeconds max_time,
-        const std::string& description,
-        utils::Verbosity verbosity)
-    {
-        return make_shared_from_arg_tuples<EagerSearchFactory>(
-            std::move(open_list_factory),
-            reopen_closed,
-            std::move(f_eval_factory),
-            std::move(preferred_factories),
-            std::move(pruning),
-            cost_type,
-            bound,
-            max_time,
-            description,
-            verbosity);
-    }
-};
+Feature& add_eager_search_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin("eager", create_eager_search);
 
-class EagerSearchFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<SearchAlgorithm>,
-          std::shared_ptr<TaskDependentFactory<StateOpenList>>,
-          bool,
-          std::vector<std::shared_ptr<TaskDependentFactory<Evaluator>>>,
-          std::shared_ptr<PruningMethod>,
-          OperatorCost,
-          int,
-          utils::FSeconds,
-          const std::string&,
-          utils::Verbosity> {
-public:
-    EagerSearchFeature()
-        : TypedFeature("eager", &EagerSearchFeature::func)
-    {
-        document_title("Eager best-first search");
-        document_synopsis("");
+    f.document_title("Eager best-first search");
+    f.document_synopsis("");
 
-        make_required_argument(0, "open", "open list");
-        make_optional_argument_with_default(
-            1,
-            "reopen_closed",
-            "false",
-            "reopen closed nodes");
-        make_optional_argument_with_default(
-            2,
-            "preferred",
-            "[]",
-            "use preferred operators of these evaluators");
-        add_eager_search_options_to_feature(*this, "eager", 3);
-    }
+    f.make_required_argument(0, "open", "open list");
+    f.make_optional_argument_with_default(
+        1,
+        "reopen_closed",
+        "false",
+        "reopen closed nodes");
+    f.make_required_argument(2, "f_eval", "set evaluator for jump statistics.");
+    f.make_optional_argument_with_default(
+        3,
+        "preferred",
+        "[]",
+        "use preferred operators of these evaluators");
+    add_eager_search_options_to_feature(f, "eager", 4);
 
-    static shared_ptr<TaskDependentFactory<SearchAlgorithm>> func(
-        std::shared_ptr<TaskDependentFactory<StateOpenList>> open_list_factory,
-        bool reopen_closed,
-        std::vector<std::shared_ptr<TaskDependentFactory<Evaluator>>>
-            preferred_factories,
-        std::shared_ptr<PruningMethod> pruning,
-        OperatorCost cost_type,
-        int bound,
-        utils::FSeconds max_time,
-        const std::string& description,
-        utils::Verbosity verbosity)
-    {
-        return EagerSearchWithFEvalFeature::func(
-            std::move(open_list_factory),
-            reopen_closed,
-            nullptr,
-            std::move(preferred_factories),
-            std::move(pruning),
-            cost_type,
-            bound,
-            max_time,
-            description,
-            verbosity);
-    }
-};
+    return f;
+}
+
+Feature& add_eager_search_no_f_evaluator_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "eager_no_f_evaluator",
+        create_eager_search_no_f_evaluator);
+
+    f.document_title("Eager best-first search");
+    f.document_synopsis("");
+
+    f.make_required_argument(0, "open", "open list");
+    f.make_optional_argument_with_default(
+        1,
+        "reopen_closed",
+        "false",
+        "reopen closed nodes");
+    f.make_optional_argument_with_default(
+        2,
+        "preferred",
+        "[]",
+        "use preferred operators of these evaluators");
+    add_eager_search_options_to_feature(f, "eager", 3);
+
+    return f;
+}
 
 } // namespace
 
@@ -213,7 +190,8 @@ namespace downward::cli::search_algorithms {
 void add_eager_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<EagerSearchFeature>();
+    add_eager_search_to_namespace(n);
+    add_eager_search_no_f_evaluator_to_namespace(n);
 }
 
 } // namespace downward::cli::search_algorithms

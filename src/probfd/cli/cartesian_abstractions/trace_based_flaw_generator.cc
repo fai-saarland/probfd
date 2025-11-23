@@ -13,19 +13,17 @@ using namespace probfd::cartesian_abstractions;
 using namespace downward::cli::plugins;
 
 namespace {
-class AStarFlawGeneratorFactoryFeature
-    : public SharedTypedFeature<FlawGeneratorFactory> {
-public:
-    AStarFlawGeneratorFactoryFeature()
-        : TypedFeature("flaws_astar", &AStarFlawGeneratorFactoryFeature::func)
-    {
-    }
 
-    static std::shared_ptr<FlawGeneratorFactory> func()
-    {
-        return std::make_shared<AStarFlawGeneratorFactory>();
-    }
-};
+Feature& add_astar_flaw_generator_astar_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "flaws_astar",
+        &cli::plugins::
+            make_shared<FlawGeneratorFactory, AStarFlawGeneratorFactory>);
+
+    return f;
+}
+
 } // namespace
 
 namespace probfd::cli::cartesian_abstractions {
@@ -33,7 +31,7 @@ namespace probfd::cli::cartesian_abstractions {
 void add_astar_flaw_generator_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<AStarFlawGeneratorFactoryFeature>();
+    add_astar_flaw_generator_astar_to_namespace(n);
 }
 
 } // namespace probfd::cli::cartesian_abstractions

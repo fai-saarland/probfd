@@ -18,42 +18,34 @@ using downward::cli::landmarks::add_landmark_factory_options_to_feature;
 using downward::cli::landmarks::add_use_orders_option_to_feature;
 
 namespace {
-class LandmarkFactoryRpgSaspFeature
-    : public SharedTypedFeature<
-          LandmarkFactory,
-          bool,
-          bool,
-          downward::utils::Verbosity> {
-public:
-    LandmarkFactoryRpgSaspFeature()
-        : TypedFeature("lm_rhw", &LandmarkFactoryRpgSaspFeature::func)
-    {
-        document_title("RHW Landmarks");
-        document_synopsis(
-            "The landmark generation method introduced by "
-            "Richter, Helmert and Westphal (AAAI 2008).");
-        document_language_support("conditional_effects", "supported");
 
-        make_optional_argument_with_default(
-            0,
-            "disjunctive_landmarks",
-            "true",
-            "keep disjunctive landmarks");
-        const auto n = add_use_orders_option_to_feature(*this, 1);
-        add_landmark_factory_options_to_feature(*this, n + 1);
-    }
+Feature& add_landmark_factory_rpg_sasp_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "lm_rhw",
+        &downward::cli::plugins::make_shared<
+            LandmarkFactory,
+            LandmarkFactoryRpgSasp,
+            bool,
+            bool,
+            Verbosity>);
+    f.document_title("RHW Landmarks");
+    f.document_synopsis(
+        "The landmark generation method introduced by "
+        "Richter, Helmert and Westphal (AAAI 2008).");
+    f.document_language_support("conditional_effects", "supported");
 
-    static shared_ptr<LandmarkFactory> func(
-        bool disjunctive_landmarks,
-        bool use_orders,
-        downward::utils::Verbosity verbosity)
-    {
-        return make_shared_from_arg_tuples<LandmarkFactoryRpgSasp>(
-            disjunctive_landmarks,
-            use_orders,
-            verbosity);
-    }
-};
+    f.make_optional_argument_with_default(
+        0,
+        "disjunctive_landmarks",
+        "true",
+        "keep disjunctive landmarks");
+    const auto n = add_use_orders_option_to_feature(f, 1);
+    add_landmark_factory_options_to_feature(f, n + 1);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::landmarks {
@@ -61,7 +53,7 @@ namespace downward::cli::landmarks {
 void add_landmark_factory_rpg_sasp_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<LandmarkFactoryRpgSaspFeature>();
+    add_landmark_factory_rpg_sasp_to_namespace(n);
 }
 
 } // namespace downward::cli::landmarks

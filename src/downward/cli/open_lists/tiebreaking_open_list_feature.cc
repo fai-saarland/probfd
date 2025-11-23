@@ -16,66 +16,41 @@ using namespace downward::cli::plugins;
 using downward::cli::add_open_list_options_to_feature;
 
 namespace {
+
 template <typename T>
-class TieBreakingOpenListFeature
-    : public SharedTypedFeature<
-          downward::TaskDependentFactory<downward::OpenList<T>>,
-          const std::vector<std::shared_ptr<
-              downward::TaskDependentFactory<downward::Evaluator>>>&,
-          bool,
-          bool> {
-public:
-    TieBreakingOpenListFeature()
-        requires(std::same_as<T, downward::StateOpenListEntry>)
-        : TieBreakingOpenListFeature::TypedFeature(
-              "state_tiebreaking",
-              &TieBreakingOpenListFeature::func)
-    {
-        this->document_title("Tie-breaking state open list");
-        this->document_synopsis("");
+Feature&
+add_tiebreaking_open_list_to_namespace(Namespace& nspace, std::string name)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        std::move(name),
+        &downward::cli::plugins::make_shared<
+            downward::TaskDependentFactory<downward::OpenList<T>>,
+            TieBreakingOpenListFactory<T>,
+            const std::vector<std::shared_ptr<
+                downward::TaskDependentFactory<downward::Evaluator>>>&,
+            bool,
+            bool>);
 
-        this->make_required_argument(0, "evals", "evaluators");
-        this->make_optional_argument_with_default(
-            1,
-            "unsafe_pruning",
-            "true",
-            "allow unsafe pruning when the main evaluator regards a state a "
-            "dead end");
-        add_open_list_options_to_feature(*this, 2);
+    if constexpr (std::same_as<T, downward::StateOpenListEntry>) {
+        f.document_title("Tie-breaking state open list");
+    } else {
+        f.document_title("Tie-breaking edge open list");
     }
 
-    TieBreakingOpenListFeature()
-        requires(std::same_as<T, downward::EdgeOpenListEntry>)
-        : TieBreakingOpenListFeature::TypedFeature(
-              "edge_tiebreaking",
-              &TieBreakingOpenListFeature::func)
-    {
-        this->document_title("Tie-breaking edge open list");
-        this->document_synopsis("");
+    f.document_synopsis("");
 
-        this->make_required_argument(0, "evals", "evaluators");
-        this->make_optional_argument_with_default(
-            1,
-            "unsafe_pruning",
-            "true",
-            "allow unsafe pruning when the main evaluator regards a state a "
-            "dead end");
-        add_open_list_options_to_feature(*this, 2);
-    }
+    f.make_required_argument(0, "evals", "evaluators");
+    f.make_optional_argument_with_default(
+        1,
+        "unsafe_pruning",
+        "true",
+        "allow unsafe pruning when the main evaluator regards a state a "
+        "dead end");
+    add_open_list_options_to_feature(f, 2);
 
-    static shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
-    func(
-        const std::vector<std::shared_ptr<
-            downward::TaskDependentFactory<downward::Evaluator>>>& factories,
-        bool unsafe_pruning,
-        bool pref_only)
-    {
-        return make_shared_from_arg_tuples<TieBreakingOpenListFactory<T>>(
-            std::move(factories),
-            unsafe_pruning,
-            pref_only);
-    }
-};
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::open_lists {
@@ -83,10 +58,12 @@ namespace downward::cli::open_lists {
 void add_tiebreaking_open_list_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<
-        TieBreakingOpenListFeature<downward::StateOpenListEntry>>();
-    n.insert_feature_plugin<
-        TieBreakingOpenListFeature<downward::EdgeOpenListEntry>>();
+    add_tiebreaking_open_list_to_namespace<StateOpenListEntry>(
+        n,
+        "state_tiebreaking");
+    add_tiebreaking_open_list_to_namespace<EdgeOpenListEntry>(
+        n,
+        "edge_tiebreaking");
 }
 
 } // namespace downward::cli::open_lists

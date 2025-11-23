@@ -17,55 +17,46 @@ using namespace probfd::cli::heuristics;
 using namespace downward::cli::plugins;
 
 namespace {
-class ProbabilityAwarePDBHeuristicFactoryFeature
-    : public SharedTypedFeature<
-          TaskHeuristicFactory,
-          std::shared_ptr<PatternCollectionGenerator>,
-          utils::FSeconds,
-          utils::Verbosity> {
-public:
-    ProbabilityAwarePDBHeuristicFactoryFeature()
-        : TypedFeature(
-              "ppdbs",
-              &ProbabilityAwarePDBHeuristicFactoryFeature::func)
-    {
-        document_title("Probability-aware Pattern database heuristic");
-        document_synopsis(
-            "An admissible heuristic obtained by combining multiple projection "
-            "heuristics.");
 
-        document_language_support("action costs", "supported");
-        document_language_support("conditional effects", "not supported");
-        document_language_support("axioms", "not supported");
+Feature& add_pattern_database_heuristic_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "ppdbs",
+        &downward::cli::plugins::make_shared<
+            TaskHeuristicFactory,
+            ProbabilityAwarePDBHeuristicFactory,
+            std::shared_ptr<PatternCollectionGenerator>,
+            utils::FSeconds,
+            utils::Verbosity>);
 
-        document_property("admissible", "yes");
-        document_property("consistent", "yes");
-        document_property("safe", "yes");
+    f.document_title("Probability-aware Pattern database heuristic");
+    f.document_synopsis(
+        "An admissible heuristic obtained by combining multiple projection "
+        "heuristics.");
 
-        make_optional_argument_with_default(
-            0,
-            "patterns",
-            "classical_generator(generator=systematic(pattern_max_size=2))",
-            "The pattern generation method");
-        make_optional_argument_with_default(
-            1,
-            "max_time_dominance_pruning",
-            "0.0s",
-            "The maximum time spent pruning dominated patterns");
-        add_task_dependent_heuristic_options_to_feature(*this, 2);
-    }
+    f.document_language_support("action costs", "supported");
+    f.document_language_support("conditional effects", "not supported");
+    f.document_language_support("axioms", "not supported");
 
-    static std::shared_ptr<TaskHeuristicFactory> func(
-        std::shared_ptr<PatternCollectionGenerator> generator,
-        utils::FSeconds max_time_dominance_pruning,
-        utils::Verbosity verbosity)
-    {
-        return make_shared_from_arg_tuples<ProbabilityAwarePDBHeuristicFactory>(
-            std::move(generator),
-            max_time_dominance_pruning,
-            verbosity);
-    }
-};
+    f.document_property("admissible", "yes");
+    f.document_property("consistent", "yes");
+    f.document_property("safe", "yes");
+
+    f.make_optional_argument_with_default(
+        0,
+        "patterns",
+        "classical_generator(generator=systematic(pattern_max_size=2))",
+        "The pattern generation method");
+    f.make_optional_argument_with_default(
+        1,
+        "max_time_dominance_pruning",
+        "0.0s",
+        "The maximum time spent pruning dominated patterns");
+    add_task_dependent_heuristic_options_to_feature(f, 2);
+
+    return f;
+}
+
 } // namespace
 
 namespace probfd::cli::heuristics {
@@ -73,7 +64,7 @@ namespace probfd::cli::heuristics {
 void add_pdb_heuristic_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<ProbabilityAwarePDBHeuristicFactoryFeature>();
+    add_pattern_database_heuristic_to_namespace(n);
 }
 
 } // namespace probfd::cli::heuristics

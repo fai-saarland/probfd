@@ -16,30 +16,27 @@ using namespace downward::cli;
 using namespace downward::cli::plugins;
 
 namespace {
-class NullPruningMethodFeature
-    : public SharedTypedFeature<
-          downward::PruningMethod,
-          downward::utils::Verbosity> {
-public:
-    NullPruningMethodFeature()
-        : TypedFeature("null", &NullPruningMethodFeature::func)
-    {
-        // document_group("");
-        document_title("No pruning");
-        document_synopsis(
-            "This is a skeleton method that does not perform any pruning, "
-            "i.e., "
-            "all applicable operators are applied in all expanded states. ");
 
-        add_pruning_options_to_feature(*this, 0);
-    }
+Feature& add_null_pruning_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "null_pruning",
+        &downward::cli::plugins::make_shared<
+            downward::PruningMethod,
+            NullPruningMethod,
+            downward::utils::Verbosity>);
+    // document_group("");
+    f.document_title("No pruning");
+    f.document_synopsis(
+        "This is a skeleton method that does not perform any pruning, "
+        "i.e., "
+        "all applicable operators are applied in all expanded states. ");
 
-    static shared_ptr<downward::PruningMethod>
-    func(downward::utils::Verbosity verbosity)
-    {
-        return make_shared<NullPruningMethod>(verbosity);
-    }
-};
+    add_pruning_options_to_feature(f, 0);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::pruning {
@@ -47,7 +44,7 @@ namespace downward::cli::pruning {
 void add_null_pruning_method_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<NullPruningMethodFeature>();
+    add_null_pruning_to_namespace(n);
 }
 
 } // namespace downward::cli::pruning

@@ -20,140 +20,116 @@ using downward::cli::utils::add_rng_options_to_feature;
 
 namespace {
 
-class SplitSelectorRandomFactoryFeature
-    : public SharedTypedFeature<SplitSelectorFactory, int> {
-public:
-    SplitSelectorRandomFactoryFeature()
-        : TypedFeature("random", &SplitSelectorRandomFactoryFeature::func)
-    {
-        document_synopsis(
-            "select a random variable (among all eligible variables)");
+std::shared_ptr<SplitSelectorFactory>
+create_split_selector_random(int random_seed)
+{
+    return make_shared_from_arg_tuples<SplitSelectorRandomFactory>(
+        get_rng(random_seed));
+}
 
-        add_rng_options_to_feature(*this, 0);
-    }
+Feature& add_split_selector_random_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "random",
+        create_split_selector_random);
 
-    static std::shared_ptr<SplitSelectorFactory>
-    func(int random_seed)
-    {
-        return make_shared_from_arg_tuples<SplitSelectorRandomFactory>(
-            get_rng(random_seed));
-    }
-};
+    f.document_synopsis(
+        "select a random variable (among all eligible variables)");
 
-class SplitSelectorMinUnwantedFactoryFeature
-    : public SharedTypedFeature<SplitSelectorFactory> {
-public:
-    SplitSelectorMinUnwantedFactoryFeature()
-        : TypedFeature(
-              "min_unwanted",
-              &SplitSelectorMinUnwantedFactoryFeature::func)
-    {
-        document_synopsis(
-            "select an eligible variable which has the least unwanted values "
-            "(number of values of v that land in the abstract state whose "
-            "h-value will probably be raised) in the flaw state");
-    }
+    add_rng_options_to_feature(f, 0);
 
-    static std::shared_ptr<SplitSelectorFactory> func()
-    {
-        return std::make_shared<SplitSelectorMinUnwantedFactory>();
-    }
-};
+    return f;
+}
 
-class SplitSelectorMaxUnwantedFactoryFeature
-    : public SharedTypedFeature<SplitSelectorFactory> {
-public:
-    SplitSelectorMaxUnwantedFactoryFeature()
-        : TypedFeature(
-              "max_unwanted",
-              &SplitSelectorMaxUnwantedFactoryFeature::func)
-    {
-        document_synopsis(
-            "select an eligible variable which has the most unwanted values "
-            "(number of values of v that land in the abstract state whose "
-            "h-value will probably be raised) in the flaw state");
-    }
+Feature& add_split_selector_min_unwanted_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "min_unwanted",
+        &cli::plugins::
+            make_shared<SplitSelectorFactory, SplitSelectorMinUnwantedFactory>);
 
-    static std::shared_ptr<SplitSelectorFactory> func()
-    {
-        return std::make_shared<SplitSelectorMaxUnwantedFactory>();
-    }
-};
+    f.document_synopsis(
+        "select an eligible variable which has the least unwanted values "
+        "(number of values of v that land in the abstract state whose "
+        "h-value will probably be raised) in the flaw state");
 
-class SplitSelectorMinRefinedFactoryFeature
-    : public SharedTypedFeature<SplitSelectorFactory> {
-public:
-    SplitSelectorMinRefinedFactoryFeature()
-        : TypedFeature(
-              "min_refined",
-              &SplitSelectorMinRefinedFactoryFeature::func)
-    {
-        document_synopsis(
-            "select an eligible variable which is the least refined "
-            "(-1 * (remaining_values(v) / original_domain_size(v))) "
-            "in the flaw state");
-    }
+    return f;
+}
 
-    static std::shared_ptr<SplitSelectorFactory> func()
-    {
-        return std::make_shared<SplitSelectorMinRefinedFactory>();
-    }
-};
+Feature& add_split_selector_max_unwanted_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "max_unwanted",
+        &cli::plugins::
+            make_shared<SplitSelectorFactory, SplitSelectorMaxUnwantedFactory>);
 
-class SplitSelectorMaxRefinedFactoryFeature
-    : public SharedTypedFeature<SplitSelectorFactory> {
-public:
-    SplitSelectorMaxRefinedFactoryFeature()
-        : TypedFeature(
-              "max_refined",
-              &SplitSelectorMaxRefinedFactoryFeature::func)
-    {
-        document_synopsis(
-            "select an eligible variable which is the most refined "
-            "(-1 * (remaining_values(v) / original_domain_size(v))) "
-            "in the flaw state");
-    }
+    f.document_synopsis(
+        "select an eligible variable which has the most unwanted values "
+        "(number of values of v that land in the abstract state whose "
+        "h-value will probably be raised) in the flaw state");
 
-    static std::shared_ptr<SplitSelectorFactory> func()
-    {
-        return std::make_shared<SplitSelectorMaxRefinedFactory>();
-    }
-};
+    return f;
+}
 
-class SplitSelectorMinHAddFactoryFeature
-    : public SharedTypedFeature<SplitSelectorFactory> {
-public:
-    SplitSelectorMinHAddFactoryFeature()
-        : TypedFeature("min_hadd", &SplitSelectorMinHAddFactoryFeature::func)
-    {
-        document_synopsis(
-            "select an eligible variable with minimal h^add(s_0) value "
-            "over all facts that need to be removed from the flaw state");
-    }
+Feature& add_split_selector_min_refined_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "min_refined",
+        &cli::plugins::
+            make_shared<SplitSelectorFactory, SplitSelectorMinRefinedFactory>);
 
-    static std::shared_ptr<SplitSelectorFactory> func()
-    {
-        return std::make_shared<SplitSelectorMinHAddFactory>();
-    }
-};
+    f.document_synopsis(
+        "select an eligible variable which is the least refined "
+        "(-1 * (remaining_values(v) / original_domain_size(v))) "
+        "in the flaw state");
 
-class SplitSelectorMaxHAddFactoryFeature
-    : public SharedTypedFeature<SplitSelectorFactory> {
-public:
-    SplitSelectorMaxHAddFactoryFeature()
-        : TypedFeature("max_hadd", &SplitSelectorMaxHAddFactoryFeature::func)
-    {
-        document_synopsis(
-            "Select an eligible variable with maximal h^add(s_0) value "
-            "over all facts that need to be removed from the flaw "
-            "state");
-    }
+    return f;
+}
 
-    static std::shared_ptr<SplitSelectorFactory> func()
-    {
-        return std::make_shared<SplitSelectorMaxHAddFactory>();
-    }
-};
+Feature& add_split_selector_max_refined_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "max_refined",
+        &cli::plugins::
+            make_shared<SplitSelectorFactory, SplitSelectorMaxRefinedFactory>);
+
+    f.document_synopsis(
+        "select an eligible variable which is the most refined "
+        "(-1 * (remaining_values(v) / original_domain_size(v))) "
+        "in the flaw state");
+
+    return f;
+}
+
+Feature& add_split_selector_min_hadd_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "min_hadd",
+        &cli::plugins::
+            make_shared<SplitSelectorFactory, SplitSelectorMinHAddFactory>);
+
+    f.document_synopsis(
+        "select an eligible variable with minimal h^add(s_0) value "
+        "over all facts that need to be removed from the flaw state");
+
+    return f;
+}
+
+Feature& add_split_selector_max_hadd_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "max_hadd",
+        &cli::plugins::
+            make_shared<SplitSelectorFactory, SplitSelectorMaxHAddFactory>);
+
+    f.document_synopsis(
+        "Select an eligible variable with maximal h^add(s_0) value "
+        "over all facts that need to be removed from the flaw "
+        "state");
+
+    return f;
+}
+
 } // namespace
 
 namespace probfd::cli::cartesian_abstractions {
@@ -170,13 +146,13 @@ void add_split_selector_category(Registry& registry)
 void add_split_selector_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<SplitSelectorRandomFactoryFeature>();
-    n.insert_feature_plugin<SplitSelectorMinUnwantedFactoryFeature>();
-    n.insert_feature_plugin<SplitSelectorMaxUnwantedFactoryFeature>();
-    n.insert_feature_plugin<SplitSelectorMinRefinedFactoryFeature>();
-    n.insert_feature_plugin<SplitSelectorMaxRefinedFactoryFeature>();
-    n.insert_feature_plugin<SplitSelectorMinHAddFactoryFeature>();
-    n.insert_feature_plugin<SplitSelectorMaxHAddFactoryFeature>();
+    add_split_selector_random_to_namespace(n);
+    add_split_selector_min_refined_to_namespace(n);
+    add_split_selector_max_refined_to_namespace(n);
+    add_split_selector_min_unwanted_to_namespace(n);
+    add_split_selector_max_unwanted_to_namespace(n);
+    add_split_selector_min_hadd_to_namespace(n);
+    add_split_selector_max_hadd_to_namespace(n);
 }
 
 } // namespace probfd::cli::cartesian_abstractions

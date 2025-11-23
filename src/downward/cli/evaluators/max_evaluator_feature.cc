@@ -59,32 +59,22 @@ public:
     }
 };
 
-class MaxEvaluatorFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<Evaluator>,
-          std::string,
-          Verbosity,
-          vector<shared_ptr<TaskDependentFactory<Evaluator>>>> {
-public:
-    MaxEvaluatorFeature()
-        : TypedFeature("max", &MaxEvaluatorFeature::func)
-    {
-        document_title("Max evaluator");
-        document_synopsis("Calculates the maximum of the sub-evaluators.");
-        add_combining_evaluator_options_to_feature(*this, "max", 0);
-    }
+Feature& add_max_evaluator_feature_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "max",
+        &cli::plugins::make_shared<
+            TaskDependentFactory<Evaluator>,
+            MaxEvaluatorFactory,
+            std::string,
+            Verbosity,
+            vector<shared_ptr<TaskDependentFactory<Evaluator>>>>);
+    f.document_title("Max evaluator");
+    f.document_synopsis("Calculates the maximum of the sub-evaluators.");
+    add_combining_evaluator_options_to_feature(f, "max", 0);
 
-    static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        std::string description,
-        Verbosity verbosity,
-        vector<shared_ptr<TaskDependentFactory<Evaluator>>> evaluator_factories)
-    {
-        return make_shared<MaxEvaluatorFactory>(
-            std::move(description),
-            verbosity,
-            std::move(evaluator_factories));
-    }
-};
+    return f;
+}
 
 } // namespace
 
@@ -93,7 +83,7 @@ namespace downward::cli::evaluators {
 void add_max_evaluator_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    const Feature& f = n.insert_feature_plugin<MaxEvaluatorFeature>();
+    const Feature& f = add_max_evaluator_feature_to_namespace(n);
     SubcategoryPlugin& subcategory =
         registry.get_subcategory_plugin("evaluators_basic");
     subcategory.add_feature(f);

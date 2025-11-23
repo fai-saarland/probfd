@@ -53,47 +53,37 @@ public:
     }
 };
 
-class BlindSearchHeuristicFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<Evaluator>,
-          shared_ptr<TaskTransformation>,
-          bool,
-          string,
-          utils::Verbosity> {
-public:
-    BlindSearchHeuristicFeature()
-        : TypedFeature("blind", &BlindSearchHeuristicFeature::func)
-    {
-        document_title("Blind heuristic");
-        document_synopsis(
-            "Returns cost of cheapest action for non-goal states, "
-            "0 for goal states");
+Feature& add_blind_heuristic_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "blind",
+        &downward::cli::plugins::make_shared<
+            TaskDependentFactory<Evaluator>,
+            BlindSearchHeuristicFactory,
+            shared_ptr<TaskTransformation>,
+            bool,
+            string,
+            Verbosity>);
 
-        document_language_support("action costs", "supported");
-        document_language_support("conditional effects", "supported");
-        document_language_support("axioms", "supported");
+    f.document_title("Blind heuristic");
+    f.document_synopsis(
+        "Returns cost of cheapest action for non-goal states, "
+        "0 for goal states");
 
-        document_property("admissible", "yes");
-        document_property("consistent", "yes");
-        document_property("safe", "yes");
-        document_property("preferred operators", "no");
+    f.document_language_support("action costs", "supported");
+    f.document_language_support("conditional effects", "supported");
+    f.document_language_support("axioms", "supported");
 
-        add_heuristic_options_to_feature(*this, "blind", 0);
-    }
+    f.document_property("admissible", "yes");
+    f.document_property("consistent", "yes");
+    f.document_property("safe", "yes");
+    f.document_property("preferred operators", "no");
 
-    static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        shared_ptr<TaskTransformation> transformation,
-        bool cache_estimates,
-        string description,
-        utils::Verbosity verbosity)
-    {
-        return make_shared<BlindSearchHeuristicFactory>(
-            std::move(transformation),
-            cache_estimates,
-            std::move(description),
-            std::move(verbosity));
-    }
-};
+    add_heuristic_options_to_feature(f, "blind", 0);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::heuristics {
@@ -101,7 +91,7 @@ namespace downward::cli::heuristics {
 void add_blind_heuristic_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<BlindSearchHeuristicFeature>();
+    add_blind_heuristic_to_namespace(n);
 }
 
 } // namespace downward::cli::heuristics

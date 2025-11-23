@@ -17,24 +17,23 @@ using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
 
 namespace {
-class ShrinkRandomFeature : public SharedTypedFeature<ShrinkStrategy, int> {
-public:
-    ShrinkRandomFeature()
-        : TypedFeature("pshrink_random", &ShrinkRandomFeature::func)
-    {
-        document_title("Random Shrink Strategy");
-        document_synopsis(
-            "This strategy picks states to shrink uniformly at random.");
 
-        add_bucket_based_shrink_options_to_feature(*this, 0);
-    }
+Feature& add_shrink_strategy_random_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "pshrink_random",
+        &downward::cli::plugins::
+            make_shared<ShrinkStrategy, ShrinkStrategyRandom, int>);
 
-protected:
-    static shared_ptr<ShrinkStrategy> func(int random_seed)
-    {
-        return make_shared_from_arg_tuples<ShrinkStrategyRandom>(random_seed);
-    }
-};
+    f.document_title("Random Shrink Strategy");
+    f.document_synopsis(
+        "This strategy picks states to shrink uniformly at random.");
+
+    add_bucket_based_shrink_options_to_feature(f, 0);
+
+    return f;
+}
+
 } // namespace
 
 namespace probfd::cli::merge_and_shrink {
@@ -42,7 +41,7 @@ namespace probfd::cli::merge_and_shrink {
 void add_shrink_strategy_random_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<ShrinkRandomFeature>();
+    add_shrink_strategy_random_to_namespace(n);
 }
 
 } // namespace probfd::cli::merge_and_shrink

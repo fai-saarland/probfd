@@ -16,83 +16,79 @@ using namespace downward::operator_counting;
 using namespace downward::cli::plugins;
 
 namespace {
-class DeleteRelaxationRRConstraintsFeature
-    : public SharedTypedFeature<ConstraintGenerator, AcyclicityType, bool> {
-public:
-    DeleteRelaxationRRConstraintsFeature()
-        : TypedFeature(
-              "delete_relaxation_rr_constraints",
-              &DeleteRelaxationRRConstraintsFeature::func)
-    {
-        document_title(
-            "Delete relaxation constraints from Rankooh and Rintanen");
-        document_synopsis(
-            "Operator-counting constraints based on the delete relaxation. By "
-            "default the constraints encode an easy-to-compute relaxation of "
-            "h^+^. "
-            "With the right settings, these constraints can be used to compute "
-            "the "
-            "optimal delete-relaxation heuristic h^+^ (see example below). "
-            "For details, see" +
-            format_journal_reference(
-                {"Masood Feyzbakhsh Rankooh", "Jussi Rintanen"},
-                "Efficient Computation and Informative Estimation of"
-                "h+ by Integer and Linear Programming"
-                "",
-                "https://ojs.aaai.org/index.php/ICAPS/article/view/19787/19546",
-                "Proceedings of the Thirty-Second International Conference on "
-                "Automated Planning and Scheduling (ICAPS2022)",
-                "32",
-                "71-79",
-                "2022"));
 
-        document_note(
-            "Example",
-            "To compute the optimal delete-relaxation heuristic h^+^, use"
-            "integer variables and some way of enforcing acyclicity (other "
-            "than \"none\"). For example\n"
-            "{{{\noperatorcounting([delete_relaxation_rr_constraints("
-            "acyclicity_type=vertex_elimination, use_integer_vars=true)], "
-            "use_integer_operator_counts=true))\n}}}\n");
-        document_note(
-            "Note",
-            "While the delete-relaxation constraints by Imai and Fukunaga "
-            "(accessible via option {{{delete_relaxation_if_constraints}}}) "
-            "serve a similar purpose to the constraints implemented here, we "
-            "recommend using this formulation as it can generally be solved "
-            "more efficiently, in particular in case of the h^+^ "
-            "configuration, and some relaxations offer tighter bounds.\n");
+Feature& add_delete_relaxation_rr_constraints_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "delete_relaxation_rr_constraints",
+        &downward::cli::plugins::make_shared<
+            ConstraintGenerator,
+            DeleteRelaxationRRConstraints,
+            AcyclicityType,
+            bool>);
 
-        make_optional_argument_with_default(
-            0,
-            "acyclicity_type",
-            "vertex_elimination",
-            "The most relaxed version of this constraint only enforces that "
-            "achievers of facts are picked in such a way that all goal facts "
-            "have an achiever, and the preconditions all achievers are either "
-            "true in the current state or have achievers themselves. In this "
-            "version, cycles in the achiever relation can occur. Such cycles "
-            "can be excluded with additional auxilliary varibles and "
-            "constraints.");
-        make_optional_argument_with_default(
-            1,
-            "use_integer_vars",
-            "false",
-            "restrict auxiliary variables to integer values. These variables "
-            "encode whether facts are reached, which operator first achieves "
-            "which fact, and (depending on the acyclicity_type) in which order "
-            "the operators are used. Restricting them to integers generally "
-            "improves the heuristic value at the cost of increased runtime.");
-    }
+    f.document_title("Delete relaxation constraints from Rankooh and Rintanen");
+    f.document_synopsis(
+        "Operator-counting constraints based on the delete relaxation. By "
+        "default the constraints encode an easy-to-compute relaxation of "
+        "h^+^. "
+        "With the right settings, these constraints can be used to compute "
+        "the "
+        "optimal delete-relaxation heuristic h^+^ (see example below). "
+        "For details, see" +
+        format_journal_reference(
+            {"Masood Feyzbakhsh Rankooh", "Jussi Rintanen"},
+            "Efficient Computation and Informative Estimation of"
+            "h+ by Integer and Linear Programming"
+            "",
+            "https://ojs.aaai.org/index.php/ICAPS/article/view/19787/19546",
+            "Proceedings of the Thirty-Second International Conference on "
+            "Automated Planning and Scheduling (ICAPS2022)",
+            "32",
+            "71-79",
+            "2022"));
 
-    static std::shared_ptr<ConstraintGenerator>
-    func(AcyclicityType acyclicity_type, bool use_integer_vars)
-    {
-        return std::make_shared<DeleteRelaxationRRConstraints>(
-            acyclicity_type,
-            use_integer_vars);
-    }
-};
+    f.document_note(
+        "Example",
+        "To compute the optimal delete-relaxation heuristic h^+^, use"
+        "integer variables and some way of enforcing acyclicity (other "
+        "than \"none\"). For example\n"
+        "{{{\noperatorcounting([delete_relaxation_rr_constraints("
+        "acyclicity_type=vertex_elimination, use_integer_vars=true)], "
+        "use_integer_operator_counts=true))\n}}}\n");
+    f.document_note(
+        "Note",
+        "While the delete-relaxation constraints by Imai and Fukunaga "
+        "(accessible via option {{{delete_relaxation_if_constraints}}}) "
+        "serve a similar purpose to the constraints implemented here, we "
+        "recommend using this formulation as it can generally be solved "
+        "more efficiently, in particular in case of the h^+^ "
+        "configuration, and some relaxations offer tighter bounds.\n");
+
+    f.make_optional_argument_with_default(
+        0,
+        "acyclicity_type",
+        "vertex_elimination",
+        "The most relaxed version of this constraint only enforces that "
+        "achievers of facts are picked in such a way that all goal facts "
+        "have an achiever, and the preconditions all achievers are either "
+        "true in the current state or have achievers themselves. In this "
+        "version, cycles in the achiever relation can occur. Such cycles "
+        "can be excluded with additional auxilliary varibles and "
+        "constraints.");
+    f.make_optional_argument_with_default(
+        1,
+        "use_integer_vars",
+        "false",
+        "restrict auxiliary variables to integer values. These variables "
+        "encode whether facts are reached, which operator first achieves "
+        "which fact, and (depending on the acyclicity_type) in which order "
+        "the operators are used. Restricting them to integers generally "
+        "improves the heuristic value at the cost of increased runtime.");
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::operator_counting {
@@ -117,7 +113,7 @@ void add_delete_relaxation_rr_constraints_feature(Registry& registry)
           "No acyclicity is enforced. The resulting heuristic is a relaxation "
           "of the delete-relaxation heuristic."}});
 
-    n.insert_feature_plugin<DeleteRelaxationRRConstraintsFeature>();
+    add_delete_relaxation_rr_constraints_to_namespace(n);
 }
 
 } // namespace downward::cli::operator_counting

@@ -82,45 +82,37 @@ public:
     }
 };
 
-class AcyclicVISolverFeature
-    : public SharedTypedFeature<
-          TaskSolverFactory,
-          std::shared_ptr<TaskStateSpaceFactory>,
-          std::shared_ptr<TaskHeuristicFactory>,
-          std::string,
-          bool,
-          value_t,
-          bool,
-          Verbosity> {
-public:
-    AcyclicVISolverFeature()
-        : TypedFeature("acyclic_value_iteration", &AcyclicVISolverFeature::func)
-    {
-        document_title("Acyclic Value Iteration");
-        add_base_solver_options_except_algorithm_to_feature(*this, 0);
-    }
+std::shared_ptr<TaskSolverFactory> create_acyclic_vi_solver(
+    std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+    std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+    std::string policy_filename,
+    bool print_fact_names,
+    value_t report_epsilon,
+    bool report_enabled,
+    Verbosity verbosity)
+{
+    return make_shared_from_arg_tuples<MDPSolver>(
+        std::make_shared<AcyclicVISolver>(),
+        std::move(task_state_space_factory),
+        std::move(heuristic_factory),
+        std::move(policy_filename),
+        print_fact_names,
+        report_epsilon,
+        report_enabled,
+        verbosity);
+}
 
-protected:
-    static std::shared_ptr<TaskSolverFactory> func(
-        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-        std::string policy_filename,
-        bool print_fact_names,
-        value_t report_epsilon,
-        bool report_enabled,
-        Verbosity verbosity)
-    {
-        return make_shared_from_arg_tuples<MDPSolver>(
-            std::make_shared<AcyclicVISolver>(),
-            std::move(task_state_space_factory),
-            std::move(heuristic_factory),
-            std::move(policy_filename),
-            print_fact_names,
-            report_epsilon,
-            report_enabled,
-            verbosity);
-    }
-};
+Feature& add_state_equation_constraints_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "acyclic_value_iteration",
+        &create_acyclic_vi_solver);
+    f.document_title("Acyclic Value Iteration");
+    add_base_solver_options_except_algorithm_to_feature(f, 0);
+
+    return f;
+}
+
 } // namespace
 
 namespace probfd::cli::solvers {
@@ -128,7 +120,7 @@ namespace probfd::cli::solvers {
 void add_acyclic_value_iteration_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<AcyclicVISolverFeature>();
+    add_state_equation_constraints_to_namespace(n);
 }
 
 } // namespace probfd::cli::solvers

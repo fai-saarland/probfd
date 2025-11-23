@@ -98,67 +98,45 @@ public:
     }
 };
 
-class DiversePotentialMaxHeuristicFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<Evaluator>,
-          shared_ptr<TaskTransformation>,
-          bool,
-          string,
-          utils::Verbosity,
-          int,
-          int,
-          double,
-          lp::LPSolverType,
-          int> {
-public:
-    DiversePotentialMaxHeuristicFeature()
-        : TypedFeature(
-              "diverse_potentials",
-              &DiversePotentialMaxHeuristicFeature::func)
-    {
-        document_title("Diverse potential heuristics");
-        document_synopsis(get_admissible_potentials_reference());
+Feature& add_diverse_potential_max_heuristic_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "diverse_potentials",
+        &downward::cli::plugins::make_shared<
+            TaskDependentFactory<Evaluator>,
+            DiversePotentialMaxHeuristicFactory,
+            shared_ptr<TaskTransformation>,
+            bool,
+            string,
+            Verbosity,
+            int,
+            int,
+            double,
+            lp::LPSolverType,
+            int>);
 
-        make_optional_argument_with_default(
-            0,
-            "num_samples",
-            "1000",
-            "Number of states to sample");
-        make_optional_argument_with_default(
-            1,
-            "max_num_heuristics",
-            "infinity()",
-            "maximum number of potential heuristics");
-        const auto n = add_admissible_potentials_options_to_feature(
-            *this,
-            "diverse_potentials",
-            2);
-        add_rng_options_to_feature(*this, n + 2);
-    }
+    f.document_title("Diverse potential heuristics");
+    f.document_synopsis(get_admissible_potentials_reference());
 
-    static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        shared_ptr<TaskTransformation> transformation,
-        bool cache_estimates,
-        string description,
-        utils::Verbosity verbosity,
-        int num_samples,
-        int max_num_heuristics,
-        double max_potential,
-        lp::LPSolverType lp_solver,
-        int random_seed)
-    {
-        return make_shared<DiversePotentialMaxHeuristicFactory>(
-            std::move(transformation),
-            cache_estimates,
-            std::move(description),
-            verbosity,
-            num_samples,
-            max_num_heuristics,
-            max_potential,
-            lp_solver,
-            random_seed);
-    }
-};
+    f.make_optional_argument_with_default(
+        0,
+        "num_samples",
+        "1000",
+        "Number of states to sample");
+    f.make_optional_argument_with_default(
+        1,
+        "max_num_heuristics",
+        "infinity()",
+        "maximum number of potential heuristics");
+    const auto n = add_admissible_potentials_options_to_feature(
+        f,
+        "diverse_potentials",
+        2);
+    add_rng_options_to_feature(f, n + 2);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::heuristics {
@@ -166,8 +144,7 @@ namespace downward::cli::heuristics {
 void add_diverse_potential_heuristics_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    const Feature& f =
-        n.insert_feature_plugin<DiversePotentialMaxHeuristicFeature>();
+    const Feature& f = add_diverse_potential_max_heuristic_to_namespace(n);
     SubcategoryPlugin& subcategory =
         registry.get_subcategory_plugin("heuristics_potentials");
     subcategory.add_feature(f);

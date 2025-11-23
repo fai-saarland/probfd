@@ -80,66 +80,49 @@ public:
     }
 };
 
-class DefaultTaskStateSpaceFactoryFeature
-    : public SharedTypedFeature<
-          TaskStateSpaceFactory,
-          std::vector<
-              std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>> {
-public:
-    DefaultTaskStateSpaceFactoryFeature()
-        : TypedFeature(
-              "default_state_space",
-              &DefaultTaskStateSpaceFactoryFeature::func)
-    {
-        document_synopsis("Default task state space implementation.");
-        make_optional_argument_with_default(
-            0,
-            "path_dependent_evaluators",
-            "[]",
-            "A list of path-dependent classical planning evaluators to inform "
-            "of "
-            "new transitions during the search.");
-    }
+Feature& add_default_task_state_space_factory_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "default_state_space",
+        &downward::cli::plugins::make_shared<
+            TaskStateSpaceFactory,
+            DefaultTaskStateSpaceFactory,
+            std::vector<std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>>);
 
-    static std::shared_ptr<TaskStateSpaceFactory> func(
-        std::vector<std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>
-            path_dependent_evaluator_factories)
-    {
-        return std::make_shared<DefaultTaskStateSpaceFactory>(
-            std::move(path_dependent_evaluator_factories));
-    }
-};
+    f.document_synopsis("Default task state space implementation.");
+    f.make_optional_argument_with_default(
+        0,
+        "path_dependent_evaluators",
+        "[]",
+        "A list of path-dependent classical planning evaluators to inform "
+        "of "
+        "new transitions during the search.");
 
-class CachingTaskStateSpaceFactoryFeature
-    : public SharedTypedFeature<
-          TaskStateSpaceFactory,
-          std::vector<
-              std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>> {
-public:
-    CachingTaskStateSpaceFactoryFeature()
-        : TypedFeature(
-              "caching_state_space",
-              &CachingTaskStateSpaceFactoryFeature::func)
-    {
-        document_synopsis(
+    return f;
+}
+
+Feature& add_caching_task_state_space_factory_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "caching_state_space",
+        &downward::cli::plugins::make_shared<
+            TaskStateSpaceFactory,
+            CachingTaskStateSpaceFactory,
+            std::vector<std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>>);
+
+    f.document_synopsis(
             "Task state space implementation with transition cache.");
-        make_optional_argument_with_default(
-            0,
-            "path_dependent_evaluators",
-            "[]",
-            "A list of path-dependent classical planning evaluators to inform "
-            "of "
-            "new transitions during the search.");
-    }
+    f.make_optional_argument_with_default(
+        0,
+        "path_dependent_evaluators",
+        "[]",
+        "A list of path-dependent classical planning evaluators to inform "
+        "of "
+        "new transitions during the search.");
 
-    static std::shared_ptr<TaskStateSpaceFactory> func(
-        std::vector<std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>
-            path_dependent_evaluator_factories)
-    {
-        return make_shared<CachingTaskStateSpaceFactory>(
-            std::move(path_dependent_evaluator_factories));
-    }
-};
+    return f;
+}
+
 } // namespace
 
 namespace probfd::cli {
@@ -147,8 +130,8 @@ namespace probfd::cli {
 void add_task_state_space_factory_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<DefaultTaskStateSpaceFactoryFeature>();
-    n.insert_feature_plugin<CachingTaskStateSpaceFactoryFeature>();
+    add_default_task_state_space_factory_to_namespace(n);
+    add_caching_task_state_space_factory_to_namespace(n);
 }
 
 } // namespace probfd::cli

@@ -18,70 +18,60 @@ using namespace downward::cli;
 using namespace downward::cli::plugins;
 
 namespace {
-class StubbornSetsAtomCentricFeature
-    : public SharedTypedFeature<
-          downward::PruningMethod,
-          bool,
-          AtomSelectionStrategy,
-          downward::utils::Verbosity> {
-public:
-    StubbornSetsAtomCentricFeature()
-        : TypedFeature(
-              "atom_centric_stubborn_sets",
-              &StubbornSetsAtomCentricFeature::func)
-    {
-        document_title("Atom-centric stubborn sets");
-        document_synopsis(
-            "Stubborn sets are a state pruning method which computes a subset "
-            "of applicable actions in each state such that completeness and "
-            "optimality of the overall search is preserved. Previous stubborn "
-            "set "
-            "implementations mainly track information about actions. In "
-            "contrast, "
-            "this implementation focuses on atomic propositions (atoms), which "
-            "often speeds up the computation on IPC benchmarks. For details, "
-            "see" +
-            format_conference_reference(
-                {"Gabriele Roeger",
-                 "Malte Helmert",
-                 "Jendrik Seipp",
-                 "Silvan Sievers"},
-                "An Atom-Centric Perspective on Stubborn Sets",
-                "https://ai.dmi.unibas.ch/papers/roeger-et-al-socs2020.pdf",
-                "Proceedings of the 13th Annual Symposium on Combinatorial "
-                "Search "
-                "(SoCS 2020)",
-                "57-65",
-                "AAAI Press",
-                "2020"));
 
-        make_optional_argument_with_default(
-            0,
-            "use_sibling_shortcut",
-            "true",
-            "use variable-based marking in addition to atom-based marking");
-        make_optional_argument_with_default(
-            1,
-            "atom_selection_strategy",
-            "quick_skip",
-            "Strategy for selecting unsatisfied atoms from action "
-            "preconditions or "
-            "the goal atoms. All strategies use the fast_downward strategy for "
-            "breaking ties.");
-        add_pruning_options_to_feature(*this, 2);
-    }
+Feature& add_stubborn_sets_atomic_centric_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "atom_centric_stubborn_sets",
+        &downward::cli::plugins::make_shared<
+            downward::PruningMethod,
+            StubbornSetsAtomCentric,
+            bool,
+            AtomSelectionStrategy,
+            Verbosity>);
+    f.document_title("Atom-centric stubborn sets");
+    f.document_synopsis(
+        "Stubborn sets are a state pruning method which computes a subset "
+        "of applicable actions in each state such that completeness and "
+        "optimality of the overall search is preserved. Previous stubborn "
+        "set "
+        "implementations mainly track information about actions. In "
+        "contrast, "
+        "this implementation focuses on atomic propositions (atoms), which "
+        "often speeds up the computation on IPC benchmarks. For details, "
+        "see" +
+        format_conference_reference(
+            {"Gabriele Roeger",
+             "Malte Helmert",
+             "Jendrik Seipp",
+             "Silvan Sievers"},
+            "An Atom-Centric Perspective on Stubborn Sets",
+            "https://ai.dmi.unibas.ch/papers/roeger-et-al-socs2020.pdf",
+            "Proceedings of the 13th Annual Symposium on Combinatorial "
+            "Search "
+            "(SoCS 2020)",
+            "57-65",
+            "AAAI Press",
+            "2020"));
 
-    static shared_ptr<downward::PruningMethod> func(
-        bool use_sibling_shortcut,
-        AtomSelectionStrategy atom_selection_strategy,
-        downward::utils::Verbosity verbosity)
-    {
-        return make_shared_from_arg_tuples<StubbornSetsAtomCentric>(
-            use_sibling_shortcut,
-            atom_selection_strategy,
-            verbosity);
-    }
-};
+    f.make_optional_argument_with_default(
+        0,
+        "use_sibling_shortcut",
+        "true",
+        "use variable-based marking in addition to atom-based marking");
+    f.make_optional_argument_with_default(
+        1,
+        "atom_selection_strategy",
+        "quick_skip",
+        "Strategy for selecting unsatisfied atoms from action "
+        "preconditions or "
+        "the goal atoms. All strategies use the fast_downward strategy for "
+        "breaking ties.");
+    add_pruning_options_to_feature(f, 2);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::pruning {
@@ -104,7 +94,7 @@ void add_stubborn_sets_atom_centric_feature(Registry& registry)
           "not "
           "yet part of the stubborn set"}});
 
-    n.insert_feature_plugin<StubbornSetsAtomCentricFeature>();
+    add_stubborn_sets_atomic_centric_to_namespace(n);
 }
 
 } // namespace downward::cli::pruning

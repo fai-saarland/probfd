@@ -128,88 +128,64 @@ public:
     }
 };
 
-class IPDBFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<Evaluator>,
-          shared_ptr<TaskTransformation>,
-          bool,
-          string,
-          utils::Verbosity,
-          int,
-          int,
-          int,
-          int,
-          FSeconds,
-          int,
-          FSeconds> {
-public:
-    IPDBFeature()
-        : TypedFeature("ipdb", &IPDBFeature::func)
-    {
-        document_title("iPDB");
-        document_synopsis(
-            "This approach is a combination of using the "
-            "Heuristic#Canonical_PDB "
-            "heuristic over patterns computed with the "
-            "PatternCollectionGenerator#hillclimbing algorithm for pattern "
-            "generation. It is a short-hand for the command-line option "
-            "{{{cpdbs(hillclimbing())}}}. "
-            "Both the heuristic and the pattern generation algorithm are "
-            "described "
-            "in the following paper:" +
-            paper_references() +
-            "See also Heuristic#Canonical_PDB and "
-            "PatternCollectionGenerator#Hill_climbing for more details.");
+Feature& add_ipdb_heuristic_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "ipdb",
+        &downward::cli::plugins::make_shared<
+            TaskDependentFactory<Evaluator>,
+            IPDBsHeuristicFactory,
+            shared_ptr<TaskTransformation>,
+            bool,
+            string,
+            Verbosity,
+            int,
+            int,
+            int,
+            int,
+            FSeconds,
+            int,
+            FSeconds>);
 
-        document_language_support("action costs", "supported");
-        document_language_support("conditional effects", "not supported");
-        document_language_support("axioms", "not supported");
+    f.document_title("iPDB");
+    f.document_synopsis(
+        "This approach is a combination of using the "
+        "Heuristic#Canonical_PDB "
+        "heuristic over patterns computed with the "
+        "PatternCollectionGenerator#hillclimbing algorithm for pattern "
+        "generation. It is a short-hand for the command-line option "
+        "{{{cpdbs(hillclimbing())}}}. "
+        "Both the heuristic and the pattern generation algorithm are "
+        "described "
+        "in the following paper:" +
+        paper_references() +
+        "See also Heuristic#Canonical_PDB and "
+        "PatternCollectionGenerator#Hill_climbing for more details.");
 
-        document_property("admissible", "yes");
-        document_property("consistent", "yes");
-        document_property("safe", "yes");
-        document_property("preferred operators", "no");
+    f.document_language_support("action costs", "supported");
+    f.document_language_support("conditional effects", "not supported");
+    f.document_language_support("axioms", "not supported");
 
-        const auto n = add_hillclimbing_options_to_feature(*this, 0);
-        /*
-          Add, possibly among others, the options for dominance pruning.
-          Note that using dominance pruning during hill climbing could lead to
-          fewer discovered patterns and pattern collections. A dominated pattern
-          (or pattern collection) might no longer be dominated after more
-          patterns are added. We thus only use dominance pruning on the
-          resulting collection.
-        */
-        const auto n2 = add_canonical_pdbs_options_to_feature(*this, n);
-        add_heuristic_options_to_feature(*this, "cpdbs", n + n2);
-    }
+    f.document_property("admissible", "yes");
+    f.document_property("consistent", "yes");
+    f.document_property("safe", "yes");
+    f.document_property("preferred operators", "no");
 
-    static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        shared_ptr<TaskTransformation> transformation,
-        bool cache_estimates,
-        string description,
-        utils::Verbosity verbosity,
-        int pdb_max_size,
-        int collection_max_size,
-        int num_samples,
-        int min_improvement,
-        FSeconds max_time,
-        int random_seed,
-        FSeconds max_time_dominance_pruning)
-    {
-        return make_shared_from_arg_tuples<IPDBsHeuristicFactory>(
-            std::move(transformation),
-            cache_estimates,
-            std::move(description),
-            verbosity,
-            pdb_max_size,
-            collection_max_size,
-            num_samples,
-            min_improvement,
-            max_time,
-            random_seed,
-            max_time_dominance_pruning);
-    }
-};
+    const auto n = add_hillclimbing_options_to_feature(f, 0);
+    /*
+      Add, possibly among others, the options for dominance pruning.
+      Note that using dominance pruning during hill climbing could lead to
+      fewer discovered patterns and pattern collections. A dominated pattern
+      (or pattern collection) might no longer be dominated after more
+      patterns are added. We thus only use dominance pruning on the
+      resulting collection.
+    */
+    const auto n2 = add_canonical_pdbs_options_to_feature(f, n);
+    add_heuristic_options_to_feature(f, "cpdbs", n + n2);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::heuristics {
@@ -217,7 +193,7 @@ namespace downward::cli::heuristics {
 void add_ipdbs_heuristic_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    const Feature& f = n.insert_feature_plugin<IPDBFeature>();
+    const Feature& f = add_ipdb_heuristic_to_namespace(n);
     SubcategoryPlugin& subcategory =
         registry.get_subcategory_plugin("heuristics_pdb");
     subcategory.add_feature(f);

@@ -56,53 +56,34 @@ std::string paper_references()
                "2012");
 }
 
-class PatternCollectionGeneratorHillclimbingFeature
-    : public SharedTypedFeature<
-          PatternCollectionGenerator,
-          int,
-          int,
-          int,
-          int,
-          FSeconds,
-          int,
-          Verbosity> {
-public:
-    PatternCollectionGeneratorHillclimbingFeature()
-        : TypedFeature(
-              "hillclimbing",
-              &PatternCollectionGeneratorHillclimbingFeature::func)
-    {
-        document_title("Hill climbing");
-        document_synopsis(
-            "This algorithm uses hill climbing to generate patterns "
-            "optimized for the Heuristic#Canonical_PDB heuristic. It it "
-            "described "
-            "in the following paper:" +
-            paper_references());
-        const auto n = add_hillclimbing_options_to_feature(*this, 0);
-        add_generator_options_to_feature(*this, n);
-    }
+Feature&
+add_pattern_collection_generator_hillclimbing_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "hillclimbing",
+        &downward::cli::plugins::make_shared<
+            PatternCollectionGenerator,
+            PatternCollectionGeneratorHillclimbing,
+            int,
+            int,
+            int,
+            int,
+            FSeconds,
+            int,
+            Verbosity>);
+    f.document_title("Hill climbing");
+    f.document_synopsis(
+        "This algorithm uses hill climbing to generate patterns "
+        "optimized for the Heuristic#Canonical_PDB heuristic. It it "
+        "described "
+        "in the following paper:" +
+        paper_references());
+    const auto n = add_hillclimbing_options_to_feature(f, 0);
+    add_generator_options_to_feature(f, n);
 
-    static shared_ptr<PatternCollectionGenerator> func(
-        int pdb_max_size,
-        int collection_max_size,
-        int num_samples,
-        int min_improvement,
-        FSeconds max_time,
-        int random_seed,
-        Verbosity verbosity)
-    {
-        return make_shared_from_arg_tuples<
-            PatternCollectionGeneratorHillclimbing>(
-            pdb_max_size,
-            collection_max_size,
-            num_samples,
-            min_improvement,
-            max_time,
-            random_seed,
-            verbosity);
-    }
-};
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::pdbs {
@@ -110,7 +91,7 @@ namespace downward::cli::pdbs {
 void add_pattern_collection_generator_hillclimbing_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<PatternCollectionGeneratorHillclimbingFeature>();
+    add_pattern_collection_generator_hillclimbing_to_namespace(n);
 }
 
 } // namespace downward::cli::pdbs

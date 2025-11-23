@@ -51,48 +51,38 @@ public:
     }
 };
 
-class AdditiveHeuristicFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<Evaluator>,
-          shared_ptr<TaskTransformation>,
-          bool,
-          string,
-          utils::Verbosity> {
-public:
-    AdditiveHeuristicFeature()
-        : TypedFeature("add", &AdditiveHeuristicFeature::func)
-    {
-        document_title("Additive heuristic");
+Feature& add_hadd_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "add",
+        &downward::cli::plugins::make_shared<
+            TaskDependentFactory<Evaluator>,
+            AdditiveHeuristicFactory,
+            shared_ptr<TaskTransformation>,
+            bool,
+            string,
+            Verbosity>);
 
-        document_language_support("action costs", "supported");
-        document_language_support("conditional effects", "supported");
-        document_language_support(
-            "axioms",
-            "supported (in the sense that the planner won't complain -- "
-            "handling of axioms might be very stupid "
-            "and even render the heuristic unsafe)");
+    f.document_title("Additive heuristic");
 
-        document_property("admissible", "no");
-        document_property("consistent", "no");
-        document_property("safe", "yes for tasks without axioms");
-        document_property("preferred operators", "yes");
+    f.document_language_support("action costs", "supported");
+    f.document_language_support("conditional effects", "supported");
+    f.document_language_support(
+        "axioms",
+        "supported (in the sense that the planner won't complain -- "
+        "handling of axioms might be very stupid "
+        "and even render the heuristic unsafe)");
 
-        add_heuristic_options_to_feature(*this, "add", 0);
-    }
+    f.document_property("admissible", "no");
+    f.document_property("consistent", "no");
+    f.document_property("safe", "yes for tasks without axioms");
+    f.document_property("preferred operators", "yes");
 
-    static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        shared_ptr<TaskTransformation> transformation,
-        bool cache_estimates,
-        string description,
-        utils::Verbosity verbosity)
-    {
-        return make_shared<AdditiveHeuristicFactory>(
-            std::move(transformation),
-            cache_estimates,
-            std::move(description),
-            verbosity);
-    }
-};
+    add_heuristic_options_to_feature(f, "add", 0);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::heuristics {
@@ -100,7 +90,7 @@ namespace downward::cli::heuristics {
 void add_additive_heuristic_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<AdditiveHeuristicFeature>();
+    add_hadd_to_namespace(n);
 }
 
 } // namespace downward::cli::heuristics

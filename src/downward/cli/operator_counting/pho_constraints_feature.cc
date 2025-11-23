@@ -15,44 +15,41 @@ using namespace downward::operator_counting;
 using namespace downward::cli::plugins;
 
 namespace {
-class PhOConstraintsFeature
-    : public SharedTypedFeature<
-          ConstraintGenerator,
-          const std::shared_ptr<downward::pdbs::PatternCollectionGenerator>&> {
-public:
-    PhOConstraintsFeature()
-        : TypedFeature("pho_constraints", &PhOConstraintsFeature::func)
-    {
-        document_title("Posthoc optimization constraints");
-        document_synopsis(
-            "The generator will compute a PDB for each pattern and add the"
-            " constraint h(s) <= sum_{o in relevant(h)} Count_o. For details,"
-            " see" +
-            format_conference_reference(
-                {"Florian Pommerening", "Gabriele Roeger", "Malte Helmert"},
-                "Getting the Most Out of Pattern Databases for Classical "
-                "Planning",
-                "https://ijcai.org/papers13/Papers/IJCAI13-347.pdf",
-                "Proceedings of the Twenty-Third International Joint"
-                " Conference on Artificial Intelligence (IJCAI 2013)",
-                "2357-2364",
-                "AAAI Press",
-                "2013"));
 
-        make_optional_argument_with_default(
-            0,
-            "patterns",
-            "systematic(2)",
-            "pattern generation method");
-    }
+Feature& add_pho_constraints_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "pho_constraints",
+        &downward::cli::plugins::make_shared<
+            ConstraintGenerator,
+            PhOConstraints,
+            const std::shared_ptr<
+                downward::pdbs::PatternCollectionGenerator>&>);
+    f.document_title("Posthoc optimization constraints");
+    f.document_synopsis(
+        "The generator will compute a PDB for each pattern and add the"
+        " constraint h(s) <= sum_{o in relevant(h)} Count_o. For details,"
+        " see" +
+        format_conference_reference(
+            {"Florian Pommerening", "Gabriele Roeger", "Malte Helmert"},
+            "Getting the Most Out of Pattern Databases for Classical "
+            "Planning",
+            "https://ijcai.org/papers13/Papers/IJCAI13-347.pdf",
+            "Proceedings of the Twenty-Third International Joint"
+            " Conference on Artificial Intelligence (IJCAI 2013)",
+            "2357-2364",
+            "AAAI Press",
+            "2013"));
 
-    static shared_ptr<ConstraintGenerator> func(
-        const std::shared_ptr<downward::pdbs::PatternCollectionGenerator>&
-            patterns)
-    {
-        return make_shared_from_arg_tuples<PhOConstraints>(patterns);
-    }
-};
+    f.make_optional_argument_with_default(
+        0,
+        "patterns",
+        "systematic(2)",
+        "pattern generation method");
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::operator_counting {
@@ -60,7 +57,7 @@ namespace downward::cli::operator_counting {
 void add_pho_constraints_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<PhOConstraintsFeature>();
+    add_pho_constraints_to_namespace(n);
 }
 
 } // namespace downward::cli::operator_counting

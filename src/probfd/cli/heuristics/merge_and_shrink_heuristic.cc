@@ -167,188 +167,165 @@ std::unique_ptr<FDRHeuristic> MergeAndShrinkHeuristicFactory::create_object(
         std::move(factor_distances));
 }
 
-class MergeAndShrinkHeuristicFactoryFeature final
-    : public SharedTypedFeature<
-          TaskHeuristicFactory,
-          std::shared_ptr<MergeStrategyFactory>,
-          std::shared_ptr<ShrinkStrategy>,
-          std::shared_ptr<LabelReduction>,
-          std::shared_ptr<PruneStrategy>,
-          int,
-          int,
-          int,
-          utils::FSeconds,
-          utils::Verbosity> {
-public:
-    MergeAndShrinkHeuristicFactoryFeature()
-        : TypedFeature(
-              "pa_merge_and_shrink",
-              &MergeAndShrinkHeuristicFactoryFeature::func)
-    {
-        document_title("Merge-and-shrink heuristic");
-        document_synopsis("TODO add a description");
+shared_ptr<TaskHeuristicFactory> create_merge_and_shrink_with_lr(
+    std::shared_ptr<MergeStrategyFactory> merge_strategy,
+    std::shared_ptr<ShrinkStrategy> shrink_strategy,
+    std::shared_ptr<LabelReduction> label_reduction,
+    std::shared_ptr<PruneStrategy> prune_strategy,
+    int max_states,
+    int max_states_before_merge,
+    int threshold_before_merge,
+    utils::FSeconds main_loop_max_time,
+    utils::Verbosity verbosity)
+{
+    handle_shrink_limit_options_defaults(
+        max_states,
+        max_states_before_merge,
+        threshold_before_merge);
 
-        // Merge strategy option.
-        make_required_argument(
-            0,
-            "merge_strategy",
-            "See detailed documentation for merge strategies.");
+    return make_shared_from_arg_tuples<MergeAndShrinkHeuristicFactory>(
+        std::move(merge_strategy),
+        std::move(shrink_strategy),
+        std::move(label_reduction),
+        std::move(prune_strategy),
+        max_states,
+        max_states_before_merge,
+        threshold_before_merge,
+        main_loop_max_time,
+        verbosity);
+}
 
-        // Shrink strategy option.
-        make_optional_argument_with_default(
-            1,
-            "shrink_strategy",
-            "pshrink_random()",
-            "See detailed documentation for shrink strategies.");
+shared_ptr<TaskHeuristicFactory> create_merge_and_shrink_no_lr(
+    std::shared_ptr<MergeStrategyFactory> merge_strategy,
+    std::shared_ptr<ShrinkStrategy> shrink_strategy,
+    std::shared_ptr<PruneStrategy> prune_strategy,
+    int max_states,
+    int max_states_before_merge,
+    int threshold_before_merge,
+    utils::FSeconds main_loop_max_time,
+    utils::Verbosity verbosity)
+{
+    handle_shrink_limit_options_defaults(
+        max_states,
+        max_states_before_merge,
+        threshold_before_merge);
 
-        // Pruning strategy option.
-        make_optional_argument_with_default(
-            2,
-            "prune_strategy",
-            "prune_identity()",
-            "See detailed documentation for pruning strategies.");
+    return make_shared_from_arg_tuples<MergeAndShrinkHeuristicFactory>(
+        std::move(merge_strategy),
+        std::move(shrink_strategy),
+        nullptr,
+        std::move(prune_strategy),
+        max_states,
+        max_states_before_merge,
+        threshold_before_merge,
+        main_loop_max_time,
+        verbosity);
+}
 
-        // Label reduction option.
-        make_required_argument(
-            3,
-            "label_reduction",
-            "See detailed documentation for labels. There is currently only "
-            "one 'option' to use label_reduction, which is "
-            "{{{label_reduction=exact()}}} "
-            "Also note the interaction with shrink strategies.");
+Feature& add_merge_and_shrink_with_lr_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "pa_merge_and_shrink",
+        &create_merge_and_shrink_with_lr);
 
-        const auto n =
-            add_transition_system_size_limit_options_to_feature(*this, 4);
+    f.document_title("Merge-and-shrink heuristic");
+    f.document_synopsis("TODO add a description");
 
-        make_optional_argument_with_default(
-            n + 4,
-            "main_loop_max_time",
-            "seconds_max()",
-            "A limit in seconds on the runtime of the main loop of the "
-            "algorithm. "
-            "If the limit is exceeded, the algorithm terminates, potentially "
-            "returning a factored transition system with several factors. Also "
-            "note that the time limit is only checked between transformations "
-            "of the main loop, but not during, so it can be exceeded if a "
-            "transformation is runtime-intense.");
+    // Merge strategy option.
+    f.make_required_argument(
+        0,
+        "merge_strategy",
+        "See detailed documentation for merge strategies.");
 
-        add_task_dependent_heuristic_options_to_feature(*this, n + 5);
-    }
+    // Shrink strategy option.
+    f.make_optional_argument_with_default(
+        1,
+        "shrink_strategy",
+        "pshrink_random()",
+        "See detailed documentation for shrink strategies.");
 
-    static shared_ptr<TaskHeuristicFactory> func(
-        std::shared_ptr<MergeStrategyFactory> merge_strategy,
-        std::shared_ptr<ShrinkStrategy> shrink_strategy,
-        std::shared_ptr<LabelReduction> label_reduction,
-        std::shared_ptr<PruneStrategy> prune_strategy,
-        int max_states,
-        int max_states_before_merge,
-        int threshold_before_merge,
-        utils::FSeconds main_loop_max_time,
-        utils::Verbosity verbosity)
-    {
-        handle_shrink_limit_options_defaults(
-            max_states,
-            max_states_before_merge,
-            threshold_before_merge);
+    // Pruning strategy option.
+    f.make_optional_argument_with_default(
+        2,
+        "prune_strategy",
+        "prune_identity()",
+        "See detailed documentation for pruning strategies.");
 
-        return make_shared_from_arg_tuples<MergeAndShrinkHeuristicFactory>(
-            std::move(merge_strategy),
-            std::move(shrink_strategy),
-            std::move(label_reduction),
-            std::move(prune_strategy),
-            max_states,
-            max_states_before_merge,
-            threshold_before_merge,
-            main_loop_max_time,
-            verbosity);
-    }
-};
+    // Label reduction option.
+    f.make_required_argument(
+        3,
+        "label_reduction",
+        "See detailed documentation for labels. There is currently only "
+        "one 'option' to use label_reduction, which is "
+        "{{{label_reduction=exact()}}} "
+        "Also note the interaction with shrink strategies.");
 
-class MergeAndShrinkHeuristicNoLRFactoryFeature final
-    : public SharedTypedFeature<
-          TaskHeuristicFactory,
-          std::shared_ptr<MergeStrategyFactory>,
-          std::shared_ptr<ShrinkStrategy>,
-          std::shared_ptr<PruneStrategy>,
-          int,
-          int,
-          int,
-          utils::FSeconds,
-          utils::Verbosity> {
-public:
-    MergeAndShrinkHeuristicNoLRFactoryFeature()
-        : TypedFeature(
-              "pa_merge_and_shrink_no_lr",
-              &MergeAndShrinkHeuristicNoLRFactoryFeature::func)
-    {
-        document_title("Merge-and-shrink heuristic");
-        document_synopsis("TODO add a description");
+    const auto n =
+        add_transition_system_size_limit_options_to_feature(f, 4);
 
-        // Merge strategy option.
-        make_required_argument(
-            0,
-            "merge_strategy",
-            "See detailed documentation for merge strategies.");
+    f.make_optional_argument_with_default(
+        n + 4,
+        "main_loop_max_time",
+        "seconds_max()",
+        "A limit in seconds on the runtime of the main loop of the "
+        "algorithm. "
+        "If the limit is exceeded, the algorithm terminates, potentially "
+        "returning a factored transition system with several factors. Also "
+        "note that the time limit is only checked between transformations "
+        "of the main loop, but not during, so it can be exceeded if a "
+        "transformation is runtime-intense.");
 
-        // Shrink strategy option.
-        make_optional_argument_with_default(
-            1,
-            "shrink_strategy",
-            "pshrink_random()",
-            "See detailed documentation for shrink strategies.");
+    add_task_dependent_heuristic_options_to_feature(f, n + 5);
 
-        // Pruning strategy option.
-        make_optional_argument_with_default(
-            2,
-            "prune_strategy",
-            "prune_identity()",
-            "See detailed documentation for pruning strategies.");
+    return f;
+}
 
-        const auto n =
-            add_transition_system_size_limit_options_to_feature(*this, 3);
+Feature& add_merge_and_shrink_no_lr_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "pa_merge_and_shrink_no_lr",
+        &create_merge_and_shrink_no_lr);
+    f.document_title("Merge-and-shrink heuristic");
+    f.document_synopsis("TODO add a description");
 
-        make_optional_argument_with_default(
-            n + 3,
-            "main_loop_max_time",
-            "seconds_max()",
-            "A limit in seconds on the runtime of the main loop of the "
-            "algorithm. "
-            "If the limit is exceeded, the algorithm terminates, potentially "
-            "returning a factored transition system with several factors. Also "
-            "note that the time limit is only checked between transformations "
-            "of the main loop, but not during, so it can be exceeded if a "
-            "transformation is runtime-intense.");
+    // Merge strategy option.
+    f.make_required_argument(
+        0,
+        "merge_strategy",
+        "See detailed documentation for merge strategies.");
 
-        add_task_dependent_heuristic_options_to_feature(*this, n + 4);
-    }
+    // Shrink strategy option.
+    f.make_optional_argument_with_default(
+        1,
+        "shrink_strategy",
+        "pshrink_random()",
+        "See detailed documentation for shrink strategies.");
 
-    static shared_ptr<TaskHeuristicFactory> func(
-        std::shared_ptr<MergeStrategyFactory> merge_strategy,
-        std::shared_ptr<ShrinkStrategy> shrink_strategy,
-        std::shared_ptr<PruneStrategy> prune_strategy,
-        int max_states,
-        int max_states_before_merge,
-        int threshold_before_merge,
-        utils::FSeconds main_loop_max_time,
-        utils::Verbosity verbosity)
-    {
-        handle_shrink_limit_options_defaults(
-            max_states,
-            max_states_before_merge,
-            threshold_before_merge);
+    // Pruning strategy option.
+    f.make_optional_argument_with_default(
+        2,
+        "prune_strategy",
+        "prune_identity()",
+        "See detailed documentation for pruning strategies.");
 
-        return make_shared_from_arg_tuples<MergeAndShrinkHeuristicFactory>(
-            std::move(merge_strategy),
-            std::move(shrink_strategy),
-            nullptr,
-            std::move(prune_strategy),
-            max_states,
-            max_states_before_merge,
-            threshold_before_merge,
-            main_loop_max_time,
-            verbosity);
-    }
-};
+    const auto n = add_transition_system_size_limit_options_to_feature(f, 3);
+
+    f.make_optional_argument_with_default(
+        n + 3,
+        "main_loop_max_time",
+        "seconds_max()",
+        "A limit in seconds on the runtime of the main loop of the "
+        "algorithm. "
+        "If the limit is exceeded, the algorithm terminates, potentially "
+        "returning a factored transition system with several factors. Also "
+        "note that the time limit is only checked between transformations "
+        "of the main loop, but not during, so it can be exceeded if a "
+        "transformation is runtime-intense.");
+
+    add_task_dependent_heuristic_options_to_feature(f, n + 4);
+
+    return f;
+}
 
 } // namespace
 
@@ -357,7 +334,8 @@ namespace probfd::cli::heuristics {
 void add_merge_and_shrink_heuristic_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<MergeAndShrinkHeuristicFactoryFeature>();
+    add_merge_and_shrink_with_lr_to_namespace(n);
+    add_merge_and_shrink_no_lr_to_namespace(n);
 }
 
 } // namespace probfd::cli::heuristics

@@ -52,39 +52,27 @@ public:
     }
 };
 
-class WeightedEvaluatorFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<Evaluator>,
-          std::string,
-          Verbosity,
-          std::shared_ptr<TaskDependentFactory<Evaluator>>,
-          int> {
-public:
-    WeightedEvaluatorFeature()
-        : TypedFeature("weight", &WeightedEvaluatorFeature::func)
-    {
-        document_title("Weighted evaluator");
-        document_synopsis(
-            "Multiplies the value of the evaluator with the given weight.");
+Feature& add_sum_evaluator_feature_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "weight",
+        &cli::plugins::make_shared<
+            TaskDependentFactory<Evaluator>,
+            WeightedEvaluatorFactory,
+            std::string,
+            Verbosity,
+            shared_ptr<TaskDependentFactory<Evaluator>>,
+            int>);
+    f.document_title("Weighted evaluator");
+    f.document_synopsis(
+        "Multiplies the value of the evaluator with the given weight.");
 
-        make_required_argument(0, "eval", "evaluator");
-        make_required_argument(1, "weight", "weight");
-        add_evaluator_options_to_feature(*this, "weight", 2);
-    }
+    f.make_required_argument(0, "eval", "evaluator");
+    f.make_required_argument(1, "weight", "weight");
+    add_evaluator_options_to_feature(f, "weight", 2);
 
-    static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        std::string description,
-        Verbosity verbosity,
-        std::shared_ptr<TaskDependentFactory<Evaluator>> eval_factory,
-        int weight)
-    {
-        return make_shared_from_arg_tuples<WeightedEvaluatorFactory>(
-            std::move(description),
-            verbosity,
-            std::move(eval_factory),
-            weight);
-    }
-};
+    return f;
+}
 
 } // namespace
 
@@ -93,7 +81,7 @@ namespace downward::cli::evaluators {
 void add_weighted_evaluator_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    const Feature& f = n.insert_feature_plugin<WeightedEvaluatorFeature>();
+    const Feature& f = add_sum_evaluator_feature_to_namespace(n);
     SubcategoryPlugin& subcategory =
         registry.get_subcategory_plugin("evaluators_basic");
     subcategory.add_feature(f);

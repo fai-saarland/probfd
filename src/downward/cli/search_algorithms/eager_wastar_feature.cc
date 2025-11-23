@@ -98,84 +98,59 @@ public:
     }
 };
 
-class EagerWAstarSearchFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<SearchAlgorithm>,
-          std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
-          std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
-          bool,
-          int,
-          int,
-          std::shared_ptr<PruningMethod>,
-          OperatorCost,
-          int,
-          utils::FSeconds,
-          const std::string&,
-          utils::Verbosity> {
-public:
-    EagerWAstarSearchFeature()
-        : TypedFeature("eager_wastar", &EagerWAstarSearchFeature::func)
-    {
-        document_title("Eager weighted A* search");
-        document_synopsis("");
-        document_note(
-            "Open lists and equivalent statements using general eager search",
-            "See corresponding notes for \"(Weighted) A* search (lazy)\"");
-        document_note(
-            "Note",
-            "Eager weighted A* search uses an alternation open list "
-            "while A* search uses a tie-breaking open list. Consequently, "
-            "\n```\n--search eager_wastar([h()], w=1)\n```\n"
-            "is **not** equivalent to\n```\n--search astar(h())\n```\n");
+Feature& add_eager_weighted_astar_search_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "eager_wastar",
+        &cli::plugins::make_shared<
+            TaskDependentFactory<SearchAlgorithm>,
+            EagerWAstarSearchFactory,
+            std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
+            std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
+            bool,
+            int,
+            int,
+            std::shared_ptr<PruningMethod>,
+            OperatorCost,
+            int,
+            utils::FSeconds,
+            const std::string&,
+            utils::Verbosity>);
 
-        make_required_argument(0, "evals", "evaluators");
-        make_optional_argument_with_default(
-            1,
-            "preferred",
-            "[]",
-            "use preferred operators of these evaluators");
-        make_optional_argument_with_default(
-            2,
-            "reopen_closed",
-            "true",
-            "reopen closed nodes");
-        make_optional_argument_with_default(
-            3,
-            "boost",
-            "0",
-            "boost value for preferred operator open lists");
-        make_optional_argument_with_default(4, "w", "1", "evaluator weight");
-        add_eager_search_options_to_feature(*this, "eager_wastar", 5);
-    }
+    f.document_title("Eager weighted A* search");
+    f.document_synopsis("");
+    f.document_note(
+        "Open lists and equivalent statements using general eager search",
+        "See corresponding notes for \"(Weighted) A* search (lazy)\"");
+    f.document_note(
+        "Note",
+        "Eager weighted A* search uses an alternation open list "
+        "while A* search uses a tie-breaking open list. Consequently, "
+        "\n```\n--search eager_wastar([h()], w=1)\n```\n"
+        "is **not** equivalent to\n```\n--search astar(h())\n```\n");
 
-    static shared_ptr<TaskDependentFactory<SearchAlgorithm>> func(
-        std::vector<shared_ptr<TaskDependentFactory<Evaluator>>> eval_factories,
-        std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>
-            preferred_factories,
-        bool reopen_closed,
-        int boost,
-        int w,
-        std::shared_ptr<PruningMethod> pruning,
-        OperatorCost cost_type,
-        int bound,
-        utils::FSeconds max_time,
-        const std::string& description,
-        utils::Verbosity verbosity)
-    {
-        return make_shared_from_arg_tuples<EagerWAstarSearchFactory>(
-            std::move(eval_factories),
-            std::move(preferred_factories),
-            reopen_closed,
-            boost,
-            w,
-            std::move(pruning),
-            cost_type,
-            bound,
-            max_time,
-            description,
-            verbosity);
-    }
-};
+    f.make_required_argument(0, "evals", "evaluators");
+    f.make_optional_argument_with_default(
+        1,
+        "preferred",
+        "[]",
+        "use preferred operators of these evaluators");
+    f.make_optional_argument_with_default(
+        2,
+        "reopen_closed",
+        "true",
+        "reopen closed nodes");
+    f.make_optional_argument_with_default(
+        3,
+        "boost",
+        "0",
+        "boost value for preferred operator open lists");
+    f.make_optional_argument_with_default(4, "w", "1", "evaluator weight");
+    add_eager_search_options_to_feature(f, "eager_wastar", 5);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::search_algorithms {
@@ -183,7 +158,7 @@ namespace downward::cli::search_algorithms {
 void add_eager_wastar_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<EagerWAstarSearchFeature>();
+    add_eager_weighted_astar_search_to_namespace(n);
 }
 
 } // namespace downward::cli::search_algorithms

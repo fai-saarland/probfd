@@ -18,52 +18,43 @@ using namespace probfd::cli::pdbs;
 using namespace downward::cli::plugins;
 
 namespace {
-class PatternCollectionGeneratorClassicalFeature
-    : public SharedTypedFeature<
-          PatternCollectionGenerator,
-          std::shared_ptr<pdbs::PatternCollectionGenerator>,
-          std::shared_ptr<SubCollectionFinderFactory>,
-          Verbosity> {
-public:
-    PatternCollectionGeneratorClassicalFeature()
-        : TypedFeature(
-              "classical_generator",
-              &PatternCollectionGeneratorClassicalFeature::func)
-    {
-        document_title("Classical Pattern Generation Adapter");
-        document_synopsis(
-            "Uses a classical pattern generation method on the determinization "
-            "of the input task. If classical PDBs are constructed by the "
-            "generation algorithm, they are used as a heuristic to compute the "
-            "corresponding probability-aware PDBs.");
 
-        make_optional_argument_with_default(
-            0,
-            "generator",
-            "systematic()",
-            "The classical pattern collection generator.");
+Feature&
+add_classical_pattern_collection_generator_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "classical_generator",
+        &downward::cli::plugins::make_shared<
+            PatternCollectionGenerator,
+            PatternCollectionGeneratorClassical,
+            std::shared_ptr<pdbs::PatternCollectionGenerator>,
+            std::shared_ptr<SubCollectionFinderFactory>,
+            Verbosity>);
 
-        make_optional_argument_with_default(
-            1,
-            "subcollection_finder_factory",
-            "finder_trivial_factory()",
-            "The subcollection finder factory.");
+    f.document_title("Classical Pattern Generation Adapter");
+    f.document_synopsis(
+        "Uses a classical pattern generation method on the determinization "
+        "of the input task. If classical PDBs are constructed by the "
+        "generation algorithm, they are used as a heuristic to compute the "
+        "corresponding probability-aware PDBs.");
 
-        add_pattern_collection_generator_options_to_feature(*this, 2);
-    }
+    f.make_optional_argument_with_default(
+        0,
+        "generator",
+        "systematic()",
+        "The classical pattern collection generator.");
 
-    static std::shared_ptr<PatternCollectionGenerator> func(
-        std::shared_ptr<pdbs::PatternCollectionGenerator> generator,
-        std::shared_ptr<SubCollectionFinderFactory>
-            subcollection_finder_factory,
-        Verbosity verbosity)
-    {
-        return make_shared_from_arg_tuples<PatternCollectionGeneratorClassical>(
-            std::move(generator),
-            std::move(subcollection_finder_factory),
-            verbosity);
-    }
-};
+    f.make_optional_argument_with_default(
+        1,
+        "subcollection_finder_factory",
+        "finder_trivial_factory()",
+        "The subcollection finder factory.");
+
+    add_pattern_collection_generator_options_to_feature(f, 2);
+
+    return f;
+}
+
 } // namespace
 
 namespace probfd::cli::pdbs {
@@ -71,7 +62,7 @@ namespace probfd::cli::pdbs {
 void add_pattern_collection_generator_classical_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<PatternCollectionGeneratorClassicalFeature>();
+    add_classical_pattern_collection_generator_to_namespace(n);
 }
 
 } // namespace probfd::cli::pdbs

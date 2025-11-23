@@ -19,6 +19,21 @@ class Context;
 
 namespace downward::cli::plugins {
 
+template <typename T, typename... Args>
+    requires std::constructible_from<T, Args...>
+T constructor(Args... args)
+{
+    return T(std::forward<std::remove_reference_t<Args>>(args)...);
+}
+
+template <typename Base, typename T, typename... Args>
+std::shared_ptr<Base> make_shared(Args... args)
+    requires std::constructible_from<T, Args...> && std::derived_from<T, Base>
+{
+    return std::make_shared<T>(
+        std::forward<std::remove_reference_t<Args>>(args)...);
+}
+
 class Feature {
 protected:
     std::vector<ArgumentInfo> arguments;

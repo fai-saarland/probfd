@@ -60,57 +60,45 @@ public:
     }
 };
 
-class CGHeuristicFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<Evaluator>,
-          shared_ptr<TaskTransformation>,
-          bool,
-          string,
-          utils::Verbosity,
-          int> {
-public:
-    CGHeuristicFeature()
-        : TypedFeature("cg", &CGHeuristicFeature::func)
-    {
-        document_title("Causal graph heuristic");
+Feature& add_causal_graph_heuristic_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "cg",
+        &downward::cli::plugins::make_shared<
+            TaskDependentFactory<Evaluator>,
+            CGHeuristicFactory,
+            shared_ptr<TaskTransformation>,
+            bool,
+            string,
+            Verbosity,
+            int>);
 
-        document_language_support("action costs", "supported");
-        document_language_support("conditional effects", "supported");
-        document_language_support(
-            "axioms",
-            "supported (in the sense that the planner won't complain -- "
-            "handling of axioms might be very stupid "
-            "and even render the heuristic unsafe)");
+    f.document_title("Causal graph heuristic");
 
-        document_property("admissible", "no");
-        document_property("consistent", "no");
-        document_property("safe", "no");
-        document_property("preferred operators", "yes");
+    f.document_language_support("action costs", "supported");
+    f.document_language_support("conditional effects", "supported");
+    f.document_language_support(
+        "axioms",
+        "supported (in the sense that the planner won't complain -- "
+        "handling of axioms might be very stupid "
+        "and even render the heuristic unsafe)");
 
-        make_optional_argument_with_default(
-            0,
-            "max_cache_size",
-            "1000000",
-            "maximum number of cached entries per variable (set to 0 to "
-            "disable cache)");
-        add_heuristic_options_to_feature(*this, "cg", 1);
-    }
+    f.document_property("admissible", "no");
+    f.document_property("consistent", "no");
+    f.document_property("safe", "no");
+    f.document_property("preferred operators", "yes");
 
-    static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        shared_ptr<TaskTransformation> transformation,
-        bool cache_estimates,
-        string description,
-        utils::Verbosity verbosity,
-        int max_cache_size)
-    {
-        return make_shared<CGHeuristicFactory>(
-            std::move(transformation),
-            cache_estimates,
-            std::move(description),
-            verbosity,
-            max_cache_size);
-    }
-};
+    f.make_optional_argument_with_default(
+        0,
+        "max_cache_size",
+        "1000000",
+        "maximum number of cached entries per variable (set to 0 to "
+        "disable cache)");
+    add_heuristic_options_to_feature(f, "cg", 1);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::heuristics {
@@ -118,7 +106,7 @@ namespace downward::cli::heuristics {
 void add_cg_heuristic_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<CGHeuristicFeature>();
+    add_causal_graph_heuristic_to_namespace(n);
 }
 
 } // namespace downward::cli::heuristics

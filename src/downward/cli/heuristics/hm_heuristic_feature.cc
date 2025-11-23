@@ -58,54 +58,42 @@ public:
     }
 };
 
-class HMHeuristicFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<Evaluator>,
-          shared_ptr<TaskTransformation>,
-          bool,
-          string,
-          utils::Verbosity,
-          int> {
-public:
-    HMHeuristicFeature()
-        : TypedFeature("hm", &HMHeuristicFeature::func)
-    {
-        document_title("h^m heuristic");
+Feature& add_hm_heuristic_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "hm",
+        &downward::cli::plugins::make_shared<
+            TaskDependentFactory<Evaluator>,
+            HMHeuristicFactory,
+            shared_ptr<TaskTransformation>,
+            bool,
+            string,
+            Verbosity,
+            int>);
 
-        document_language_support("action costs", "supported");
-        document_language_support("conditional effects", "ignored");
-        document_language_support("axioms", "ignored");
+    f.document_title("h^m heuristic");
 
-        document_property(
-            "admissible",
-            "yes for tasks without conditional effects or axioms");
-        document_property(
-            "consistent",
-            "yes for tasks without conditional effects or axioms");
-        document_property(
-            "safe",
-            "yes for tasks without conditional effects or axioms");
-        document_property("preferred operators", "no");
+    f.document_language_support("action costs", "supported");
+    f.document_language_support("conditional effects", "ignored");
+    f.document_language_support("axioms", "ignored");
 
-        make_optional_argument_with_default(0, "m", "2", "subset size");
-        add_heuristic_options_to_feature(*this, "hm", 1);
-    }
+    f.document_property(
+        "admissible",
+        "yes for tasks without conditional effects or axioms");
+    f.document_property(
+        "consistent",
+        "yes for tasks without conditional effects or axioms");
+    f.document_property(
+        "safe",
+        "yes for tasks without conditional effects or axioms");
+    f.document_property("preferred operators", "no");
 
-    static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        shared_ptr<TaskTransformation> transformation,
-        bool cache_estimates,
-        string description,
-        utils::Verbosity verbosity,
-        int m)
-    {
-        return make_shared_from_arg_tuples<HMHeuristicFactory>(
-            std::move(transformation),
-            cache_estimates,
-            std::move(description),
-            verbosity,
-            m);
-    }
-};
+    f.make_optional_argument_with_default(0, "m", "2", "subset size");
+    add_heuristic_options_to_feature(f, "hm", 1);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::heuristics {
@@ -113,7 +101,7 @@ namespace downward::cli::heuristics {
 void add_hm_heuristic_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<HMHeuristicFeature>();
+    add_hm_heuristic_to_namespace(n);
 }
 
 } // namespace downward::cli::heuristics

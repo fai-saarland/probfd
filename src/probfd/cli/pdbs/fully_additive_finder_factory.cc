@@ -13,21 +13,18 @@ using namespace probfd::pdbs;
 using namespace downward::cli::plugins;
 
 namespace {
-class FullyAdditiveFinderFactoryFeature
-    : public SharedTypedFeature<SubCollectionFinderFactory> {
-public:
-    FullyAdditiveFinderFactoryFeature()
-        : TypedFeature(
-              "fully_additive_factory",
-              &FullyAdditiveFinderFactoryFeature::func)
-    {
-    }
 
-    static std::shared_ptr<SubCollectionFinderFactory> func()
-    {
-        return std::make_shared<FullyAdditiveFinderFactory>();
-    }
-};
+Feature& add_fully_additive_factory_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "fully_additive_factory",
+        &downward::cli::plugins::make_shared<
+            SubCollectionFinderFactory,
+            FullyAdditiveFinderFactory>);
+
+    return f;
+}
+
 } // namespace
 
 namespace probfd::cli::pdbs {
@@ -35,7 +32,7 @@ namespace probfd::cli::pdbs {
 void add_fully_additive_finder_factory_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<FullyAdditiveFinderFactoryFeature>();
+    add_fully_additive_factory_to_namespace(n);
 }
 
 } // namespace probfd::cli::pdbs

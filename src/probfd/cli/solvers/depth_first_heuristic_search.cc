@@ -127,12 +127,11 @@ public:
         const auto n2 =
             add_mdp_hs_options_to_feature<Bisimulation, false>(*this, n);
 
-        this->make_required_argument(n + n2, "labeling");
-        this->make_required_argument(n + n2 + 1, "fwup");
-        this->make_required_argument(n + n2 + 2, "bwup");
+        this->make_required_argument(n + n2, "fwup");
+        this->make_required_argument(n + n2 + 1, "bwup");
+        this->make_required_argument(n + n2 + 2, "cutoff_tip");
         this->make_required_argument(n + n2 + 3, "cutoff_inconsistent");
-        this->make_required_argument(n + n2 + 4, "vi");
-        this->make_required_argument(n + n2 + 5, "cutoff_tip");
+        this->make_required_argument(n + n2 + 4, "labeling");
     }
 
 protected:
@@ -388,12 +387,11 @@ public:
         const auto n2 =
             add_mdp_hs_options_to_feature<Bisimulation, true>(*this, n);
 
-        this->make_required_argument(n + n2, "labeling");
-        this->make_required_argument(n + n2 + 1, "fwup");
-        this->make_required_argument(n + n2 + 2, "bwup");
+        this->make_required_argument(n + n2, "fwup");
+        this->make_required_argument(n + n2 + 1, "bwup");
+        this->make_required_argument(n + n2 + 2, "cutoff_tip");
         this->make_required_argument(n + n2 + 3, "cutoff_inconsistent");
-        this->make_required_argument(n + n2 + 4, "vi");
-        this->make_required_argument(n + n2 + 5, "cutoff_tip");
+        this->make_required_argument(n + n2 + 4, "labeling");
     }
 
 protected:

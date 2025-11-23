@@ -131,6 +131,11 @@ public:
     {
     }
 
+    explicit BestFirstOpenListFactory(bool pref_only)
+        : BestFirstOpenListFactory(nullptr, pref_only)
+    {
+    }
+
     std::unique_ptr<OpenList<T>>
     create_object(const SharedAbstractTask& task) override
     {

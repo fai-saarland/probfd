@@ -18,37 +18,32 @@ using downward::cli::landmarks::add_use_orders_option_to_feature;
 using downward::cli::landmarks::add_landmark_factory_options_to_feature;
 
 namespace {
-class LandmarkFactoryZhuGivanFeature
-    : public SharedTypedFeature<
-          LandmarkFactory,
-          bool,
-          downward::utils::Verbosity> {
-public:
-    LandmarkFactoryZhuGivanFeature()
-        : TypedFeature("lm_zg", &LandmarkFactoryZhuGivanFeature::func)
-    {
-        document_title("Zhu/Givan Landmarks");
-        document_synopsis(
-            "The landmark generation method introduced by "
-            "Zhu & Givan (ICAPS 2003 Doctoral Consortium).");
 
-        const auto n = add_use_orders_option_to_feature(*this, 0);
-        add_landmark_factory_options_to_feature(*this, n);
+Feature& add_landmark_factory_zhu_givan_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "lm_zg",
+        &downward::cli::plugins::make_shared<
+            LandmarkFactory,
+            LandmarkFactoryZhuGivan,
+            bool,
+            Verbosity>);
+    f.document_title("Zhu/Givan Landmarks");
+    f.document_synopsis(
+        "The landmark generation method introduced by "
+        "Zhu & Givan (ICAPS 2003 Doctoral Consortium).");
 
-        // TODO: Make sure that conditional effects are indeed supported.
-        document_language_support(
-            "conditional_effects",
-            "We think they are supported, but this is not 100% sure.");
-    }
+    const auto n = add_use_orders_option_to_feature(f, 0);
+    add_landmark_factory_options_to_feature(f, n);
 
-    static shared_ptr<LandmarkFactory>
-    func(bool use_orders, downward::utils::Verbosity verbosity)
-    {
-        return make_shared_from_arg_tuples<LandmarkFactoryZhuGivan>(
-            use_orders,
-            verbosity);
-    }
-};
+    // TODO: Make sure that conditional effects are indeed supported.
+    f.document_language_support(
+        "conditional_effects",
+        "We think they are supported, but this is not 100% sure.");
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::landmarks {
@@ -56,7 +51,7 @@ namespace downward::cli::landmarks {
 void add_landmark_factory_zhu_givan_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<LandmarkFactoryZhuGivanFeature>();
+    add_landmark_factory_zhu_givan_to_namespace(n);
 }
 
 } // namespace downward::cli::landmarks

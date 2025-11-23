@@ -53,44 +53,34 @@ public:
     }
 };
 
-class GoalCountHeuristicFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<Evaluator>,
-          shared_ptr<TaskTransformation>,
-          bool,
-          string,
-          utils::Verbosity> {
-public:
-    GoalCountHeuristicFeature()
-        : TypedFeature("goalcount", &GoalCountHeuristicFeature::func)
-    {
-        document_title("Goal count heuristic");
+Feature& add_goal_count_heuristic_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "goalcount",
+        &downward::cli::plugins::make_shared<
+            TaskDependentFactory<Evaluator>,
+            GoalCountHeuristicFactory,
+            shared_ptr<TaskTransformation>,
+            bool,
+            string,
+            Verbosity>);
 
-        document_language_support("action costs", "ignored by design");
-        document_language_support("conditional effects", "supported");
-        document_language_support("axioms", "supported");
+    f.document_title("Goal count heuristic");
 
-        document_property("admissible", "no");
-        document_property("consistent", "no");
-        document_property("safe", "yes");
-        document_property("preferred operators", "no");
+    f.document_language_support("action costs", "ignored by design");
+    f.document_language_support("conditional effects", "supported");
+    f.document_language_support("axioms", "supported");
 
-        add_heuristic_options_to_feature(*this, "goalcount", 0);
-    }
+    f.document_property("admissible", "no");
+    f.document_property("consistent", "no");
+    f.document_property("safe", "yes");
+    f.document_property("preferred operators", "no");
 
-    static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        shared_ptr<TaskTransformation> transformation,
-        bool cache_estimates,
-        string description,
-        utils::Verbosity verbosity)
-    {
-        return make_shared<GoalCountHeuristicFactory>(
-            std::move(transformation),
-            cache_estimates,
-            std::move(description),
-            verbosity);
-    }
-};
+    add_heuristic_options_to_feature(f, "goalcount", 0);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::heuristics {
@@ -98,7 +88,7 @@ namespace downward::cli::heuristics {
 void add_goal_count_heuristic_features(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<GoalCountHeuristicFeature>();
+    add_goal_count_heuristic_to_namespace(n);
 }
 
 } // namespace downward::cli::heuristics

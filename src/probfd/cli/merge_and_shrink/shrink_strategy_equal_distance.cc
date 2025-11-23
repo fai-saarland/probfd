@@ -18,44 +18,36 @@ using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
 
 namespace {
-class ShrinkStrategyEqualDistanceFeature
-    : public SharedTypedFeature<
-          ShrinkStrategy,
-          int,
-          ShrinkStrategyEqualDistance::Priority> {
-public:
-    ShrinkStrategyEqualDistanceFeature()
-        : TypedFeature(
-              "shrink_equal_distance",
-              &ShrinkStrategyEqualDistanceFeature::func)
-    {
-        document_title("distance-preserving shrink strategy");
 
-        document_note(
-            "Note",
-            "The strategy first partitions all states according to their "
-            "h-values. States sorted last are shrinked together until reaching "
-            "max_states.");
+Feature& add_shrink_strategy_equal_distance_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "shrink_equal_distance",
+        &downward::cli::plugins::make_shared<
+            ShrinkStrategy,
+            ShrinkStrategyEqualDistance,
+            int,
+            ShrinkStrategyEqualDistance::Priority>);
 
-        const auto n = add_bucket_based_shrink_options_to_feature(*this, 0);
+    f.document_title("distance-preserving shrink strategy");
 
-        make_optional_argument_with_default(
-            n,
-            "priority",
-            "low",
-            "in which direction the distance based shrink priority is ordered");
-    }
+    f.document_note(
+        "Note",
+        "The strategy first partitions all states according to their "
+        "h-values. States sorted last are shrinked together until reaching "
+        "max_states.");
 
-protected:
-    static shared_ptr<ShrinkStrategy> func(
-        int random_seed,
-        ShrinkStrategyEqualDistance::Priority high_low)
-    {
-        return make_shared_from_arg_tuples<ShrinkStrategyEqualDistance>(
-            random_seed,
-            high_low);
-    }
-};
+    const auto n = add_bucket_based_shrink_options_to_feature(f, 0);
+
+    f.make_optional_argument_with_default(
+        n,
+        "priority",
+        "low",
+        "in which direction the distance based shrink priority is ordered");
+
+    return f;
+}
+
 } // namespace
 
 namespace probfd::cli::merge_and_shrink {
@@ -67,7 +59,7 @@ void add_shrink_strategy_equal_distance_feature(Registry& registry)
         {{"high", "prefer shrinking states with high value"},
          {"low", "prefer shrinking states with low value"}});
 
-    n.insert_feature_plugin<ShrinkStrategyEqualDistanceFeature>();
+    add_shrink_strategy_equal_distance_to_namespace(n);
 }
 
 } // namespace probfd::cli::merge_and_shrink

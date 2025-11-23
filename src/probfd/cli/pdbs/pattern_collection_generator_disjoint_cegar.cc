@@ -79,63 +79,38 @@ std::size_t add_pattern_collection_generator_cegar_options_to_feature(
     return n + n2 + 6;
 }
 
-class PatternCollectionGeneratorDisjointCEGARFeature
-    : public SharedTypedFeature<
-          PatternCollectionGenerator,
-          value_t,
-          bool,
-          bool,
-          int,
-          int,
-          FSeconds,
-          std::shared_ptr<RandomNumberGenerator>,
-          const std::shared_ptr<SubCollectionFinderFactory>&,
-          const std::shared_ptr<FlawFindingStrategy>&,
-          Verbosity> {
-public:
-    PatternCollectionGeneratorDisjointCEGARFeature()
-        : TypedFeature(
-              "ppdbs_disjoint_cegar",
-              &PatternCollectionGeneratorDisjointCEGARFeature::func)
-    {
-        make_optional_argument_with_default(
-            0,
-            "convergence_epsilon",
-            "10e-4",
-            "The tolerance for convergence checks.");
+Feature&
+add_pattern_collection_generator_disjoint_cegar_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "ppdbs_disjoint_cegar",
+        &downward::cli::plugins::make_shared<
+            PatternCollectionGenerator,
+            PatternCollectionGeneratorDisjointCegar,
+            value_t,
+            bool,
+            bool,
+            int,
+            int,
+            FSeconds,
+            std::shared_ptr<RandomNumberGenerator>,
+            const std::shared_ptr<SubCollectionFinderFactory>&,
+            const std::shared_ptr<FlawFindingStrategy>&,
+            Verbosity>);
 
-        const auto n =
-            add_pattern_collection_generator_cegar_options_to_feature(*this, 1);
-        add_rng_options_to_feature(*this, n + 1);
-    }
+    f.make_optional_argument_with_default(
+        0,
+        "convergence_epsilon",
+        "10e-4",
+        "The tolerance for convergence checks.");
 
-    static shared_ptr<PatternCollectionGenerator> func(
-        value_t convergence_epsilon,
-        bool use_wildcard_policies,
-        bool single_goal,
-        int max_pdb_size,
-        int max_collection_size,
-        FSeconds max_time,
-        std::shared_ptr<RandomNumberGenerator> rng,
-        const std::shared_ptr<SubCollectionFinderFactory>&
-            subcollection_finder_factory,
-        const std::shared_ptr<FlawFindingStrategy>& flaw_strategy,
-        Verbosity verbosity)
-    {
-        return make_shared_from_arg_tuples<
-            PatternCollectionGeneratorDisjointCegar>(
-            convergence_epsilon,
-            use_wildcard_policies,
-            single_goal,
-            max_pdb_size,
-            max_collection_size,
-            max_time,
-            std::move(rng),
-            subcollection_finder_factory,
-            flaw_strategy,
-            verbosity);
-    }
-};
+    const auto n =
+        add_pattern_collection_generator_cegar_options_to_feature(f, 1);
+    add_rng_options_to_feature(f, n + 1);
+
+    return f;
+}
+
 } // namespace
 
 namespace probfd::cli::pdbs {
@@ -143,7 +118,7 @@ namespace probfd::cli::pdbs {
 void add_pattern_collection_generator_disjoint_cegar_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<PatternCollectionGeneratorDisjointCEGARFeature>();
+    add_pattern_collection_generator_disjoint_cegar_to_namespace(n);
 }
 
 } // namespace probfd::cli::pdbs

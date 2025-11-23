@@ -96,131 +96,107 @@ public:
     }
 };
 
-class AdditiveCartesianHeuristicFeature
-    : public SharedTypedFeature<
-          TaskDependentFactory<Evaluator>,
-          shared_ptr<TaskTransformation>,
-          bool,
-          string,
-          Verbosity,
-          std::vector<std::shared_ptr<SubtaskGenerator>>,
-          int,
-          int,
-          FSeconds,
-          PickSplit,
-          bool,
-          int> {
-public:
-    AdditiveCartesianHeuristicFeature()
-        : TypedFeature("cegar", &AdditiveCartesianHeuristicFeature::func)
-    {
-        document_title("Additive CEGAR heuristic");
-        document_synopsis(
-            "See the paper introducing Counterexample-guided Abstraction "
-            "Refinement (CEGAR) for classical planning:" +
-            format_conference_reference(
-                {"Jendrik Seipp", "Malte Helmert"},
-                "Counterexample-guided Cartesian Abstraction Refinement",
-                "https://ai.dmi.unibas.ch/papers/seipp-helmert-icaps2013.pdf",
-                "Proceedings of the 23rd International Conference on Automated "
-                "Planning and Scheduling (ICAPS 2013)",
-                "347-351",
-                "AAAI Press",
-                "2013") +
-            "and the paper showing how to make the abstractions additive:" +
-            format_conference_reference(
-                {"Jendrik Seipp", "Malte Helmert"},
-                "Diverse and Additive Cartesian Abstraction Heuristics",
-                "https://ai.dmi.unibas.ch/papers/seipp-helmert-icaps2014.pdf",
-                "Proceedings of the 24th International Conference on "
-                "Automated Planning and Scheduling (ICAPS 2014)",
-                "289-297",
-                "AAAI Press",
-                "2014") +
-            "For more details on Cartesian CEGAR and saturated cost "
-            "partitioning, "
-            "see the journal paper" +
-            format_journal_reference(
-                {"Jendrik Seipp", "Malte Helmert"},
-                "Counterexample-Guided Cartesian Abstraction Refinement for "
-                "Classical Planning",
-                "https://ai.dmi.unibas.ch/papers/seipp-helmert-jair2018.pdf",
-                "Journal of Artificial Intelligence Research",
-                "62",
-                "535-577",
-                "2018"));
+Feature& add_additive_cartesian_heuristic_to_namespace(Namespace& nspace)
+{
+    auto& f = nspace.insert_typed_feature_plugin(
+        "cegar",
+        &downward::cli::plugins::make_shared<
+            TaskDependentFactory<Evaluator>,
+            AdditiveCartesianHeuristicFactory,
+            shared_ptr<TaskTransformation>,
+            bool,
+            string,
+            Verbosity,
+            std::vector<std::shared_ptr<SubtaskGenerator>>,
+            int,
+            int,
+            FSeconds,
+            PickSplit,
+            bool,
+            int>);
 
-        document_language_support("action costs", "supported");
-        document_language_support("conditional effects", "not supported");
-        document_language_support("axioms", "not supported");
+    f.document_title("Additive CEGAR heuristic");
+    f.document_synopsis(
+        "See the paper introducing Counterexample-guided Abstraction "
+        "Refinement (CEGAR) for classical planning:" +
+        format_conference_reference(
+            {"Jendrik Seipp", "Malte Helmert"},
+            "Counterexample-guided Cartesian Abstraction Refinement",
+            "https://ai.dmi.unibas.ch/papers/seipp-helmert-icaps2013.pdf",
+            "Proceedings of the 23rd International Conference on Automated "
+            "Planning and Scheduling (ICAPS 2013)",
+            "347-351",
+            "AAAI Press",
+            "2013") +
+        "and the paper showing how to make the abstractions additive:" +
+        format_conference_reference(
+            {"Jendrik Seipp", "Malte Helmert"},
+            "Diverse and Additive Cartesian Abstraction Heuristics",
+            "https://ai.dmi.unibas.ch/papers/seipp-helmert-icaps2014.pdf",
+            "Proceedings of the 24th International Conference on "
+            "Automated Planning and Scheduling (ICAPS 2014)",
+            "289-297",
+            "AAAI Press",
+            "2014") +
+        "For more details on Cartesian CEGAR and saturated cost "
+        "partitioning, "
+        "see the journal paper" +
+        format_journal_reference(
+            {"Jendrik Seipp", "Malte Helmert"},
+            "Counterexample-Guided Cartesian Abstraction Refinement for "
+            "Classical Planning",
+            "https://ai.dmi.unibas.ch/papers/seipp-helmert-jair2018.pdf",
+            "Journal of Artificial Intelligence Research",
+            "62",
+            "535-577",
+            "2018"));
 
-        document_property("admissible", "yes");
-        document_property("consistent", "yes");
-        document_property("safe", "yes");
-        document_property("preferred operators", "no");
+    f.document_language_support("action costs", "supported");
+    f.document_language_support("conditional effects", "not supported");
+    f.document_language_support("axioms", "not supported");
 
-        make_optional_argument_with_default(
-            0,
-            "subtasks",
-            "[landmarks(),goals()]",
-            "subtask generators");
-        make_optional_argument_with_default(
-            1,
-            "max_states",
-            "infinity()",
-            "maximum sum of abstract states over all abstractions");
-        make_optional_argument_with_default(
-            2,
-            "max_transitions",
-            "1M",
-            "maximum sum of real transitions (excluding self-loops) over "
-            " all abstractions");
-        make_optional_argument_with_default(
-            3,
-            "max_time",
-            "seconds_max()",
-            "maximum time in seconds for building abstractions");
-        make_optional_argument_with_default(
-            4,
-            "pick",
-            "max_refined",
-            "how to choose on which variable to split the flaw state");
-        make_optional_argument_with_default(
-            5,
-            "use_general_costs",
-            "true",
-            "allow negative costs in cost partitioning");
-        const auto n = add_rng_options_to_feature(*this, 6);
-        add_heuristic_options_to_feature(*this, "cegar", n + 6);
-    }
+    f.document_property("admissible", "yes");
+    f.document_property("consistent", "yes");
+    f.document_property("safe", "yes");
+    f.document_property("preferred operators", "no");
 
-    static shared_ptr<TaskDependentFactory<Evaluator>> func(
-        shared_ptr<TaskTransformation> transformation,
-        bool cache_estimates,
-        string description,
-        Verbosity verbosity,
-        std::vector<std::shared_ptr<SubtaskGenerator>> subtasks,
-        int max_states,
-        int max_transitions,
-        FSeconds max_time,
-        PickSplit pick,
-        bool use_general_costs,
-        int random_seed)
-    {
-        return make_shared_from_arg_tuples<AdditiveCartesianHeuristicFactory>(
-            std::move(transformation),
-            cache_estimates,
-            std::move(description),
-            verbosity,
-            std::move(subtasks),
-            max_states,
-            max_transitions,
-            max_time,
-            pick,
-            use_general_costs,
-            random_seed);
-    }
-};
+    f.make_optional_argument_with_default(
+        0,
+        "subtasks",
+        "[landmarks(),goals()]",
+        "subtask generators");
+    f.make_optional_argument_with_default(
+        1,
+        "max_states",
+        "infinity()",
+        "maximum sum of abstract states over all abstractions");
+    f.make_optional_argument_with_default(
+        2,
+        "max_transitions",
+        "1M",
+        "maximum sum of real transitions (excluding self-loops) over "
+        " all abstractions");
+    f.make_optional_argument_with_default(
+        3,
+        "max_time",
+        "seconds_max()",
+        "maximum time in seconds for building abstractions");
+    f.make_optional_argument_with_default(
+        4,
+        "pick",
+        "max_refined",
+        "how to choose on which variable to split the flaw state");
+    f.make_optional_argument_with_default(
+        5,
+        "use_general_costs",
+        "true",
+        "allow negative costs in cost partitioning");
+    const auto n = add_rng_options_to_feature(f, 6);
+    add_heuristic_options_to_feature(f, "cegar", n + 6);
+
+    return f;
+}
+
 } // namespace
 
 namespace downward::cli::heuristics {
@@ -257,7 +233,7 @@ void add_additive_cartesian_heuristic_categories(Registry& registry)
 void add_additive_cartesian_heuristic_feature(Registry& registry)
 {
     Namespace& n = registry.get_global_name_space();
-    n.insert_feature_plugin<AdditiveCartesianHeuristicFeature>();
+    add_additive_cartesian_heuristic_to_namespace(n);
 }
 
 } // namespace downward::cli::heuristics
