@@ -747,8 +747,6 @@ IdentifierNode::decorate(utils::Context& context, VariableEnvironment& env)
         return {std::move(n), &env.get_variable_type(name)};
     }
 
-    std::print(cout, "{}.{}", utils::join_view(qualification, "."), name);
-
     if (const auto& n = env.get_registry().get_namespace(qualification);
         n.has_feature(name)) {
         const auto& f = n.get_feature(name);
@@ -896,8 +894,8 @@ LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
         default:
             if (data == last) {
                 return {
-                    std::make_unique<IntLiteralNode>(x),
-                    &plugins::TypeRegistry::instance()->get_type<int>()};
+                    std::make_unique<FloatLiteralNode>(x),
+                    &plugins::TypeRegistry::instance()->get_type<double>()};
             }
 
             const auto& n = env.get_registry().get_global_name_space();
