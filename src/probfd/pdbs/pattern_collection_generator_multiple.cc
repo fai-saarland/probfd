@@ -122,7 +122,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
         log_.println("max time: {}", total_max_time_);
         log_.println("stagnation time limit: {}", stagnation_limit_);
         log_.println(
-            "timer after which blacklisting is enabled: {}",
+            "time after which blacklisting is enabled: {}",
             blacklisting_start_time_);
         log_.println(
             "enable blacklisting after stagnation: {}",
@@ -239,11 +239,12 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
                         pdb.value_table,
                         saturated_costs);
 
-                    for (auto&& [cost, dec] : std::views::zip(
+                    for (auto&& [rem_cost, sat_cost] : std::views::zip(
                              *adapted_cost_function,
                              saturated_costs)) {
-                        assert(!is_approx_greater(dec, cost, 10e-5));
-                        cost = std::max(0_vt, cost - dec);
+                        assert(!is_approx_greater(sat_cost, rem_cost, 10e-5));
+                        rem_cost -= sat_cost;
+                        if (is_approx_zero(rem_cost, 10e-5)) rem_cost = 0_vt;
                     }
                 }
 

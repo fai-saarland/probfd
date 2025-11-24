@@ -181,7 +181,7 @@ PatternCollectionGeneratorMultiple::compute_patterns(
         log << "max collection size: " << remaining_collection_size << endl;
         log << "max time: " << total_max_time << endl;
         log << "stagnation time limit: " << stagnation_limit << endl;
-        log << "timer after which blacklisting is enabled: "
+        log << "time after which blacklisting is enabled: "
             << blacklisting_start_duration << endl;
         log << "enable blacklisting after stagnation: "
             << enable_blacklist_on_stagnation << endl;
