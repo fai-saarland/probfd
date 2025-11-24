@@ -268,7 +268,7 @@ public:
 std::unique_ptr<SolverInterface>
 MDPSolver::create(const SharedProbabilisticTask& task)
 {
-    std::print(std::cout, "Initializing HPOM LP constraints... ");
+    std::print(std::cout, "Constructing MDP algorithm... ");
     std::unique_ptr<StatisticalMDPAlgorithm> algorithm = run_log_time(
         std::cout,
         &StatisticalMDPAlgorithmFactory::create_algorithm,
