@@ -26,7 +26,9 @@ protected:
     virtual void dump_tree_specific_options(utils::LogProxy&) const {}
 
 public:
-    MergeTreeFactory(int random_seed, UpdateOption update_option);
+    MergeTreeFactory(
+        std::shared_ptr<utils::RandomNumberGenerator> rng,
+        UpdateOption update_option);
 
     virtual ~MergeTreeFactory() = default;
 

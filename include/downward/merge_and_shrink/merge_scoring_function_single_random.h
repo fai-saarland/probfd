@@ -11,7 +11,6 @@ class RandomNumberGenerator;
 
 namespace downward::merge_and_shrink {
 class MergeScoringFunctionSingleRandom : public MergeScoringFunction {
-    int random_seed; // only for dump options
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
     virtual std::string name() const override;
@@ -19,7 +18,9 @@ class MergeScoringFunctionSingleRandom : public MergeScoringFunction {
     dump_function_specific_options(utils::LogProxy& log) const override;
 
 public:
-    explicit MergeScoringFunctionSingleRandom(int random_seed);
+    explicit MergeScoringFunctionSingleRandom(
+        std::shared_ptr<utils::RandomNumberGenerator> rng);
+
     virtual std::vector<double> compute_scores(
         const FactoredTransitionSystem& fts,
         const std::vector<std::pair<int, int>>& merge_candidates) override;
@@ -28,6 +29,6 @@ public:
 
     virtual bool requires_goal_distances() const override { return false; }
 };
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink
 
 #endif

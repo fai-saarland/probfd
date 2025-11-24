@@ -32,8 +32,9 @@ Feature& add_pattern_generator_random_to_namespace(Namespace& nspace)
             int,
             FSeconds,
             bool,
-            int,
+            std::shared_ptr<RandomNumberGenerator>,
             Verbosity>);
+
     f.document_title("Random Pattern");
     f.document_synopsis(
         "This pattern generator implements the 'single randomized "

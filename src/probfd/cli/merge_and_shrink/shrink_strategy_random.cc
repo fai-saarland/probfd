@@ -22,8 +22,10 @@ Feature& add_shrink_strategy_random_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_typed_feature_plugin(
         "pshrink_random",
-        &downward::cli::plugins::
-            make_shared<ShrinkStrategy, ShrinkStrategyRandom, int>);
+        &downward::cli::plugins::make_shared<
+            ShrinkStrategy,
+            ShrinkStrategyRandom,
+            std::shared_ptr<utils::RandomNumberGenerator>>);
 
     f.document_title("Random Shrink Strategy");
     f.document_synopsis(

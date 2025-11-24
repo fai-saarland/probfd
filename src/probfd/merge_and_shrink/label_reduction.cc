@@ -13,7 +13,6 @@
 #include "downward/utils/collections.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
-#include "downward/utils/rng_options.h"
 #include "downward/utils/system.h"
 
 #include <cassert>
@@ -32,12 +31,12 @@ LabelReduction::LabelReduction(
     bool before_merging,
     LabelReductionMethod method,
     LabelReductionSystemOrder system_order,
-    int random_seed)
+    std::shared_ptr<utils::RandomNumberGenerator> rng)
     : lr_before_shrinking(before_shrinking)
     , lr_before_merging(before_merging)
     , lr_method(method)
     , lr_system_order(system_order)
-    , rng(utils::get_rng(random_seed))
+    , rng(std::move(rng))
 {
     if (!before_shrinking && !before_merging) {
         throw std::logic_error(

@@ -11,7 +11,7 @@
 namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
-} // namespace utils
+} // namespace downward::utils
 
 namespace probfd::merge_and_shrink {
 class FactoredTransitionSystem;
@@ -27,7 +27,9 @@ protected:
     UpdateOption update_option;
 
 public:
-    MergeTreeFactory(int random_seed, UpdateOption update_option);
+    MergeTreeFactory(
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng,
+        UpdateOption update_option);
 
     virtual ~MergeTreeFactory() = default;
 

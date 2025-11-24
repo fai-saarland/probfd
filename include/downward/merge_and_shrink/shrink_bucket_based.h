@@ -47,7 +47,9 @@ protected:
         const Distances& Distances) const = 0;
 
 public:
-    explicit ShrinkBucketBased(int random_seed);
+    explicit ShrinkBucketBased(
+        std::shared_ptr<utils::RandomNumberGenerator> rng);
+
     virtual StateEquivalenceRelation compute_equivalence_relation(
         const TransitionSystem& ts,
         const Distances& distances,
@@ -55,6 +57,6 @@ public:
         utils::LogProxy& log) const override;
 };
 
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink
 
 #endif

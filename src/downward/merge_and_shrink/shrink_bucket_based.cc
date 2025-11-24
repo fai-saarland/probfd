@@ -2,7 +2,6 @@
 
 #include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
-#include "downward/utils/rng_options.h"
 
 #include <cassert>
 #include <iostream>
@@ -11,8 +10,9 @@
 using namespace std;
 
 namespace downward::merge_and_shrink {
-ShrinkBucketBased::ShrinkBucketBased(int random_seed)
-    : rng(utils::get_rng(random_seed))
+ShrinkBucketBased::ShrinkBucketBased(
+    std::shared_ptr<utils::RandomNumberGenerator> rng)
+    : rng(std::move(rng))
 {
 }
 
@@ -76,9 +76,7 @@ StateEquivalenceRelation ShrinkBucketBased::compute_abstraction(
             while (static_cast<int>(groups.size()) > budget_for_this_bucket) {
                 auto it1 = rng->choose(groups);
                 auto it2 = it1;
-                while (it1 == it2) {
-                    it2 = rng->choose(groups);
-                }
+                while (it1 == it2) { it2 = rng->choose(groups); }
                 it1->splice_after(it1->before_begin(), *it2);
                 swap(*it2, groups.back());
                 assert(groups.back().empty());
@@ -105,4 +103,4 @@ StateEquivalenceRelation ShrinkBucketBased::compute_equivalence_relation(
     return compute_abstraction(buckets, target_size, log);
 }
 
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

@@ -39,7 +39,7 @@ Feature& add_goal_decomposition_to_namespace(Namespace& nspace)
     auto& f = nspace.insert_typed_feature_plugin(
         "pcegar_goals",
         &cli::plugins::
-            make_shared<SubtaskGenerator, GoalDecomposition, FactOrder, int>);
+            make_shared<SubtaskGenerator, GoalDecomposition, FactOrder, std::shared_ptr<RandomNumberGenerator>>);
 
     f.make_optional_argument_with_default(
         0,
@@ -61,7 +61,7 @@ Feature& add_landmark_decomposition_to_namespace(Namespace& nspace)
             std::shared_ptr<TaskDependentFactory<MutexInformation>>,
             FactOrder,
             bool,
-            int>);
+            std::shared_ptr<RandomNumberGenerator>>);
 
     f.make_optional_argument_with_default(
         0,

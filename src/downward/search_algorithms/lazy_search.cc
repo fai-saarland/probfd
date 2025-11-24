@@ -6,7 +6,6 @@
 #include "downward/task_utils/task_properties.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
-#include "downward/utils/rng_options.h"
 
 #include <algorithm>
 #include <limits>
@@ -21,7 +20,7 @@ LazySearch::LazySearch(
     vector<shared_ptr<Evaluator>> preferred,
     bool randomize_successors,
     bool preferred_successors_first,
-    int random_seed,
+    std::shared_ptr<utils::RandomNumberGenerator> rng,
     SharedAbstractTask task,
     OperatorCost cost_type,
     int bound,
@@ -39,7 +38,7 @@ LazySearch::LazySearch(
     , reopen_closed_nodes(reopen_closed)
     , randomize_successors(randomize_successors)
     , preferred_successors_first(preferred_successors_first)
-    , rng(utils::get_rng(random_seed))
+    , rng(std::move(rng))
     , preferred_operator_evaluators(std::move(preferred))
     , current_state(state_registry.get_initial_state())
     , current_predecessor_id(StateID::no_state)

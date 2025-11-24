@@ -41,8 +41,11 @@ void add_goal_decomposition_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_typed_feature_plugin(
         "goals",
-        &plugins::
-            make_shared<SubtaskGenerator, GoalDecomposition, FactOrder, int>);
+        &plugins::make_shared<
+            SubtaskGenerator,
+            GoalDecomposition,
+            FactOrder,
+            std::shared_ptr<RandomNumberGenerator>>);
     f.make_optional_argument_with_default(
         0,
         "order",
@@ -61,7 +64,7 @@ void add_landmark_decomposition_feature(Namespace& nspace)
             LandmarkDecomposition,
             std::shared_ptr<TaskDependentFactory<MutexInformation>>,
             FactOrder,
-            int,
+            std::shared_ptr<RandomNumberGenerator>,
             bool>);
     f.make_optional_argument_with_default(
         0,

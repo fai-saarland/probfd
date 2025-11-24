@@ -12,7 +12,6 @@
 
 #include "downward/utils/logging.h"
 #include "downward/utils/markup.h"
-#include "downward/utils/rng_options.h"
 
 using namespace std;
 using namespace downward::cli::plugins;
@@ -31,7 +30,7 @@ Feature& add_merge_scoring_function_total_order_to_namespace(Namespace& nspace)
             AtomicTSOrder,
             ProductTSOrder,
             bool,
-            int>);
+            std::shared_ptr<utils::RandomNumberGenerator>>);
 
     f.document_title("Total order");
     f.document_synopsis(

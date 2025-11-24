@@ -30,7 +30,7 @@ Feature& add_merge_scoring_function_total_order_to_namespace(Namespace& nspace)
             AtomicTSOrder,
             ProductTSOrder,
             bool,
-            int>);
+            std::shared_ptr<RandomNumberGenerator>>);
     f.document_title("Total order");
     f.document_synopsis(
         "This scoring function computes a total order on the merge "

@@ -38,7 +38,7 @@ class DiversePotentialMaxHeuristicFactory
     int max_num_heuristics;
     double max_potential;
     lp::LPSolverType lp_solver;
-    int random_seed;
+    std::shared_ptr<RandomNumberGenerator> rng;
 
 public:
     DiversePotentialMaxHeuristicFactory(
@@ -50,7 +50,7 @@ public:
         int max_num_heuristics,
         double max_potential,
         lp::LPSolverType lp_solver,
-        int random_seed)
+        std::shared_ptr<RandomNumberGenerator> rng)
         : transformation(std::move(transformation))
         , cache_estimates(cache_estimates)
         , description(std::move(description))
@@ -59,7 +59,7 @@ public:
         , max_num_heuristics(max_num_heuristics)
         , max_potential(max_potential)
         , lp_solver(lp_solver)
-        , random_seed(random_seed)
+        , rng(std::move(rng))
     {
         if (max_num_heuristics < 0) {
             throw std::domain_error("max_num_heuristics must be >= 0.");
@@ -84,7 +84,7 @@ public:
             max_potential,
             lp_solver,
             transformation_result.transformed_task,
-            random_seed,
+            rng,
             verbosity);
         auto functions = dph.find_functions();
 
@@ -113,7 +113,7 @@ Feature& add_diverse_potential_max_heuristic_to_namespace(Namespace& nspace)
             int,
             double,
             lp::LPSolverType,
-            int>);
+            std::shared_ptr<RandomNumberGenerator>>);
 
     f.document_title("Diverse potential heuristics");
     f.document_synopsis(get_admissible_potentials_reference());

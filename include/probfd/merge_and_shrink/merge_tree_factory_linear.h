@@ -13,11 +13,10 @@ namespace probfd::merge_and_shrink {
 
 class MergeTreeFactoryLinear : public MergeTreeFactory {
     downward::variable_order_finder::VariableOrderType variable_order_type;
-    std::shared_ptr<downward::utils::RandomNumberGenerator> rng;
 
 public:
     MergeTreeFactoryLinear(
-        int random_seed,
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng,
         UpdateOption update_option,
         downward::variable_order_finder::VariableOrderType variable_order);
 

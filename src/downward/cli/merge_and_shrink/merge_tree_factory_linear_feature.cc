@@ -27,8 +27,9 @@ Feature& add_merge_strategy_factory_linear_to_namespace(Namespace& nspace)
             MergeTreeFactory,
             MergeTreeFactoryLinear,
             downward::variable_order_finder::VariableOrderType,
-            int,
+            std::shared_ptr<RandomNumberGenerator>,
             UpdateOption>);
+
     f.document_title("Linear merge trees");
     f.document_synopsis(
         "These merge trees implement several linear merge orders, which "

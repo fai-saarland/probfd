@@ -43,7 +43,7 @@ public:
         std::vector<std::shared_ptr<Evaluator>> evaluators,
         bool randomize_successors,
         bool preferred_successors_first,
-        int random_seed,
+        std::shared_ptr<utils::RandomNumberGenerator> rng,
         SharedAbstractTask task,
         OperatorCost cost_type,
         int bound,

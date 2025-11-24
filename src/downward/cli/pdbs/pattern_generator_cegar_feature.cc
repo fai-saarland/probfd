@@ -34,7 +34,7 @@ Feature& add_pattern_generator_cegar_to_namespace(Namespace& nspace)
             int,
             FSeconds,
             bool,
-            int,
+            std::shared_ptr<RandomNumberGenerator>,
             Verbosity>);
     f.document_title("CEGAR");
     f.document_synopsis(

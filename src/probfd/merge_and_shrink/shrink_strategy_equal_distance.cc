@@ -19,9 +19,9 @@ using namespace downward;
 namespace probfd::merge_and_shrink {
 
 ShrinkStrategyEqualDistance::ShrinkStrategyEqualDistance(
-    int random_seed,
+    std::shared_ptr<utils::RandomNumberGenerator> rng,
     Priority high_low)
-    : ShrinkStrategyBucketBased(random_seed)
+    : ShrinkStrategyBucketBased(std::move(rng))
     , h_start(high_low)
 {
 }

@@ -14,10 +14,10 @@ using namespace downward;
 namespace probfd::merge_and_shrink {
 
 MergeTreeFactoryLinear::MergeTreeFactoryLinear(
-    int random_seed,
+    std::shared_ptr<utils::RandomNumberGenerator> rng,
     UpdateOption update_option,
     variable_order_finder::VariableOrderType variable_order)
-    : MergeTreeFactory(random_seed, update_option)
+    : MergeTreeFactory(std::move(rng), update_option)
     , variable_order_type(variable_order)
 {
 }

@@ -34,4 +34,12 @@ void RandomNumberGenerator::seed(int seed)
 {
     rng.seed(seed);
 }
-} // namespace utils
+
+std::shared_ptr<RandomNumberGenerator> get_default_rng()
+{
+    // Use an arbitrary default seed.
+    static auto rng = make_shared<RandomNumberGenerator>(2011);
+    return rng;
+}
+
+} // namespace downward::utils

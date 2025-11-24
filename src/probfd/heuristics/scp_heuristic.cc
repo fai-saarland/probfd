@@ -11,7 +11,6 @@
 #include "probfd/value_type.h"
 
 #include "downward/utils/rng.h"
-#include "downward/utils/rng_options.h"
 
 #include "downward/task_utils/task_properties.h"
 #include "probfd/probabilistic_operator_space.h"
@@ -29,10 +28,10 @@ namespace probfd::heuristics {
 SCPHeuristicFactory::SCPHeuristicFactory(
     std::shared_ptr<PatternCollectionGenerator> pattern_collection_generator,
     OrderingStrategy ordering,
-    int random_seed)
+    std::shared_ptr<utils::RandomNumberGenerator> rng)
     : pattern_collection_generator_(std::move(pattern_collection_generator))
     , ordering_(ordering)
-    , random_seed_(random_seed)
+    , rng_(std::move(rng))
 {
 }
 
@@ -47,11 +46,8 @@ SCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
     std::vector<ProbabilityAwarePatternDatabase> pdbs;
     pdbs.reserve(patterns.size());
 
-    const std::shared_ptr<utils::RandomNumberGenerator> rng =
-        utils::get_rng(random_seed_);
-
     switch (ordering_) {
-    case RANDOM: rng->shuffle(patterns); break;
+    case RANDOM: rng_->shuffle(patterns); break;
 
     case SIZE_ASC:
         std::ranges::stable_sort(patterns, std::less<>(), &Pattern::size);

@@ -9,7 +9,6 @@
 #include "downward/heuristics/additive_heuristic.h"
 
 #include "downward/utils/rng.h"
-#include "downward/utils/rng_options.h"
 
 #include "downward/initial_state_values.h"
 

@@ -12,7 +12,6 @@ class RandomNumberGenerator;
 namespace downward::merge_and_shrink {
 class MergeTreeFactoryLinear : public MergeTreeFactory {
     variable_order_finder::VariableOrderType variable_order_type;
-    std::shared_ptr<utils::RandomNumberGenerator> rng;
 
 protected:
     std::string name() const override;
@@ -21,7 +20,7 @@ protected:
 public:
     MergeTreeFactoryLinear(
         variable_order_finder::VariableOrderType variable_order,
-        int random_seed,
+        std::shared_ptr<utils::RandomNumberGenerator> rng,
         UpdateOption update_option);
 
     std::unique_ptr<MergeTree>

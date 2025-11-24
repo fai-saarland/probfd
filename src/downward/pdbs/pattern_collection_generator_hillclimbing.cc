@@ -16,7 +16,6 @@
 #include "downward/utils/math.h"
 #include "downward/utils/memory.h"
 #include "downward/utils/rng.h"
-#include "downward/utils/rng_options.h"
 #include "downward/utils/timer.h"
 
 #include <algorithm>
@@ -118,7 +117,7 @@ PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(
     int num_samples,
     int min_improvement,
     utils::FSeconds max_time,
-    int random_seed,
+    std::shared_ptr<utils::RandomNumberGenerator> rng,
     utils::Verbosity verbosity)
     : PatternCollectionGenerator(verbosity)
     , pdb_max_size(pdb_max_size)
@@ -126,7 +125,7 @@ PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(
     , num_samples(num_samples)
     , min_improvement(min_improvement)
     , max_time(max_time)
-    , rng(utils::get_rng(random_seed))
+    , rng(std::move(rng))
     , num_rejected(0)
     , hill_climbing_timer(nullptr)
 {

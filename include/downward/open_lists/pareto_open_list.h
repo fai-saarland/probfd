@@ -6,7 +6,6 @@
 #include "downward/task_dependent_factory.h"
 
 #include "downward/utils/rng.h"
-#include "downward/utils/rng_options.h"
 
 #include <deque>
 #include <map>
@@ -42,7 +41,7 @@ public:
     ParetoOpenList(
         const std::vector<std::shared_ptr<Evaluator>>& evals,
         bool state_uniform_selection,
-        int random_seed,
+        std::shared_ptr<utils::RandomNumberGenerator> rng,
         bool pref_only);
 
     virtual Entry remove_min() override;
@@ -59,10 +58,10 @@ template <class Entry>
 ParetoOpenList<Entry>::ParetoOpenList(
     const std::vector<std::shared_ptr<Evaluator>>& evals,
     bool state_uniform_selection,
-    int random_seed,
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng,
     bool pref_only)
     : OpenList<Entry>(pref_only)
-    , rng(utils::get_rng(random_seed))
+    , rng(std::move(rng))
     , state_uniform_selection(state_uniform_selection)
     , evaluators(evals)
 {
@@ -236,7 +235,7 @@ class ParetoOpenListFactory : public TaskDependentFactory<OpenList<T>> {
     std::vector<std::shared_ptr<TaskDependentFactory<Evaluator>>>
         eval_factories;
     bool state_uniform_selection;
-    int random_seed;
+    std::shared_ptr<utils::RandomNumberGenerator> rng;
     bool pref_only;
 
 public:
@@ -244,11 +243,11 @@ public:
         const std::vector<std::shared_ptr<TaskDependentFactory<Evaluator>>>&
             eval_factories,
         bool state_uniform_selection,
-        int random_seed,
+        std::shared_ptr<utils::RandomNumberGenerator> rng,
         bool pref_only)
         : eval_factories(eval_factories)
         , state_uniform_selection(state_uniform_selection)
-        , random_seed(random_seed)
+        , rng(std::move(rng))
         , pref_only(pref_only)
     {
     }
@@ -265,7 +264,7 @@ public:
         return std::make_unique<ParetoOpenList<T>>(
             std::move(evals),
             state_uniform_selection,
-            random_seed,
+            rng,
             pref_only);
     }
 };

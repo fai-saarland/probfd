@@ -33,7 +33,7 @@ Feature& add_exact_label_reduction_to_namespace(Namespace& nspace)
             bool,
             LabelReductionMethod,
             LabelReductionSystemOrder,
-            int>);
+            std::shared_ptr<utils::RandomNumberGenerator>>);
 
     f.document_title("Exact generalized label reduction");
     f.document_synopsis(

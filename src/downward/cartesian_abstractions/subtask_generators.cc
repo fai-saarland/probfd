@@ -16,7 +16,6 @@
 #include "downward/utils/hash.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
-#include "downward/utils/rng_options.h"
 
 #include <algorithm>
 #include <cassert>
@@ -125,9 +124,11 @@ TaskDuplicator::get_subtasks(const SharedAbstractTask& task, utils::LogProxy&)
     return subtasks;
 }
 
-GoalDecomposition::GoalDecomposition(FactOrder order, int random_seed)
+GoalDecomposition::GoalDecomposition(
+    FactOrder order,
+    std::shared_ptr<utils::RandomNumberGenerator> rng)
     : fact_order(order)
-    , rng(utils::get_rng(random_seed))
+    , rng(std::move(rng))
 {
 }
 
@@ -155,12 +156,12 @@ SharedTasks GoalDecomposition::get_subtasks(
 LandmarkDecomposition::LandmarkDecomposition(
     std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory,
     FactOrder order,
-    int random_seed,
+    std::shared_ptr<utils::RandomNumberGenerator> rng,
     bool combine_facts)
     : mutex_factory(std::move(mutex_factory))
     , fact_order(order)
     , combine_facts(combine_facts)
-    , rng(utils::get_rng(random_seed))
+    , rng(std::move(rng))
 {
 }
 

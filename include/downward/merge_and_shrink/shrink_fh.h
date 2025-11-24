@@ -44,12 +44,15 @@ protected:
         const Distances& distances) const override;
 
 public:
-    ShrinkFH(HighLow shrink_f, HighLow shrink_h, int random_seed);
+    ShrinkFH(
+        HighLow shrink_f,
+        HighLow shrink_h,
+        std::shared_ptr<utils::RandomNumberGenerator> rng);
 
     virtual bool requires_init_distances() const override { return true; }
 
     virtual bool requires_goal_distances() const override { return true; }
 };
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink
 
 #endif

@@ -29,7 +29,8 @@ Feature& add_shrink_strategy_fh_to_namespace(Namespace& nspace)
             ShrinkFH,
             ShrinkFH::HighLow,
             ShrinkFH::HighLow,
-            int>);
+            std::shared_ptr<RandomNumberGenerator>>);
+
     f.document_title("f-preserving shrink strategy");
     f.document_synopsis(
         "This shrink strategy implements the algorithm described in"

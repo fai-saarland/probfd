@@ -257,7 +257,7 @@ compute_bisimulation_on_determinization(const AbstractTaskTuple& det_task)
     // Construct a linear merge tree
     auto linear_merge_tree_factory = std::make_shared<MergeTreeFactoryLinear>(
         variable_order_finder::VariableOrderType::LEVEL,
-        -1,
+        utils::get_default_rng(),
         UpdateOption::USE_FIRST);
 
     // Construct the merge strategy factory

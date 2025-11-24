@@ -15,17 +15,17 @@ struct FactPair;
 
 class StateMapping;
 class InverseOperatorMapping;
-}
+} // namespace downward
 
 namespace downward::landmarks {
 class LandmarkGraph;
 class LandmarkNode;
-}
+} // namespace downward::landmarks
 
 namespace downward::utils {
 class RandomNumberGenerator;
 class LogProxy;
-} // namespace utils
+} // namespace downward::utils
 
 namespace downward::cartesian_abstractions {
 using Facts = std::vector<FactPair>;
@@ -37,9 +37,9 @@ enum class FactOrder { ORIGINAL, RANDOM, HADD_UP, HADD_DOWN };
 */
 class SubtaskGenerator {
 public:
-    virtual SharedTasks get_subtasks(
-        const SharedAbstractTask& task,
-        utils::LogProxy& log) const = 0;
+    virtual SharedTasks
+    get_subtasks(const SharedAbstractTask& task, utils::LogProxy& log)
+        const = 0;
     virtual ~SubtaskGenerator() = default;
 };
 
@@ -52,9 +52,9 @@ class TaskDuplicator : public SubtaskGenerator {
 public:
     explicit TaskDuplicator(int copies);
 
-    SharedTasks get_subtasks(
-        const SharedAbstractTask& task,
-        utils::LogProxy& log) const override;
+    SharedTasks
+    get_subtasks(const SharedAbstractTask& task, utils::LogProxy& log)
+        const override;
 };
 
 /*
@@ -65,11 +65,13 @@ class GoalDecomposition : public SubtaskGenerator {
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
 public:
-    explicit GoalDecomposition(FactOrder order, int random_seed);
+    explicit GoalDecomposition(
+        FactOrder order,
+        std::shared_ptr<utils::RandomNumberGenerator> rng);
 
-    SharedTasks get_subtasks(
-        const SharedAbstractTask& task,
-        utils::LogProxy& log) const override;
+    SharedTasks
+    get_subtasks(const SharedAbstractTask& task, utils::LogProxy& log)
+        const override;
 };
 
 /*
@@ -86,19 +88,19 @@ class LandmarkDecomposition : public SubtaskGenerator {
        achieved before a given landmark can be made true. */
     SharedAbstractTask build_domain_abstracted_task(
         const SharedAbstractTask& parent,
-        const landmarks::LandmarkNode *node) const;
+        const landmarks::LandmarkNode* node) const;
 
 public:
     explicit LandmarkDecomposition(
         std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory,
         FactOrder order,
-        int random_seed,
+        std::shared_ptr<utils::RandomNumberGenerator> rng,
         bool combine_facts);
 
-    SharedTasks get_subtasks(
-        const SharedAbstractTask& task,
-        utils::LogProxy& log) const override;
+    SharedTasks
+    get_subtasks(const SharedAbstractTask& task, utils::LogProxy& log)
+        const override;
 };
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions
 
 #endif

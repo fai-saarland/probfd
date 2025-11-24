@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <memory>
 #include <random>
 #include <vector>
 
@@ -54,6 +55,9 @@ public:
         std::shuffle(vec.begin(), vec.end(), rng);
     }
 };
+
+std::shared_ptr<RandomNumberGenerator> get_default_rng();
+
 } // namespace utils
 
 #endif

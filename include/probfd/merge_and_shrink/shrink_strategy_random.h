@@ -7,7 +7,8 @@ namespace probfd::merge_and_shrink {
 
 class ShrinkStrategyRandom : public ShrinkStrategyBucketBased {
 public:
-    explicit ShrinkStrategyRandom(int random_seed);
+    explicit ShrinkStrategyRandom(
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng);
 
     bool requires_liveness() const override { return false; }
 

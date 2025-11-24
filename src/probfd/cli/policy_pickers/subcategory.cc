@@ -23,8 +23,6 @@
 #include "downward/state.h"
 #include "downward/tuple_utils.h"
 
-#include "downward/utils/rng_options.h"
-
 using namespace downward;
 using namespace utils;
 

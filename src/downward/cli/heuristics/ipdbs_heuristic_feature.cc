@@ -69,7 +69,7 @@ class IPDBsHeuristicFactory : public TaskDependentFactory<Evaluator> {
     int num_samples;
     int min_improvement;
     FSeconds max_time;
-    int random_seed;
+    std::shared_ptr<RandomNumberGenerator> rng;
     FSeconds max_time_dominance_pruning;
 
 public:
@@ -83,7 +83,7 @@ public:
         int num_samples,
         int min_improvement,
         FSeconds max_time,
-        int random_seed,
+        std::shared_ptr<RandomNumberGenerator> rng,
         FSeconds max_time_dominance_pruning)
         : transformation(std::move(transformation))
         , cache_estimates(cache_estimates)
@@ -94,7 +94,7 @@ public:
         , num_samples(num_samples)
         , min_improvement(min_improvement)
         , max_time(max_time)
-        , random_seed(random_seed)
+        , rng(std::move(rng))
         , max_time_dominance_pruning(max_time_dominance_pruning)
     {
         if (min_improvement > num_samples) {
@@ -114,7 +114,7 @@ public:
             num_samples,
             min_improvement,
             max_time,
-            random_seed,
+            rng,
             verbosity);
 
         return std::make_unique<CanonicalPDBsHeuristic>(
@@ -144,7 +144,7 @@ Feature& add_ipdb_heuristic_to_namespace(Namespace& nspace)
             int,
             int,
             FSeconds,
-            int,
+            std::shared_ptr<RandomNumberGenerator>,
             FSeconds>);
 
     f.document_title("iPDB");

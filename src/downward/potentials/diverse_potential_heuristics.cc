@@ -6,7 +6,6 @@
 
 #include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
-#include "downward/utils/rng_options.h"
 #include "downward/utils/timer.h"
 
 using namespace std;
@@ -19,12 +18,12 @@ DiversePotentialHeuristics::DiversePotentialHeuristics(
     double max_potential,
     lp::LPSolverType lpsolver,
     const SharedAbstractTask& transform,
-    int random_seed,
+    std::shared_ptr<utils::RandomNumberGenerator> rng,
     utils::Verbosity verbosity)
     : optimizer(transform, lpsolver, max_potential)
     , max_num_heuristics(max_num_heuristics)
     , num_samples(num_samples)
-    , rng(utils::get_rng(random_seed))
+    , rng(std::move(rng))
     , log(utils::get_log_for_verbosity(verbosity))
 {
 }

@@ -3,7 +3,6 @@
 #include "downward/merge_and_shrink/merge_tree.h"
 
 #include "downward/utils/logging.h"
-#include "downward/utils/rng_options.h"
 #include "downward/utils/system.h"
 
 #include <iostream>
@@ -11,8 +10,10 @@
 using namespace std;
 
 namespace downward::merge_and_shrink {
-MergeTreeFactory::MergeTreeFactory(int random_seed, UpdateOption update_option)
-    : rng(utils::get_rng(random_seed))
+MergeTreeFactory::MergeTreeFactory(
+    std::shared_ptr<utils::RandomNumberGenerator> rng,
+    UpdateOption update_option)
+    : rng(std::move(rng))
     , update_option(update_option)
 {
 }

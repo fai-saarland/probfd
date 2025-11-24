@@ -12,7 +12,6 @@
 #include "downward/potentials/util.h"
 
 #include "downward/utils/rng.h"
-#include "downward/utils/rng_options.h"
 
 #include "downward/tasks/root_task.h"
 
@@ -42,7 +41,7 @@ class PotentialMaxHeuristicFactory : public TaskDependentFactory<Evaluator> {
     int num_heuristics;
     double max_potential;
     lp::LPSolverType lp_solver;
-    int random_seed;
+    std::shared_ptr<RandomNumberGenerator> rng;
 
 public:
     PotentialMaxHeuristicFactory(
@@ -54,7 +53,7 @@ public:
         int num_heuristics,
         double max_potential,
         lp::LPSolverType lp_solver,
-        int random_seed)
+        std::shared_ptr<RandomNumberGenerator> rng)
         : transformation(std::move(transformation))
         , cache_estimates(cache_estimates)
         , description(std::move(description))
@@ -63,7 +62,7 @@ public:
         , num_heuristics(num_heuristics)
         , max_potential(max_potential)
         , lp_solver(lp_solver)
-        , random_seed(random_seed)
+        , rng(std::move(rng))
     {
         if (num_samples < 0) {
             throw std::domain_error("num_samples must be >= 0.");
@@ -87,7 +86,6 @@ public:
             transformation_result.transformed_task,
             lp_solver,
             max_potential);
-        const shared_ptr rng(get_rng(random_seed));
 
         for (int i = 0; i < num_heuristics; ++i) {
             vector<State> samples =
@@ -131,7 +129,7 @@ Feature& add_sample_based_potential_heuristic_to_namespace(Namespace& nspace)
             int,
             double,
             lp::LPSolverType,
-            int>);
+            std::shared_ptr<RandomNumberGenerator>>);
 
     f.document_title("Sample-based potential heuristics");
     f.document_synopsis(

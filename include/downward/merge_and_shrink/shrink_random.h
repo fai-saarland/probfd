@@ -11,15 +11,17 @@ protected:
         const Distances& distances) const override;
 
     virtual std::string name() const override;
+
     void dump_strategy_specific_options(utils::LogProxy&) const override {}
 
 public:
-    explicit ShrinkRandom(int random_seed);
+    explicit ShrinkRandom(
+        std::shared_ptr<utils::RandomNumberGenerator> rng);
 
     virtual bool requires_init_distances() const override { return false; }
 
     virtual bool requires_goal_distances() const override { return false; }
 };
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink
 
 #endif

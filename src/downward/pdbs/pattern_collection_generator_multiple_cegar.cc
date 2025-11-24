@@ -18,7 +18,7 @@ PatternCollectionGeneratorMultipleCegar::
         utils::FSeconds stagnation_limit,
         double blacklist_trigger_percentage,
         bool enable_blacklist_on_stagnation,
-        int random_seed,
+        std::shared_ptr<utils::RandomNumberGenerator> rng,
         utils::Verbosity verbosity)
     : PatternCollectionGeneratorMultiple(
           max_pdb_size,
@@ -28,7 +28,7 @@ PatternCollectionGeneratorMultipleCegar::
           stagnation_limit,
           blacklist_trigger_percentage,
           enable_blacklist_on_stagnation,
-          random_seed,
+          std::move(rng),
           verbosity)
     , use_wildcard_plans(use_wildcard_plans)
 {

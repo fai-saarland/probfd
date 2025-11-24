@@ -32,7 +32,7 @@ add_greedy_zero_one_cost_partitioning_heuristic_to_namespace(Namespace& nspace)
             GZOCPHeuristicFactory,
             std::shared_ptr<PatternCollectionGenerator>,
             GZOCPHeuristicFactory::OrderingStrategy,
-            int>);
+            std::shared_ptr<utils::RandomNumberGenerator>>);
 
     f.document_title("Greedy Zero-One Operator Cost Partitioning Heuristic");
     f.document_synopsis(
