@@ -223,10 +223,10 @@ public:
             "iLAO* variant of trap-aware depth-first heuristic search");
 
         const auto n =
-            add_mdp_hs_base_options_to_feature<false, true>(*this, 0);
+            add_base_solver_options_except_algorithm_to_feature(*this, 0);
 
         const auto n2 =
-            add_base_solver_options_except_algorithm_to_feature(*this, n);
+            add_mdp_hs_base_options_to_feature<false, true>(*this, n);
 
         make_optional_argument_with_default(
             n + n2,
