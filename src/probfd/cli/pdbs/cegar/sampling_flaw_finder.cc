@@ -18,7 +18,8 @@ using downward::cli::utils::add_rng_options_to_feature;
 
 namespace {
 
-InternalFunctionDefinitionBase& add_sampling_flaw_finder_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_sampling_flaw_finder_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "sampling_flaw_finder",

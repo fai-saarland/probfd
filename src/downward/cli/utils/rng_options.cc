@@ -43,8 +43,9 @@ void add_seeded_rng_function(plugins::Registry& registry)
     n.insert_function_definition("get_seeded_rng", get_seeded_rng);
 }
 
-std::size_t
-add_rng_options_to_feature(plugins::InternalFunctionDefinitionBase& feature, std::size_t start_index)
+std::size_t add_rng_options_to_feature(
+    plugins::InternalFunctionDefinitionBase& feature,
+    std::size_t start_index)
 {
     feature.make_optional_argument_with_default(
         start_index,
