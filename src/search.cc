@@ -120,7 +120,7 @@ static auto construct_solver(argparse::ArgumentParser& parser)
     register_definitions(registry);
 
     // Type check
-    const DecoratedASTNodePtr decorated = parsed->decorate(registry);
+    const DecoratedASTNodePtr decorated = parsed->static_analysis(registry);
 
     // Remove unused definitions if enabled
     if (parser.get<bool>("--ignore-unused-definitions")) {

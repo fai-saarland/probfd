@@ -3,15 +3,14 @@
 
 #include "downward/cli/parser/decorated_abstract_syntax_tree.h"
 #include "downward/cli/parser/token_stream.h"
+
 #include "downward/cli/plugins/registry.h"
+
 #include "downward/utils/strings.h"
 
-#include <cassert>
 #include <memory>
 #include <string>
-#include <typeindex>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 namespace downward::cli::plugins {
@@ -58,9 +57,13 @@ class ASTNode {
 public:
     virtual ~ASTNode() = default;
 
-    DecoratedASTNodePtr decorate(const plugins::Registry& registry) const;
+    DecoratedASTNodePtr
+    static_analysis(const plugins::Registry& registry) const;
+
     virtual TypedDecoratedAstNodePtr
-    decorate(utils::Context& context, VariableEnvironment& env) const = 0;
+    static_analysis(utils::Context& context, VariableEnvironment& env)
+        const = 0;
+
     virtual void dump(std::string indent = "+") const = 0;
 };
 
@@ -76,7 +79,9 @@ public:
         ASTNodePtr nested_value);
 
     TypedDecoratedAstNodePtr
-    decorate(utils::Context& context, VariableEnvironment& env) const override;
+    static_analysis(utils::Context& context, VariableEnvironment& env)
+        const override;
+
     void dump(std::string indent) const override;
 };
 
@@ -97,7 +102,9 @@ public:
     LambdaNode(std::vector<TypedParameter> parameters, ASTNodePtr nested_value);
 
     TypedDecoratedAstNodePtr
-    decorate(utils::Context& context, VariableEnvironment& env) const override;
+    static_analysis(utils::Context& context, VariableEnvironment& env)
+        const override;
+
     void dump(std::string indent) const override;
 };
 
@@ -113,8 +120,11 @@ public:
         std::vector<ASTNodePtr>&& positional_arguments,
         std::unordered_map<std::string, ASTNodePtr>&& keyword_arguments,
         const std::string& unparsed_config);
+
     TypedDecoratedAstNodePtr
-    decorate(utils::Context& context, VariableEnvironment& env) const override;
+    static_analysis(utils::Context& context, VariableEnvironment& env)
+        const override;
+
     void dump(std::string indent) const override;
 };
 
@@ -128,8 +138,11 @@ public:
         ASTNodePtr callee,
         std::vector<ASTNodePtr>&& positional_arguments,
         const std::string& unparsed_config);
+
     TypedDecoratedAstNodePtr
-    decorate(utils::Context& context, VariableEnvironment& env) const override;
+    static_analysis(utils::Context& context, VariableEnvironment& env)
+        const override;
+
     void dump(std::string indent) const override;
 };
 
@@ -138,8 +151,11 @@ class ListNode : public ASTNode {
 
 public:
     explicit ListNode(std::vector<ASTNodePtr>&& elements);
+
     TypedDecoratedAstNodePtr
-    decorate(utils::Context& context, VariableEnvironment& env) const override;
+    static_analysis(utils::Context& context, VariableEnvironment& env)
+        const override;
+
     void dump(std::string indent) const override;
 };
 
@@ -151,7 +167,9 @@ public:
     UnaryNode(ASTNodePtr nested_expr, const TokenType& token_type);
 
     TypedDecoratedAstNodePtr
-    decorate(utils::Context& context, VariableEnvironment& env) const override;
+    static_analysis(utils::Context& context, VariableEnvironment& env)
+        const override;
+
     void dump(std::string indent) const override;
 };
 
@@ -162,7 +180,8 @@ public:
     explicit IdentifierNode(QualifiedName qualified_name);
 
     TypedDecoratedAstNodePtr
-    decorate(utils::Context& context, VariableEnvironment& env) const override;
+    static_analysis(utils::Context& context, VariableEnvironment& env)
+        const override;
 
     void dump(std::string indent) const override;
 
@@ -176,36 +195,49 @@ public:
     explicit LiteralNode(const Token& value);
 
     TypedDecoratedAstNodePtr
-    decorate(utils::Context& context, VariableEnvironment& env) const override;
+    static_analysis(utils::Context& context, VariableEnvironment& env)
+        const override;
 
     void dump(std::string indent) const override;
 };
 
 } // namespace downward::cli::parser
 
-template <typename CharT>
-struct std::formatter<downward::cli::parser::QualifiedName, CharT> {
-    template <typename FormatContext>
-    constexpr auto parse(FormatContext& ctx)
-    {
-        return ctx.begin();
-    }
+// Formatter specialization for QualifiedName
+template <>
+struct std::formatter<downward::cli::parser::QualifiedName> {
+    template <typename ParseContext>
+    constexpr typename ParseContext::iterator parse(ParseContext& ctx);
 
     template <typename FormatContext>
-    auto
+    typename FormatContext::iterator
     format(const downward::cli::parser::QualifiedName& name, FormatContext& ctx)
-        const
-    {
-        if (name.qualification_prefix.empty()) {
-            return std::format_to(ctx.out(), "{}", name.name);
-        }
-
-        return std::format_to(
-            ctx.out(),
-            "{}.{}",
-            downward::utils::join_view(name.qualification_prefix, "."),
-            name.name);
-    }
+        const;
 };
+
+template <typename ParseContext>
+constexpr typename ParseContext::iterator
+std::formatter<downward::cli::parser::QualifiedName, char>::parse(
+    ParseContext& ctx)
+{
+    return ctx.begin();
+}
+
+template <typename FormatContext>
+typename FormatContext::iterator
+std::formatter<downward::cli::parser::QualifiedName, char>::format(
+    const downward::cli::parser::QualifiedName& name,
+    FormatContext& ctx) const
+{
+    if (name.qualification_prefix.empty()) {
+        return std::format_to(ctx.out(), "{}", name.name);
+    }
+
+    return std::format_to(
+        ctx.out(),
+        "{}.{}",
+        downward::utils::join_view(name.qualification_prefix, "."),
+        name.name);
+}
 
 #endif
