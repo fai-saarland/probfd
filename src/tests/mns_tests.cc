@@ -495,7 +495,7 @@ TEST(MnSTests, test_label_reduction)
         true,
         LabelReductionMethod::ALL_TRANSITION_SYSTEMS,
         LabelReductionSystemOrder::REGULAR,
-        42);
+        std::make_shared<utils::RandomNumberGenerator>(42));
 
     label_reduction.initialize(to_refs(task));
 
