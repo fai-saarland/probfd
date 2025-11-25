@@ -1,8 +1,9 @@
 #ifndef PARSER_DECORATED_ABSTRACT_SYNTAX_TREE_H
 #define PARSER_DECORATED_ABSTRACT_SYNTAX_TREE_H
 
+#include "downward/cli/parser/token_stream.h"
+
 #include "downward/cli/plugins/plugin.h"
-#include "token_stream.h"
 
 #include "downward/utils/logging.h"
 
