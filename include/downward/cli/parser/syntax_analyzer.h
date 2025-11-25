@@ -1,13 +1,20 @@
 #ifndef PARSER_SYNTAX_ANALYZER_H
 #define PARSER_SYNTAX_ANALYZER_H
 
-#include "downward/cli/parser/abstract_syntax_tree.h"
+#include <memory>
+#include <string>
 
 namespace downward::cli::parser {
 class TokenStream;
+class ASTNode;
+} // namespace downward::cli::parser
 
-extern ASTNodePtr parse(TokenStream& tokens);
-extern ASTNodePtr tokenize_and_parse(const std::string& expression);
+namespace downward::cli::parser {
+
+extern std::unique_ptr<ASTNode> parse(TokenStream& tokens);
+
+extern std::unique_ptr<ASTNode>
+tokenize_and_parse(const std::string& expression);
 
 } // namespace downward::cli::parser
 #endif

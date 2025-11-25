@@ -5,7 +5,9 @@
 
 namespace downward::cli::parser {
 class TokenStream;
+}
 
+namespace downward::cli::parser {
 extern TokenStream split_tokens(const std::string& text);
 } // namespace downward::cli::parser
 #endif
