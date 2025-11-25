@@ -8,7 +8,32 @@
 #include <sstream>
 #include <typeindex>
 
+#ifdef __GNUG__
+#include <cstdlib>
+#include <cxxabi.h>
+#include <memory>
+#endif
+
 using namespace std;
+
+namespace {
+
+std::string demangle(const char* name)
+{
+#ifdef __GNUG__
+    int status;
+
+    const std::unique_ptr<char, void (*)(void*)> res{
+        abi::__cxa_demangle(name, nullptr, nullptr, &status),
+        std::free};
+
+    return status == 0 ? res.get() : name;
+#else
+    return name;
+#endif
+}
+
+} // namespace
 
 namespace downward::cli::plugins {
 
@@ -379,33 +404,17 @@ EmptyListType TypeRegistry::EMPTY_LIST_TYPE;
 TypeRegistry::TypeRegistry()
 {
     insert_basic_type<bool>();
-    insert_basic_type<string>();
     insert_basic_type<int>();
     insert_basic_type<double>();
+    insert_basic_type<string>();
 }
 
 template <typename T>
 void TypeRegistry::insert_basic_type()
 {
     type_index type = typeid(T);
-
-    std::string name;
-
-    if constexpr (std::same_as<T, bool>) {
-        name = "bool";
-    } else if constexpr (std::same_as<T, float>) {
-        name = "float";
-    } else if constexpr (std::same_as<T, double>) {
-        name = "double";
-    } else if constexpr (std::same_as<T, int>) {
-        name = "int";
-    } else if constexpr (std::same_as<T, std::string>) {
-        name = "string";
-    } else {
-        name = type.name();
-    }
-
-    registered_types[type] = std::make_unique<BasicType>(type, name);
+    registered_types[type] =
+        std::make_unique<BasicType>(type, demangle(type.name()));
 }
 
 const InternalType&
@@ -475,6 +484,6 @@ const Type& TypeRegistry::get_nonlist_type(type_index type) const
         return *it->second;
     }
 
-    throw utils::CriticalError("Missing type {}", type.name());
+    throw utils::CriticalError("Missing type {}", demangle(type.name()));
 }
 } // namespace downward::cli::plugins
