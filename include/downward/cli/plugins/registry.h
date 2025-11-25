@@ -226,6 +226,15 @@ public:
             }
         }
 
+        for (const auto& namespace_name :
+             nested_namespaces | std::views::keys) {
+            if (name == namespace_name) {
+                throw downward::utils::CriticalError(
+                    "Type '{}' has already been defined as a namespace.",
+                    name);
+            }
+        }
+
         auto [it, inserted] = types_declarations.emplace(
             InternalTypeDeclaration<T>(std::move(name), std::move(synopsis)));
 
@@ -298,8 +307,18 @@ public:
 
         if (!inserted) {
             throw downward::utils::CriticalError(
-                "Function with name {} already defined.",
+                "Function with name '{}' already defined.",
                 f.get_identifier());
+        }
+
+        for (const auto& namespace_name :
+             nested_namespaces | std::views::keys) {
+            if (f.get_identifier() == namespace_name) {
+                throw downward::utils::CriticalError(
+                    "Function with name '{}' has already been defined as a "
+                    "namespace.",
+                    f.get_identifier());
+            }
         }
 
         return static_cast<T&>(f);
