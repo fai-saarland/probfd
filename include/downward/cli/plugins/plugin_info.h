@@ -4,8 +4,6 @@
 #include "downward/cli/plugins/types.h"
 
 #include <string>
-#include <typeindex>
-#include <vector>
 
 namespace downward::cli::plugins {
 

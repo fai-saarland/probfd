@@ -27,7 +27,7 @@ static DecoratedASTNodePtr decorate_and_convert(
     utils::Context& context,
     VariableEnvironment& env)
 {
-    auto [ast_node, type] = node.decorate(context, env);
+    auto [ast_node, type] = node.static_analysis(context, env);
 
     if (*type != target_type) {
         utils::TraceBlock block(context, "Adding casting node");
@@ -209,12 +209,13 @@ void TypeLiteralNode::dump(std::string) const
 {
 }
 
-DecoratedASTNodePtr ASTNode::decorate(const plugins::Registry& registry) const
+DecoratedASTNodePtr
+ASTNode::static_analysis(const plugins::Registry& registry) const
 {
     utils::Context context;
     VariableEnvironment env(registry);
     utils::TraceBlock block(context, "Start semantic analysis");
-    return decorate(context, env).ast_node;
+    return static_analysis(context, env).ast_node;
 }
 
 LetNode::LetNode(
@@ -226,7 +227,8 @@ LetNode::LetNode(
 }
 
 TypedDecoratedAstNodePtr
-LetNode::decorate(utils::Context& context, VariableEnvironment& env) const
+LetNode::static_analysis(utils::Context& context, VariableEnvironment& env)
+    const
 {
     utils::TraceBlock lblock(
         context,
@@ -241,7 +243,8 @@ LetNode::decorate(utils::Context& context, VariableEnvironment& env) const
     for (const auto& [variable_name, variable_definition] :
          variable_definitions) {
         utils::TraceBlock block(context, "Check variable definition");
-        auto [ast_node, type] = variable_definition->decorate(context, env);
+        auto [ast_node, type] =
+            variable_definition->static_analysis(context, env);
         auto& declaration = decorated_variable_definitions.emplace_back(
             variable_name,
             std::move(ast_node));
@@ -253,7 +256,7 @@ LetNode::decorate(utils::Context& context, VariableEnvironment& env) const
 
     {
         utils::TraceBlock block(context, "Check nested expression.");
-        decorated_nested_value = nested_value->decorate(context, env);
+        decorated_nested_value = nested_value->static_analysis(context, env);
     }
 
     env.leave_scope();
@@ -298,7 +301,8 @@ LambdaNode::LambdaNode(
 }
 
 TypedDecoratedAstNodePtr
-LambdaNode::decorate(utils::Context& context, VariableEnvironment& env) const
+LambdaNode::static_analysis(utils::Context& context, VariableEnvironment& env)
+    const
 {
     utils::TraceBlock lblock(context, "Checking Lambda");
 
@@ -328,7 +332,7 @@ LambdaNode::decorate(utils::Context& context, VariableEnvironment& env) const
 
     auto [ast_node, rtype] = [&] {
         utils::TraceBlock block(context, "Checking Body.");
-        return nested_value->decorate(context, nested_env);
+        return nested_value->static_analysis(context, nested_env);
     }();
 
     const auto& ftype = plugins::TypeRegistry::instance()->create_function_type(
@@ -369,7 +373,7 @@ DirectFunctionCallNode::DirectFunctionCallNode(
 {
 }
 
-TypedDecoratedAstNodePtr DirectFunctionCallNode::decorate(
+TypedDecoratedAstNodePtr DirectFunctionCallNode::static_analysis(
     utils::Context& context,
     VariableEnvironment& env) const
 {
@@ -545,13 +549,13 @@ IndirectFunctionCallNode::IndirectFunctionCallNode(
 {
 }
 
-TypedDecoratedAstNodePtr IndirectFunctionCallNode::decorate(
+TypedDecoratedAstNodePtr IndirectFunctionCallNode::static_analysis(
     utils::Context& context,
     VariableEnvironment& env) const
 {
     utils::TraceBlock block(context, "Checking Call");
 
-    auto [dast_node, type] = callee->decorate(context, env);
+    auto [dast_node, type] = callee->static_analysis(context, env);
     if (!type->is_function_type()) {
         context.error("Callee does not have function type.");
     }
@@ -626,7 +630,8 @@ get_common_element_type(const std::vector<const plugins::Type*>& types)
 }
 
 TypedDecoratedAstNodePtr
-ListNode::decorate(utils::Context& context, VariableEnvironment& env) const
+ListNode::static_analysis(utils::Context& context, VariableEnvironment& env)
+    const
 {
     utils::TraceBlock lblock(context, "Checking list");
     vector<DecoratedASTNodePtr> decorated_elements;
@@ -641,7 +646,7 @@ ListNode::decorate(utils::Context& context, VariableEnvironment& env) const
     for (size_t i = 0; i < elements.size(); i++) {
         utils::TraceBlock block(context, "Checking element {}", i);
 
-        auto [ast_node, type] = elements[i]->decorate(context, env);
+        auto [ast_node, type] = elements[i]->static_analysis(context, env);
         decorated_elements.push_back(move(ast_node));
         types.push_back(type);
     }
@@ -691,9 +696,10 @@ UnaryNode::UnaryNode(ASTNodePtr nested_expr, const TokenType& token_type)
 }
 
 TypedDecoratedAstNodePtr
-UnaryNode::decorate(utils::Context& context, VariableEnvironment& env) const
+UnaryNode::static_analysis(utils::Context& context, VariableEnvironment& env)
+    const
 {
-    auto [ast_node, type] = nested_expr->decorate(context, env);
+    auto [ast_node, type] = nested_expr->static_analysis(context, env);
 
     if (type == &plugins::TypeRegistry::instance()->get_type<int>()) {
         return {
@@ -732,9 +738,9 @@ IdentifierNode::IdentifierNode(QualifiedName qualified_name)
 {
 }
 
-TypedDecoratedAstNodePtr
-IdentifierNode::decorate(utils::Context& context, VariableEnvironment& env)
-    const
+TypedDecoratedAstNodePtr IdentifierNode::static_analysis(
+    utils::Context& context,
+    VariableEnvironment& env) const
 {
     utils::TraceBlock block(context, "Checking Identifier: {}", qualified_name);
 
@@ -782,7 +788,8 @@ const QualifiedName& IdentifierNode::get_name() const
 }
 
 TypedDecoratedAstNodePtr
-LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
+LiteralNode::static_analysis(utils::Context& context, VariableEnvironment& env)
+    const
 {
     switch (value.type) {
     case TokenType::TRUE: {
