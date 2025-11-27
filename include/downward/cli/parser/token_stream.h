@@ -5,50 +5,16 @@
 #include <string>
 #include <vector>
 
-// The MSVC standard library defines this...
-#undef IN
-#undef TRUE
-#undef FALSE
-
 namespace downward::utils {
 class Context;
 }
 
 namespace downward::cli::parser {
+enum class TokenType;
+struct Token;
+}
 
-enum class TokenType {
-    OPENING_PARENTHESIS,
-    CLOSING_PARENTHESIS,
-    OPENING_BRACKET,
-    CLOSING_BRACKET,
-    COMMA,
-    DOT,
-    COLON,
-    EQUALS,
-    PLUS,
-    MINUS,
-    LET,
-    LAMBDA,
-    AS,
-    IN,
-    TYPE_BOOL,
-    TYPE_STRING,
-    TYPE_INTEGER,
-    TYPE_FLOAT,
-    TRUE,
-    FALSE,
-    STRING,
-    INTEGER,
-    FLOAT,
-    IDENTIFIER
-};
-
-struct Token {
-    std::string content;
-    TokenType type;
-
-    Token(const std::string& content, TokenType type);
-};
+namespace downward::cli::parser {
 
 class TokenStream {
     std::vector<Token> tokens;
@@ -56,6 +22,14 @@ class TokenStream {
 
 public:
     explicit TokenStream(std::vector<Token>&& tokens);
+
+    TokenStream(const TokenStream& other);
+    TokenStream(TokenStream&& other) noexcept;
+
+    TokenStream& operator=(const TokenStream& other);
+    TokenStream& operator=(TokenStream&& other) noexcept;
+
+    ~TokenStream();
 
     bool has_tokens(int n) const;
     Token peek(const utils::Context& context, int n = 0) const;
@@ -67,70 +41,6 @@ public:
     std::string str(int from, int to) const;
 };
 
-extern std::string token_type_name(TokenType token_type);
-extern std::ostream& operator<<(std::ostream& out, TokenType token_type);
-extern std::ostream& operator<<(std::ostream& out, const Token& token);
 } // namespace downward::cli::parser
 
-namespace std {
-template <>
-struct hash<downward::cli::parser::TokenType> {
-    size_t operator()(const downward::cli::parser::TokenType& t) const noexcept
-    {
-        return size_t(t);
-    }
-};
-
-template <>
-struct formatter<downward::cli::parser::TokenType> {
-    template <typename ParseContext>
-    constexpr auto parse(ParseContext& ctx)
-    {
-        return ctx.begin();
-    }
-
-    template <typename FormatContext>
-    auto
-    format(const downward::cli::parser::TokenType& t, FormatContext& ctx) const
-    {
-        return std::format_to(ctx.out(), "{}", token_type_name(t));
-    }
-};
-
-template <>
-struct formatter<downward::cli::parser::Token> {
-    bool text = false;
-
-    template <typename ParseContext>
-    constexpr auto parse(ParseContext& ctx)
-    {
-        auto it = std::ranges::begin(ctx);
-        const auto end = std::ranges::end(ctx);
-
-        for (; it != end && *it != '}'; ++it) {
-            switch (*it) {
-            case 't':
-                text = true;
-                break;
-            default:
-                throw std::format_error("Could not parse specifier!");
-            }
-        }
-
-        return it;
-    }
-
-    template <typename FormatContext>
-    auto
-    format(const downward::cli::parser::Token& token, FormatContext& ctx) const
-    {
-        return std::format_to(
-            ctx.out(),
-            "<Type: '{}', Value: '{}'>",
-            token.type,
-            token.content);
-    }
-};
-
-} // namespace std
 #endif

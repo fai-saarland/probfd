@@ -1,5 +1,7 @@
 #include "downward/cli/parser/decorated_abstract_syntax_tree.h"
 
+#include "downward/cli/parser/token.h"
+
 #include "downward/cli/plugins/options.h"
 #include "downward/cli/plugins/types.h"
 

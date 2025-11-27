@@ -1,6 +1,7 @@
 #include "downward/cli/parser/lexical_analyzer.h"
 
 #include "downward/cli/parser/token_stream.h"
+#include "downward/cli/parser/token.h"
 
 #include "downward/utils/logging.h"
 #include "downward/utils/strings.h"

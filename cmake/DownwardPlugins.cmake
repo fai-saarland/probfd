@@ -20,6 +20,7 @@ create_library(
         downward/cli/parser/decorated_abstract_syntax_tree
         downward/cli/parser/lexical_analyzer
         downward/cli/parser/syntax_analyzer
+        downward/cli/parser/token
         downward/cli/parser/token_stream
 )
 
