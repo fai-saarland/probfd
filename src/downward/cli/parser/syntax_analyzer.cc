@@ -1,11 +1,21 @@
 #include "downward/cli/parser/syntax_analyzer.h"
 
-#include "downward/cli/parser/abstract_syntax_tree.h"
+#include "downward/cli/parser/ast/direct_function_call_node.h"
+#include "downward/cli/parser/ast/identifier_node.h"
+#include "downward/cli/parser/ast/indirect_function_call_node.h"
+#include "downward/cli/parser/ast/lambda_node.h"
+#include "downward/cli/parser/ast/let_node.h"
+#include "downward/cli/parser/ast/list_node.h"
+#include "downward/cli/parser/ast/literal_node.h"
+#include "downward/cli/parser/ast/type_literal_node.h"
+#include "downward/cli/parser/ast/unary_expression_node.h"
+
 #include "downward/cli/parser/lexical_analyzer.h"
 #include "downward/cli/parser/token_stream.h"
 
 #include "downward/utils/logging.h"
 
+#include <algorithm>
 #include <functional>
 #include <unordered_set>
 

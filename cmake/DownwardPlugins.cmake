@@ -16,7 +16,20 @@ create_library(
     NAME parser
     HELP "Option parsing"
     SOURCES
-        downward/cli/parser/abstract_syntax_tree
+        downward/cli/parser/ast/abstract_syntax_tree
+        downward/cli/parser/ast/direct_function_call_node
+        downward/cli/parser/ast/expression_node
+        downward/cli/parser/ast/identifier_node
+        downward/cli/parser/ast/indirect_function_call_node
+        downward/cli/parser/ast/lambda_node
+        downward/cli/parser/ast/let_node
+        downward/cli/parser/ast/list_node
+        downward/cli/parser/ast/literal_node
+        downward/cli/parser/ast/qualified_name
+        downward/cli/parser/ast/type_literal_node
+        downward/cli/parser/ast/type_node
+        downward/cli/parser/ast/unary_expression_node
+        downward/cli/parser/ast/variable_environment
         downward/cli/parser/decorated_abstract_syntax_tree
         downward/cli/parser/lexical_analyzer
         downward/cli/parser/syntax_analyzer

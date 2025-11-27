@@ -1,11 +1,13 @@
 #include "search.h"
 
-#include "downward/cli/parser/abstract_syntax_tree.h"
+#include "register_definitions.h"
+
+#include "downward/cli/parser/ast/let_node.h"
+
+#include "downward/cli/parser/decorated_abstract_syntax_tree.h"
 #include "downward/cli/parser/lexical_analyzer.h"
 #include "downward/cli/parser/syntax_analyzer.h"
 #include "downward/cli/parser/token_stream.h"
-
-#include "register_definitions.h"
 
 #include "downward/cli/plugins/registry.h"
 
