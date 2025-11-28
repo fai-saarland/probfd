@@ -1,26 +1,19 @@
 #ifndef UTILS_SYSTEM_H
 #define UTILS_SYSTEM_H
 
+#include "downward/utils/byte_units.h"
+
 #define LINUX 0
 #define OSX 1
 #define WINDOWS 2
 
 #if defined(_WIN32)
 #define OPERATING_SYSTEM WINDOWS
-#include "downward/utils/system_windows.h"
 #elif defined(__APPLE__)
 #define OPERATING_SYSTEM OSX
-#include "downward/utils/system_unix.h"
 #else
 #define OPERATING_SYSTEM LINUX
-#include "downward/utils/system_unix.h"
 #endif
-
-#include "downward/utils/byte_units.h"
-
-#include <iostream>
-#include <source_location>
-#include <stdlib.h>
 
 namespace downward::utils {
 enum class ExitCode {

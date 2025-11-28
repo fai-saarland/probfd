@@ -4,13 +4,12 @@
 #include "downward/merge_and_shrink/labels.h"
 
 #include "downward/utils/logging.h"
-#include "downward/utils/memory.h"
+#include "downward/utils/system.h"
 
 #include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <iterator>
-#include <set>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>

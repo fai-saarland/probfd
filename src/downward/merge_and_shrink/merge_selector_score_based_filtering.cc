@@ -3,6 +3,8 @@
 #include "downward/merge_and_shrink/factored_transition_system.h"
 #include "downward/merge_and_shrink/merge_scoring_function.h"
 
+#include "downward/utils/system.h"
+
 #include <cassert>
 
 using namespace std;

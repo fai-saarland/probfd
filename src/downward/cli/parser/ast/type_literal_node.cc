@@ -3,6 +3,7 @@
 #include "downward/cli/plugins/types.h"
 
 #include "downward/utils/logging.h"
+#include "downward/utils/system.h"
 
 using namespace std;
 

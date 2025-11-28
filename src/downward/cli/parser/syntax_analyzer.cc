@@ -14,6 +14,7 @@
 #include "downward/cli/parser/token_stream.h"
 
 #include "downward/utils/logging.h"
+#include "downward/utils/system.h"
 
 #include <algorithm>
 #include <functional>

@@ -2,9 +2,9 @@
 #define UTILS_LOGGING_H
 
 #include "downward/utils/exceptions.h"
-#include "downward/utils/system.h"
 #include "downward/utils/timer.h"
 
+#include <iostream>
 #include <memory>
 #include <ostream>
 #include <ranges>
