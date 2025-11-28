@@ -16,8 +16,6 @@ public:
 
     virtual const plugins::Type&
     get_type(plugins::TypeRegistry& type_registry) const = 0;
-
-    virtual void dump(std::string indent) const = 0;
 };
 
 } // namespace downward::cli::parser

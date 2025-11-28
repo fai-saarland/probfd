@@ -17,8 +17,6 @@ public:
 
     const plugins::Type&
     get_type(plugins::TypeRegistry& type_registry) const override;
-
-    void dump(std::string indent) const override;
 };
 
 } // namespace downward::cli::parser

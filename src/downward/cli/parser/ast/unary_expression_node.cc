@@ -43,11 +43,4 @@ UnaryNode::static_analysis(utils::Context& context, VariableEnvironment& env)
         "Operator of unary arithmetic expression is not of numeric type.");
 }
 
-void UnaryNode::dump(std::string indent) const
-{
-    cout << indent << token_type_name(token_type);
-    nested_expr->dump("");
-    cout << endl;
-}
-
 } // namespace downward::cli::parser

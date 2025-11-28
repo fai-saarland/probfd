@@ -57,16 +57,6 @@ TypedDecoratedAstNodePtr IdentifierNode::static_analysis(
         &plugins::TypeRegistry::SYMBOL_TYPE};
 }
 
-void IdentifierNode::dump(string indent) const
-{
-    std::print(cout, "{}", std::string(indent, ' '));
-    std::println(
-        cout,
-        "{}: {}",
-        token_type_name(TokenType::IDENTIFIER),
-        qualified_name);
-}
-
 const QualifiedName& IdentifierNode::get_name() const
 {
     return qualified_name;

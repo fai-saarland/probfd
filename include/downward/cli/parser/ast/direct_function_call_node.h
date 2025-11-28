@@ -26,8 +26,6 @@ public:
     TypedDecoratedAstNodePtr
     static_analysis(utils::Context& context, VariableEnvironment& env)
         const override;
-
-    void dump(std::string indent) const override;
 };
 
 } // namespace downward::cli::parser

@@ -35,8 +35,6 @@ public:
     virtual TypedDecoratedAstNodePtr
     static_analysis(utils::Context& context, VariableEnvironment& env)
         const = 0;
-
-    virtual void dump(std::string indent = "+") const = 0;
 };
 
 using ASTNodePtr = std::unique_ptr<ASTNode>;

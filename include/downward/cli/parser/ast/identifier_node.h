@@ -18,8 +18,6 @@ public:
     static_analysis(utils::Context& context, VariableEnvironment& env)
         const override;
 
-    void dump(std::string indent) const override;
-
     const QualifiedName& get_name() const;
 };
 

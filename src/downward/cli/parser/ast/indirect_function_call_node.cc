@@ -104,16 +104,4 @@ TypedDecoratedAstNodePtr IndirectFunctionCallNode::static_analysis(
         &ftype.get_return_type()};
 }
 
-void IndirectFunctionCallNode::dump(string indent) const
-{
-    cout << indent << "INDIRECTCALL: ";
-    callee->dump();
-    cout << endl;
-    indent = "| " + indent;
-    cout << indent << "ARGS:" << endl;
-    for (const ASTNodePtr& node : positional_arguments) {
-        node->dump("| " + indent);
-    }
-}
-
 } // namespace downward::cli::parser

@@ -29,8 +29,4 @@ TypeLiteralNode::get_type(plugins::TypeRegistry& type_registry) const
     }
 }
 
-void TypeLiteralNode::dump(std::string) const
-{
-}
-
 } // namespace downward::cli::parser
