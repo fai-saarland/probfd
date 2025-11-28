@@ -76,11 +76,8 @@ struct formatter<downward::cli::parser::Token> {
 
         for (; it != end && *it != '}'; ++it) {
             switch (*it) {
-            case 't':
-                text = true;
-                break;
-            default:
-                throw std::format_error("Could not parse specifier!");
+            case 't': text = true; break;
+            default: throw std::format_error("Could not parse specifier!");
             }
         }
 
@@ -91,6 +88,8 @@ struct formatter<downward::cli::parser::Token> {
     auto
     format(const downward::cli::parser::Token& token, FormatContext& ctx) const
     {
+        if (text) { return std::format_to(ctx.out(), "{}", token.content); }
+
         return std::format_to(
             ctx.out(),
             "<Type: '{}', Value: '{}'>",

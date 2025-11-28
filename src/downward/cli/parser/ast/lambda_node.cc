@@ -57,7 +57,8 @@ LambdaNode::static_analysis(utils::Context& context, VariableEnvironment& env)
 
         auto& param_declaration =
             decorated_variable_declarations.emplace_back(variable_name);
-        const auto& t = type_node->get_type(*plugins::TypeRegistry::instance());
+        const auto& t =
+            type_node->get_type(context, *plugins::TypeRegistry::instance());
         arg_types.emplace_back(&t);
         const bool s =
             nested_env.add_variable(variable_name, t, param_declaration);

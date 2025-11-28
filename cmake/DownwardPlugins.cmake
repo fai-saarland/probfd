@@ -26,6 +26,7 @@ create_library(
         downward/cli/parser/ast/list_node
         downward/cli/parser/ast/literal_node
         downward/cli/parser/ast/qualified_name
+    downward/cli/parser/ast/type_identifier_node
         downward/cli/parser/ast/type_literal_node
         downward/cli/parser/ast/type_node
         downward/cli/parser/ast/unary_expression_node

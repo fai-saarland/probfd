@@ -10,6 +10,7 @@
 #include "downward/cli/parser/ast/type_literal_node.h"
 #include "downward/cli/parser/ast/unary_expression_node.h"
 
+#include "downward/cli/parser/ast/type_identifier_node.h"
 #include "downward/cli/parser/lexical_analyzer.h"
 #include "downward/cli/parser/token_stream.h"
 
@@ -85,6 +86,9 @@ static ASTNodePtr parse_node_in_block(
     const std::string& block_name,
     TokenStream& tokens,
     SyntaxAnalyzerContext&);
+
+static QualifiedName
+parse_qualified_name(TokenStream& tokens, SyntaxAnalyzerContext& context);
 
 template <std::invocable<TokenStream&, SyntaxAnalyzerContext&> F>
 static void parse_sequence(
@@ -262,12 +266,15 @@ parse_type(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
     utils::TraceBlock nblock(context, "Parsing type");
 
-    switch (Token t = tokens.pop(context); t.type) {
+    switch (Token t = tokens.peek(context); t.type) {
     case TokenType::TYPE_BOOL:
     case TokenType::TYPE_INTEGER:
     case TokenType::TYPE_STRING:
-    case TokenType::TYPE_FLOAT: return std::make_unique<TypeLiteralNode>(t);
-    case TokenType::IDENTIFIER: return std::make_unique<TypeLiteralNode>(t);
+    case TokenType::TYPE_FLOAT:
+        return std::make_unique<TypeLiteralNode>(tokens.pop(context));
+    case TokenType::IDENTIFIER:
+        return std::make_unique<TypeIdentifierNode>(
+            parse_qualified_name(tokens, context));
     default:
         throw utils::CriticalError(
             "Expected type, but got token of type '{}'.",
@@ -363,10 +370,10 @@ static constexpr std::array literal_tokens{
     TokenType::INTEGER,
     TokenType::FLOAT};
 
-static ASTNodePtr
-parse_literal(TokenStream& tokens, SyntaxAnalyzerContext& context)
+static QualifiedName
+parse_qualified_name(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
-    utils::TraceBlock block(context, "Parsing Literal");
+    utils::TraceBlock block(context, "Parsing Qualified Name");
 
     Token token = tokens.pop(context);
 
@@ -381,13 +388,29 @@ parse_literal(TokenStream& tokens, SyntaxAnalyzerContext& context)
 
         qualified_name.name = token.content;
 
-        return std::make_unique<IdentifierNode>(std::move(qualified_name));
+        return qualified_name;
+    }
+
+    context.error("Expected identifier.", token);
+}
+
+static ASTNodePtr
+parse_literal(TokenStream& tokens, SyntaxAnalyzerContext& context)
+{
+    utils::TraceBlock block(context, "Parsing Literal");
+
+    Token token = tokens.peek(context);
+
+    if (token.type == TokenType::IDENTIFIER) {
+        return std::make_unique<IdentifierNode>(
+            parse_qualified_name(tokens, context));
     }
 
     if (!std::ranges::binary_search(literal_tokens, token.type)) {
         context.error("Token {} cannot be parsed as literal", token);
     }
-    return std::make_unique<LiteralNode>(token);
+
+    return std::make_unique<LiteralNode>(tokens.pop(context));
 }
 
 static ASTNodePtr parse_non_prefix_op_expression(
