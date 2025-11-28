@@ -66,20 +66,4 @@ LetNode::static_analysis(utils::Context& context, VariableEnvironment& env)
         decorated_nested_value.type};
 }
 
-void LetNode::dump(string indent) const
-{
-    cout << indent << "LET:";
-
-    indent = "| " + indent;
-
-    for (const auto& [variable_name, variable_definition] :
-         variable_definitions) {
-        cout << variable_name << " = " << endl;
-        variable_definition->dump(indent);
-    }
-
-    cout << indent << "IN:" << endl;
-    nested_value->dump("| " + indent);
-}
-
 } // namespace downward::cli::parser

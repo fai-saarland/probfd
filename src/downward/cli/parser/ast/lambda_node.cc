@@ -86,18 +86,4 @@ LambdaNode::static_analysis(utils::Context& context, VariableEnvironment& env)
         &ftype};
 }
 
-void LambdaNode::dump(std::string indent) const
-{
-    cout << indent << "LAMBDA:";
-
-    indent = "| " + indent;
-
-    for (const auto& [variable_name, type_name] : parameters) {
-        cout << variable_name << ":" << type_name << std::endl;
-    }
-
-    cout << indent << ":" << endl;
-    nested_value->dump("| " + indent);
-}
-
 } // namespace downward::cli::parser

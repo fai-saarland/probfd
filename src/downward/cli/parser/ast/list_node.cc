@@ -88,11 +88,4 @@ ListNode::static_analysis(utils::Context& context, VariableEnvironment& env)
             *common_element_type)};
 }
 
-void ListNode::dump(string indent) const
-{
-    cout << indent << "LIST:" << endl;
-    indent = "| " + indent;
-    for (const ASTNodePtr& node : elements) { node->dump(indent); }
-}
-
 } // namespace downward::cli::parser

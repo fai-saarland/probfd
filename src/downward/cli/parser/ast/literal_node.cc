@@ -175,10 +175,4 @@ LiteralNode::static_analysis(utils::Context& context, VariableEnvironment& env)
     }
 }
 
-void LiteralNode::dump(string indent) const
-{
-    cout << indent << token_type_name(value.type) << ": " << value.content
-         << endl;
-}
-
 } // namespace downward::cli::parser

@@ -208,21 +208,4 @@ TypedDecoratedAstNodePtr DirectFunctionCallNode::static_analysis(
         &callee_type->get_return_type()};
 }
 
-void DirectFunctionCallNode::dump(string indent) const
-{
-    cout << indent << "INDIRECTFUNC: ";
-    std::print(cout, "{}", callee);
-    cout << endl;
-    indent = "| " + indent;
-    cout << indent << "POSITIONAL ARGS:" << endl;
-    for (const ASTNodePtr& node : positional_arguments) {
-        node->dump("| " + indent);
-    }
-    cout << indent << "KEYWORD ARGS:" << endl;
-    for (const auto& [key, default_arg] : keyword_arguments) {
-        cout << indent << key << " = " << endl;
-        default_arg->dump("| " + indent);
-    }
-}
-
 } // namespace downward::cli::parser
