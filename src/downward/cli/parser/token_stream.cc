@@ -83,7 +83,9 @@ string TokenStream::str(int from, int to) const
     std::ranges::subrange subrange(
         std::next(b, from),
         std::next(b, std::min<int>(to, tokens.size())));
-    return std::format("{:n:t}", subrange);
+    return std::format(
+        "{:n:s}",
+        subrange | std::views::transform(&Token::content));
 }
 
 } // namespace downward::cli::parser

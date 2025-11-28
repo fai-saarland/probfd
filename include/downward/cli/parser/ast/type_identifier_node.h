@@ -1,17 +1,17 @@
-#ifndef PARSER_TYPE_LITERAL_NODE_H
-#define PARSER_TYPE_LITERAL_NODE_H
+#ifndef PARSER_TYPE_IDENTIFIER_NODE_H
+#define PARSER_TYPE_IDENTIFIER_NODE_H
 
 #include "downward/cli/parser/ast/type_node.h"
 
-#include "downward/cli/parser/token.h"
+#include "downward/cli/parser/ast/qualified_name.h"
 
 namespace downward::cli::parser {
 
-class TypeLiteralNode : public TypeNode {
-    Token value;
+class TypeIdentifierNode : public TypeNode {
+    QualifiedName name;
 
 public:
-    explicit TypeLiteralNode(const Token& value);
+    explicit TypeIdentifierNode(QualifiedName name);
 
     const plugins::Type&
     get_type(utils::Context& context, plugins::TypeRegistry& type_registry)
