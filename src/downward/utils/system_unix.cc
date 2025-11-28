@@ -20,8 +20,6 @@
   See also: issue479
 */
 
-#include "downward/utils/system_unix.h"
-
 #include <csignal>
 #include <cstdio>
 #include <cstring>

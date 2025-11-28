@@ -3,6 +3,7 @@
 
 #include "downward/abstract_task.h"
 
+#include "downward/utils/byte_units.h"
 #include "downward/utils/logging.h"
 
 #include <memory>

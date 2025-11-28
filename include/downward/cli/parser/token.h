@@ -5,11 +5,6 @@
 #include <string>
 #include <vector>
 
-// The MSVC standard library defines this...
-#undef IN
-#undef TRUE
-#undef FALSE
-
 namespace downward::cli::parser {
 
 enum class TokenType {
