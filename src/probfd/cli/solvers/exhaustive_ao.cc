@@ -1,6 +1,6 @@
 #include "probfd/cli/solvers/exhaustive_ao.h"
 
-#include "downward/cli/plugins/plugin.h"
+#include "language/plugins/plugin.h"
 
 #include "probfd/cli/naming_conventions.h"
 
@@ -11,7 +11,7 @@
 
 #include "probfd/algorithms/exhaustive_ao.h"
 
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/registry.h"
 
 #include <memory>
 #include <string>

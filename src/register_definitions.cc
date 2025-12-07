@@ -1,6 +1,6 @@
 #include "register_definitions.h"
 
-#include "downward/cli/plugins/plugin.h"
+#include "language/plugins/plugin.h"
 
 #include "downward/cli/cartesian_abstractions/subtask_generators_category.h"
 #include "downward/cli/cartesian_abstractions/subtask_generators_features.h"
@@ -127,7 +127,7 @@
 #include "downward/cli/utils/verbosity_enum.h"
 
 #include "downward/cli/operator_cost_category.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/registry.h"
 #include "downward/cli/utils/rng_options.h"
 #include "downward/utils/math.h"
 

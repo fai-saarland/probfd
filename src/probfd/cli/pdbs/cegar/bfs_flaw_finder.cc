@@ -1,8 +1,8 @@
 #include "probfd/cli/pdbs/cegar/bfs_flaw_finder.h"
 
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/registry.h"
 
-#include "downward/cli/plugins/plugin.h"
+#include "language/plugins/plugin.h"
 
 #include "probfd/pdbs/cegar/bfs_flaw_finder.h"
 

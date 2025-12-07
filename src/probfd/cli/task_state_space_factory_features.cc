@@ -1,7 +1,7 @@
 #include "probfd/cli/task_state_space_factory_features.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "probfd/caching_task_state_space.h"
 #include "probfd/task_state_space.h"

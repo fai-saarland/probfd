@@ -6,9 +6,9 @@
 #include "downward/utils/markup.h"
 #include "downward/utils/rng.h"
 
-#include "downward/cli/plugins/options.h"
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/options.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 

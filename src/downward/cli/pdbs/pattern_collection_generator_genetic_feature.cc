@@ -1,7 +1,7 @@
 #include "downward/cli/pdbs/pattern_collection_generator_genetic_feature.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "downward/cli/pdbs/pattern_generator_options.h"
 

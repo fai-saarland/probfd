@@ -2,8 +2,8 @@
 
 #include "downward/cli/pruning/pruning_method_options.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "downward/pruning/stubborn_sets_atom_centric.h"
 

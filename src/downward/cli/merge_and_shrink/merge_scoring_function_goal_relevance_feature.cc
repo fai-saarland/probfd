@@ -1,7 +1,7 @@
 #include "downward/cli/merge_and_shrink/merge_scoring_function_goal_relevance_feature.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "downward/merge_and_shrink/merge_scoring_function_goal_relevance.h"
 

@@ -1,7 +1,7 @@
 #include "probfd/cli/cartesian_abstractions/flaw_generator_category.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "probfd/cartesian_abstractions/flaw_generator.h"
 

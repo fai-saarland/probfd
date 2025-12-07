@@ -6,7 +6,7 @@ create_library(
         probfd/cli/heuristics/task_heuristic_factory_category
     DEPENDS
         probfd_core
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -20,7 +20,7 @@ create_library(
     DEPENDS
         probfd_core
         core_probabilistic_tasks
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -32,7 +32,7 @@ create_library(
     SOURCES
         probfd/cli/task_state_space_factory_category
     DEPENDS
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -46,7 +46,7 @@ create_library(
     DEPENDS
         task_state_space_factory_category
         probfd_core
-        parser
+    language
         plugins
         logging_options
     TARGET
@@ -61,7 +61,7 @@ create_library(
         probfd/cli/solvers/statistical_mdp_algorithm_factory_category
     DEPENDS
         probfd_core
-        parser
+    language
         plugins
         task_state_space_factory_category
         logging_options
@@ -77,7 +77,7 @@ create_library(
     DEPENDS
         mdp_heuristic_search_base
         mdp_solver_options
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -90,7 +90,7 @@ create_library(
         probfd/cli/solvers/acyclic_vi
     DEPENDS
         mdp_solver_options
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -104,7 +104,7 @@ create_library(
     DEPENDS
         mdp_heuristic_search_base_options
         probfd_core
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -118,7 +118,7 @@ create_library(
     DEPENDS
         probfd_core
         mdp_solver_options
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -132,7 +132,7 @@ create_library(
     DEPENDS
         mdp_heuristic_search_base_options
         probfd_core
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -146,7 +146,7 @@ create_library(
     DEPENDS
         mdp_heuristic_search_base_options
         probfd_core
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -159,7 +159,7 @@ create_library(
         probfd/cli/solvers/exhaustive_dfs
     DEPENDS
         mdp_heuristic_search_base_options
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -174,7 +174,7 @@ create_library(
         mdp_solver_options
         lp_solver_options
         lp_solver
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -189,7 +189,7 @@ create_library(
         i2dual_solver
         lp_solver_options
         mdp_solver_options
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -202,7 +202,7 @@ create_library(
         probfd/cli/solvers/interval_iteration
     DEPENDS
         mdp_solver_options
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -216,7 +216,7 @@ create_library(
     DEPENDS
         mdp_heuristic_search_base_options
         probfd_core
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -229,7 +229,7 @@ create_library(
         probfd/cli/solvers/ta_depth_first_heuristic_search
     DEPENDS
         mdp_heuristic_search_base_options
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -242,7 +242,7 @@ create_library(
         probfd/cli/solvers/ta_lrtdp
     DEPENDS
         mdp_heuristic_search_base_options
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -255,7 +255,7 @@ create_library(
         probfd/cli/solvers/ta_topological_vi
     DEPENDS
         mdp_solver_options
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -267,7 +267,7 @@ create_library(
         probfd/cli/heuristics/task_dependent_heuristic_options
     DEPENDS
         task_dependent_heuristic
-        parser
+    language
         plugins
         logging_options
 )
@@ -279,7 +279,7 @@ create_library(
         probfd/cli/solvers/topological_vi
     DEPENDS
         mdp_solver_options
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -301,7 +301,7 @@ create_library(
         probfd/cli/pdbs/fully_additive_finder_factory
     DEPENDS
         padbs_pattern_generators
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -316,7 +316,7 @@ create_library(
         pattern_generator_category
         papdbs_pattern_generators_plugin
         papdbs_classical_generator
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -330,7 +330,7 @@ create_library(
     DEPENDS
         papdbs_systematic_generator
         papdbs_pattern_generators_plugin
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -345,7 +345,7 @@ create_library(
     DEPENDS
         papdbs_hillclimbing_generator
         papdbs_pattern_generators_plugin
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -364,7 +364,7 @@ create_library(
     DEPENDS
         papdbs_cegar
         papdbs_pattern_generators_plugin
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -379,7 +379,7 @@ create_library(
     DEPENDS
         papdbs_disjoint_cegar_generator
         papdbs_pattern_generators_plugin
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -394,7 +394,7 @@ create_library(
     DEPENDS
         papdbs_multiple_cegar_generator
         papdbs_pattern_generators_plugin
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -413,7 +413,7 @@ create_library(
     DEPENDS
         pa_cartesian_abstractions
         mutexes_factory_category
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -428,7 +428,7 @@ create_library(
         evaluator_category
         task_dependent_heuristic_options
         probability_aware_cartesian_abstraction_heuristic
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -442,7 +442,7 @@ create_library(
     DEPENDS
         evaluator_category
         probfd_core
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -456,7 +456,7 @@ create_library(
     DEPENDS
         evaluator_category
         deadend_pruning_heuristic
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -470,7 +470,7 @@ create_library(
     DEPENDS
         evaluator_category
         determinization_heuristic
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -483,7 +483,7 @@ create_library(
         probfd/cli/heuristics/gzocp_heuristic
     DEPENDS
         gzocp_pdb_heuristic
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -496,7 +496,7 @@ create_library(
         probfd/cli/heuristics/probability_aware_pdb_heuristic
     DEPENDS
         probability_aware_pdb_heuristic
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -509,7 +509,7 @@ create_library(
         probfd/cli/heuristics/scp_heuristic
     DEPENDS
         scp_pdb_heuristic
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -522,7 +522,7 @@ create_library(
         probfd/cli/heuristics/ucp_heuristic
     DEPENDS
         ucp_pdb_heuristic
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -536,7 +536,7 @@ create_library(
         probfd/cli/occupation_measures/subcategory
     DEPENDS
         occupation_measure_heuristic
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -558,7 +558,7 @@ create_library(
         probfd/cli/merge_and_shrink/label_reduction_feature
     DEPENDS
         pa_merge_and_shrink
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -571,7 +571,7 @@ create_library(
         probfd/cli/merge_and_shrink/merge_strategy_factory_category
     DEPENDS
         pa_merge_and_shrink
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -584,7 +584,7 @@ create_library(
         probfd/cli/merge_and_shrink/merge_strategy_factory_options
     DEPENDS
         pa_merge_and_shrink
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -599,7 +599,7 @@ create_library(
         pmerge_strategy_factory_category
         pmerge_strategy_factory_options
         pa_merge_and_shrink
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -614,7 +614,7 @@ create_library(
         pmerge_strategy_factory_category
         pmerge_strategy_factory_options
         pa_merge_and_shrink
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -629,7 +629,7 @@ create_library(
         pmerge_strategy_factory_category
         pmerge_strategy_factory_options
         pa_merge_and_shrink
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -642,7 +642,7 @@ create_library(
         probfd/cli/merge_and_shrink/merge_selector_category
     DEPENDS
         pa_merge_and_shrink
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -655,7 +655,7 @@ create_library(
         probfd/cli/merge_and_shrink/merge_selector_score_based_filtering
     DEPENDS
         pa_merge_and_shrink
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -668,7 +668,7 @@ create_library(
         probfd/cli/merge_and_shrink/merge_scoring_function_category
     DEPENDS
         pa_merge_and_shrink
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -682,7 +682,7 @@ create_library(
     DEPENDS
         pmerge_scoring_function_category
         pa_merge_and_shrink
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -696,7 +696,7 @@ create_library(
     DEPENDS
         pmerge_scoring_function_category
         pa_merge_and_shrink
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -710,7 +710,7 @@ create_library(
     DEPENDS
         pmerge_scoring_function_category
         pa_merge_and_shrink
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -724,7 +724,7 @@ create_library(
     DEPENDS
         pmerge_scoring_function_category
         pa_merge_and_shrink
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -738,7 +738,7 @@ create_library(
     DEPENDS
         pmerge_scoring_function_category
         pa_merge_and_shrink
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -751,7 +751,7 @@ create_library(
         probfd/cli/merge_and_shrink/merge_tree_factory_category
     DEPENDS
         pa_merge_and_shrink
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -764,7 +764,7 @@ create_library(
         probfd/cli/merge_and_shrink/merge_tree_factory_options
     DEPENDS
         pa_merge_and_shrink
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -779,7 +779,7 @@ create_library(
         pmerge_tree_factory_category
         pmerge_tree_factory_options
         pa_merge_and_shrink
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -792,7 +792,7 @@ create_library(
         probfd/cli/merge_and_shrink/shrink_strategy_category
     DEPENDS
         pa_merge_and_shrink
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -806,7 +806,7 @@ create_library(
     DEPENDS
         pa_merge_and_shrink
         pshrink_strategy_category
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -821,7 +821,7 @@ create_library(
         pa_merge_and_shrink
         pshrink_strategy_category
         pshrink_strategy_bucket_based_options
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -836,7 +836,7 @@ create_library(
         pa_merge_and_shrink
         pshrink_strategy_category
         pshrink_strategy_bucket_based_options
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -850,7 +850,7 @@ create_library(
     DEPENDS
         pa_merge_and_shrink
         pshrink_strategy_category
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -864,7 +864,7 @@ create_library(
     DEPENDS
         pa_merge_and_shrink
         pshrink_strategy_category
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -877,7 +877,7 @@ create_library(
         probfd/cli/merge_and_shrink/prune_strategy_category
     DEPENDS
         pa_merge_and_shrink
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -891,7 +891,7 @@ create_library(
     DEPENDS
         pa_merge_and_shrink
         prune_strategy_category
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -905,7 +905,7 @@ create_library(
     DEPENDS
         pa_merge_and_shrink
         prune_strategy_category
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -919,7 +919,7 @@ create_library(
     DEPENDS
         pa_merge_and_shrink
         prune_strategy_category
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -944,7 +944,7 @@ create_library(
         probfd/cli/open_lists/subcategory
     DEPENDS
         mdp_heuristic_search_base
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -958,7 +958,7 @@ create_library(
     DEPENDS
         mdp_heuristic_search_base
         rng_options
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -971,7 +971,7 @@ create_library(
         probfd/cli/policy_pickers/subcategory
     DEPENDS
         mdp_heuristic_search_base
-        parser
+    language
         plugins
     TARGET
         probfd
@@ -984,7 +984,7 @@ create_library(
         probfd/cli/transition_sorters/subcategory
     DEPENDS
         mdp_heuristic_search_base
-        parser
+    language
         plugins
     TARGET
         probfd

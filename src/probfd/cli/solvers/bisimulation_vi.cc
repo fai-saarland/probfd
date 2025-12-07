@@ -1,7 +1,7 @@
 #include "probfd/cli/solvers/bisimulation_vi.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "probfd/solver_interface.h"
 

@@ -4,8 +4,8 @@
 
 #include "downward/utils/math.h"
 
-#include "downward/cli/plugins/options.h"
-#include "downward/cli/plugins/plugin.h"
+#include "language/plugins/options.h"
+#include "language/plugins/plugin.h"
 
 #include <string>
 

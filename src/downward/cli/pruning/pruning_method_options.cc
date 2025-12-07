@@ -2,7 +2,7 @@
 
 #include "downward/cli/utils/logging_options.h"
 
-#include "downward/cli/plugins/plugin.h"
+#include "language/plugins/plugin.h"
 
 using namespace std;
 

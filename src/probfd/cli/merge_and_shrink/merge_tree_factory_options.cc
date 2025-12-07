@@ -4,7 +4,7 @@
 
 #include "downward/utils/logging.h"
 
-#include "downward/cli/plugins/plugin.h"
+#include "language/plugins/plugin.h"
 #include "downward/cli/utils/rng_options.h"
 
 using namespace std;

@@ -1,7 +1,7 @@
 #include "probfd/cli/occupation_measures/constraint_generator_factory_category.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "probfd/occupation_measures/constraint_generator.h"
 

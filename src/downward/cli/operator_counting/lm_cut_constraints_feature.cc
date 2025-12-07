@@ -1,7 +1,7 @@
 #include "downward/cli/operator_counting/lm_cut_constraints_feature.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "downward/operator_counting/lm_cut_constraints.h"
 

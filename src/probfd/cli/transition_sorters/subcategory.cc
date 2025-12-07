@@ -1,7 +1,7 @@
 #include "probfd/cli/transition_sorters/subcategory.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "probfd/transition_sorters/vdiff_sorter.h"
 

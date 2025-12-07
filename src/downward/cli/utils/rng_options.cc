@@ -1,7 +1,7 @@
 #include "downward/cli/utils/rng_options.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 #include "downward/utils/rng.h"
 
 using namespace std;

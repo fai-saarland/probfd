@@ -1,7 +1,7 @@
 #include "probfd/cli/heuristics/dead_end_pruning_heuristic.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "probfd/heuristics/dead_end_pruning_heuristic.h"
 

@@ -1,7 +1,7 @@
 #include "downward/cli/evaluators/evaluator_category.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "downward/evaluator.h"
 #include "downward/task_dependent_factory.h"
