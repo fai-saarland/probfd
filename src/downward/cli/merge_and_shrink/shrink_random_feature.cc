@@ -1,7 +1,7 @@
 #include "downward/cli/merge_and_shrink/shrink_random_feature.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "downward/cli/merge_and_shrink/shrink_bucket_based_options.h"
 

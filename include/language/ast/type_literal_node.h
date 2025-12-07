@@ -1,0 +1,23 @@
+#ifndef LANGUAGE_AST_TYPE_LITERAL_NODE_H
+#define LANGUAGE_AST_TYPE_LITERAL_NODE_H
+
+#include "language/ast/type_node.h"
+
+#include "language/token.h"
+
+namespace downward::cli::parser {
+
+class TypeLiteralNode : public TypeNode {
+    Token value;
+
+public:
+    explicit TypeLiteralNode(const Token& value);
+
+    const plugins::Type&
+    get_type(utils::Context& context, plugins::TypeRegistry& type_registry)
+        const override;
+};
+
+} // namespace downward::cli::parser
+
+#endif

@@ -1,7 +1,7 @@
 #include "probfd/cli/merge_and_shrink/merge_scoring_function_total_order.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 

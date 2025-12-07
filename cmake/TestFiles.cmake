@@ -78,11 +78,6 @@ create_library(
         test_utils
         pa_merge_and_shrink
         probfd_core
-        # TODO remove
-        plugins
-        parser
-        logging_options
-        rng_options
     TARGET
         probfd_tests
 )

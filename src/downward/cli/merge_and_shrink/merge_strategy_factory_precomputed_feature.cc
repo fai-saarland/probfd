@@ -1,7 +1,7 @@
 #include "downward/cli/merge_and_shrink/merge_strategy_factory_precomputed_feature.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "downward/cli/merge_and_shrink/merge_strategy_options.h"
 

@@ -1,7 +1,7 @@
 #include "probfd/cli/solvers/interval_iteration.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "probfd/cli/solvers/mdp_solver_options.h"
 

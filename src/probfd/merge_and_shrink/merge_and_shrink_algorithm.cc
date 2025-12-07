@@ -22,7 +22,7 @@
 #include "downward/utils/system.h"
 #include "downward/utils/timer.h"
 
-#include "downward/cli/plugins/plugin.h"
+#include "language/plugins/plugin.h"
 #include "probfd/merge_and_shrink/factored_mapping.h"
 
 #include <cassert>

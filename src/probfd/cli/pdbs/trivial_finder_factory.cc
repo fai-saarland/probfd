@@ -1,7 +1,7 @@
 #include "probfd/cli/pdbs/trivial_finder_factory.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "probfd/pdbs/trivial_finder_factory.h"
 

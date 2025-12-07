@@ -1,6 +1,6 @@
 #include "downward/cli/merge_and_shrink/shrink_bucket_based_options.h"
 
-#include "downward/cli/plugins/plugin.h"
+#include "language/plugins/plugin.h"
 
 #include "downward/cli/utils/rng_options.h"
 

@@ -1,4 +1,4 @@
-#include "downward/cli/plugins/plugin.h"
+#include "language/plugins/plugin.h"
 
 #include "downward/cli/utils/logging_options.h"
 

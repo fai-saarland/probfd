@@ -1,6 +1,6 @@
 #include "downward/cli/operator_cost_options.h"
 
-#include "downward/cli/plugins/plugin.h"
+#include "language/plugins/plugin.h"
 
 #include "downward/operator_cost.h"
 

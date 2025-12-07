@@ -2,40 +2,40 @@ create_library(
     NAME plugins
     HELP "Plugin definition"
     SOURCES
-        downward/cli/plugins/any
-        downward/cli/plugins/doc_printer
-        downward/cli/plugins/options
-        downward/cli/plugins/plugin
-        downward/cli/plugins/plugin_info
-        downward/cli/plugins/registry
-        downward/cli/plugins/registry_types
-        downward/cli/plugins/types
+    language/plugins/any
+    language/plugins/doc_printer
+    language/plugins/options
+    language/plugins/plugin
+    language/plugins/plugin_info
+    language/plugins/registry
+    language/plugins/registry_types
+    language/plugins/types
 )
 
 create_library(
-    NAME parser
-    HELP "Option parsing"
+    NAME language
+    HELP "CLI language"
     SOURCES
-        downward/cli/parser/ast/abstract_syntax_tree
-        downward/cli/parser/ast/direct_function_call_node
-        downward/cli/parser/ast/expression_node
-        downward/cli/parser/ast/identifier_node
-        downward/cli/parser/ast/indirect_function_call_node
-        downward/cli/parser/ast/lambda_node
-        downward/cli/parser/ast/let_node
-        downward/cli/parser/ast/list_node
-        downward/cli/parser/ast/literal_node
-        downward/cli/parser/ast/qualified_name
-    downward/cli/parser/ast/type_identifier_node
-        downward/cli/parser/ast/type_literal_node
-        downward/cli/parser/ast/type_node
-        downward/cli/parser/ast/unary_expression_node
-        downward/cli/parser/ast/variable_environment
-        downward/cli/parser/decorated_abstract_syntax_tree
-        downward/cli/parser/lexical_analyzer
-        downward/cli/parser/syntax_analyzer
-        downward/cli/parser/token
-        downward/cli/parser/token_stream
+    language/ast/abstract_syntax_tree
+    language/ast/direct_function_call_node
+    language/ast/expression_node
+    language/ast/identifier_node
+    language/ast/indirect_function_call_node
+    language/ast/lambda_node
+    language/ast/let_node
+    language/ast/list_node
+    language/ast/literal_node
+    language/ast/qualified_name
+    language/ast/type_identifier_node
+    language/ast/type_literal_node
+    language/ast/type_node
+    language/ast/unary_expression_node
+    language/ast/variable_environment
+    language/decorated_abstract_syntax_tree
+    language/lexical_analyzer
+    language/syntax_analyzer
+    language/token
+    language/token_stream
 )
 
 create_library(

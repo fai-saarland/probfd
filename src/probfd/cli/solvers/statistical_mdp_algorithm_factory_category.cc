@@ -1,7 +1,7 @@
 #include "probfd/cli/solvers/statistical_mdp_algorithm_factory_category.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "probfd/solvers/statistical_mdp_algorithm.h"
 

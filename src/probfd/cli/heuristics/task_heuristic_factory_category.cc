@@ -1,7 +1,7 @@
 #include "probfd/cli/heuristics/task_heuristic_factory_category.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "probfd/task_heuristic_factory.h"
 

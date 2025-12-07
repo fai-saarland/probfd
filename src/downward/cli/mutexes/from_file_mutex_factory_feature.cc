@@ -1,7 +1,7 @@
 #include "downward/cli/mutexes/from_file_mutex_factory_feature.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "downward/mutexes/from_file_mutex_factory.h"
 

@@ -1,6 +1,6 @@
 #include "probfd/cli/solvers/mdp_heuristic_search_options.h"
 
-#include "downward/cli/plugins/plugin.h"
+#include "language/plugins/plugin.h"
 
 #include "probfd/cli/naming_conventions.h"
 

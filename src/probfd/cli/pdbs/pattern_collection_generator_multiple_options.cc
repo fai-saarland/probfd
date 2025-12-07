@@ -1,6 +1,6 @@
 #include "probfd/cli/pdbs/pattern_collection_generator_multiple_options.h"
 
-#include "downward/cli/plugins/plugin.h"
+#include "language/plugins/plugin.h"
 
 #include "downward/cli/utils/rng_options.h"
 

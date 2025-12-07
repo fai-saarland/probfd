@@ -1,7 +1,7 @@
 #include "downward/cli/lp/lp_solver_enum.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "downward/lp/lp_solver.h"
 

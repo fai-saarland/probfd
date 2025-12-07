@@ -1,6 +1,6 @@
 #include "downward/cli/merge_and_shrink/merge_and_shrink_algorithm_options.h"
 
-#include "downward/cli/plugins/plugin.h"
+#include "language/plugins/plugin.h"
 
 #include "downward/merge_and_shrink/types.h"
 

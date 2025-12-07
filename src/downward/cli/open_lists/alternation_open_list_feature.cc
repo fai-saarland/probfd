@@ -1,7 +1,7 @@
 #include "downward/cli/open_lists/alternation_open_list_feature.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "downward/open_lists/alternation_open_list.h"
 

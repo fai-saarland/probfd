@@ -2,10 +2,10 @@
 
 #include "register_definitions.h"
 
-#include "downward/cli/parser/syntax_analyzer.h"
+#include "language/syntax_analyzer.h"
 
-#include "downward/cli/plugins/doc_printer.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/doc_printer.h"
+#include "language/plugins/registry.h"
 
 #include "downward/utils/system.h"
 

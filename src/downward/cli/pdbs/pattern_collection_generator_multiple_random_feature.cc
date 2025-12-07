@@ -3,8 +3,8 @@
 #include "downward/cli/pdbs/random_pattern_options.h"
 #include "downward/cli/pdbs/utils.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "downward/pdbs/pattern_collection_generator_multiple_random.h"
 

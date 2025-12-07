@@ -1,7 +1,7 @@
 #include "downward/cli/tasks/identity_task_transformation_feature.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "downward/transformations/identity_transformation.h"
 

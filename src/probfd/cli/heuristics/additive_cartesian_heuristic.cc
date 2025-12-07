@@ -1,7 +1,7 @@
 #include "probfd/cli/heuristics/additive_cartesian_heuristic.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "probfd/cli/heuristics/task_dependent_heuristic_options.h"
 

@@ -1,6 +1,6 @@
 #include "probfd/cli/solvers/lrtdp.h"
 
-#include "downward/cli/plugins/plugin.h"
+#include "language/plugins/plugin.h"
 
 #include "probfd/cli/naming_conventions.h"
 
@@ -10,7 +10,7 @@
 #include "probfd/algorithms/lrtdp.h"
 #include "probfd/solvers/mdp_heuristic_search.h"
 
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/registry.h"
 
 #include <memory>
 #include <string>

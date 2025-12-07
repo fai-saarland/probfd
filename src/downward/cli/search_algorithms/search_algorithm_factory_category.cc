@@ -1,7 +1,7 @@
 #include "downward/cli/search_algorithms/search_algorithm_factory_category.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "downward/search_algorithm.h"
 #include "downward/task_dependent_factory_fwd.h"

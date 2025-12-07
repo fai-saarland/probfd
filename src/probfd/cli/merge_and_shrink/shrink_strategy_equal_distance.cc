@@ -1,7 +1,7 @@
 #include "probfd/cli/merge_and_shrink/shrink_strategy_equal_distance.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "probfd/cli/merge_and_shrink/shrink_strategy_bucket_based_options.h"
 

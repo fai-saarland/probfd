@@ -2,14 +2,14 @@
 
 #include "register_definitions.h"
 
-#include "downward/cli/parser/ast/let_node.h"
+#include "language/ast/let_node.h"
 
-#include "downward/cli/parser/decorated_abstract_syntax_tree.h"
-#include "downward/cli/parser/lexical_analyzer.h"
-#include "downward/cli/parser/syntax_analyzer.h"
-#include "downward/cli/parser/token_stream.h"
+#include "language/decorated_abstract_syntax_tree.h"
+#include "language/lexical_analyzer.h"
+#include "language/syntax_analyzer.h"
+#include "language/token_stream.h"
 
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/registry.h"
 
 #include "probfd/tasks/root_task.h"
 

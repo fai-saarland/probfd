@@ -1,7 +1,7 @@
 #include "downward/cli/cartesian_abstractions/subtask_generators_category.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/plugin.h"
+#include "language/plugins/registry.h"
 
 #include "downward/cartesian_abstractions/subtask_generators.h"
 
