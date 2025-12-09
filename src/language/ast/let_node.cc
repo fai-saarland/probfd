@@ -2,7 +2,8 @@
 
 #include "language/ast/variable_environment.h"
 
-#include "language/decorated_abstract_syntax_tree.h"
+#include "language/typed_ast/decorated_let_node.h"
+#include "language/typed_ast/variable_definition.h"
 
 #include "language/plugins/plugin.h"
 

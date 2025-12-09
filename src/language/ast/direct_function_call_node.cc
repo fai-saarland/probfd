@@ -1,8 +1,14 @@
 #include "language/ast/direct_function_call_node.h"
 
 #include "language/ast/variable_environment.h"
-#include "language/decorated_abstract_syntax_tree.h"
+
 #include "language/syntax_analyzer.h"
+
+#include "language/typed_ast/convert_node.h"
+#include "language/typed_ast/decorated_feature_literal_node.h"
+#include "language/typed_ast/decorated_function_call_node.h"
+#include "language/typed_ast/decorated_variable_node.h"
+#include "language/typed_ast/variable_definition.h"
 
 #include "language/plugins/plugin.h"
 #include "language/plugins/registry.h"
@@ -16,7 +22,6 @@
 using namespace std;
 
 namespace downward::cli::parser {
-
 
 static DecoratedASTNodePtr decorate_and_convert(
     const ASTNode& node,
@@ -42,7 +47,6 @@ static DecoratedASTNodePtr decorate_and_convert(
     }
     return std::move(ast_node);
 }
-
 
 DirectFunctionCallNode::DirectFunctionCallNode(
     QualifiedName callee,

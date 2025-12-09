@@ -2,17 +2,20 @@
 
 #include "language/ast/variable_environment.h"
 
-#include "language/decorated_abstract_syntax_tree.h"
+#include "language/typed_ast/decorated_bool_literal_node.h"
+#include "language/typed_ast/decorated_feature_literal_node.h"
+#include "language/typed_ast/decorated_float_literal_node.h"
+#include "language/typed_ast/decorated_function_call_node.h"
+#include "language/typed_ast/decorated_int_literal_node.h"
+#include "language/typed_ast/decorated_string_literal_node.h"
 
 #include "language/plugins/plugin.h"
 #include "language/plugins/registry.h"
 #include "language/plugins/types.h"
 
 #include "downward/utils/logging.h"
-#include "downward/utils/math.h"
 #include "downward/utils/strings.h"
 
-#include <cassert>
 #include <charconv>
 #include <vector>
 
