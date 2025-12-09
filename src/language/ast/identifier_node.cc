@@ -2,8 +2,10 @@
 
 #include "language/ast/variable_environment.h"
 
-#include "language/decorated_abstract_syntax_tree.h"
-#include "language/token.h"
+#include "language/typed_ast/decorated_feature_literal_node.h"
+#include "language/typed_ast/decorated_variable_node.h"
+#include "language/typed_ast/symbol_node.h"
+#include "language/typed_ast/variable_definition.h"
 
 #include "language/plugins/plugin.h"
 #include "language/plugins/registry.h"

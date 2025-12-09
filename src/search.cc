@@ -4,10 +4,10 @@
 
 #include "language/ast/let_node.h"
 
-#include "language/decorated_abstract_syntax_tree.h"
-#include "language/lexical_analyzer.h"
+#include "language/typed_ast/decorated_ast_node.h"
+#include "language/typed_ast/variable_definition.h"
+
 #include "language/syntax_analyzer.h"
-#include "language/token_stream.h"
 
 #include "language/plugins/registry.h"
 

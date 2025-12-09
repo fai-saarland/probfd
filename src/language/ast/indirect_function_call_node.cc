@@ -1,20 +1,13 @@
 #include "language/ast/indirect_function_call_node.h"
 
-#include "language/ast/variable_environment.h"
-
-#include "language/decorated_abstract_syntax_tree.h"
-
-#include "language/lexical_analyzer.h"
-#include "language/syntax_analyzer.h"
-#include "language/token_stream.h"
+#include "language/typed_ast/convert_node.h"
+#include "language/typed_ast/decorated_function_call_node.h"
 
 #include "language/plugins/plugin.h"
 #include "language/plugins/types.h"
 
 #include "downward/utils/logging.h"
-#include "downward/utils/strings.h"
 
-#include <cassert>
 #include <unordered_map>
 #include <vector>
 

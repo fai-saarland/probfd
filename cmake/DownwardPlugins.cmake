@@ -31,7 +31,22 @@ create_library(
     language/ast/type_node
     language/ast/unary_expression_node
     language/ast/variable_environment
-    language/decorated_abstract_syntax_tree
+    language/typed_ast/construct_context
+    language/typed_ast/convert_node
+    language/typed_ast/decorated_ast_node
+    language/typed_ast/decorated_bool_literal_node
+    language/typed_ast/decorated_feature_literal_node
+    language/typed_ast/decorated_float_literal_node
+    language/typed_ast/decorated_function_call_node
+    language/typed_ast/decorated_int_literal_node
+    language/typed_ast/decorated_lambda_node
+    language/typed_ast/decorated_let_node
+    language/typed_ast/decorated_list_node
+    language/typed_ast/decorated_string_literal_node
+    language/typed_ast/decorated_unary_expression_node
+    language/typed_ast/decorated_variable_node
+    language/typed_ast/symbol_node
+    language/typed_ast/variable_definition
     language/lexical_analyzer
     language/syntax_analyzer
     language/token

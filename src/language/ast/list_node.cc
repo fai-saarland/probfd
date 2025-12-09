@@ -1,6 +1,7 @@
 #include "language/ast/list_node.h"
 
-#include "language/decorated_abstract_syntax_tree.h"
+#include "language/typed_ast/convert_node.h"
+#include "language/typed_ast/decorated_list_node.h"
 
 #include "language/plugins/plugin.h"
 #include "language/plugins/types.h"
