@@ -2,7 +2,6 @@
 #define LANGUAGE_AST_EXPRESSION_NODE_H
 
 #include <memory>
-#include <string>
 
 namespace language {
 class Context;
@@ -35,8 +34,6 @@ public:
     virtual TypedDecoratedAstNodePtr
     static_analysis(Context& context, VariableEnvironment& env) const = 0;
 };
-
-using ASTNodePtr = std::unique_ptr<ASTNode>;
 
 } // namespace language::parser
 

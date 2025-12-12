@@ -15,7 +15,7 @@ using namespace std;
 
 namespace language::parser {
 
-ListNode::ListNode(vector<ASTNodePtr>&& elements)
+ListNode::ListNode(vector<std::unique_ptr<ASTNode>>&& elements)
     : elements(move(elements))
 {
 }

@@ -10,7 +10,7 @@ using namespace std;
 
 namespace language::parser {
 
-UnaryNode::UnaryNode(ASTNodePtr nested_expr, const TokenType& token_type)
+UnaryNode::UnaryNode(std::unique_ptr<ASTNode> nested_expr, const TokenType& token_type)
     : nested_expr(std::move(nested_expr))
     , token_type(token_type)
 {

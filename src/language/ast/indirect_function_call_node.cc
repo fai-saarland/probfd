@@ -40,8 +40,8 @@ static DecoratedASTNodePtr decorate_and_convert(
 }
 
 IndirectFunctionCallNode::IndirectFunctionCallNode(
-    ASTNodePtr callee,
-    vector<ASTNodePtr>&& positional_arguments,
+    std::unique_ptr<ASTNode> callee,
+    vector<std::unique_ptr<ASTNode>>&& positional_arguments,
     const string& unparsed_config)
     : callee(std::move(callee))
     , positional_arguments(move(positional_arguments))

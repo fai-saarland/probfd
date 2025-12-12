@@ -18,8 +18,8 @@ using namespace std;
 namespace language::parser {
 
 LetNode::LetNode(
-    std::vector<std::pair<std::string, ASTNodePtr>> variable_definitions,
-    ASTNodePtr nested_value)
+    std::vector<std::pair<std::string, std::unique_ptr<ASTNode>>> variable_definitions,
+    std::unique_ptr<ASTNode> nested_value)
     : variable_definitions(move(variable_definitions))
     , nested_value(move(nested_value))
 {

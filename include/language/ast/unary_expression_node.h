@@ -11,11 +11,11 @@
 namespace language::parser {
 
 class UnaryNode : public ASTNode {
-    ASTNodePtr nested_expr;
+    std::unique_ptr<ASTNode> nested_expr;
     TokenType token_type;
 
 public:
-    UnaryNode(ASTNodePtr nested_expr, const TokenType& token_type);
+    UnaryNode(std::unique_ptr<ASTNode> nested_expr, const TokenType& token_type);
 
     TypedDecoratedAstNodePtr
     static_analysis(Context& context, VariableEnvironment& env)

@@ -50,8 +50,8 @@ static DecoratedASTNodePtr decorate_and_convert(
 
 DirectFunctionCallNode::DirectFunctionCallNode(
     QualifiedName callee,
-    vector<ASTNodePtr>&& positional_arguments,
-    unordered_map<string, ASTNodePtr>&& keyword_arguments,
+    vector<std::unique_ptr<ASTNode>>&& positional_arguments,
+    unordered_map<string, std::unique_ptr<ASTNode>>&& keyword_arguments,
     const string& unparsed_config)
     : callee(std::move(callee))
     , positional_arguments(move(positional_arguments))
@@ -156,7 +156,7 @@ TypedDecoratedAstNodePtr DirectFunctionCallNode::static_analysis(
 
                 arguments.emplace_back(move(decorated_arg), false);
             } else if (arg_info.has_default()) {
-                ASTNodePtr default_arg = [&] {
+                std::unique_ptr<ASTNode> default_arg = [&] {
                     TraceBlock nnnblock(context, "Parsing default value");
                     return tokenize_and_parse(arg_info.default_value);
                 }();

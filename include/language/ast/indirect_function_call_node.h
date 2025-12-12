@@ -10,14 +10,14 @@
 namespace language::parser {
 
 class IndirectFunctionCallNode : public ASTNode {
-    ASTNodePtr callee;
-    std::vector<ASTNodePtr> positional_arguments;
+    std::unique_ptr<ASTNode> callee;
+    std::vector<std::unique_ptr<ASTNode>> positional_arguments;
     std::string unparsed_config;
 
 public:
     IndirectFunctionCallNode(
-        ASTNodePtr callee,
-        std::vector<ASTNodePtr>&& positional_arguments,
+        std::unique_ptr<ASTNode> callee,
+        std::vector<std::unique_ptr<ASTNode>>&& positional_arguments,
         const std::string& unparsed_config);
 
     TypedDecoratedAstNodePtr
