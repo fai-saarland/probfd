@@ -13,21 +13,6 @@ using namespace std;
 
 namespace language {
 
-Context::Context(const Context& context)
-    : initial_stack_size(context.block_stack.size())
-    , block_stack(context.block_stack)
-{
-}
-
-Context::~Context() noexcept(false)
-{
-    if (block_stack.size() > initial_stack_size) {
-        cerr << str() << endl;
-        throw ContextError(
-            "A context was destructed with an non-empty stack.");
-    }
-}
-
 string Context::decorate_block_name(const string& block_name) const
 {
     return block_name;

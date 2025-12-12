@@ -44,7 +44,7 @@ namespace language::parser {
 DecoratedLambdaNode::DecoratedLambdaNode(
     const plugins::FunctionType& type,
     std::vector<VariableDeclaration> decorated_variable_declarations,
-    DecoratedASTNodePtr nested_value)
+    std::unique_ptr<DecoratedASTNode> nested_value)
     : type(type)
     , decorated_variable_declarations(
           std::move(decorated_variable_declarations))

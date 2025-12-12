@@ -220,17 +220,17 @@ static void parse_argument(
     }
 }
 
-static std::pair<std::string, std::unique_ptr<ASTNode>>
+static LetNodeDefinition
 parse_let_definition(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
-    std::pair<std::string, std::unique_ptr<ASTNode>> p;
+    LetNodeDefinition p;
 
-    p.second =
+    p.expression =
         parse_node_in_block("Parsing variable definition", tokens, context);
 
     tokens.pop(context, TokenType::AS);
 
-    p.first = tokens.pop(context, TokenType::IDENTIFIER).content;
+    p.identifier = tokens.pop(context, TokenType::IDENTIFIER).content;
 
     return p;
 }
@@ -239,7 +239,7 @@ static std::unique_ptr<ASTNode> parse_let(TokenStream& tokens, SyntaxAnalyzerCon
 {
     TraceBlock block(context, "Parsing Let");
     tokens.pop(context, TokenType::LET);
-    std::vector<std::pair<std::string, std::unique_ptr<ASTNode>>> variable_definitions =
+    std::vector<LetNodeDefinition> variable_definitions =
         parse_sequence_in_block(
             "Parsing let definitions",
             tokens,

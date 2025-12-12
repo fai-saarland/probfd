@@ -15,7 +15,7 @@ using namespace std;
 
 namespace language::parser {
 
-FunctionArgument::FunctionArgument(DecoratedASTNodePtr value, bool is_default)
+FunctionArgument::FunctionArgument(std::unique_ptr<DecoratedASTNode> value, bool is_default)
     : value(move(value))
     , is_default(is_default)
 {
@@ -37,7 +37,7 @@ bool FunctionArgument::is_default_argument() const
 }
 
 DecoratedFunctionCallNode::DecoratedFunctionCallNode(
-    DecoratedASTNodePtr callee,
+    std::unique_ptr<DecoratedASTNode> callee,
     vector<FunctionArgument> arguments,
     const string& unparsed_config)
     : callee(std::move(callee))

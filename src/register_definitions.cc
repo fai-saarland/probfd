@@ -2,6 +2,8 @@
 
 #include "language/plugins/plugin.h"
 
+#include "downward/utils/timer.h"
+
 #include "downward/cli/cartesian_abstractions/subtask_generators_category.h"
 #include "downward/cli/cartesian_abstractions/subtask_generators_features.h"
 

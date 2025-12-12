@@ -33,7 +33,7 @@ VariableDeclaration::operator=(VariableDeclaration&& other) noexcept
 
 VariableDefinition::VariableDefinition(
     std::string variable_name,
-    DecoratedASTNodePtr variable_expression)
+    std::unique_ptr<DecoratedASTNode> variable_expression)
     : VariableDeclaration(std::move(variable_name))
     , variable_expression(std::move(variable_expression))
 {

@@ -10,7 +10,7 @@ using namespace std;
 
 namespace language::parser {
 
-DecoratedASTNodePtr
+std::unique_ptr<DecoratedASTNode>
 ASTNode::static_analysis(const plugins::Registry& registry) const
 {
     Context context;

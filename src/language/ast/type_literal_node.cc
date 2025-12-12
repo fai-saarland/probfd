@@ -1,6 +1,6 @@
 #include "language/ast/type_literal_node.h"
 
-#include "language/plugins/types.h"
+#include "language/plugins/type_registry.h"
 
 #include "language/context.h"
 

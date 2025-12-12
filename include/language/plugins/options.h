@@ -1,13 +1,11 @@
 #ifndef LANGUAGE_PLUGINS_OPTIONS_H
 #define LANGUAGE_PLUGINS_OPTIONS_H
 
-#include "downward/utils/logging.h"
 #include "downward/utils/system.h"
 
 #include <any>
 #include <string>
 #include <typeinfo>
-#include <unordered_map>
 #include <vector>
 
 namespace language::plugins {

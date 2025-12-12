@@ -9,13 +9,18 @@
 
 namespace language::parser {
 
+struct LetNodeDefinition {
+    std::string identifier;
+    std::unique_ptr<ASTNode> expression;
+};
+
 class LetNode : public ASTNode {
-    std::vector<std::pair<std::string, std::unique_ptr<ASTNode>>> variable_definitions;
+    std::vector<LetNodeDefinition> variable_definitions;
     std::unique_ptr<ASTNode> nested_value;
 
 public:
     LetNode(
-        std::vector<std::pair<std::string, std::unique_ptr<ASTNode>>> variable_definitions,
+        std::vector<LetNodeDefinition> variable_definitions,
         std::unique_ptr<ASTNode> nested_value);
 
     TypedDecoratedAstNodePtr

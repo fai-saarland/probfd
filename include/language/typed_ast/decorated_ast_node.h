@@ -13,9 +13,6 @@ struct VariableDefinition;
 
 namespace language::parser {
 
-class DecoratedASTNode;
-using DecoratedASTNodePtr = std::unique_ptr<DecoratedASTNode>;
-
 class DecoratedASTNode {
 public:
     virtual ~DecoratedASTNode() = default;

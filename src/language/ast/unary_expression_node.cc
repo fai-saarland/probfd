@@ -2,7 +2,7 @@
 
 #include "language/typed_ast/decorated_unary_expression_node.h"
 
-#include "language/plugins/types.h"
+#include "language/plugins/type_registry.h"
 
 #include "language/context.h"
 

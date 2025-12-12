@@ -56,11 +56,12 @@ template <std::ranges::input_range R>
     requires std::convertible_to<
         std::ranges::range_value_t<R>,
         std::pair<std::string, std::string>>
-static std::unique_ptr<ASTNode> construct_let(std::unique_ptr<ASTNode> parsed, R&& predefinitions)
+static std::unique_ptr<ASTNode>
+construct_let(std::unique_ptr<ASTNode> parsed, R&& predefinitions)
 {
     if (std::ranges::empty(predefinitions)) return parsed;
 
-    std::vector<std::pair<std::string, std::unique_ptr<ASTNode>>> variable_definitions;
+    std::vector<LetNodeDefinition> variable_definitions;
 
     for (const auto& [key, definition] : predefinitions) {
         variable_definitions.emplace_back(key, tokenize_and_parse(definition));
@@ -71,8 +72,9 @@ static std::unique_ptr<ASTNode> construct_let(std::unique_ptr<ASTNode> parsed, R
         std::move(parsed));
 }
 
-static std::unique_ptr<ASTNode>
-insert_definitions(std::unique_ptr<ASTNode> parsed, const std::string& definitions_file)
+static std::unique_ptr<ASTNode> insert_definitions(
+    std::unique_ptr<ASTNode> parsed,
+    const std::string& definitions_file)
 {
     std::ifstream fs(definitions_file);
     try {
@@ -112,7 +114,8 @@ static auto construct_solver(argparse::ArgumentParser& parser)
     register_event_handlers();
 
     // Parse search string
-    std::unique_ptr<ASTNode> parsed = tokenize_and_parse(parser.get("algorithm"));
+    std::unique_ptr<ASTNode> parsed =
+        tokenize_and_parse(parser.get("algorithm"));
 
     // Insert user-defined pre-definitions, if given
     if (const auto definitions_file = parser.present("--definitions-file")) {
@@ -124,7 +127,7 @@ static auto construct_solver(argparse::ArgumentParser& parser)
     register_definitions(registry);
 
     // Type check
-    const DecoratedASTNodePtr decorated = parsed->static_analysis(registry);
+    const std::unique_ptr<DecoratedASTNode> decorated = parsed->static_analysis(registry);
 
     // Remove unused definitions if enabled
     if (parser.get<bool>("--ignore-unused-definitions")) {

@@ -23,7 +23,7 @@ using namespace std;
 
 namespace language::parser {
 
-static DecoratedASTNodePtr decorate_and_convert(
+static std::unique_ptr<DecoratedASTNode> decorate_and_convert(
     const ASTNode& node,
     const plugins::Type& target_type,
     Context& context,
@@ -70,7 +70,7 @@ TypedDecoratedAstNodePtr DirectFunctionCallNode::static_analysis(
 
     const auto& [qualification, name] = callee;
 
-    DecoratedASTNodePtr callee_node;
+    std::unique_ptr<DecoratedASTNode> callee_node;
     const plugins::FunctionType* callee_type;
     std::vector<plugins::ArgumentInfo> argument_infos;
 
@@ -134,7 +134,7 @@ TypedDecoratedAstNodePtr DirectFunctionCallNode::static_analysis(
                     i);
             }
 
-            DecoratedASTNodePtr decorated_arg =
+            std::unique_ptr<DecoratedASTNode> decorated_arg =
                 decorate_and_convert(pos_arg, *arg_type, context, env);
 
             arguments.emplace_back(move(decorated_arg), false);
@@ -154,7 +154,7 @@ TypedDecoratedAstNodePtr DirectFunctionCallNode::static_analysis(
                 it != keyword_arguments.end()) {
                 const auto& keyword_arg = it->second;
 
-                DecoratedASTNodePtr decorated_arg =
+                std::unique_ptr<DecoratedASTNode> decorated_arg =
                     decorate_and_convert(*keyword_arg, *arg_type, context, env);
 
                 arguments.emplace_back(move(decorated_arg), false);
@@ -164,7 +164,7 @@ TypedDecoratedAstNodePtr DirectFunctionCallNode::static_analysis(
                     return tokenize_and_parse(arg_info.default_value);
                 }();
 
-                DecoratedASTNodePtr decorated_arg =
+                std::unique_ptr<DecoratedASTNode> decorated_arg =
                     decorate_and_convert(*default_arg, *arg_type, context, env);
 
                 arguments.emplace_back(move(decorated_arg), true);
@@ -195,7 +195,7 @@ TypedDecoratedAstNodePtr DirectFunctionCallNode::static_analysis(
             const auto& arg = positional_arguments[i];
             const auto& arg_type = argument_types[i];
 
-            DecoratedASTNodePtr decorated_arg =
+            std::unique_ptr<DecoratedASTNode> decorated_arg =
                 decorate_and_convert(*arg, *arg_type, context, env);
 
             arguments.emplace_back(move(decorated_arg), false);

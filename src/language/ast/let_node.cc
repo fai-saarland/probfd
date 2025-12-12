@@ -18,7 +18,7 @@ using namespace std;
 namespace language::parser {
 
 LetNode::LetNode(
-    std::vector<std::pair<std::string, std::unique_ptr<ASTNode>>> variable_definitions,
+    std::vector<LetNodeDefinition> variable_definitions,
     std::unique_ptr<ASTNode> nested_value)
     : variable_definitions(move(variable_definitions))
     , nested_value(move(nested_value))
@@ -26,13 +26,13 @@ LetNode::LetNode(
 }
 
 TypedDecoratedAstNodePtr
-LetNode::static_analysis(Context& context, VariableEnvironment& env)
-    const
+LetNode::static_analysis(Context& context, VariableEnvironment& env) const
 {
     TraceBlock lblock(
         context,
-        "Checking Let: {:n:s}",
-        variable_definitions | views::keys);
+        "Checking Let: {:n}",
+        variable_definitions |
+            views::transform(&LetNodeDefinition::identifier));
 
     std::vector<VariableDefinition> decorated_variable_definitions;
     decorated_variable_definitions.reserve(variable_definitions.size());

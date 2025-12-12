@@ -18,13 +18,13 @@ namespace language::parser {
 class DecoratedLambdaNode : public DecoratedASTNode {
     const plugins::FunctionType& type;
     std::vector<VariableDeclaration> decorated_variable_declarations;
-    DecoratedASTNodePtr nested_value;
+    std::unique_ptr<DecoratedASTNode> nested_value;
 
 public:
     DecoratedLambdaNode(
         const plugins::FunctionType& type,
         std::vector<VariableDeclaration> decorated_variable_declarations,
-        DecoratedASTNodePtr nested_value);
+        std::unique_ptr<DecoratedASTNode> nested_value);
 
     ~DecoratedLambdaNode() override;
 
