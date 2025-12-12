@@ -9,10 +9,10 @@
 namespace language::parser {
 
 class DecoratedListNode : public DecoratedASTNode {
-    std::vector<DecoratedASTNodePtr> elements;
+    std::vector<std::unique_ptr<DecoratedASTNode>> elements;
 
 public:
-    explicit DecoratedListNode(std::vector<DecoratedASTNodePtr>&& elements);
+    explicit DecoratedListNode(std::vector<std::unique_ptr<DecoratedASTNode>>&& elements);
 
     void remove_variable_usages() override;
 
@@ -21,7 +21,7 @@ public:
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
         const override;
 
-    const std::vector<DecoratedASTNodePtr>& get_elements() const
+    const std::vector<std::unique_ptr<DecoratedASTNode>>& get_elements() const
     {
         return elements;
     }

@@ -14,12 +14,12 @@ namespace language::parser {
 
 class DecoratedLetNode : public DecoratedASTNode {
     std::vector<VariableDefinition> decorated_variable_definitions;
-    DecoratedASTNodePtr nested_value;
+    std::unique_ptr<DecoratedASTNode> nested_value;
 
 public:
     DecoratedLetNode(
         std::vector<VariableDefinition> decorated_variable_definitions,
-        DecoratedASTNodePtr nested_value);
+        std::unique_ptr<DecoratedASTNode> nested_value);
 
     ~DecoratedLetNode() override;
 

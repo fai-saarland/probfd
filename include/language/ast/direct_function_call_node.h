@@ -20,7 +20,8 @@ public:
     DirectFunctionCallNode(
         QualifiedName callee,
         std::vector<std::unique_ptr<ASTNode>>&& positional_arguments,
-        std::unordered_map<std::string, std::unique_ptr<ASTNode>>&& keyword_arguments,
+        std::unordered_map<std::string, std::unique_ptr<ASTNode>>&&
+            keyword_arguments,
         const std::string& unparsed_config);
 
     TypedDecoratedAstNodePtr

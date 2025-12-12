@@ -3,6 +3,7 @@
 
 #include "language/plugins/options.h"
 #include "language/plugins/plugin_info.h"
+#include "language/plugins/type_registry.h"
 
 #include "language/context.h"
 
@@ -14,6 +15,10 @@
 #include <type_traits>
 #include <typeindex>
 #include <vector>
+
+namespace language::plugins {
+class FunctionType;
+}
 
 namespace language::plugins {
 

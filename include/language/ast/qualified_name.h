@@ -30,7 +30,7 @@ struct std::formatter<language::parser::QualifiedName> {
 
 template <typename ParseContext>
 constexpr typename ParseContext::iterator
-std::formatter<language::parser::QualifiedName, char>::parse(
+std::formatter<language::parser::QualifiedName>::parse(
     ParseContext& ctx)
 {
     return ctx.begin();
@@ -38,7 +38,7 @@ std::formatter<language::parser::QualifiedName, char>::parse(
 
 template <typename FormatContext>
 typename FormatContext::iterator
-std::formatter<language::parser::QualifiedName, char>::format(
+std::formatter<language::parser::QualifiedName>::format(
     const language::parser::QualifiedName& name,
     FormatContext& ctx) const
 {

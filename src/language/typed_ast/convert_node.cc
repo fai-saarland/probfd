@@ -11,7 +11,7 @@ using namespace std;
 namespace language::parser {
 
 ConvertNode::ConvertNode(
-    DecoratedASTNodePtr value,
+    std::unique_ptr<DecoratedASTNode> value,
     const plugins::Type& from_type,
     const plugins::Type& to_type)
     : value(move(value))

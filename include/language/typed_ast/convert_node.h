@@ -3,8 +3,6 @@
 
 #include "language/typed_ast/decorated_ast_node.h"
 
-#include "downward/utils/logging.h"
-
 namespace language::plugins {
 class Type;
 }
@@ -12,13 +10,13 @@ class Type;
 namespace language::parser {
 
 class ConvertNode : public DecoratedASTNode {
-    DecoratedASTNodePtr value;
+    std::unique_ptr<DecoratedASTNode> value;
     const plugins::Type& from_type;
     const plugins::Type& to_type;
 
 public:
     ConvertNode(
-        DecoratedASTNodePtr value,
+        std::unique_ptr<DecoratedASTNode> value,
         const plugins::Type& from_type,
         const plugins::Type& to_type);
 

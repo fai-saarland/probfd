@@ -3,6 +3,7 @@
 
 #include "language/ast/expression_node.h"
 
+#include <memory>
 #include <vector>
 
 namespace language::parser {

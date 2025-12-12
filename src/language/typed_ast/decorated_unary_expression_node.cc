@@ -15,7 +15,7 @@ namespace language::parser {
 template <typename T>
     requires std::same_as<T, int> || std::same_as<T, double>
 DecoratedUnaryExpressionNode<T>::DecoratedUnaryExpressionNode(
-    DecoratedASTNodePtr nested_expr,
+    std::unique_ptr<DecoratedASTNode> nested_expr,
     TokenType token_type)
     : nested_expr(std::move(nested_expr))
     , token_type(std::move(token_type))

@@ -1,8 +1,6 @@
 #ifndef LANGUAGE_AST_TYPE_NODE_H
 #define LANGUAGE_AST_TYPE_NODE_H
 
-#include <string>
-
 namespace language {
 class Context;
 }

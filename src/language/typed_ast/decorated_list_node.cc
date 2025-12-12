@@ -13,7 +13,7 @@ using namespace std;
 
 namespace language::parser {
 
-DecoratedListNode::DecoratedListNode(vector<DecoratedASTNodePtr>&& elements)
+DecoratedListNode::DecoratedListNode(vector<std::unique_ptr<DecoratedASTNode>>&& elements)
     : elements(move(elements))
 {
 }
@@ -28,7 +28,7 @@ std::any DecoratedListNode::construct(ConstructContext& context) const
     TraceBlock lblock(context, "Constructing list");
     vector<std::any> result;
     int i = 0;
-    for (const DecoratedASTNodePtr& element : elements) {
+    for (const std::unique_ptr<DecoratedASTNode>& element : elements) {
         TraceBlock block(context, "Constructing element {}", i++);
         result.push_back(element->construct(context));
     }

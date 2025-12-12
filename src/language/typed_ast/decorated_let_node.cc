@@ -16,7 +16,7 @@ namespace language::parser {
 
 DecoratedLetNode::DecoratedLetNode(
     std::vector<VariableDefinition> decorated_variable_definitions,
-    DecoratedASTNodePtr nested_value)
+    std::unique_ptr<DecoratedASTNode> nested_value)
     : decorated_variable_definitions(move(decorated_variable_definitions))
     , nested_value(move(nested_value))
 {

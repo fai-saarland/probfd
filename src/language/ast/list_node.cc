@@ -41,7 +41,7 @@ ListNode::static_analysis(Context& context, VariableEnvironment& env)
     const
 {
     TraceBlock lblock(context, "Checking list");
-    vector<DecoratedASTNodePtr> decorated_elements;
+    vector<std::unique_ptr<DecoratedASTNode>> decorated_elements;
     vector<const plugins::Type*> types;
 
     if (elements.empty()) {
@@ -75,7 +75,7 @@ ListNode::static_analysis(Context& context, VariableEnvironment& env)
         if (const plugins::Type* element_type = types[i];
             element_type != common_element_type) {
             assert(element_type->can_convert_into(*common_element_type));
-            DecoratedASTNodePtr& decorated_element_node = decorated_elements[i];
+            std::unique_ptr<DecoratedASTNode>& decorated_element_node = decorated_elements[i];
             decorated_element_node = std::make_unique<ConvertNode>(
                 move(decorated_element_node),
                 *element_type,

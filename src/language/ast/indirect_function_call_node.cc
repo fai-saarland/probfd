@@ -14,7 +14,7 @@ using namespace std;
 
 namespace language::parser {
 
-static DecoratedASTNodePtr decorate_and_convert(
+static std::unique_ptr<DecoratedASTNode> decorate_and_convert(
     const ASTNode& node,
     const plugins::Type& target_type,
     Context& context,
@@ -82,7 +82,7 @@ TypedDecoratedAstNodePtr IndirectFunctionCallNode::static_analysis(
         const auto& arg = positional_arguments[i];
         const auto& arg_type = argument_types[i];
 
-        DecoratedASTNodePtr decorated_arg =
+        std::unique_ptr<DecoratedASTNode> decorated_arg =
             decorate_and_convert(*arg, *arg_type, context, env);
 
         arguments.emplace_back(move(decorated_arg), false);

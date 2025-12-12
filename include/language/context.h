@@ -1,15 +1,8 @@
 #ifndef LANGUAGE_CONTEXT_H
 #define LANGUAGE_CONTEXT_H
 
-#include "downward/utils/exceptions.h"
-#include "downward/utils/timer.h"
-
-#include <stdexcept>
-#include <iostream>
-#include <memory>
-#include <ostream>
-#include <ranges>
 #include <format>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -29,14 +22,13 @@ class Context {
 protected:
     static constexpr char INDENT[] = "  ";
 
-    size_t initial_stack_size =
-        0; // TODO: Can be removed once we got rid of LazyValues
     std::vector<std::string> block_stack;
 
 public:
     explicit Context() = default;
-    Context(const Context& context);
-    virtual ~Context() noexcept(false);
+
+    Context(const Context& context) = delete;
+
     virtual std::string
     decorate_block_name(const std::string& block_name) const;
     void enter_block(const std::string& block_name);
@@ -82,6 +74,6 @@ public:
     ~TraceBlock();
 };
 
-} // namespace downward::utils
+} // namespace language
 
 #endif

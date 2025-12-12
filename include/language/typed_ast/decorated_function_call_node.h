@@ -10,11 +10,11 @@
 namespace language::parser {
 
 class FunctionArgument {
-    DecoratedASTNodePtr value;
+    std::unique_ptr<DecoratedASTNode> value;
     bool is_default;
 
 public:
-    FunctionArgument(DecoratedASTNodePtr value, bool is_default);
+    FunctionArgument(std::unique_ptr<DecoratedASTNode> value, bool is_default);
 
     DecoratedASTNode& get_value();
     const DecoratedASTNode& get_value() const;
@@ -22,13 +22,13 @@ public:
 };
 
 class DecoratedFunctionCallNode : public DecoratedASTNode {
-    DecoratedASTNodePtr callee;
+    std::unique_ptr<DecoratedASTNode> callee;
     std::vector<FunctionArgument> arguments;
     std::string unparsed_config;
 
 public:
     DecoratedFunctionCallNode(
-        DecoratedASTNodePtr callee,
+        std::unique_ptr<DecoratedASTNode> callee,
         std::vector<FunctionArgument> arguments,
         const std::string& unparsed_config);
 

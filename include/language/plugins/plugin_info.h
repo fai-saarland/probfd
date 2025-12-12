@@ -1,8 +1,6 @@
 #ifndef LANGUAGE_PLUGINS_PLUGIN_INFO_H
 #define LANGUAGE_PLUGINS_PLUGIN_INFO_H
 
-#include "language/plugins/types.h"
-
 #include <string>
 
 namespace language::plugins {
