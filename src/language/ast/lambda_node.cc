@@ -34,7 +34,7 @@ TypedParameter::~TypedParameter() = default;
 
 LambdaNode::LambdaNode(
     std::vector<TypedParameter> parameters,
-    ASTNodePtr nested_value)
+    std::unique_ptr<ASTNode> nested_value)
     : parameters(std::move(parameters))
     , nested_value(std::move(nested_value))
 {

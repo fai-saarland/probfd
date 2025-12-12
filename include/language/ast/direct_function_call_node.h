@@ -12,15 +12,15 @@ namespace language::parser {
 
 class DirectFunctionCallNode : public ASTNode {
     QualifiedName callee;
-    std::vector<ASTNodePtr> positional_arguments;
-    std::unordered_map<std::string, ASTNodePtr> keyword_arguments;
+    std::vector<std::unique_ptr<ASTNode>> positional_arguments;
+    std::unordered_map<std::string, std::unique_ptr<ASTNode>> keyword_arguments;
     std::string unparsed_config;
 
 public:
     DirectFunctionCallNode(
         QualifiedName callee,
-        std::vector<ASTNodePtr>&& positional_arguments,
-        std::unordered_map<std::string, ASTNodePtr>&& keyword_arguments,
+        std::vector<std::unique_ptr<ASTNode>>&& positional_arguments,
+        std::unordered_map<std::string, std::unique_ptr<ASTNode>>&& keyword_arguments,
         const std::string& unparsed_config);
 
     TypedDecoratedAstNodePtr

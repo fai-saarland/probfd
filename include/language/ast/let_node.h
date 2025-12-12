@@ -10,13 +10,13 @@
 namespace language::parser {
 
 class LetNode : public ASTNode {
-    std::vector<std::pair<std::string, ASTNodePtr>> variable_definitions;
-    ASTNodePtr nested_value;
+    std::vector<std::pair<std::string, std::unique_ptr<ASTNode>>> variable_definitions;
+    std::unique_ptr<ASTNode> nested_value;
 
 public:
     LetNode(
-        std::vector<std::pair<std::string, ASTNodePtr>> variable_definitions,
-        ASTNodePtr nested_value);
+        std::vector<std::pair<std::string, std::unique_ptr<ASTNode>>> variable_definitions,
+        std::unique_ptr<ASTNode> nested_value);
 
     TypedDecoratedAstNodePtr
     static_analysis(Context& context, VariableEnvironment& env) const override;

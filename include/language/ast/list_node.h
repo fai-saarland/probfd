@@ -8,10 +8,10 @@
 namespace language::parser {
 
 class ListNode : public ASTNode {
-    std::vector<ASTNodePtr> elements;
+    std::vector<std::unique_ptr<ASTNode>> elements;
 
 public:
-    explicit ListNode(std::vector<ASTNodePtr>&& elements);
+    explicit ListNode(std::vector<std::unique_ptr<ASTNode>>&& elements);
 
     TypedDecoratedAstNodePtr
     static_analysis(Context& context, VariableEnvironment& env) const override;
