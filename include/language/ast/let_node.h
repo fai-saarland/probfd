@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 class LetNode : public ASTNode {
     std::vector<std::pair<std::string, ASTNodePtr>> variable_definitions;
@@ -19,10 +19,9 @@ public:
         ASTNodePtr nested_value);
 
     TypedDecoratedAstNodePtr
-    static_analysis(utils::Context& context, VariableEnvironment& env)
-        const override;
+    static_analysis(Context& context, VariableEnvironment& env) const override;
 };
 
-} // namespace downward::cli::parser
+} // namespace language::parser
 
 #endif

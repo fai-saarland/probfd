@@ -4,21 +4,21 @@
 #include <memory>
 #include <string>
 
-namespace downward::utils {
+namespace language {
 class Context;
 }
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 class Registry;
 class Type;
-}
+} // namespace language::plugins
 
-namespace downward::cli::parser {
+namespace language::parser {
 class VariableEnvironment;
 class DecoratedASTNode;
-}
+} // namespace language::parser
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 struct TypedDecoratedAstNodePtr {
     std::unique_ptr<DecoratedASTNode> ast_node;
@@ -33,12 +33,11 @@ public:
     static_analysis(const plugins::Registry& registry) const;
 
     virtual TypedDecoratedAstNodePtr
-    static_analysis(utils::Context& context, VariableEnvironment& env)
-        const = 0;
+    static_analysis(Context& context, VariableEnvironment& env) const = 0;
 };
 
 using ASTNodePtr = std::unique_ptr<ASTNode>;
 
-} // namespace downward::cli::parser
+} // namespace language::parser
 
 #endif

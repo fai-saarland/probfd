@@ -11,7 +11,7 @@
 #include "probfd/cli/merge_and_shrink/merge_strategy_factory_options.h"
 
 using namespace std;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 using namespace downward;
 using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
@@ -22,7 +22,7 @@ InternalFunctionDefinitionBase& add_merge_strategy_stateless_to_namespace(Namesp
 {
     auto& f = nspace.insert_function_definition(
         "pmerge_stateless",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             MergeStrategyFactory,
             MergeStrategyFactoryStateless,
             utils::Verbosity,

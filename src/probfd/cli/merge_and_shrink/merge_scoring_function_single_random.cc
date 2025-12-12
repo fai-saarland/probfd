@@ -10,7 +10,7 @@
 #include "downward/utils/logging.h"
 
 using namespace std;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 using namespace downward;
 using namespace probfd::merge_and_shrink;
 
@@ -21,7 +21,7 @@ add_merge_scoring_function_single_random_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "psingle_random",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             MergeScoringFunction,
             MergeScoringFunctionSingleRandom,
             std::shared_ptr<utils::RandomNumberGenerator>>);

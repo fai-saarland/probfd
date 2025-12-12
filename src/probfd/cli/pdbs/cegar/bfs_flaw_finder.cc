@@ -9,7 +9,7 @@
 using namespace downward;
 using namespace probfd::pdbs::cegar;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -17,8 +17,7 @@ InternalFunctionDefinitionBase& add_bfs_flaw_finder_to_namespace(Namespace& nspa
 {
     auto& f = nspace.insert_function_definition(
         "bfs_flaw_finder",
-        &downward::cli::plugins::
-            construct_shared<FlawFindingStrategy, BFSFlawFinder, int>);
+        &construct_shared<FlawFindingStrategy, BFSFlawFinder, int>);
     f.make_optional_argument_with_default(
             0,
             "max_search_states",

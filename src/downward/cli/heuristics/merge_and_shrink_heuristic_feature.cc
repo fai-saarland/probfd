@@ -18,7 +18,7 @@ using namespace std;
 using namespace downward;
 using namespace downward::utils;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::add_heuristic_options_to_feature;
 

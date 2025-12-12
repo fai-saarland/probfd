@@ -8,7 +8,7 @@
 #include <set>
 #include <vector>
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 
 template <template <bool...> typename T, bool... b>
 concept instantiable = requires { typename T<b...>; };

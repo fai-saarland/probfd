@@ -9,7 +9,7 @@ using namespace std;
 namespace downward::cli {
 
 std::size_t add_pruning_options_to_feature(
-    plugins::InternalFunctionDefinitionBase& feature,
+    language::plugins::InternalFunctionDefinitionBase& feature,
     std::size_t start_index)
 {
     feature.document_note(

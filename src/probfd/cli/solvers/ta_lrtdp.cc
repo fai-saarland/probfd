@@ -26,7 +26,7 @@ using namespace probfd::algorithms::trap_aware_lrtdp;
 using namespace probfd::cli;
 using namespace probfd::cli::solvers;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 using QSuccessorSampler =

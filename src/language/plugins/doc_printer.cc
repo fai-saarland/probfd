@@ -12,7 +12,7 @@
 
 using namespace std;
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 DocPrinter::DocPrinter(ostream& out, Registry& registry)
     : os(out)
     , registry(registry)
@@ -388,4 +388,4 @@ void PlainPrinter::print_type_declaration_footer() const
 {
     os << endl;
 }
-} // namespace downward::cli::plugins
+} // namespace language::plugins

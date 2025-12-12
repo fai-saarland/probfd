@@ -6,11 +6,11 @@
 #include <any>
 #include <vector>
 
-namespace downward::cli::parser {
+namespace language::parser {
 struct VariableDefinition;
 }
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 class DecoratedLetNode : public DecoratedASTNode {
     std::vector<VariableDefinition> decorated_variable_definitions;

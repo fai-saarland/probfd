@@ -2,14 +2,14 @@
 
 #include "language/typed_ast/construct_context.h"
 
-#include "downward/utils/logging.h"
+#include "language/context.h"
 
 #include <any>
-#include <ranges>
+#include <print>
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 BoolLiteralNode::BoolLiteralNode(bool value)
     : value(value)
@@ -18,11 +18,7 @@ BoolLiteralNode::BoolLiteralNode(bool value)
 
 std::any BoolLiteralNode::construct(ConstructContext& context) const
 {
-    utils::TraceBlock block(
-        context,
-        "Constructing bool value from '{}'",
-        value);
-
+    TraceBlock block(context, "Constructing bool value from '{}'", value);
     return value;
 }
 
@@ -32,4 +28,4 @@ void BoolLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
     std::print(out, "{}", value);
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

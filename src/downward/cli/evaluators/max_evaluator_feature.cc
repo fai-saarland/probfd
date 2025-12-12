@@ -18,7 +18,7 @@ using namespace downward::utils;
 using namespace downward::max_evaluator;
 
 using namespace downward::cli;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::combining_evaluator ::
     add_combining_evaluator_options_to_feature;
@@ -63,7 +63,7 @@ InternalFunctionDefinitionBase& add_max_evaluator_feature_to_namespace(Namespace
 {
     auto& f = nspace.insert_function_definition(
         "max",
-        &cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             MaxEvaluatorFactory,
             std::string,

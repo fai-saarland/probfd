@@ -4,6 +4,8 @@
 #include "language/plugins/options.h"
 #include "language/plugins/plugin_info.h"
 
+#include "language/context.h"
+
 #include "downward/utils/tuples.h"
 
 #include <any>
@@ -13,11 +15,7 @@
 #include <typeindex>
 #include <vector>
 
-namespace downward::utils {
-class Context;
-}
-
-namespace downward::cli::plugins {
+namespace language::plugins {
 
 namespace detail {
 template <typename F>
@@ -150,8 +148,7 @@ public:
     const std::vector<NoteInfo>& get_notes() const;
 
     virtual std::any
-    construct(const Options& opts, const downward::utils::Context& context)
-        const = 0;
+    construct(const Options& opts, const Context& context) const = 0;
 
     virtual const FunctionType& get_type() const = 0;
 };
@@ -172,8 +169,7 @@ public:
     }
 
     std::any
-    construct(const Options& options, const downward::utils::Context& context)
-        const override
+    construct(const Options& options, const Context& context) const override
     {
         try {
             return construct(
@@ -196,13 +192,11 @@ private:
     template <std::size_t findex, std::size_t... indices>
     std::any construct(
         const Options& options,
-        const downward::utils::Context& context,
+        const Context& context,
         std::index_sequence<findex, indices...>) const
         requires(nargs > 0)
     {
-        if constexpr (std::same_as<
-                          detail::ArgType<FType, 0>,
-                          const downward::utils::Context&>) {
+        if constexpr (std::same_as<detail::ArgType<FType, 0>, const Context&>) {
             return std::invoke(
                 f,
                 context,
@@ -216,10 +210,9 @@ private:
     }
 
     template <std::size_t... indices>
-    std::any construct(
-        const Options&,
-        const downward::utils::Context&,
-        std::index_sequence<indices...>) const
+    std::any
+    construct(const Options&, const Context&, std::index_sequence<indices...>)
+        const
         requires(nargs == 0)
     {
         return std::invoke(f);
@@ -397,11 +390,10 @@ inline void InternalFunctionDefinitionBase::make_required_argument(
     argument_docs[i] = help;
 }
 
-} // namespace downward::cli::plugins
-
+} // namespace language::plugins
 
 template <>
-struct std::formatter<downward::cli::plugins::ArgumentInfo> {
+struct std::formatter<language::plugins::ArgumentInfo> {
     bool with_default = false;
 
     // bool with_type = false;
@@ -424,7 +416,8 @@ struct std::formatter<downward::cli::plugins::ArgumentInfo> {
                 /*case 't': {
                     if (with_type) {
                         throw std::format_error(
-                            std::format("Repeated format specifier: '{}'", *pos));
+                            std::format("Repeated format specifier: '{}'",
+                *pos));
                     }
                     with_type = true;
                 } break;*/
@@ -438,8 +431,7 @@ struct std::formatter<downward::cli::plugins::ArgumentInfo> {
     }
 
     template <typename FormatContext>
-    auto
-    format(const downward::cli::plugins::ArgumentInfo& info, FormatContext& ctx)
+    auto format(const language::plugins::ArgumentInfo& info, FormatContext& ctx)
         const
     {
         auto it = std::format_to(ctx.out(), "{}", info.key);

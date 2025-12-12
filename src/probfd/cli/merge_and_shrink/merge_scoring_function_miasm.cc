@@ -15,7 +15,7 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 using namespace downward;
 using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;

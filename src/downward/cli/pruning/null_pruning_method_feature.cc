@@ -13,7 +13,7 @@ using namespace std;
 using namespace downward::null_pruning_method;
 
 using namespace downward::cli;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -21,7 +21,7 @@ InternalFunctionDefinitionBase& add_null_pruning_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "null_pruning",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             downward::PruningMethod,
             NullPruningMethod,
             downward::utils::Verbosity>);

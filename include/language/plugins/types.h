@@ -13,11 +13,11 @@
 #include <unordered_set>
 #include <vector>
 
-namespace downward::utils {
+namespace language {
 class Context;
 }
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 class InternalTypeDeclarationBase;
 
 class Type {
@@ -98,7 +98,7 @@ class ListType : public Type {
     const Type& nested_type;
 
 public:
-    ListType(const Type& nested_type);
+    explicit ListType(const Type& nested_type);
 
     bool operator==(const Type& other) const override;
     bool is_list_type() const override;
@@ -135,9 +135,7 @@ public:
 
     const EnumInfo& get_documented_enum_values() const;
 
-    int
-    get_enum_index(const std::string& value, downward::utils::Context& context)
-        const;
+    int get_enum_index(const std::string& value, Context& context) const;
 };
 
 class SymbolType : public Type {
@@ -264,7 +262,7 @@ extern std::any convert(
     const std::any& value,
     const Type& from_type,
     const Type& to_type,
-    downward::utils::Context& context);
-} // namespace downward::cli::plugins
+    Context& context);
+} // namespace language::plugins
 
 #endif

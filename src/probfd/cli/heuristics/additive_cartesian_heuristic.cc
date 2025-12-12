@@ -14,7 +14,7 @@ using namespace probfd::heuristics;
 
 using namespace probfd::cli::heuristics;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -23,7 +23,7 @@ add_probabilistic_additive_cartesian_cegar_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "pcegar",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskHeuristicFactory,
             AdditiveCartesianHeuristicFactory,
             std::vector<std::shared_ptr<SubtaskGenerator>>,

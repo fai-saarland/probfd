@@ -1,14 +1,14 @@
 #ifndef DOWNWARD_CLI_PRUNING_NULL_PRUNING_METHOD_FEATURE_H
 #define DOWNWARD_CLI_PRUNING_NULL_PRUNING_METHOD_FEATURE_H
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 class Registry;
 }
 
 namespace downward::cli::pruning {
 
 void add_null_pruning_method_feature(
-    downward::cli::plugins::Registry& registry);
+    language::plugins::Registry& registry);
 
 }
 

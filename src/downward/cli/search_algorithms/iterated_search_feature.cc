@@ -15,7 +15,7 @@ using namespace std;
 using namespace downward;
 using namespace downward::iterated_search;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::add_search_algorithm_options_to_feature;
 
@@ -84,7 +84,7 @@ InternalFunctionDefinitionBase& add_iterated_search_to_namespace(Namespace& nspa
 {
     auto& f = nspace.insert_function_definition(
         "iterated",
-        &cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskDependentFactory<SearchAlgorithm>,
             IteratedSearchFactory,
             OperatorCost,

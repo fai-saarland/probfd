@@ -15,7 +15,7 @@ using namespace downward;
 using namespace downward::eager_search;
 
 using namespace downward::cli::eager_search;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 class EagerWAstarSearchFactory : public TaskDependentFactory<SearchAlgorithm> {
@@ -102,7 +102,7 @@ InternalFunctionDefinitionBase& add_eager_weighted_astar_search_to_namespace(Nam
 {
     auto& f = nspace.insert_function_definition(
         "eager_wastar",
-        &cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskDependentFactory<SearchAlgorithm>,
             EagerWAstarSearchFactory,
             std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>,

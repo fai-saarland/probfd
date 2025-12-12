@@ -7,7 +7,7 @@
 
 using namespace downward::operator_counting;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace downward::cli::operator_counting {
 

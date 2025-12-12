@@ -11,10 +11,10 @@
 #include "language/ast/unary_expression_node.h"
 
 #include "language/ast/type_identifier_node.h"
+#include "language/context.h"
 #include "language/lexical_analyzer.h"
 #include "language/token_stream.h"
 
-#include "downward/utils/logging.h"
 #include "downward/utils/system.h"
 
 #include <algorithm>
@@ -23,8 +23,9 @@
 
 using namespace std;
 
-namespace downward::cli::parser {
-class SyntaxAnalyzerContext : public utils::Context {
+namespace language::parser {
+
+class SyntaxAnalyzerContext : public Context {
     const TokenStream& tokens;
     const int lookahead;
 
@@ -57,7 +58,7 @@ public:
             << string(all_tokens.size() - remaining_tokens.size(), ' ') << "^"
             << endl
             << message;
-        throw utils::ContextError(str() + "\n\n" + message_with_tokens.str());
+        throw ContextError(str() + "\n\n" + message_with_tokens.str());
     }
 
     template <typename... Args>
@@ -77,7 +78,7 @@ static auto parse_block(
     Args&&... args)
     requires std::invocable<F, TokenStream&, SyntaxAnalyzerContext&, Args&&...>
 {
-    utils::TraceBlock block(context, block_name);
+    TraceBlock block(context, block_name);
     return parsing_function(tokens, context, std::forward<Args>(args)...);
 }
 
@@ -98,18 +99,15 @@ static void parse_sequence(
     TokenType terminal_token,
     const F& func)
 {
-    utils::TraceBlock block(context, "Parsing sequence");
+    TraceBlock block(context, "Parsing sequence");
 
     for (int i = 1; tokens.peek(context).type != terminal_token; ++i) {
         {
-            utils::TraceBlock nblock(context, "Parsing {}. argument", i);
+            TraceBlock nblock(context, "Parsing {}. argument", i);
             func(tokens, context);
         }
         {
-            utils::TraceBlock nblock(
-                context,
-                "Parsing token after {}. argument",
-                i);
+            TraceBlock nblock(context, "Parsing token after {}. argument", i);
 
             if (const TokenType next_type = tokens.peek(context).type;
                 next_type == terminal_token) {
@@ -140,7 +138,7 @@ static void parse_sequence_in_block(
     TokenType terminal_token,
     const F& func)
 {
-    utils::TraceBlock block(context, block_name);
+    TraceBlock block(context, block_name);
     parse_sequence(tokens, context, separator_token, terminal_token, func);
 }
 
@@ -186,7 +184,7 @@ parse_sequence_in_block(
     TokenType terminal_token,
     const F& func)
 {
-    utils::TraceBlock block(context, block_name);
+    TraceBlock block(context, block_name);
     return parse_sequence(
         tokens,
         context,
@@ -239,7 +237,7 @@ parse_let_definition(TokenStream& tokens, SyntaxAnalyzerContext& context)
 
 static ASTNodePtr parse_let(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
-    utils::TraceBlock block(context, "Parsing Let");
+    TraceBlock block(context, "Parsing Let");
     tokens.pop(context, TokenType::LET);
     std::vector<std::pair<std::string, ASTNodePtr>> variable_definitions =
         parse_sequence_in_block(
@@ -264,7 +262,7 @@ static ASTNodePtr parse_let(TokenStream& tokens, SyntaxAnalyzerContext& context)
 static std::unique_ptr<TypeNode>
 parse_type(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
-    utils::TraceBlock nblock(context, "Parsing type");
+    TraceBlock nblock(context, "Parsing type");
 
     switch (Token t = tokens.peek(context); t.type) {
     case TokenType::TYPE_BOOL:
@@ -276,7 +274,7 @@ parse_type(TokenStream& tokens, SyntaxAnalyzerContext& context)
         return std::make_unique<TypeIdentifierNode>(
             parse_qualified_name(tokens, context));
     default:
-        throw utils::CriticalError(
+        throw downward::utils::CriticalError(
             "Expected type, but got token of type '{}'.",
             token_type_name(t.type));
     }
@@ -297,7 +295,7 @@ parse_typed_parameter(TokenStream& tokens, SyntaxAnalyzerContext& context)
 static ASTNodePtr
 parse_lambda(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
-    utils::TraceBlock block(context, "Parsing Lambda");
+    TraceBlock block(context, "Parsing Lambda");
     tokens.pop(context, TokenType::LAMBDA);
     tokens.pop(context, TokenType::OPENING_PARENTHESIS);
     std::vector<TypedParameter> params = parse_sequence_in_block(
@@ -321,7 +319,7 @@ static ASTNodePtr parse_function(
     SyntaxAnalyzerContext& context,
     ASTNodePtr callee)
 {
-    utils::TraceBlock block(context, "Parsing function call");
+    TraceBlock block(context, "Parsing function call");
 
     const int initial_token_stream_index = tokens.get_position();
     tokens.pop(context, TokenType::OPENING_PARENTHESIS);
@@ -373,7 +371,7 @@ static constexpr std::array literal_tokens{
 static QualifiedName
 parse_qualified_name(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
-    utils::TraceBlock block(context, "Parsing Qualified Name");
+    TraceBlock block(context, "Parsing Qualified Name");
 
     Token token = tokens.pop(context);
 
@@ -397,7 +395,7 @@ parse_qualified_name(TokenStream& tokens, SyntaxAnalyzerContext& context)
 static ASTNodePtr
 parse_literal(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
-    utils::TraceBlock block(context, "Parsing Literal");
+    TraceBlock block(context, "Parsing Literal");
 
     Token token = tokens.peek(context);
 
@@ -418,7 +416,7 @@ static ASTNodePtr parse_non_prefix_op_expression(
     SyntaxAnalyzerContext& context,
     ASTNodePtr lhs)
 {
-    utils::TraceBlock block(context, "Parsing Infix or Postfix Expression");
+    TraceBlock block(context, "Parsing Infix or Postfix Expression");
 
     while (tokens.has_tokens(1) &&
            tokens.peek(context).type == TokenType::OPENING_PARENTHESIS) {
@@ -441,7 +439,7 @@ static ASTNodePtr parse_non_prefix_op_expression(
 static ASTNodePtr
 parse_list(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
-    utils::TraceBlock block(context, "Parsing List");
+    TraceBlock block(context, "Parsing List");
     tokens.pop(context, TokenType::OPENING_BRACKET);
     vector<ASTNodePtr> elements = parse_sequence_in_block(
         "Parsing list arguments",
@@ -458,7 +456,7 @@ static ASTNodePtr parse_parenthesized_expression(
     TokenStream& tokens,
     SyntaxAnalyzerContext& context)
 {
-    utils::TraceBlock block(context, "Parsing parenthesized expression");
+    TraceBlock block(context, "Parsing parenthesized expression");
     tokens.pop(context, TokenType::OPENING_PARENTHESIS);
     auto exp = parse_node(tokens, context);
     tokens.pop(context, TokenType::CLOSING_PARENTHESIS);
@@ -468,7 +466,7 @@ static ASTNodePtr parse_parenthesized_expression(
 static ASTNodePtr
 parse_node(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
-    utils::TraceBlock block(context, "Identify node type");
+    TraceBlock block(context, "Identify node type");
 
     switch (const Token token = tokens.peek(context); token.type) {
     case TokenType::OPENING_PARENTHESIS:
@@ -514,14 +512,14 @@ static ASTNodePtr parse_node_in_block(
     TokenStream& tokens,
     SyntaxAnalyzerContext& context)
 {
-    utils::TraceBlock block(context, block_name);
+    TraceBlock block(context, block_name);
     return parse_node(tokens, context);
 }
 
 ASTNodePtr parse(TokenStream& tokens)
 {
     SyntaxAnalyzerContext context(tokens, 10);
-    utils::TraceBlock block(context, "Start Syntactical Parsing");
+    TraceBlock block(context, "Start Syntactical Parsing");
     if (!tokens.has_tokens(1)) { context.error("Input is empty"); }
     ASTNodePtr node = parse_node(tokens, context);
     if (tokens.has_tokens(1)) {
@@ -538,4 +536,4 @@ ASTNodePtr tokenize_and_parse(const std::string& expression)
     return parse(tokens);
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

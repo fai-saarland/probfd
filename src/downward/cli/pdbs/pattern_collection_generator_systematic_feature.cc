@@ -14,7 +14,7 @@ using namespace downward::utils;
 using namespace downward::pdbs;
 
 using namespace downward::cli::pdbs;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -23,7 +23,7 @@ add_pattern_collection_generator_systematic_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "systematic",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             PatternCollectionGenerator,
             PatternCollectionGeneratorSystematic,
             int,

@@ -4,11 +4,11 @@
 
 #include "language/plugins/types.h"
 
-#include "downward/utils/logging.h"
+#include "language/context.h"
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 ConvertNode::ConvertNode(
     DecoratedASTNodePtr value,
@@ -27,12 +27,12 @@ void ConvertNode::remove_variable_usages()
 
 std::any ConvertNode::construct(ConstructContext& context) const
 {
-    utils::TraceBlock cblock(
+    TraceBlock cblock(
         context,
         "Constructing value that requires conversion");
 
     const std::any constructed_value = [&] {
-        utils::TraceBlock block(
+        TraceBlock block(
             context,
             "Constructing value of type '{}'",
             from_type.name());
@@ -40,7 +40,7 @@ std::any ConvertNode::construct(ConstructContext& context) const
     }();
 
     std::any converted_value = [&] {
-        utils::TraceBlock block(
+        TraceBlock block(
             context,
             "Converting constructed value from '{}' to '{}'",
             from_type.name(),
@@ -59,4 +59,4 @@ void ConvertNode::print(
     value->print(out, indent, print_default_args);
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

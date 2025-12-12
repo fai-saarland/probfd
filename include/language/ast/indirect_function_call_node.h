@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 class IndirectFunctionCallNode : public ASTNode {
     ASTNodePtr callee;
@@ -21,10 +21,9 @@ public:
         const std::string& unparsed_config);
 
     TypedDecoratedAstNodePtr
-    static_analysis(utils::Context& context, VariableEnvironment& env)
-        const override;
+    static_analysis(Context& context, VariableEnvironment& env) const override;
 };
 
-} // namespace downward::cli::parser
+} // namespace language::parser
 
 #endif

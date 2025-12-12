@@ -10,7 +10,7 @@
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 template <typename T>
     requires std::same_as<T, int> || std::same_as<T, double>
@@ -53,4 +53,4 @@ void DecoratedUnaryExpressionNode<T>::print(
 template class DecoratedUnaryExpressionNode<int>;
 template class DecoratedUnaryExpressionNode<double>;
 
-} // namespace downward::cli::parser
+} // namespace language::parser

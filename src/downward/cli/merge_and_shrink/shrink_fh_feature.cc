@@ -14,7 +14,7 @@ using namespace std;
 using namespace downward::utils;
 using namespace downward::merge_and_shrink;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::merge_and_shrink::add_shrink_bucket_options_to_feature;
 
@@ -24,7 +24,7 @@ InternalFunctionDefinitionBase& add_shrink_strategy_fh_to_namespace(Namespace& n
 {
     auto& f = nspace.insert_function_definition(
         "shrink_fh",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             ShrinkStrategy,
             ShrinkFH,
             ShrinkFH::HighLow,

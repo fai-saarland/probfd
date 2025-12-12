@@ -5,7 +5,7 @@
 #include <utility>
 #include <vector>
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 class InternalTypeDeclarationBase;
 class InternalEnumDeclarationBase;
 class InternalFunctionDefinitionBase;

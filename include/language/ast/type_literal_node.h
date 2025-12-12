@@ -5,7 +5,7 @@
 
 #include "language/token.h"
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 class TypeLiteralNode : public TypeNode {
     Token value;
@@ -14,7 +14,7 @@ public:
     explicit TypeLiteralNode(const Token& value);
 
     const plugins::Type&
-    get_type(utils::Context& context, plugins::TypeRegistry& type_registry)
+    get_type(Context& context, plugins::TypeRegistry& type_registry)
         const override;
 };
 

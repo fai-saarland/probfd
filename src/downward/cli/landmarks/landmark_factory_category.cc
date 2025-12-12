@@ -7,7 +7,7 @@
 
 using namespace downward::landmarks;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace downward::cli::landmarks {
 

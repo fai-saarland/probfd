@@ -26,7 +26,7 @@ string get_admissible_potentials_reference()
 }
 
 std::size_t add_admissible_potentials_options_to_feature(
-    plugins::InternalFunctionDefinitionBase& feature,
+    language::plugins::InternalFunctionDefinitionBase& feature,
     const string& description,
     std::size_t start_index)
 {

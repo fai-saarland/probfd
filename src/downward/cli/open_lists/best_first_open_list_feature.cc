@@ -13,7 +13,7 @@ using namespace std;
 using namespace downward::standard_scalar_open_list;
 using namespace downward::utils;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::add_open_list_options_to_feature;
 
@@ -25,7 +25,7 @@ add_best_first_open_list_to_namespace(Namespace& nspace, std::string name)
 {
     auto& f = nspace.insert_function_definition(
         std::move(name),
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             downward::TaskDependentFactory<downward::OpenList<T>>,
             BestFirstOpenListFactory<T>,
             bool>);
@@ -61,7 +61,7 @@ InternalFunctionDefinitionBase& add_best_first_open_list_with_eval_to_namespace(
 {
     auto& f = nspace.insert_function_definition(
         std::move(name),
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             downward::TaskDependentFactory<downward::OpenList<T>>,
             BestFirstOpenListFactory<T>,
             shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>,

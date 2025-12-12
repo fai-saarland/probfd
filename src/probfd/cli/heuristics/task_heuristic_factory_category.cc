@@ -5,7 +5,7 @@
 
 #include "probfd/task_heuristic_factory.h"
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace probfd::cli::heuristics {
 

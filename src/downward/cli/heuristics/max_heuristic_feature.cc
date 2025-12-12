@@ -15,7 +15,7 @@ using namespace downward;
 using namespace downward::max_heuristic;
 using namespace downward::utils;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::add_heuristic_options_to_feature;
 
@@ -55,7 +55,7 @@ InternalFunctionDefinitionBase& add_hmax_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "hmax",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             HMaxHeuristicFactory,
             shared_ptr<TaskTransformation>,

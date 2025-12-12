@@ -2,7 +2,7 @@
 
 using namespace std;
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 
 Options::Options(std::size_t num_opts)
     : storage(num_opts)
@@ -44,4 +44,4 @@ void Options::set_unparsed_config(const string& config)
 {
     unparsed_config = config;
 }
-} // namespace downward::cli::plugins
+} // namespace language::plugins

@@ -20,7 +20,7 @@ using namespace probfd;
 using namespace probfd::pdbs;
 using namespace probfd::pdbs::cegar;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::utils::add_log_options_to_feature;
 using downward::cli::utils::add_rng_options_to_feature;
@@ -82,7 +82,7 @@ add_pattern_collection_generator_disjoint_cegar_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "ppdbs_disjoint_cegar",
-        &downward::cli::plugins::construct_shared<
+        &construct_shared<
             PatternCollectionGenerator,
             PatternCollectionGeneratorDisjointCegar,
             value_t,

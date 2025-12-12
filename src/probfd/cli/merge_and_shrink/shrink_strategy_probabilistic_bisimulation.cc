@@ -11,7 +11,7 @@
 
 using namespace std;
 using namespace downward;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 using namespace probfd::merge_and_shrink;
 
 namespace {
@@ -21,7 +21,7 @@ add_shrink_strategy_probabilistic_bisimulation_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "pshrink_probabilistic_bisimulation",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             ShrinkStrategy,
             ShrinkStrategyProbabilisticBisimulation,
             ShrinkStrategyProbabilisticBisimulation::AtLimit,

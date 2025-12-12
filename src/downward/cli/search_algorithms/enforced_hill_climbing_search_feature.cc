@@ -16,7 +16,7 @@ using namespace downward;
 using namespace downward::utils;
 using namespace downward::enforced_hill_climbing_search;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::add_search_algorithm_options_to_feature;
 
@@ -79,7 +79,7 @@ InternalFunctionDefinitionBase& add_eager_hill_climbing_search_to_namespace(Name
 {
     auto& f = nspace.insert_function_definition(
         "ehc",
-        &cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskDependentFactory<SearchAlgorithm>,
             EnforcedHillClimbingSearchFactory,
             shared_ptr<TaskDependentFactory<Evaluator>>,

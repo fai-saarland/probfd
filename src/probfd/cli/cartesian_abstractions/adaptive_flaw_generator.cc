@@ -8,7 +8,7 @@
 using namespace downward;
 using namespace utils;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using namespace probfd::cartesian_abstractions;
 
@@ -18,7 +18,7 @@ InternalFunctionDefinitionBase& add_adaptive_flaw_generator_astar_to_namespace(N
 {
     auto& f = nspace.insert_function_definition(
         "flaws_adaptive",
-        &cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             FlawGeneratorFactory,
             AdaptiveFlawGeneratorFactory,
             std::vector<std::shared_ptr<FlawGeneratorFactory>>>);

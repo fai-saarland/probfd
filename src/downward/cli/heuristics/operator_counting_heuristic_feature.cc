@@ -19,7 +19,7 @@ using namespace downward;
 using namespace downward::utils;
 using namespace downward::operator_counting;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::add_heuristic_options_to_feature;
 
@@ -78,7 +78,7 @@ InternalFunctionDefinitionBase& add_operator_counting_heuristic_to_namespace(Nam
 {
     auto& f = nspace.insert_function_definition(
         "operator_counting",
-        &cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             OperatorCountingHeuristicFactory,
             shared_ptr<TaskTransformation>,

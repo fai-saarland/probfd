@@ -14,7 +14,7 @@ using namespace std;
 using namespace downward;
 
 using namespace downward::cli::eager_search;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 class EagerGreedySearchFactory : public TaskDependentFactory<SearchAlgorithm> {
@@ -96,7 +96,7 @@ InternalFunctionDefinitionBase& add_eager_greedy_search_to_namespace(Namespace& 
 {
     auto& f = nspace.insert_function_definition(
         "eager_greedy",
-        &cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskDependentFactory<SearchAlgorithm>,
             EagerGreedySearchFactory,
             std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>,

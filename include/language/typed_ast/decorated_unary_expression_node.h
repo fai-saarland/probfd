@@ -5,7 +5,7 @@
 
 #include "language/typed_ast/decorated_ast_node.h"
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 template <typename T>
     requires std::same_as<T, int> || std::same_as<T, double>

@@ -15,7 +15,7 @@ using namespace probfd;
 using namespace downward;
 using namespace downward::utils;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 class DefaultTaskStateSpaceFactory : public TaskStateSpaceFactory {
@@ -84,7 +84,7 @@ InternalFunctionDefinitionBase& add_default_task_state_space_factory_to_namespac
 {
     auto& f = nspace.insert_function_definition(
         "default_state_space",
-        &downward::cli::plugins::construct_shared<
+        &construct_shared<
             TaskStateSpaceFactory,
             DefaultTaskStateSpaceFactory,
             std::vector<std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>>);
@@ -105,7 +105,7 @@ InternalFunctionDefinitionBase& add_caching_task_state_space_factory_to_namespac
 {
     auto& f = nspace.insert_function_definition(
         "caching_state_space",
-        &downward::cli::plugins::construct_shared<
+        &construct_shared<
             TaskStateSpaceFactory,
             CachingTaskStateSpaceFactory,
             std::vector<std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>>);

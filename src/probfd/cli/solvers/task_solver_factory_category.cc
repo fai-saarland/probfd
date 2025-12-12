@@ -5,7 +5,7 @@
 
 #include "probfd/solver_interface.h"
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace probfd::cli::solvers {
 

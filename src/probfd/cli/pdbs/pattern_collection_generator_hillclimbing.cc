@@ -15,7 +15,7 @@ using namespace utils;
 using namespace probfd::cli::pdbs;
 using namespace probfd::pdbs;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::utils::add_rng_options_to_feature;
 
@@ -26,7 +26,7 @@ add_pattern_collection_generator_hill_climbing_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "hillclimbing_probabilistic",
-        &downward::cli::plugins::construct_shared<
+        &construct_shared<
             PatternCollectionGenerator,
             PatternCollectionGeneratorHillclimbing,
             std::shared_ptr<PatternCollectionGenerator>,

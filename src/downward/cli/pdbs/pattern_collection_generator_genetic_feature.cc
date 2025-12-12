@@ -18,7 +18,7 @@ using namespace downward::pdbs;
 
 using namespace downward::cli::pdbs;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::pdbs::add_generator_options_to_feature;
 
@@ -31,7 +31,7 @@ add_pattern_collection_generator_genetic_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "genetic",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             PatternCollectionGenerator,
             PatternCollectionGeneratorGenetic,
             int,

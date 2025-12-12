@@ -1,9 +1,9 @@
 #include "language/lexical_analyzer.h"
 
+#include "language/context.h"
 #include "language/token.h"
 #include "language/token_stream.h"
 
-#include "downward/utils/logging.h"
 #include "downward/utils/strings.h"
 
 #include <regex>
@@ -16,7 +16,7 @@
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 static regex build_regex(const string& s)
 {
     return regex(
@@ -102,8 +102,8 @@ static string highlight_position(const string& text, string::const_iterator pos)
 
 TokenStream split_tokens(const string& text)
 {
-    utils::Context context;
-    utils::TraceBlock block(context, "Splitting Tokens.");
+    Context context;
+    TraceBlock block(context, "Splitting Tokens.");
 
     vector<Token> tokens;
     auto start = text.begin();
@@ -131,4 +131,4 @@ TokenStream split_tokens(const string& text)
     }
     return TokenStream(move(tokens));
 }
-} // namespace downward::cli::parser
+} // namespace language::parser

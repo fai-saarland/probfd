@@ -3,26 +3,26 @@
 
 #include <string>
 
-namespace downward::utils {
+namespace language {
 class Context;
 }
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 class Type;
 class TypeRegistry;
-} // namespace downward::cli::plugins
+} // namespace language::plugins
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 class TypeNode {
 public:
     virtual ~TypeNode() = default;
 
-    virtual const plugins::Type&
-    get_type(utils::Context& context, plugins::TypeRegistry& type_registry)
-        const = 0;
+    virtual const plugins::Type& get_type(
+        Context& context,
+        plugins::TypeRegistry& type_registry) const = 0;
 };
 
-} // namespace downward::cli::parser
+} // namespace language::parser
 
 #endif

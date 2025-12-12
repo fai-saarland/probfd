@@ -29,7 +29,7 @@ using namespace probfd::solvers;
 
 using namespace probfd::cli::solvers;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 class ExhaustiveDFSSolver : public StatisticalMDPAlgorithmFactory {

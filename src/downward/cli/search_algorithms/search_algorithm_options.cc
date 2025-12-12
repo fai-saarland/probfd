@@ -22,7 +22,7 @@ namespace downward::cli {
    classes.
    TODO: Figure out where it belongs and move it there. */
 std::size_t add_search_pruning_options_to_feature(
-    plugins::InternalFunctionDefinitionBase& feature,
+    language::plugins::InternalFunctionDefinitionBase& feature,
     std::size_t start_index)
 {
     feature.make_optional_argument_with_default(
@@ -38,7 +38,7 @@ std::size_t add_search_pruning_options_to_feature(
 }
 
 std::size_t add_search_algorithm_options_to_feature(
-    plugins::InternalFunctionDefinitionBase& feature,
+    language::plugins::InternalFunctionDefinitionBase& feature,
     const string& description,
     std::size_t start_index)
 {
@@ -75,7 +75,7 @@ std::size_t add_search_algorithm_options_to_feature(
 /* Method doesn't belong here because it's only useful for certain derived
    classes.
    TODO: Figure out where it belongs and move it there. */
-std::size_t add_successors_order_options_to_feature(plugins::InternalFunctionDefinitionBase& feature, std::size_t start_index)
+std::size_t add_successors_order_options_to_feature(language::plugins::InternalFunctionDefinitionBase& feature, std::size_t start_index)
 {
     feature.document_note(
         "Successor ordering",

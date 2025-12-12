@@ -9,7 +9,7 @@ using namespace std;
 using namespace downward::utils;
 using namespace downward::alternation_open_list;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -19,7 +19,7 @@ add_alternation_open_list_to_namespace(Namespace& nspace, std::string name)
 {
     auto& f = nspace.insert_function_definition(
         std::move(name),
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             downward::TaskDependentFactory<downward::OpenList<T>>,
             AlternationOpenListFactory<T>,
             const std::vector<shared_ptr<

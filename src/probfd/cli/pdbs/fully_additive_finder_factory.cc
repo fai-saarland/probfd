@@ -10,7 +10,7 @@ using namespace utils;
 
 using namespace probfd::pdbs;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -18,7 +18,7 @@ InternalFunctionDefinitionBase& add_fully_additive_factory_to_namespace(Namespac
 {
     auto& f = nspace.insert_function_definition(
         "fully_additive_factory",
-        &downward::cli::plugins::construct_shared<
+        &construct_shared<
             SubCollectionFinderFactory,
             FullyAdditiveFinderFactory>);
 

@@ -3,6 +3,7 @@
 #include "language/plugins/plugin.h"
 
 #include "downward/utils/strings.h"
+#include "downward/utils/system.h"
 
 #include <chrono>
 #include <sstream>
@@ -35,7 +36,7 @@ std::string demangle(const char* name)
 
 } // namespace
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 
 bool Type::is_basic_type() const
 {
@@ -273,7 +274,7 @@ EnumType::EnumType(type_index type, const EnumInfo& documented_values)
 {
     values.reserve(documented_values.size());
     for (const auto& value : documented_values | views::keys) {
-        values.push_back(utils::tolower(value));
+        values.push_back(value);
     }
 }
 
@@ -288,7 +289,7 @@ bool EnumType::is_enum_type() const
     return true;
 }
 
-int EnumType::get_enum_index(const string& value, utils::Context& context) const
+int EnumType::get_enum_index(const string& value, Context& context) const
 {
     const auto it = ranges::find(values, value);
     const int enum_index = static_cast<int>(it - values.begin());
@@ -344,7 +345,7 @@ std::any convert(
     const std::any& value,
     const Type& from_type,
     const Type& to_type,
-    utils::Context& context)
+    Context& context)
 {
     if (from_type == to_type) {
         return value;
@@ -392,10 +393,7 @@ std::any convert(
         }
     }
 
-    throw utils::CriticalError(
-        "Cannot convert {} to {}.",
-        from_type.name(),
-        to_type.name());
+    context.error("Cannot convert {} to {}.", from_type.name(), to_type.name());
 }
 
 SymbolType TypeRegistry::SYMBOL_TYPE;
@@ -427,7 +425,7 @@ TypeRegistry::create_feature_type(const InternalTypeDeclarationBase& plugin)
             plugin.get_identifier()));
 
     if (!inserted) {
-        throw utils::CriticalError(
+        throw downward::utils::CriticalError(
             "Creating the FeatureType '{}' but the type '{}' already exists "
             "and has the same type_index.",
             plugin.get_class_name(),
@@ -445,7 +443,7 @@ TypeRegistry::create_enum_type(const InternalEnumDeclarationBase& plugin)
         std::make_unique<EnumType>(plugin.get_type(), plugin.get_enum_info()));
 
     if (!inserted) {
-        throw utils::CriticalError(
+        throw downward::utils::CriticalError(
             "Creating the EnumType '{}' but the type '{}' already exists and "
             "has the same type_index.",
             plugin.get_class_name(),
@@ -484,6 +482,8 @@ const Type& TypeRegistry::get_nonlist_type(type_index type) const
         return *it->second;
     }
 
-    throw utils::CriticalError("Missing type {}", demangle(type.name()));
+    throw downward::utils::CriticalError(
+        "Missing type {}",
+        demangle(type.name()));
 }
-} // namespace downward::cli::plugins
+} // namespace language::plugins

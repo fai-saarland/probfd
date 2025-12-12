@@ -11,7 +11,7 @@ using namespace downward::utils;
 using namespace probfd;
 using namespace probfd::transition_sorters;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -19,7 +19,7 @@ InternalFunctionDefinitionBase& add_vdiff_sorter_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "value_gap_sort",
-        &downward::cli::plugins::
+        &language::plugins::
             construct_shared<FDRTransitionSorter, VDiffSorter, bool>);
     f.make_optional_argument_with_default(0, "prefer_large_gaps", "false");
 

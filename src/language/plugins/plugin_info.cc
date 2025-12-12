@@ -5,7 +5,7 @@
 
 using namespace std;
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 
 PropertyInfo::PropertyInfo(const string& property, const string& description)
     : property(property)
@@ -30,4 +30,4 @@ LanguageSupportInfo::LanguageSupportInfo(
     , description(description)
 {
 }
-} // namespace downward::cli::plugins
+} // namespace language::plugins

@@ -11,7 +11,7 @@ using namespace std;
 using namespace downward::utils;
 using namespace downward::operator_counting;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -19,7 +19,7 @@ InternalFunctionDefinitionBase& add_delete_relaxation_if_constraints_to_namespac
 {
     auto& f = nspace.insert_function_definition(
         "delete_relaxation_if_constraints",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             ConstraintGenerator,
             DeleteRelaxationIFConstraints,
             bool,

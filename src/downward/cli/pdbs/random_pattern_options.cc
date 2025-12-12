@@ -7,7 +7,7 @@ using namespace std;
 namespace downward::cli::pdbs {
 
 void add_random_pattern_implementation_notes_to_feature(
-    plugins::InternalFunctionDefinitionBase& feature)
+    language::plugins::InternalFunctionDefinitionBase& feature)
 {
     feature.document_note(
         "Short description of the random pattern algorithm",
@@ -35,7 +35,7 @@ void add_random_pattern_implementation_notes_to_feature(
 }
 
 std::size_t add_random_pattern_bidirectional_option_to_feature(
-    plugins::InternalFunctionDefinitionBase& feature,
+    language::plugins::InternalFunctionDefinitionBase& feature,
     std::size_t start_index)
 {
     feature.make_optional_argument_with_default(

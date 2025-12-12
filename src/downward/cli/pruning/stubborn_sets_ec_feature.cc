@@ -13,7 +13,7 @@
 using namespace std;
 
 using namespace downward::cli;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using namespace downward;
 using namespace downward::stubborn_sets_ec;
@@ -24,7 +24,7 @@ InternalFunctionDefinitionBase& add_stubborn_sets_ec_to_namespace(Namespace& nsp
 {
     auto& f = nspace.insert_function_definition(
         "stubborn_sets_ec",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             PruningMethod,
             StubbornSetsEC,
             utils::Verbosity>);

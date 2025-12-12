@@ -16,7 +16,7 @@ using namespace probfd::heuristics;
 
 using namespace probfd::cli::heuristics;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -24,7 +24,7 @@ InternalFunctionDefinitionBase& add_uniform_cost_partitioning_heuristic_to_names
 {
     auto& f = nspace.insert_function_definition(
         "ucp_heuristic",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskHeuristicFactory,
             UCPHeuristicFactory,
             std::shared_ptr<PatternCollectionGenerator>>);

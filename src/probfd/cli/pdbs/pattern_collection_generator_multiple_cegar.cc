@@ -16,7 +16,7 @@ using namespace probfd::cli::pdbs;
 using namespace probfd::pdbs;
 using namespace probfd::pdbs::cegar;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -25,7 +25,7 @@ add_pattern_collection_generator_multiple_cegar_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "ppdbs_multiple_cegar",
-        &downward::cli::plugins::construct_shared<
+        &construct_shared<
             PatternCollectionGenerator,
             PatternCollectionGeneratorMultipleCegar,
             probfd::value_t,

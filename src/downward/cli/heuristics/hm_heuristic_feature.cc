@@ -17,7 +17,7 @@ using namespace downward;
 using namespace downward::hm_heuristic;
 using namespace downward::utils;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::add_heuristic_options_to_feature;
 
@@ -62,7 +62,7 @@ InternalFunctionDefinitionBase& add_hm_heuristic_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "hm",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             HMHeuristicFactory,
             shared_ptr<TaskTransformation>,

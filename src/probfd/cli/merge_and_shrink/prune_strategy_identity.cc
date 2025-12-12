@@ -7,7 +7,7 @@
 
 using namespace probfd::merge_and_shrink;
 using namespace downward;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -15,7 +15,7 @@ InternalFunctionDefinitionBase& add_prune_strategy_identity_to_namespace(Namespa
 {
     auto& f = nspace.insert_function_definition(
         "prune_identity",
-        &downward::cli::plugins::
+        &language::plugins::
             construct_shared<PruneStrategy, PruneStrategyIdentity>);
 
     f.document_title("Identity prune strategy");

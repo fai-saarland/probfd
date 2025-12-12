@@ -5,7 +5,7 @@
 
 #include "probfd/task_state_space_factory.h"
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace probfd::cli {
 

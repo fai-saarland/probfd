@@ -11,7 +11,7 @@ using namespace std;
 using namespace downward::merge_and_shrink;
 using namespace downward::utils;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -19,7 +19,7 @@ InternalFunctionDefinitionBase& add_merge_scoring_function_dfp_to_namespace(Name
 {
     auto& f = nspace.insert_function_definition(
         "dfp",
-        &downward::cli::plugins::
+        &language::plugins::
             construct_shared<MergeScoringFunction, MergeScoringFunctionDFP>);
     f.document_title("DFP scoring");
     f.document_synopsis(

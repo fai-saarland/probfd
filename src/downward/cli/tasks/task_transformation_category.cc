@@ -5,7 +5,7 @@
 
 #include "downward/task_transformation.h"
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace downward::cli::tasks {
 

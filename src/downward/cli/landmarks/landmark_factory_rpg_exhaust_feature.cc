@@ -10,7 +10,7 @@
 using namespace std;
 using namespace downward::utils;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::landmarks::add_landmark_factory_options_to_feature;
 
@@ -22,7 +22,7 @@ InternalFunctionDefinitionBase& add_landmark_factory_rpg_exhaust_to_namespace(Na
 {
     auto& f = nspace.insert_function_definition(
         "lm_exhaust",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             LandmarkFactory,
             LandmarkFactoryRpgExhaust,
             bool,

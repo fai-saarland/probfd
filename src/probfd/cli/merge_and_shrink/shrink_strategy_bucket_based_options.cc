@@ -5,7 +5,7 @@
 #include "language/plugins/plugin.h"
 
 using namespace std;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace probfd::cli::merge_and_shrink {
 

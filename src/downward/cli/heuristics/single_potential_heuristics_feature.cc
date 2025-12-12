@@ -22,7 +22,7 @@ using namespace downward;
 using namespace downward::potentials;
 
 using namespace downward::cli::potentials;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 enum class OptimizeFor {

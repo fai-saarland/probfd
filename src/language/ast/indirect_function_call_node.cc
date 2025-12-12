@@ -6,25 +6,24 @@
 #include "language/plugins/plugin.h"
 #include "language/plugins/types.h"
 
-#include "downward/utils/logging.h"
+#include "language/context.h"
 
-#include <unordered_map>
 #include <vector>
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 static DecoratedASTNodePtr decorate_and_convert(
     const ASTNode& node,
     const plugins::Type& target_type,
-    utils::Context& context,
+    Context& context,
     VariableEnvironment& env)
 {
     auto [ast_node, type] = node.static_analysis(context, env);
 
     if (*type != target_type) {
-        utils::TraceBlock block(context, "Adding casting node");
+        TraceBlock block(context, "Adding casting node");
         if (type->can_convert_into(target_type)) {
             return std::make_unique<ConvertNode>(
                 move(ast_node),
@@ -51,10 +50,10 @@ IndirectFunctionCallNode::IndirectFunctionCallNode(
 }
 
 TypedDecoratedAstNodePtr IndirectFunctionCallNode::static_analysis(
-    utils::Context& context,
+    Context& context,
     VariableEnvironment& env) const
 {
-    utils::TraceBlock block(context, "Checking Call");
+    TraceBlock block(context, "Checking Call");
 
     auto [dast_node, type] = callee->static_analysis(context, env);
     if (!type->is_function_type()) {
@@ -75,7 +74,7 @@ TypedDecoratedAstNodePtr IndirectFunctionCallNode::static_analysis(
     }
 
     for (std::size_t i = 0; i < positional_arguments.size(); ++i) {
-        utils::TraceBlock nblock(
+        TraceBlock nblock(
             context,
             "Checking the positional argument at index {}",
             i);
@@ -97,4 +96,4 @@ TypedDecoratedAstNodePtr IndirectFunctionCallNode::static_analysis(
         &ftype.get_return_type()};
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

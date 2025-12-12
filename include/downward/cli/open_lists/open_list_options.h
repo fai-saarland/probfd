@@ -3,14 +3,14 @@
 
 #include <cstddef>
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 class InternalFunctionDefinitionBase;
-} // namespace downward::cli::plugins
+} // namespace language::plugins
 
 namespace downward::cli {
 
 extern void add_open_list_options_to_feature(
-    plugins::InternalFunctionDefinitionBase& feature,
+    language::plugins::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 
 } // namespace downward::cli

@@ -10,9 +10,9 @@ using namespace downward::lp;
 
 namespace downward::cli::lp {
 
-void add_lp_solver_enum(downward::cli::plugins::Registry& registry)
+void add_lp_solver_enum(language::plugins::Registry& registry)
 {
-    plugins::Namespace& n = registry.get_global_name_space();
+    language::plugins::Namespace& n = registry.get_global_name_space();
     n.insert_enum_declaration<LPSolverType>(
         {{"cplex", "commercial solver by IBM"},
          {"soplex", "open source solver by ZIB"}});

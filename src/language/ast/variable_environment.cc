@@ -1,16 +1,12 @@
 #include "language/ast/variable_environment.h"
 
-#include "language/lexical_analyzer.h"
-#include "language/syntax_analyzer.h"
-#include "language/token_stream.h"
-
-#include "downward/utils/logging.h"
+#include "language/context.h"
 
 #include <cassert>
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 Scope::Scope() = default;
 
@@ -25,7 +21,7 @@ std::unique_ptr<Scope>& Scope::get_parent()
 }
 
 void Scope::insert(
-    utils::Context& context,
+    Context& context,
     std::pair<std::string, TypedDeclaration> pair)
 {
     if (!variables.insert(pair).second) {
@@ -85,7 +81,7 @@ VariableEnvironment::VariableEnvironment(const plugins::Registry& registry)
 }
 
 void VariableEnvironment::add_variable(
-    utils::Context& context,
+    Context& context,
     const std::string& name,
     const plugins::Type& type,
     VariableDeclaration& declaration)
@@ -133,4 +129,4 @@ const plugins::Registry& VariableEnvironment::get_registry() const
     return registry;
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

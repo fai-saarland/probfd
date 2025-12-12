@@ -5,7 +5,7 @@
 #include "language/plugins/options.h"
 #include "language/plugins/plugin.h"
 
-#include "downward/utils/logging.h"
+#include "language/context.h"
 
 #include <any>
 #include <functional>
@@ -13,7 +13,7 @@
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 FeatureLiteralNode::FeatureLiteralNode(
     const plugins::InternalFunctionDefinitionBase& feature)
@@ -23,14 +23,14 @@ FeatureLiteralNode::FeatureLiteralNode(
 
 std::any FeatureLiteralNode::construct(ConstructContext& context) const
 {
-    utils::TraceBlock block(
+    TraceBlock block(
         context,
         "Constructing feature '{}'",
         feature.get_identifier());
 
     std::function f = [&f = this->feature](
                           const plugins::Options& opts,
-                          const utils::Context& ncontext) {
+                          const Context& ncontext) {
         return f.construct(opts, ncontext);
     };
 
@@ -43,4 +43,4 @@ void FeatureLiteralNode::print(std::ostream& out, std::size_t indent, bool)
     std::print(out, "{}{}", std::string(indent, ' '), feature.get_identifier());
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

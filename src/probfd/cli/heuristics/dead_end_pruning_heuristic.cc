@@ -11,7 +11,7 @@ using namespace utils;
 using namespace probfd;
 using namespace probfd::heuristics;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -19,7 +19,7 @@ InternalFunctionDefinitionBase& add_dead_end_pruning_heuristic_to_namespace(Name
 {
     auto& f = nspace.insert_function_definition(
         "prune_dead_ends",
-        &downward::cli::plugins::construct_shared<
+        &construct_shared<
             TaskHeuristicFactory,
             DeadEndPruningHeuristicFactory,
             std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>);

@@ -14,25 +14,25 @@
 #include "language/plugins/registry.h"
 #include "language/plugins/types.h"
 
-#include "downward/utils/logging.h"
+#include "language/context.h"
 
 #include <unordered_map>
 #include <vector>
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 static DecoratedASTNodePtr decorate_and_convert(
     const ASTNode& node,
     const plugins::Type& target_type,
-    utils::Context& context,
+    Context& context,
     VariableEnvironment& env)
 {
     auto [ast_node, type] = node.static_analysis(context, env);
 
     if (*type != target_type) {
-        utils::TraceBlock block(context, "Adding casting node");
+        TraceBlock block(context, "Adding casting node");
         if (type->can_convert_into(target_type)) {
             return std::make_unique<ConvertNode>(
                 move(ast_node),
@@ -61,12 +61,12 @@ DirectFunctionCallNode::DirectFunctionCallNode(
 }
 
 TypedDecoratedAstNodePtr DirectFunctionCallNode::static_analysis(
-    utils::Context& context,
+    Context& context,
     VariableEnvironment& env) const
 {
-    utils::TraceBlock block(context, "Checking Call");
+    TraceBlock block(context, "Checking Call");
 
-    utils::TraceBlock nblock(context, "Checking Callee Identifier: {}", callee);
+    TraceBlock nblock(context, "Checking Callee Identifier: {}", callee);
 
     const auto& [qualification, name] = callee;
 
@@ -117,7 +117,7 @@ TypedDecoratedAstNodePtr DirectFunctionCallNode::static_analysis(
         }
 
         for (std::size_t i = 0; i < positional_arguments.size(); ++i) {
-            utils::TraceBlock nnblock(
+            TraceBlock nnblock(
                 context,
                 "Checking the positional argument at index {}",
                 i);
@@ -143,7 +143,7 @@ TypedDecoratedAstNodePtr DirectFunctionCallNode::static_analysis(
         for (std::size_t i = positional_arguments.size();
              i < argument_infos.size();
              ++i) {
-            utils::TraceBlock nnblock(
+            TraceBlock nnblock(
                 context,
                 "Checking the positional argument at index {}",
                 i);
@@ -160,9 +160,7 @@ TypedDecoratedAstNodePtr DirectFunctionCallNode::static_analysis(
                 arguments.emplace_back(move(decorated_arg), false);
             } else if (arg_info.has_default()) {
                 ASTNodePtr default_arg = [&] {
-                    utils::TraceBlock nnnblock(
-                        context,
-                        "Parsing default value");
+                    TraceBlock nnnblock(context, "Parsing default value");
                     return tokenize_and_parse(arg_info.default_value);
                 }();
 
@@ -189,7 +187,7 @@ TypedDecoratedAstNodePtr DirectFunctionCallNode::static_analysis(
         }
 
         for (std::size_t i = 0; i < positional_arguments.size(); ++i) {
-            utils::TraceBlock nnblock(
+            TraceBlock nnblock(
                 context,
                 "Checking the positional argument at index {}",
                 i);
@@ -212,4 +210,4 @@ TypedDecoratedAstNodePtr DirectFunctionCallNode::static_analysis(
         &callee_type->get_return_type()};
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

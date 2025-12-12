@@ -15,7 +15,7 @@
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 TypedParameter::TypedParameter(
     std::string parameter_name,
@@ -41,10 +41,10 @@ LambdaNode::LambdaNode(
 }
 
 TypedDecoratedAstNodePtr
-LambdaNode::static_analysis(utils::Context& context, VariableEnvironment& env)
+LambdaNode::static_analysis(Context& context, VariableEnvironment& env)
     const
 {
-    utils::TraceBlock lblock(context, "Checking Lambda");
+    TraceBlock lblock(context, "Checking Lambda");
 
     std::vector<const plugins::Type*> arg_types;
     VariableEnvironment nested_env(env.get_registry());
@@ -54,7 +54,7 @@ LambdaNode::static_analysis(utils::Context& context, VariableEnvironment& env)
 
     std::size_t i = 1;
     for (auto& [variable_name, type_node] : parameters) {
-        utils::TraceBlock block(context, "Checking Parameter #{}", i++);
+        TraceBlock block(context, "Checking Parameter #{}", i++);
 
         auto& param_declaration =
             decorated_variable_declarations.emplace_back(variable_name);
@@ -72,7 +72,7 @@ LambdaNode::static_analysis(utils::Context& context, VariableEnvironment& env)
     }
 
     auto [ast_node, rtype] = [&] {
-        utils::TraceBlock block(context, "Checking Body.");
+        TraceBlock block(context, "Checking Body.");
         return nested_value->static_analysis(context, nested_env);
     }();
 
@@ -88,4 +88,4 @@ LambdaNode::static_analysis(utils::Context& context, VariableEnvironment& env)
         &ftype};
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

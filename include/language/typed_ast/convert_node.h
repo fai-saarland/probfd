@@ -5,11 +5,11 @@
 
 #include "downward/utils/logging.h"
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 class Type;
 }
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 class ConvertNode : public DecoratedASTNode {
     DecoratedASTNodePtr value;

@@ -15,7 +15,7 @@
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 LetNode::LetNode(
     std::vector<std::pair<std::string, ASTNodePtr>> variable_definitions,
@@ -26,10 +26,10 @@ LetNode::LetNode(
 }
 
 TypedDecoratedAstNodePtr
-LetNode::static_analysis(utils::Context& context, VariableEnvironment& env)
+LetNode::static_analysis(Context& context, VariableEnvironment& env)
     const
 {
-    utils::TraceBlock lblock(
+    TraceBlock lblock(
         context,
         "Checking Let: {:n:s}",
         variable_definitions | views::keys);
@@ -41,7 +41,7 @@ LetNode::static_analysis(utils::Context& context, VariableEnvironment& env)
 
     for (const auto& [variable_name, variable_definition] :
          variable_definitions) {
-        utils::TraceBlock block(context, "Check variable definition");
+        TraceBlock block(context, "Check variable definition");
         auto [ast_node, type] =
             variable_definition->static_analysis(context, env);
         auto& declaration = decorated_variable_definitions.emplace_back(
@@ -54,7 +54,7 @@ LetNode::static_analysis(utils::Context& context, VariableEnvironment& env)
     TypedDecoratedAstNodePtr decorated_nested_value;
 
     {
-        utils::TraceBlock block(context, "Check nested expression.");
+        TraceBlock block(context, "Check nested expression.");
         decorated_nested_value = nested_value->static_analysis(context, env);
     }
 
@@ -67,4 +67,4 @@ LetNode::static_analysis(utils::Context& context, VariableEnvironment& env)
         decorated_nested_value.type};
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

@@ -6,7 +6,7 @@
 #include "downward/search_algorithm.h"
 #include "downward/task_dependent_factory_fwd.h"
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace downward::cli::search_algorithms {
 

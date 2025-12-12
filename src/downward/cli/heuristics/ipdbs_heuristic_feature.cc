@@ -23,7 +23,7 @@ using namespace downward;
 using namespace downward::utils;
 using namespace downward::pdbs;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 using namespace downward::cli::pdbs;
 
 using downward::cli::add_heuristic_options_to_feature;
@@ -132,7 +132,7 @@ InternalFunctionDefinitionBase& add_ipdb_heuristic_to_namespace(Namespace& nspac
 {
     auto& f = nspace.insert_function_definition(
         "ipdb",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             IPDBsHeuristicFactory,
             shared_ptr<TaskTransformation>,

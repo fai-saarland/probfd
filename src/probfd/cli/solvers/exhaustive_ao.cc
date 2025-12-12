@@ -24,7 +24,7 @@ using namespace probfd::solvers;
 using namespace probfd::cli;
 using namespace probfd::cli::solvers;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 template <bool Bisimulation>

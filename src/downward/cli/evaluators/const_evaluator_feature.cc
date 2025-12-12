@@ -16,7 +16,7 @@ using namespace downward;
 using namespace downward::utils;
 using namespace downward::const_evaluator;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::add_evaluator_options_to_feature;
 
@@ -50,7 +50,7 @@ InternalFunctionDefinitionBase& add_constant_evaluator_feature(Namespace& nspace
 {
     auto& f = nspace.insert_function_definition(
         "const",
-        &cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             ConstEvaluatorFactory,
             std::string,

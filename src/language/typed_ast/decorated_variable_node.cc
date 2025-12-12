@@ -5,13 +5,14 @@
 
 #include "language/plugins/types.h"
 
-#include "downward/utils/logging.h"
+#include "language/context.h"
 
 #include <cassert>
+#include <print>
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 VariableNode::VariableNode(VariableDeclaration& declaration)
     : declaration(&declaration)
@@ -27,7 +28,7 @@ void VariableNode::remove_variable_usages()
 
 std::any VariableNode::construct(ConstructContext& context) const
 {
-    utils::TraceBlock block(
+    TraceBlock block(
         context,
         "Looking up variable '{}'",
         declaration->variable_name);
@@ -50,4 +51,4 @@ void VariableNode::print(std::ostream& out, std::size_t indent, bool) const
         indent + declaration->variable_name.size());
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

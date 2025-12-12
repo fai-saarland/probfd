@@ -13,7 +13,7 @@
 using namespace std;
 
 using namespace downward::utils;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::merge_and_shrink::
     add_transition_system_size_limit_options_to_feature;

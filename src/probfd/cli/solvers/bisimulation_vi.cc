@@ -39,7 +39,7 @@ using namespace downward;
 using namespace probfd;
 using namespace probfd::bisimulation;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 void print_bisimulation_stats(

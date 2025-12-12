@@ -16,7 +16,7 @@ using namespace std;
 namespace {
 struct TypedName {
     const std::string& name;
-    const downward::cli::plugins::Type& type;
+    const language::plugins::Type& type;
 };
 } // namespace
 
@@ -39,7 +39,7 @@ struct std::formatter<TypedName, CharT> {
     }
 };
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 DecoratedLambdaNode::DecoratedLambdaNode(
     const plugins::FunctionType& type,
@@ -69,7 +69,7 @@ void DecoratedLambdaNode::remove_variable_usages()
 std::any DecoratedLambdaNode::construct(ConstructContext&) const
 {
     std::function f = [&](const plugins::Options& opts,
-                          const utils::Context&) -> std::any {
+                          const Context&) -> std::any {
         ConstructContext nested_context;
 
         for (std::size_t i = 0;
@@ -103,4 +103,4 @@ void DecoratedLambdaNode::print(
     nested_value->print(out, 0, print_default_args);
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

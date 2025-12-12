@@ -11,7 +11,7 @@ using namespace downward;
 using namespace utils;
 
 using namespace downward::cli;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using namespace probfd::cartesian_abstractions;
 
@@ -23,7 +23,7 @@ InternalFunctionDefinitionBase& add_task_duplicator_to_namespace(Namespace& nspa
 {
     auto& f = nspace.insert_function_definition(
         "pcegar_original",
-        &cli::plugins::construct_shared<SubtaskGenerator, TaskDuplicator, int>);
+        &language::plugins::construct_shared<SubtaskGenerator, TaskDuplicator, int>);
 
     f.make_optional_argument_with_default(
         0,
@@ -38,7 +38,7 @@ InternalFunctionDefinitionBase& add_goal_decomposition_to_namespace(Namespace& n
 {
     auto& f = nspace.insert_function_definition(
         "pcegar_goals",
-        &cli::plugins::
+        &language::plugins::
             construct_shared<SubtaskGenerator, GoalDecomposition, FactOrder, std::shared_ptr<RandomNumberGenerator>>);
 
     f.make_optional_argument_with_default(
@@ -55,7 +55,7 @@ InternalFunctionDefinitionBase& add_landmark_decomposition_to_namespace(Namespac
 {
     auto& f = nspace.insert_function_definition(
         "pcegar_landmarks",
-        &cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             SubtaskGenerator,
             LandmarkDecomposition,
             std::shared_ptr<TaskDependentFactory<MutexInformation>>,

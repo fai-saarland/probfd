@@ -9,7 +9,7 @@ using namespace std;
 
 namespace downward::cli {
 
-using namespace plugins;
+using namespace language::plugins;
 
 void add_operator_cost_category(Registry& registry)
 {

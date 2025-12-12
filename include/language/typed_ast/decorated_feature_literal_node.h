@@ -3,11 +3,11 @@
 
 #include "language/typed_ast/decorated_ast_node.h"
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 class InternalFunctionDefinitionBase;
 }
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 class FeatureLiteralNode : public DecoratedASTNode {
     const plugins::InternalFunctionDefinitionBase& feature;

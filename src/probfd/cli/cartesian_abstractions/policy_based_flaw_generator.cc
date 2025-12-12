@@ -8,7 +8,7 @@
 using namespace downward;
 using namespace utils;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using namespace probfd::cartesian_abstractions;
 
@@ -18,7 +18,7 @@ InternalFunctionDefinitionBase& add_ilao_flaw_generator_astar_to_namespace(Names
 {
     auto& f = nspace.insert_function_definition(
         "flaws_ilao",
-        &cli::plugins::construct_shared<
+        &construct_shared<
             FlawGeneratorFactory,
             ILAOFlawGeneratorFactory,
             probfd::value_t,

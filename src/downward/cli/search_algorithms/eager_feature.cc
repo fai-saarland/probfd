@@ -15,7 +15,7 @@ using namespace downward;
 using namespace downward::eager_search;
 
 using namespace downward::cli::eager_search;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 class EagerSearchFactory : public TaskDependentFactory<SearchAlgorithm> {

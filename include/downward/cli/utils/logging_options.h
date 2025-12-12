@@ -3,14 +3,15 @@
 
 #include <cstddef>
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 class InternalFunctionDefinitionBase;
-} // namespace downward::cli::plugins
+} // namespace language::plugins
 
 namespace downward::cli::utils {
 
-extern std::size_t
-add_log_options_to_feature(plugins::InternalFunctionDefinitionBase& feature, std::size_t start_index);
+extern std::size_t add_log_options_to_feature(
+    language::plugins::InternalFunctionDefinitionBase& feature,
+    std::size_t start_index);
 
 } // namespace downward::cli::utils
 

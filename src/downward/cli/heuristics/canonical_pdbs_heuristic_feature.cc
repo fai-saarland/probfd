@@ -17,7 +17,7 @@ using namespace downward;
 using namespace downward::utils;
 using namespace downward::pdbs;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::add_heuristic_options_to_feature;
 
@@ -68,7 +68,7 @@ InternalFunctionDefinitionBase& add_canonical_pdb_heuristic_to_namespace(Namespa
 {
     auto& f = nspace.insert_function_definition(
         "cpdbs",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             CanonicalPDBsHeuristicFactory,
             shared_ptr<TaskTransformation>,

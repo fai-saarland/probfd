@@ -4,7 +4,7 @@
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 SymbolNode::SymbolNode(const string& value)
     : value(value)
@@ -22,4 +22,4 @@ void SymbolNode::print(std::ostream& out, std::size_t indent, bool) const
     std::print(out, "{}", value);
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

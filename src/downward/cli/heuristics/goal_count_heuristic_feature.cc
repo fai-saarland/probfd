@@ -17,7 +17,7 @@ using namespace downward::goal_count_heuristic;
 using namespace downward::utils;
 
 using namespace downward;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::add_heuristic_options_to_feature;
 
@@ -57,7 +57,7 @@ InternalFunctionDefinitionBase& add_goal_count_heuristic_to_namespace(Namespace&
 {
     auto& f = nspace.insert_function_definition(
         "goalcount",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             GoalCountHeuristicFactory,
             shared_ptr<TaskTransformation>,

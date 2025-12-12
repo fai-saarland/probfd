@@ -1,14 +1,14 @@
 #ifndef DOWNWARD_CLI_MERGE_AND_SHRINK_MERGE_TREE_FACTORY_LINEAR_FEATURE_H
 #define DOWNWARD_CLI_MERGE_AND_SHRINK_MERGE_TREE_FACTORY_LINEAR_FEATURE_H
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 class Registry;
 }
 
 namespace downward::cli::merge_and_shrink {
 
 void add_merge_tree_factory_linear_feature(
-    downward::cli::plugins::Registry& registry);
+    language::plugins::Registry& registry);
 
 }
 

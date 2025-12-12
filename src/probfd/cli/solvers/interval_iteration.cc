@@ -25,7 +25,7 @@ using namespace probfd::algorithms::interval_iteration;
 
 using namespace probfd::cli::solvers;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 class IntervalIterationSolver : public StatisticalMDPAlgorithmFactory {

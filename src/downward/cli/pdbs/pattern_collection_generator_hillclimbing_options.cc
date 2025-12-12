@@ -7,7 +7,7 @@
 using namespace std;
 using namespace downward::utils;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::utils::add_rng_options_to_feature;
 

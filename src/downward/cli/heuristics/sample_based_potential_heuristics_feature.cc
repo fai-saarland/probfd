@@ -28,7 +28,7 @@ using namespace downward::utils;
 using namespace downward::potentials;
 
 using namespace downward::cli::potentials;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 using namespace downward::cli::utils;
 
 namespace {
@@ -118,7 +118,7 @@ InternalFunctionDefinitionBase& add_sample_based_potential_heuristic_to_namespac
 {
     auto& f = nspace.insert_function_definition(
         "sample_based_potentials",
-        &cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             PotentialMaxHeuristicFactory,
             shared_ptr<TaskTransformation>,

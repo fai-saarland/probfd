@@ -16,7 +16,7 @@ using namespace probfd::heuristics;
 
 using namespace probfd::cli::heuristics;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::utils::add_rng_options_to_feature;
 
@@ -27,7 +27,7 @@ add_greedy_zero_one_cost_partitioning_heuristic_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "gzocp_heuristic",
-        &downward::cli::plugins::construct_shared<
+        &construct_shared<
             TaskHeuristicFactory,
             GZOCPHeuristicFactory,
             std::shared_ptr<PatternCollectionGenerator>,

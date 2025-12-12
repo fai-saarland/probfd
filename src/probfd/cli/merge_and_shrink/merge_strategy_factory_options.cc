@@ -5,7 +5,7 @@
 #include "downward/cli/utils/logging_options.h"
 
 using namespace std;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 using namespace downward;
 
 namespace probfd::cli::merge_and_shrink {

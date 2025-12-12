@@ -26,7 +26,7 @@ using namespace probfd::algorithms::lrtdp;
 using namespace probfd::cli;
 using namespace probfd::cli::solvers;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 template <bool Bisimulation, bool Fret>
@@ -140,7 +140,7 @@ protected:
 template <bool Bisimulation>
 class LRTDPFretSolverFeature
     : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
-          const Context&,
+          const language::Context&,
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -183,7 +183,7 @@ public:
 
 protected:
     static std::shared_ptr<TaskSolverFactory> func(
-        const Context& context,
+        const language::Context& context,
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,

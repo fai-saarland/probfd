@@ -31,7 +31,7 @@ using namespace probfd::heuristics;
 using namespace probfd::pdbs;
 using namespace probfd::occupation_measures;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::utils::add_log_options_to_feature;
 

@@ -47,6 +47,7 @@ create_library(
     language/typed_ast/decorated_variable_node
     language/typed_ast/symbol_node
     language/typed_ast/variable_definition
+    language/context
     language/lexical_analyzer
     language/syntax_analyzer
     language/token

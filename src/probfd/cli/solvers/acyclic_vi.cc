@@ -26,7 +26,7 @@ using namespace probfd::algorithms::acyclic_vi;
 
 using namespace probfd::cli::solvers;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 class AcyclicVIWithStatistics : public StatisticalMDPAlgorithm {

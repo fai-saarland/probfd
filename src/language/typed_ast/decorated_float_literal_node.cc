@@ -2,14 +2,14 @@
 
 #include "language/typed_ast/construct_context.h"
 
-#include "downward/utils/logging.h"
+#include "language/context.h"
 
 #include <any>
-#include <ranges>
+#include <print>
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 FloatLiteralNode::FloatLiteralNode(double value)
     : value(value)
@@ -18,11 +18,7 @@ FloatLiteralNode::FloatLiteralNode(double value)
 
 std::any FloatLiteralNode::construct(ConstructContext& context) const
 {
-    utils::TraceBlock block(
-        context,
-        "Constructing float value from '{}'",
-        value);
-
+    TraceBlock block(context, "Constructing float value from '{}'", value);
     return value;
 }
 
@@ -32,4 +28,4 @@ void FloatLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
     std::print(out, "{}", value);
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

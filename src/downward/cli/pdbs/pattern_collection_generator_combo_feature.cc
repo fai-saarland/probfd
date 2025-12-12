@@ -11,7 +11,7 @@ using namespace std;
 using namespace downward::utils;
 using namespace downward::pdbs;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::pdbs::add_generator_options_to_feature;
 
@@ -21,7 +21,7 @@ InternalFunctionDefinitionBase& add_pattern_collection_generator_combo_to_namesp
 {
     auto& f = nspace.insert_function_definition(
         "combo",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             PatternCollectionGenerator,
             PatternCollectionGeneratorCombo,
             int,

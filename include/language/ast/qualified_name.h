@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 struct QualifiedName {
     std::vector<std::string> qualification_prefix;
@@ -18,19 +18,19 @@ struct QualifiedName {
 
 // Formatter specialization for QualifiedName
 template <>
-struct std::formatter<downward::cli::parser::QualifiedName> {
+struct std::formatter<language::parser::QualifiedName> {
     template <typename ParseContext>
     constexpr typename ParseContext::iterator parse(ParseContext& ctx);
 
     template <typename FormatContext>
     typename FormatContext::iterator
-    format(const downward::cli::parser::QualifiedName& name, FormatContext& ctx)
+    format(const language::parser::QualifiedName& name, FormatContext& ctx)
         const;
 };
 
 template <typename ParseContext>
 constexpr typename ParseContext::iterator
-std::formatter<downward::cli::parser::QualifiedName, char>::parse(
+std::formatter<language::parser::QualifiedName, char>::parse(
     ParseContext& ctx)
 {
     return ctx.begin();
@@ -38,8 +38,8 @@ std::formatter<downward::cli::parser::QualifiedName, char>::parse(
 
 template <typename FormatContext>
 typename FormatContext::iterator
-std::formatter<downward::cli::parser::QualifiedName, char>::format(
-    const downward::cli::parser::QualifiedName& name,
+std::formatter<language::parser::QualifiedName, char>::format(
+    const language::parser::QualifiedName& name,
     FormatContext& ctx) const
 {
     if (name.qualification_prefix.empty()) {

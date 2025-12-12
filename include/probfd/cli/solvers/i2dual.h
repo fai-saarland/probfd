@@ -1,14 +1,14 @@
 #ifndef PROBFD_CLI_SOLVERS_I2DUAL_H
 #define PROBFD_CLI_SOLVERS_I2DUAL_H
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 class Registry;
 }
 
 namespace probfd::cli::solvers {
 
 void add_i2dual_feature(
-    downward::cli::plugins::Registry& registry);
+    language::plugins::Registry& registry);
 
 }
 

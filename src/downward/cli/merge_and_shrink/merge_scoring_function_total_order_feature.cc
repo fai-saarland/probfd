@@ -14,7 +14,7 @@ using namespace std;
 using namespace downward::utils;
 using namespace downward::merge_and_shrink;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::utils::add_rng_options_to_feature;
 
@@ -24,7 +24,7 @@ InternalFunctionDefinitionBase& add_merge_scoring_function_total_order_to_namesp
 {
     auto& f = nspace.insert_function_definition(
         "total_order",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             MergeScoringFunction,
             MergeScoringFunctionTotalOrder,
             AtomicTSOrder,

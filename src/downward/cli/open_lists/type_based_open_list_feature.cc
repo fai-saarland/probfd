@@ -15,7 +15,7 @@ using namespace std;
 using namespace downward::utils;
 using namespace downward::type_based_open_list;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::add_open_list_options_to_feature;
 
@@ -29,7 +29,7 @@ add_tiebreaking_open_list_to_namespace(Namespace& nspace, std::string name)
 {
     auto& f = nspace.insert_function_definition(
         std::move(name),
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             downward::TaskDependentFactory<downward::OpenList<T>>,
             TypeBasedOpenListFactory<T>,
             const std::vector<std::shared_ptr<

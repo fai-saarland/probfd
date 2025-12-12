@@ -1,14 +1,14 @@
 #ifndef DOWNWARD_CLI_OPERATOR_COUNTING_LM_CUT_CONSTRAINTS_FEATURE_H
 #define DOWNWARD_CLI_OPERATOR_COUNTING_LM_CUT_CONSTRAINTS_FEATURE_H
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 class Registry;
 }
 
 namespace downward::cli::operator_counting {
 
 void add_lm_cut_constraints_feature(
-    downward::cli::plugins::Registry& registry);
+    language::plugins::Registry& registry);
 
 }
 

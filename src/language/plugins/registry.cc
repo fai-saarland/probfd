@@ -8,7 +8,7 @@
 
 using namespace std;
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 
 bool TypeDeclarationComparator::operator()(
     const InternalTypeDeclarationBase& lhs,
@@ -224,4 +224,4 @@ bool Namespace::has_function(const string& name) const
     return functions_by_name.contains(name);
 }
 
-} // namespace downward::cli::plugins
+} // namespace language::plugins

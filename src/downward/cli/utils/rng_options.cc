@@ -8,7 +8,7 @@ using namespace std;
 
 namespace downward::cli::utils {
 
-void add_rng_type(plugins::Registry& registry)
+void add_rng_type(language::plugins::Registry& registry)
 {
     auto& n = registry.get_global_name_space();
 
@@ -29,14 +29,14 @@ get_seeded_rng(int random_seed)
         random_seed);
 }
 
-void add_default_rng_function(plugins::Registry& registry)
+void add_default_rng_function(language::plugins::Registry& registry)
 {
     auto& n = registry.get_global_name_space();
 
     n.insert_function_definition("get_default_rng", get_default_rng);
 }
 
-void add_seeded_rng_function(plugins::Registry& registry)
+void add_seeded_rng_function(language::plugins::Registry& registry)
 {
     auto& n = registry.get_global_name_space();
 
@@ -44,7 +44,7 @@ void add_seeded_rng_function(plugins::Registry& registry)
 }
 
 std::size_t add_rng_options_to_feature(
-    plugins::InternalFunctionDefinitionBase& feature,
+    language::plugins::InternalFunctionDefinitionBase& feature,
     std::size_t start_index)
 {
     feature.make_optional_argument_with_default(
