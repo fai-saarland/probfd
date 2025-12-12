@@ -16,7 +16,7 @@ using namespace downward;
 using namespace downward::pref_evaluator;
 using namespace downward::utils;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::add_evaluator_options_to_feature;
 
@@ -43,7 +43,7 @@ InternalFunctionDefinitionBase& add_pref_evaluator_feature_to_namespace(Namespac
 {
     auto& f = nspace.insert_function_definition(
         "pref",
-        &cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             PrefEvaluatorFactory,
             std::string,

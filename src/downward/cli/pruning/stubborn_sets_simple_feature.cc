@@ -15,7 +15,7 @@ using namespace downward::utils;
 using namespace downward::stubborn_sets_simple;
 
 using namespace downward::cli;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -23,7 +23,7 @@ InternalFunctionDefinitionBase& add_stubborn_sets_simple_to_namespace(Namespace&
 {
     auto& f = nspace.insert_function_definition(
         "stubborn_sets_simple",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             downward::PruningMethod,
             StubbornSetsSimple,
             Verbosity>);

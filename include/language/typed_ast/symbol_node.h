@@ -5,7 +5,7 @@
 
 #include <string>
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 class SymbolNode : public DecoratedASTNode {
     std::string value;

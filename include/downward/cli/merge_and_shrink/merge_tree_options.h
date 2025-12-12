@@ -3,14 +3,14 @@
 
 #include <cstddef>
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 class InternalFunctionDefinitionBase;
-} // namespace downward::cli::plugins
+} // namespace language::plugins
 
 namespace downward::cli::merge_and_shrink {
 
 std::size_t add_merge_tree_options_to_feature(
-    plugins::InternalFunctionDefinitionBase& feature,
+    language::plugins::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 
 } // namespace downward::cli::merge_and_shrink

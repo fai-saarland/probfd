@@ -4,14 +4,14 @@
 #include <cstddef>
 #include <string>
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 class InternalFunctionDefinitionBase;
-} // namespace downward::cli::plugins
+} // namespace language::plugins
 
 namespace downward::cli::combining_evaluator {
 
 extern std::size_t add_combining_evaluator_options_to_feature(
-    plugins::InternalFunctionDefinitionBase& feature,
+    language::plugins::InternalFunctionDefinitionBase& feature,
     const std::string& description,
     std::size_t start_index);
 

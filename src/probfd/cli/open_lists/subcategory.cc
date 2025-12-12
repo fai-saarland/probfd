@@ -25,7 +25,7 @@ using namespace probfd;
 using namespace probfd::algorithms;
 using namespace probfd::open_lists;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 template <template <typename> typename S, bool Fret>

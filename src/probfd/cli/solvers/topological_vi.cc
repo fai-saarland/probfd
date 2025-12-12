@@ -25,7 +25,7 @@ using namespace probfd::algorithms::topological_vi;
 
 using namespace probfd::cli::solvers;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 class TopologicalVISolver : public StatisticalMDPAlgorithmFactory {

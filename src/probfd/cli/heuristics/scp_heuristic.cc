@@ -18,7 +18,7 @@ using namespace probfd::heuristics;
 
 using namespace probfd::cli::heuristics;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::utils::add_rng_options_to_feature;
 
@@ -29,7 +29,7 @@ add_saturated_cost_partitioning_heuristic_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "scp_heuristic",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskHeuristicFactory,
             SCPHeuristicFactory,
             std::shared_ptr<PatternCollectionGenerator>,

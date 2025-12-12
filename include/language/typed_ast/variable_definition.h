@@ -5,12 +5,12 @@
 #include <string>
 #include <vector>
 
-namespace downward::cli::parser {
+namespace language::parser {
 class DecoratedASTNode;
 class VariableNode;
 }
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 struct VariableDeclaration {
     std::string variable_name;

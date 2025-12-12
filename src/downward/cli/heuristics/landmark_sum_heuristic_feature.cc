@@ -17,7 +17,7 @@ using namespace downward;
 using namespace downward::landmarks;
 using namespace downward::utils;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::landmarks::add_landmark_heuristic_options_to_feature;
 
@@ -77,7 +77,7 @@ InternalFunctionDefinitionBase& add_landmark_sum_heuristic_to_namespace(Namespac
 {
     auto& f = nspace.insert_function_definition(
         "landmark_sum",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             LandmarkSumHeuristicFactory,
             shared_ptr<TaskTransformation>,

@@ -14,7 +14,7 @@ using namespace probfd::heuristics;
 
 using namespace probfd::cli::heuristics;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -22,7 +22,7 @@ InternalFunctionDefinitionBase& add_pattern_database_heuristic_to_namespace(Name
 {
     auto& f = nspace.insert_function_definition(
         "ppdbs",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskHeuristicFactory,
             ProbabilityAwarePDBHeuristicFactory,
             std::shared_ptr<PatternCollectionGenerator>,

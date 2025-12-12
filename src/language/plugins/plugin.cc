@@ -4,7 +4,7 @@
 
 using namespace std;
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 
 ArgumentInfo::ArgumentInfo(const string& key, const string& default_value)
     : key(key)
@@ -234,4 +234,4 @@ const EnumInfo& InternalEnumDeclarationBase::get_enum_info() const
 {
     return enum_info;
 }
-} // namespace downward::cli::plugins
+} // namespace language::plugins

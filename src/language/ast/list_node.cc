@@ -6,14 +6,14 @@
 #include "language/plugins/plugin.h"
 #include "language/plugins/types.h"
 
-#include "downward/utils/logging.h"
+#include "language/context.h"
 
 #include <cassert>
 #include <vector>
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 ListNode::ListNode(vector<ASTNodePtr>&& elements)
     : elements(move(elements))
@@ -37,10 +37,10 @@ get_common_element_type(const std::vector<const plugins::Type*>& types)
 }
 
 TypedDecoratedAstNodePtr
-ListNode::static_analysis(utils::Context& context, VariableEnvironment& env)
+ListNode::static_analysis(Context& context, VariableEnvironment& env)
     const
 {
-    utils::TraceBlock lblock(context, "Checking list");
+    TraceBlock lblock(context, "Checking list");
     vector<DecoratedASTNodePtr> decorated_elements;
     vector<const plugins::Type*> types;
 
@@ -51,7 +51,7 @@ ListNode::static_analysis(utils::Context& context, VariableEnvironment& env)
     }
 
     for (size_t i = 0; i < elements.size(); i++) {
-        utils::TraceBlock block(context, "Checking element {}", i);
+        TraceBlock block(context, "Checking element {}", i);
 
         auto [ast_node, type] = elements[i]->static_analysis(context, env);
         decorated_elements.push_back(move(ast_node));
@@ -89,4 +89,4 @@ ListNode::static_analysis(utils::Context& context, VariableEnvironment& env)
             *common_element_type)};
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

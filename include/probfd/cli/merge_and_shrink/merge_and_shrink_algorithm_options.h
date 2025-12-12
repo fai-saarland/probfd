@@ -3,14 +3,14 @@
 
 #include <cstddef>
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 class InternalFunctionDefinitionBase;
-} // namespace downward::cli::plugins
+} // namespace language::plugins
 
 namespace probfd::cli::merge_and_shrink {
 
 extern std::size_t add_transition_system_size_limit_options_to_feature(
-    downward::cli::plugins::InternalFunctionDefinitionBase& feature,
+    language::plugins::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 
 extern void handle_shrink_limit_options_defaults(

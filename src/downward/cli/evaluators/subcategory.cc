@@ -3,7 +3,7 @@
 #include "language/plugins/plugin.h"
 #include "language/plugins/registry.h"
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 class EvaluatorGroupPlugin : public DocumentationTopic {

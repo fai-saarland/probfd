@@ -30,7 +30,7 @@ using namespace probfd::cli;
 
 using namespace probfd::successor_samplers;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::utils::add_rng_options_to_feature;
 
@@ -49,7 +49,7 @@ InternalFunctionDefinitionBase& add_arbitrary_successor_sampler_to_namespace(Nam
 {
     auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<false, Fret>("arbitrary_successor_sampler"),
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             SuccessorSampler<Fret>,
             Wrapper<ArbitrarySuccessorSampler, Fret>>);
 
@@ -61,7 +61,7 @@ InternalFunctionDefinitionBase& add_most_likely_successor_sampler_to_namespace(N
 {
     auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<false, Fret>("most_likely_successor_Sampler"),
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             SuccessorSampler<Fret>,
             Wrapper<MostLikelySuccessorSampler, Fret>>);
 
@@ -73,7 +73,7 @@ InternalFunctionDefinitionBase& add_uniform_successor_sampler_to_namespace(Names
 {
     auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<false, Fret>("uniform_random_successor_sampler"),
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             SuccessorSampler<Fret>,
             Wrapper<UniformSuccessorSampler, Fret>,
             std::shared_ptr<RandomNumberGenerator>>);
@@ -88,7 +88,7 @@ InternalFunctionDefinitionBase& add_random_successor_sampler_to_namespace(Namesp
 {
     auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<false, Fret>("random_successor_sampler"),
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             SuccessorSampler<Fret>,
             Wrapper<RandomSuccessorSampler, Fret>,
             int>);
@@ -103,7 +103,7 @@ InternalFunctionDefinitionBase& add_vbiased_successor_sampler_to_namespace(Names
 {
     auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<false, Fret>("vbiased_successor_sampler"),
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             SuccessorSampler<Fret>,
             Wrapper<VBiasedSuccessorSampler, Fret>,
             int>);
@@ -118,7 +118,7 @@ InternalFunctionDefinitionBase& add_vdiff_successor_sampler_to_namespace(Namespa
 {
     auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<false, Fret>("value_gap_successor_sampler"),
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             SuccessorSampler<Fret>,
             Wrapper<VDiffSuccessorSampler, Fret>,
             int,

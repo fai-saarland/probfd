@@ -6,7 +6,7 @@
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 VariableDeclaration::VariableDeclaration(std::string variable_name)
     : variable_name(std::move(variable_name))
@@ -47,4 +47,4 @@ VariableDefinition::~VariableDefinition() = default;
 VariableDefinition&
 VariableDefinition::operator=(VariableDefinition&& other) noexcept = default;
 
-} // namespace downward::cli::parser
+} // namespace language::parser

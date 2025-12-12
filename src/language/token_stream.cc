@@ -1,16 +1,16 @@
 #include "language/token_stream.h"
 
+#include "language/context.h"
 #include "language/token.h"
 
 #include "downward/utils/collections.h"
-#include "downward/utils/logging.h"
 #include "downward/utils/system.h"
 
 #include <cassert>
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 TokenStream::TokenStream(vector<Token>&& tokens)
     : tokens(move(tokens))
@@ -29,10 +29,10 @@ TokenStream::~TokenStream() = default;
 bool TokenStream::has_tokens(int n) const
 {
     assert(n > 0);
-    return utils::in_bounds(pos + n - 1, tokens);
+    return downward::utils::in_bounds(pos + n - 1, tokens);
 }
 
-Token TokenStream::peek(const utils::Context& context, int n) const
+Token TokenStream::peek(const Context& context, int n) const
 {
     if (!has_tokens(n + 1)) {
         context.error(
@@ -43,13 +43,13 @@ Token TokenStream::peek(const utils::Context& context, int n) const
     return tokens[pos + n];
 }
 
-Token TokenStream::pop(const utils::Context& context)
+Token TokenStream::pop(const Context& context)
 {
     if (!has_tokens(1)) { context.error("Input stream exhausted."); }
     return tokens[pos++];
 }
 
-Token TokenStream::pop(const utils::Context& context, TokenType expected_type)
+Token TokenStream::pop(const Context& context, TokenType expected_type)
 {
     if (!has_tokens(1)) {
         context.error(
@@ -88,4 +88,4 @@ string TokenStream::str(int from, int to) const
         subrange | std::views::transform(&Token::content));
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

@@ -31,7 +31,7 @@ using namespace probfd::policy_pickers;
 
 using namespace probfd::cli;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::utils::add_rng_options_to_feature;
 
@@ -62,7 +62,7 @@ InternalFunctionDefinitionBase& add_arbitrary_policy_picker_to_namespace(Namespa
     auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<Bisimulation, Fret>(
             "arbitrary_policy_tiebreaker"),
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             PolicyPicker<Bisimulation, Fret>,
             Wrapper<ArbitraryTiebreaker, Bisimulation, Fret>,
             bool>);
@@ -76,7 +76,7 @@ InternalFunctionDefinitionBase& add_operator_id_policy_picker_to_namespace(Names
 {
     auto& f = nspace.insert_function_definition(
         "operator_id_policy_tiebreaker",
-        &downward::cli::plugins::
+        &language::plugins::
             construct_shared<FDRPolicyPicker, OperatorIdTiebreaker, bool, bool>);
 
     f.make_optional_argument_with_default(0, "stable_policy", "true");
@@ -90,7 +90,7 @@ InternalFunctionDefinitionBase& add_random_tiebreaker_policy_picker_to_namespace
 {
     auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<Bisimulation, Fret>("random_policy_tiebreaker"),
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             PolicyPicker<Bisimulation, Fret>,
             Wrapper<RandomTiebreaker, Bisimulation, Fret>,
             bool,
@@ -108,7 +108,7 @@ InternalFunctionDefinitionBase& add_value_gap_policy_picker_to_namespace(Namespa
     auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<Bisimulation, Fret>(
             "value_gap_policy_tiebreaker"),
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             PolicyPicker<Bisimulation, Fret>,
             Wrapper<VDiffTiebreaker, Bisimulation, Fret>,
             bool,

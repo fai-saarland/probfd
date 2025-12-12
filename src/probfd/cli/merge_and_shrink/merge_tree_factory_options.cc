@@ -8,7 +8,7 @@
 #include "downward/cli/utils/rng_options.h"
 
 using namespace std;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 using namespace probfd::merge_and_shrink;
 
 namespace probfd::cli::merge_and_shrink {

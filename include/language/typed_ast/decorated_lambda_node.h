@@ -9,11 +9,11 @@
 #include <memory>
 #include <vector>
 
-namespace downward::cli::parser {
+namespace language::parser {
 struct VariableDeclaration;
 }
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 class DecoratedLambdaNode : public DecoratedASTNode {
     const plugins::FunctionType& type;

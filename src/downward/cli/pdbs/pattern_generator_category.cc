@@ -7,7 +7,7 @@
 
 using namespace downward::pdbs;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace downward::cli::pdbs {
 

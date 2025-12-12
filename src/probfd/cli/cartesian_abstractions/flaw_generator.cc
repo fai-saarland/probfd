@@ -5,7 +5,7 @@
 
 #include "probfd/cartesian_abstractions/flaw_generator.h"
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using namespace probfd::cartesian_abstractions;
 

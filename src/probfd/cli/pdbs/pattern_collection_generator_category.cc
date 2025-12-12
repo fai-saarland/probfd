@@ -7,7 +7,7 @@
 
 using namespace probfd::pdbs;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace probfd::cli::pdbs {
 

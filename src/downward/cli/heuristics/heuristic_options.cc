@@ -13,7 +13,7 @@ using namespace std;
 namespace downward::cli {
 
 std::size_t add_heuristic_options_to_feature(
-    plugins::InternalFunctionDefinitionBase& feature,
+    language::plugins::InternalFunctionDefinitionBase& feature,
     const string& description,
     std::size_t start_index)
 {

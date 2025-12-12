@@ -3,11 +3,11 @@
 
 #include <string>
 
-namespace downward::cli::parser {
+namespace language::parser {
 class TokenStream;
 }
 
-namespace downward::cli::parser {
+namespace language::parser {
 extern TokenStream split_tokens(const std::string& text);
 } // namespace downward::cli::parser
 #endif

@@ -3,14 +3,14 @@
 
 #include <cstddef>
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 class InternalFunctionDefinitionBase;
-} // namespace downward::cli::plugins
+} // namespace language::plugins
 
 namespace probfd::cli::pdbs {
 
 extern std::size_t add_pattern_generator_options_to_feature(
-    downward::cli::plugins::InternalFunctionDefinitionBase& feature,
+    language::plugins::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 
 } // namespace probfd::cli::pdbs

@@ -16,7 +16,7 @@
 
 using namespace std;
 using namespace downward;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 using namespace probfd::merge_and_shrink;
 
 namespace {
@@ -25,7 +25,7 @@ InternalFunctionDefinitionBase& add_shrink_strategy_bisimulation_to_namespace(Na
 {
     auto& f = nspace.insert_function_definition(
         "pshrink_bisimulation",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             ShrinkStrategy,
             ShrinkStrategyBisimulation,
             ShrinkStrategyBisimulation::AtLimit,

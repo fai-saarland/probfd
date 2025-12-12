@@ -8,7 +8,7 @@
 #include <memory>
 #include <string>
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 class UnaryNode : public ASTNode {
     ASTNodePtr nested_expr;
@@ -18,10 +18,10 @@ public:
     UnaryNode(ASTNodePtr nested_expr, const TokenType& token_type);
 
     TypedDecoratedAstNodePtr
-    static_analysis(utils::Context& context, VariableEnvironment& env)
+    static_analysis(Context& context, VariableEnvironment& env)
         const override;
 };
 
-} // namespace downward::cli::parser
+} // namespace language::parser
 
 #endif

@@ -25,7 +25,7 @@ using namespace probfd;
 using namespace probfd::heuristics;
 using namespace probfd::merge_and_shrink;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 using namespace probfd::cli::heuristics;
 using namespace probfd::cli::merge_and_shrink;
 

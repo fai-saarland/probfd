@@ -16,7 +16,7 @@ using namespace downward;
 using namespace downward::landmarks;
 using namespace downward::utils;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::landmarks::add_use_orders_option_to_feature;
 
@@ -28,7 +28,7 @@ InternalFunctionDefinitionBase& add_landmark_factory_hm_to_namespace(Namespace& 
 {
     auto& f = nspace.insert_function_definition(
         "lm_hm",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             LandmarkFactory,
             LandmarkFactoryHM,
             std::shared_ptr<TaskDependentFactory<MutexInformation>>,

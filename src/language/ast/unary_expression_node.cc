@@ -4,11 +4,11 @@
 
 #include "language/plugins/types.h"
 
-#include "downward/utils/logging.h"
+#include "language/context.h"
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 UnaryNode::UnaryNode(ASTNodePtr nested_expr, const TokenType& token_type)
     : nested_expr(std::move(nested_expr))
@@ -17,7 +17,7 @@ UnaryNode::UnaryNode(ASTNodePtr nested_expr, const TokenType& token_type)
 }
 
 TypedDecoratedAstNodePtr
-UnaryNode::static_analysis(utils::Context& context, VariableEnvironment& env)
+UnaryNode::static_analysis(Context& context, VariableEnvironment& env)
     const
 {
     auto [ast_node, type] = nested_expr->static_analysis(context, env);
@@ -42,4 +42,4 @@ UnaryNode::static_analysis(utils::Context& context, VariableEnvironment& env)
         "Operator of unary arithmetic expression is not of numeric type.");
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

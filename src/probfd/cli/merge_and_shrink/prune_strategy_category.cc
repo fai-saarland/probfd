@@ -6,7 +6,7 @@
 #include "probfd/merge_and_shrink/prune_strategy.h"
 
 using namespace probfd::merge_and_shrink;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace probfd::cli::merge_and_shrink {
 

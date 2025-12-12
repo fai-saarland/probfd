@@ -9,7 +9,7 @@ using namespace std;
 using namespace downward::utils;
 using namespace downward::merge_and_shrink;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -17,7 +17,7 @@ InternalFunctionDefinitionBase& add_merge_selector_score_based_filtering_to_name
 {
     auto& f = nspace.insert_function_definition(
         "score_based_filtering",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             MergeSelector,
             MergeSelectorScoreBasedFiltering,
             const std::vector<std::shared_ptr<MergeScoringFunction>>&>);

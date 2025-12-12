@@ -5,7 +5,7 @@
 
 #include "probfd/merge_and_shrink/merge_strategy_factory.h"
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 using namespace probfd::merge_and_shrink;
 
 namespace probfd::cli::merge_and_shrink {

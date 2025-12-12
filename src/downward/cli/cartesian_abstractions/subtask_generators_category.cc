@@ -7,7 +7,7 @@
 
 using namespace downward::cartesian_abstractions;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace downward::cli::cartesian_abstractions {
 

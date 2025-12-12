@@ -7,7 +7,7 @@
 
 using namespace probfd::occupation_measures;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace probfd::cli::occupation_measures {
 

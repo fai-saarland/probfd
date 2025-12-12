@@ -11,7 +11,7 @@ using namespace utils;
 using namespace probfd;
 using namespace probfd::heuristics;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -19,7 +19,7 @@ InternalFunctionDefinitionBase& add_blind_heuristic_to_namespace(Namespace& nspa
 {
     auto& f = nspace.insert_function_definition(
         "blind_heuristic",
-        &downward::cli::plugins::
+        &language::plugins::
             construct_shared<TaskHeuristicFactory, BlindHeuristicFactory>);
 
     f.document_title("Blind Heuristic");

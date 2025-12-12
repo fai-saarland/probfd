@@ -19,7 +19,7 @@ using namespace downward::cartesian_abstractions;
 using namespace downward::utils;
 
 using namespace downward::cli;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::utils::add_rng_options_to_feature;
 
@@ -29,7 +29,7 @@ void add_task_duplicator_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "original",
-        &plugins::construct_shared<SubtaskGenerator, TaskDuplicator, int>);
+        &construct_shared<SubtaskGenerator, TaskDuplicator, int>);
     f.make_optional_argument_with_default(
         0,
         "copies",
@@ -41,7 +41,7 @@ void add_goal_decomposition_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "goals",
-        &plugins::construct_shared<
+        &construct_shared<
             SubtaskGenerator,
             GoalDecomposition,
             FactOrder,
@@ -59,7 +59,7 @@ void add_landmark_decomposition_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "landmarks",
-        &plugins::construct_shared<
+        &construct_shared<
             SubtaskGenerator,
             LandmarkDecomposition,
             std::shared_ptr<TaskDependentFactory<MutexInformation>>,

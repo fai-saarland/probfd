@@ -12,7 +12,7 @@
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 DecoratedLetNode::DecoratedLetNode(
     std::vector<VariableDefinition> decorated_variable_definitions,
@@ -56,10 +56,10 @@ void DecoratedLetNode::remove_variable_usages()
 
 std::any DecoratedLetNode::construct(ConstructContext& context) const
 {
-    utils::TraceBlock lblock(context, "Constructing let-expression");
+    TraceBlock lblock(context, "Constructing let-expression");
 
     for (const auto& def : decorated_variable_definitions) {
-        utils::TraceBlock block(
+        TraceBlock block(
             context,
             "Constructing variable '{}'",
             def.variable_name);
@@ -70,7 +70,7 @@ std::any DecoratedLetNode::construct(ConstructContext& context) const
     }
 
     std::any result = [&] {
-        utils::TraceBlock block(context, "Constructing nested value");
+        TraceBlock block(context, "Constructing nested value");
         return nested_value->construct(context);
     }();
 
@@ -110,4 +110,4 @@ void DecoratedLetNode::print(
     nested_value->print(out, indent + 4, print_default_args);
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

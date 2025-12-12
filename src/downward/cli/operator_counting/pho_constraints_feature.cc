@@ -12,7 +12,7 @@ using namespace downward::pdbs;
 using namespace downward::utils;
 using namespace downward::operator_counting;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -20,7 +20,7 @@ InternalFunctionDefinitionBase& add_pho_constraints_to_namespace(Namespace& nspa
 {
     auto& f = nspace.insert_function_definition(
         "pho_constraints",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             ConstraintGenerator,
             PhOConstraints,
             const std::shared_ptr<

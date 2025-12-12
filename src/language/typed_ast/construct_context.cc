@@ -2,7 +2,7 @@
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 void ConstructContext::set_variable(const string& name, const std::any& value)
 {
@@ -25,4 +25,4 @@ std::any ConstructContext::get_variable(const string& name) const
     return variable;
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

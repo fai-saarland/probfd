@@ -23,7 +23,7 @@ using namespace downward;
 using namespace downward::utils;
 using namespace downward::potentials;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 using namespace downward::cli::potentials;
 using namespace downward::cli::utils;
 
@@ -102,7 +102,7 @@ InternalFunctionDefinitionBase& add_diverse_potential_max_heuristic_to_namespace
 {
     auto& f = nspace.insert_function_definition(
         "diverse_potentials",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             DiversePotentialMaxHeuristicFactory,
             shared_ptr<TaskTransformation>,

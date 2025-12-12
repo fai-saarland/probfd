@@ -2,13 +2,13 @@
 
 #include "language/typed_ast/construct_context.h"
 
-#include "downward/utils/logging.h"
+#include "language/context.h"
 
-#include <ranges>
+#include <print>
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 StringLiteralNode::StringLiteralNode(const string& value)
     : value(value)
@@ -17,7 +17,7 @@ StringLiteralNode::StringLiteralNode(const string& value)
 
 std::any StringLiteralNode::construct(ConstructContext& context) const
 {
-    utils::TraceBlock block(
+    TraceBlock block(
         context,
         "Constructing string value from '{}'",
         value);
@@ -30,4 +30,4 @@ void StringLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
     std::print(out, "{:>{}?}", value, indent + value.size());
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

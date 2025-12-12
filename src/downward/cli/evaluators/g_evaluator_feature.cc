@@ -17,7 +17,7 @@ using namespace downward::utils;
 using namespace downward::g_evaluator;
 
 using namespace downward::cli;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -42,7 +42,7 @@ InternalFunctionDefinitionBase& add_g_evaluator_feature_to_namespace(Namespace& 
 {
     auto& f = nspace.insert_function_definition(
         "g",
-        &cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             GEvaluatorFactory,
             std::string,

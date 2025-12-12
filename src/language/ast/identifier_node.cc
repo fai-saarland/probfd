@@ -11,14 +11,15 @@
 #include "language/plugins/registry.h"
 #include "language/plugins/types.h"
 
-#include "downward/utils/logging.h"
+#include "language/context.h"
+
 #include "downward/utils/strings.h"
 
 #include <vector>
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 IdentifierNode::IdentifierNode(QualifiedName qualified_name)
     : qualified_name(std::move(qualified_name))
@@ -26,10 +27,10 @@ IdentifierNode::IdentifierNode(QualifiedName qualified_name)
 }
 
 TypedDecoratedAstNodePtr IdentifierNode::static_analysis(
-    utils::Context& context,
+    Context& context,
     VariableEnvironment& env) const
 {
-    utils::TraceBlock block(context, "Checking Identifier: {}", qualified_name);
+    TraceBlock block(context, "Checking Identifier: {}", qualified_name);
 
     const auto& [qualification, name] = qualified_name;
 
@@ -50,7 +51,7 @@ TypedDecoratedAstNodePtr IdentifierNode::static_analysis(
     if (!qualification.empty()) {
         context.error(
             "Undefined variable {}.{}",
-            utils::join_view(qualification, "."),
+            downward::utils::join_view(qualification, "."),
             name);
     }
 
@@ -64,4 +65,4 @@ const QualifiedName& IdentifierNode::get_name() const
     return qualified_name;
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

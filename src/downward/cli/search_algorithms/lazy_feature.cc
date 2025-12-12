@@ -13,7 +13,7 @@
 using namespace std;
 using namespace downward;
 using namespace downward::lazy_search;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::add_search_algorithm_options_to_feature;
 using downward::cli::add_successors_order_options_to_feature;
@@ -88,7 +88,7 @@ InternalFunctionDefinitionBase& add_lazy_search_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "lazy",
-        &cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskDependentFactory<SearchAlgorithm>,
             LazySearchFactory,
             OperatorCost,

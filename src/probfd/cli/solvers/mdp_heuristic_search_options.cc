@@ -15,7 +15,7 @@
 #include <type_traits>
 #include <utility>
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace probfd::cli::solvers {
 

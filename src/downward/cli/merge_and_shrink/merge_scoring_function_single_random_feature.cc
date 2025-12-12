@@ -13,7 +13,7 @@ using namespace std;
 using namespace downward::merge_and_shrink;
 using namespace downward::utils;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::utils::add_rng_options_to_feature;
 
@@ -24,7 +24,7 @@ add_merge_scoring_function_single_random_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "single_random",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             MergeScoringFunction,
             MergeScoringFunctionSingleRandom,
             std::shared_ptr<RandomNumberGenerator>>);

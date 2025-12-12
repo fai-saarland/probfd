@@ -2,7 +2,7 @@
 
 #include "language/plugins/types.h"
 
-#include "downward/utils/logging.h"
+#include "language/context.h"
 
 #ifdef _MSC_VER
 // Disable "no return value" error, which is emitted despite Context::error
@@ -12,7 +12,7 @@
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 TypeIdentifierNode::TypeIdentifierNode(QualifiedName name)
     : name(std::move(name))
@@ -20,10 +20,10 @@ TypeIdentifierNode::TypeIdentifierNode(QualifiedName name)
 }
 
 const plugins::Type&
-TypeIdentifierNode::get_type(utils::Context& context, plugins::TypeRegistry&)
+TypeIdentifierNode::get_type(Context& context, plugins::TypeRegistry&)
     const
 {
     context.error("Static analysis for type identifiers not implemented.");
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

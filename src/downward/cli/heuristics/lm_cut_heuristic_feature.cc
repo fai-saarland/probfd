@@ -17,7 +17,7 @@ using namespace downward;
 using namespace downward::lm_cut_heuristic;
 using namespace downward::utils;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::add_heuristic_options_to_feature;
 
@@ -57,7 +57,7 @@ InternalFunctionDefinitionBase& add_landmark_cut_heuristic_to_namespace(Namespac
 {
     auto& f = nspace.insert_function_definition(
         "lmcut",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             LMCutHeuristicFactory,
             shared_ptr<TaskTransformation>,

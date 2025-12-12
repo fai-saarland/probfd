@@ -9,13 +9,13 @@
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 static string case_insensitive_to_lower(const string& content, TokenType type)
 {
     if (type == TokenType::TRUE || type == TokenType::FALSE ||
         type == TokenType::INTEGER || type == TokenType::FLOAT ||
         type == TokenType::IDENTIFIER) {
-        return utils::tolower(content);
+        return downward::utils::tolower(content);
     } else {
         return content;
     }
@@ -54,7 +54,7 @@ string token_type_name(TokenType token_type)
     case TokenType::TYPE_STRING: return "string";
     case TokenType::TYPE_INTEGER: return "int";
     case TokenType::TYPE_FLOAT: return "float";
-    default: throw utils::CriticalError("Unknown token type.");
+    default: throw downward::utils::CriticalError("Unknown token type.");
     }
 }
 
@@ -69,4 +69,4 @@ ostream& operator<<(ostream& out, const Token& token)
     out << "<Type: '" << token.type << "', Value: '" << token.content << "'>";
     return out;
 }
-} // namespace downward::cli::parser
+} // namespace language::parser

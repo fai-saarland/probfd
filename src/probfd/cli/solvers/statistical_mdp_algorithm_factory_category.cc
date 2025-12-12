@@ -7,7 +7,7 @@
 
 using namespace probfd::solvers;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace probfd::cli::solvers {
 

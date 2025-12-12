@@ -11,7 +11,7 @@ using namespace std;
 using namespace downward::utils;
 using namespace downward::operator_counting;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -19,7 +19,7 @@ InternalFunctionDefinitionBase& add_delete_relaxation_rr_constraints_to_namespac
 {
     auto& f = nspace.insert_function_definition(
         "lmcut_constraints",
-        &downward::cli::plugins::
+        &language::plugins::
             construct_shared<ConstraintGenerator, LMCutConstraints>);
     f.document_title("LM-cut landmark constraints");
     f.document_synopsis(

@@ -14,7 +14,7 @@ using namespace std;
 using namespace downward::utils;
 using namespace downward::operator_counting;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::utils::add_log_options_to_feature;
 
@@ -24,7 +24,7 @@ InternalFunctionDefinitionBase& add_state_equation_constraints_to_namespace(Name
 {
     auto& f = nspace.insert_function_definition(
         "state_equation_constraints",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             ConstraintGenerator,
             StateEquationConstraints,
             downward::utils::Verbosity>);

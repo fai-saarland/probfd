@@ -5,7 +5,7 @@
 
 #include "language/ast/qualified_name.h"
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 class TypeIdentifierNode : public TypeNode {
     QualifiedName name;
@@ -14,7 +14,7 @@ public:
     explicit TypeIdentifierNode(QualifiedName name);
 
     const plugins::Type&
-    get_type(utils::Context& context, plugins::TypeRegistry& type_registry)
+    get_type(Context& context, plugins::TypeRegistry& type_registry)
         const override;
 };
 

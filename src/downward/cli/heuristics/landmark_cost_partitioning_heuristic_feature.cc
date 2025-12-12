@@ -18,7 +18,7 @@ using namespace std;
 using namespace downward;
 using namespace downward::landmarks;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::landmarks::add_landmark_heuristic_options_to_feature;
 
@@ -93,7 +93,7 @@ InternalFunctionDefinitionBase& add_landmarkcost_partitioning_heuristic_to_names
 {
     auto& f = nspace.insert_function_definition(
         "landmark_cost_partitioning",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             LandmarkCostPartitioningHeuristicFactory,
             shared_ptr<TaskTransformation>,

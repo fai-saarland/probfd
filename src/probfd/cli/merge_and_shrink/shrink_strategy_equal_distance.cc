@@ -13,7 +13,7 @@
 
 using namespace std;
 using namespace downward;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
 
@@ -23,7 +23,7 @@ InternalFunctionDefinitionBase& add_shrink_strategy_equal_distance_to_namespace(
 {
     auto& f = nspace.insert_function_definition(
         "shrink_equal_distance",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             ShrinkStrategy,
             ShrinkStrategyEqualDistance,
             std::shared_ptr<utils::RandomNumberGenerator>,

@@ -19,8 +19,8 @@
 #include <vector>
 
 using namespace std;
-using namespace downward::cli::parser;
-using namespace downward::cli::plugins;
+using namespace language::parser;
+using namespace language::plugins;
 
 using downward::utils::ExitCode;
 

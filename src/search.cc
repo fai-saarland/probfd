@@ -45,8 +45,8 @@
 
 using namespace std;
 using namespace downward::utils;
-using namespace downward::cli::parser;
-using namespace downward::cli::plugins;
+using namespace language::parser;
+using namespace language::plugins;
 
 using downward::utils::ExitCode;
 
@@ -173,7 +173,7 @@ static int search(argparse::ArgumentParser& parser)
             std::println(std::cerr, "{}", e.what());
             throw;
         }
-    } catch (const downward::utils::ContextError&) {
+    } catch (const language::ContextError&) {
         exitcode = ExitCode::SEARCH_INPUT_ERROR;
     } catch (const downward::utils::InputError&) {
         exitcode = ExitCode::SEARCH_INPUT_ERROR;

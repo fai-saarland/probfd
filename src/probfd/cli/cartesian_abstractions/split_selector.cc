@@ -10,7 +10,7 @@
 using namespace downward;
 using namespace downward::utils;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using namespace probfd::cartesian_abstractions;
 
@@ -22,7 +22,7 @@ InternalFunctionDefinitionBase& add_split_selector_random_to_namespace(Namespace
 {
     auto& f = nspace.insert_function_definition(
         "random",
-        &cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             SplitSelectorFactory,
             SplitSelectorRandomFactory,
             std::shared_ptr<RandomNumberGenerator>>);
@@ -39,7 +39,7 @@ InternalFunctionDefinitionBase& add_split_selector_min_unwanted_to_namespace(Nam
 {
     auto& f = nspace.insert_function_definition(
         "min_unwanted",
-        &cli::plugins::
+        &language::plugins::
             construct_shared<SplitSelectorFactory, SplitSelectorMinUnwantedFactory>);
 
     f.document_synopsis(
@@ -54,7 +54,7 @@ InternalFunctionDefinitionBase& add_split_selector_max_unwanted_to_namespace(Nam
 {
     auto& f = nspace.insert_function_definition(
         "max_unwanted",
-        &cli::plugins::
+        &language::plugins::
             construct_shared<SplitSelectorFactory, SplitSelectorMaxUnwantedFactory>);
 
     f.document_synopsis(
@@ -69,7 +69,7 @@ InternalFunctionDefinitionBase& add_split_selector_min_refined_to_namespace(Name
 {
     auto& f = nspace.insert_function_definition(
         "min_refined",
-        &cli::plugins::
+        &language::plugins::
             construct_shared<SplitSelectorFactory, SplitSelectorMinRefinedFactory>);
 
     f.document_synopsis(
@@ -84,7 +84,7 @@ InternalFunctionDefinitionBase& add_split_selector_max_refined_to_namespace(Name
 {
     auto& f = nspace.insert_function_definition(
         "max_refined",
-        &cli::plugins::
+        &language::plugins::
             construct_shared<SplitSelectorFactory, SplitSelectorMaxRefinedFactory>);
 
     f.document_synopsis(
@@ -99,7 +99,7 @@ InternalFunctionDefinitionBase& add_split_selector_min_hadd_to_namespace(Namespa
 {
     auto& f = nspace.insert_function_definition(
         "min_hadd",
-        &cli::plugins::
+        &language::plugins::
             construct_shared<SplitSelectorFactory, SplitSelectorMinHAddFactory>);
 
     f.document_synopsis(
@@ -113,7 +113,7 @@ InternalFunctionDefinitionBase& add_split_selector_max_hadd_to_namespace(Namespa
 {
     auto& f = nspace.insert_function_definition(
         "max_hadd",
-        &cli::plugins::
+        &language::plugins::
             construct_shared<SplitSelectorFactory, SplitSelectorMaxHAddFactory>);
 
     f.document_synopsis(

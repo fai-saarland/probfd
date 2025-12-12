@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 enum class TokenType {
     OPENING_PARENTHESIS,
@@ -49,7 +49,7 @@ extern std::ostream& operator<<(std::ostream& out, const Token& token);
 namespace std {
 
 template <>
-struct formatter<downward::cli::parser::TokenType> {
+struct formatter<language::parser::TokenType> {
     template <typename ParseContext>
     constexpr auto parse(ParseContext& ctx)
     {
@@ -58,14 +58,14 @@ struct formatter<downward::cli::parser::TokenType> {
 
     template <typename FormatContext>
     auto
-    format(const downward::cli::parser::TokenType& t, FormatContext& ctx) const
+    format(const language::parser::TokenType& t, FormatContext& ctx) const
     {
         return std::format_to(ctx.out(), "{}", token_type_name(t));
     }
 };
 
 template <>
-struct formatter<downward::cli::parser::Token> {
+struct formatter<language::parser::Token> {
     bool text = false;
 
     template <typename ParseContext>
@@ -86,7 +86,7 @@ struct formatter<downward::cli::parser::Token> {
 
     template <typename FormatContext>
     auto
-    format(const downward::cli::parser::Token& token, FormatContext& ctx) const
+    format(const language::parser::Token& token, FormatContext& ctx) const
     {
         if (text) { return std::format_to(ctx.out(), "{}", token.content); }
 

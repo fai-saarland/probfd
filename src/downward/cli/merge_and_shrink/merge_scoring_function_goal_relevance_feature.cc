@@ -9,7 +9,7 @@ using namespace std;
 using namespace downward::merge_and_shrink;
 using namespace downward::utils;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -18,7 +18,7 @@ add_merge_scoring_function_goal_relevance_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "goal_relevance",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             MergeScoringFunction,
             MergeScoringFunctionGoalRelevance>);
     f.document_title("Goal relevance scoring");

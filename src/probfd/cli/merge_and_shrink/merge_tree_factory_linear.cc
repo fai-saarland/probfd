@@ -14,7 +14,7 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 using namespace downward;
 using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
@@ -25,7 +25,7 @@ InternalFunctionDefinitionBase& add_merge_strategy_linear_to_namespace(Namespace
 {
     auto& f = nspace.insert_function_definition(
         "plinear",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             MergeTreeFactory,
             MergeTreeFactoryLinear,
             std::shared_ptr<utils::RandomNumberGenerator>,

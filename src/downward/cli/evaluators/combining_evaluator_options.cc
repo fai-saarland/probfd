@@ -6,7 +6,7 @@
 
 using namespace std;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace downward::cli::combining_evaluator {
 

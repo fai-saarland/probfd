@@ -10,7 +10,7 @@
 using namespace std;
 using namespace downward::merge_and_shrink;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace downward::cli::merge_and_shrink {
 

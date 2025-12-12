@@ -16,7 +16,7 @@ using namespace downward;
 using namespace downward::utils;
 using namespace downward::sum_evaluator;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::combining_evaluator::
     add_combining_evaluator_options_to_feature;
@@ -61,7 +61,7 @@ InternalFunctionDefinitionBase& add_sum_evaluator_feature_to_namespace(Namespace
 {
     auto& f = nspace.insert_function_definition(
         "sum",
-        &cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             SumEvaluatorFactory,
             std::string,

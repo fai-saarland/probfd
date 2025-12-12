@@ -1,14 +1,13 @@
 #ifndef PROBFD_CLI_SOLVERS_ACYCLIC_VI_H
 #define PROBFD_CLI_SOLVERS_ACYCLIC_VI_H
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 class Registry;
 }
 
 namespace probfd::cli::solvers {
 
-void add_acyclic_value_iteration_feature(
-    downward::cli::plugins::Registry& registry);
+void add_acyclic_value_iteration_feature(language::plugins::Registry& registry);
 
 }
 

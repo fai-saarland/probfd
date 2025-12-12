@@ -12,9 +12,9 @@ using namespace std;
 
 namespace downward::cli::mutexes {
 
-void add_mutex_factory_category(plugins::Registry& registry)
+void add_mutex_factory_category(language::plugins::Registry& registry)
 {
-    plugins::Namespace& n = registry.get_global_name_space();
+    language::plugins::Namespace& n = registry.get_global_name_space();
     n.insert_shared_type_declaration<TaskDependentFactory<MutexInformation>>(
         "MutexFactory",
         "A mutex factory computes mutually exclusive facts for a given "

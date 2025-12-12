@@ -5,16 +5,16 @@
 #include <string>
 #include <unordered_map>
 
-namespace downward::utils {
+namespace language {
 class Context;
-} // namespace downward::cli::plugins
+} // namespace downward::utils
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 class Registry;
 class Type;
-} // namespace downward::cli::plugins
+} // namespace language::plugins
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 struct VariableDeclaration;
 
@@ -34,8 +34,9 @@ public:
 
     std::unique_ptr<Scope>& get_parent();
 
-    void
-    insert(utils::Context& context, std::pair<std::string, TypedDeclaration> pair);
+    void insert(
+        Context& context,
+        std::pair<std::string, TypedDeclaration> pair);
 
     bool insert(std::pair<std::string, TypedDeclaration> pair);
 
@@ -43,7 +44,8 @@ public:
 
     TypedDeclaration* get_typed_declaration(const std::string& name);
 
-    const TypedDeclaration* get_typed_declaration(const std::string& name) const;
+    const TypedDeclaration*
+    get_typed_declaration(const std::string& name) const;
 
     const plugins::Type& get_variable_type(const std::string& name);
 
@@ -58,7 +60,7 @@ public:
     explicit VariableEnvironment(const plugins::Registry& registry);
 
     void add_variable(
-        utils::Context& context,
+        Context& context,
         const std::string& name,
         const plugins::Type& type,
         VariableDeclaration& declaration);
@@ -81,6 +83,6 @@ public:
     const plugins::Registry& get_registry() const;
 };
 
-} // namespace downward::cli::parser
+} // namespace language::parser
 
 #endif

@@ -14,7 +14,7 @@
 
 using namespace std;
 using namespace downward;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using utils::ExitCode;
 
@@ -26,7 +26,7 @@ InternalFunctionDefinitionBase& add_exact_label_reduction_to_namespace(Namespace
 {
     auto& f = nspace.insert_function_definition(
         "pexact",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             LabelReduction,
             LabelReduction,
             bool,

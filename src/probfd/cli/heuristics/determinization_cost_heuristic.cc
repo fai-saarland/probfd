@@ -13,7 +13,7 @@ using namespace utils;
 using namespace probfd;
 using namespace probfd::heuristics;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -21,7 +21,7 @@ InternalFunctionDefinitionBase& add_determinization_heuristic_to_namespace(Names
 {
     auto& f = nspace.insert_function_definition(
         "det",
-        &downward::cli::plugins::construct_shared<
+        &construct_shared<
             TaskHeuristicFactory,
             DeterminizationCostHeuristicFactory,
             std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>);

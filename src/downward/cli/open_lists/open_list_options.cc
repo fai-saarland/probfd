@@ -6,7 +6,9 @@ using namespace std;
 
 namespace downward::cli {
 
-void add_open_list_options_to_feature(plugins::InternalFunctionDefinitionBase& feature, std::size_t start_index)
+void add_open_list_options_to_feature(
+    language::plugins::InternalFunctionDefinitionBase& feature,
+    std::size_t start_index)
 {
     feature.make_optional_argument_with_default(
         start_index,

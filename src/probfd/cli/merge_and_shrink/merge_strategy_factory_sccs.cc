@@ -18,7 +18,7 @@
 #include "probfd/cli/merge_and_shrink/merge_strategy_factory_options.h"
 
 using namespace std;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 using namespace downward;
 using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
@@ -29,7 +29,7 @@ InternalFunctionDefinitionBase& add_merge_strategy_sccs_tree_to_namespace(Namesp
 {
     auto& f = nspace.insert_function_definition(
         "pmerge_sccs_tree",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             MergeStrategyFactory,
             MergeStrategyFactorySCCsTree,
             utils::Verbosity,
@@ -81,7 +81,7 @@ InternalFunctionDefinitionBase& add_merge_strategy_sccs_selector_to_namespace(Na
 {
     auto& f = nspace.insert_function_definition(
         "pmerge_sccs_selector",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             MergeStrategyFactory,
             MergeStrategyFactorySCCsSelector,
             utils::Verbosity,

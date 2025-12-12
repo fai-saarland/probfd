@@ -15,7 +15,7 @@ using namespace downward::utils;
 using namespace downward::stubborn_sets_atom_centric;
 
 using namespace downward::cli;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -23,7 +23,7 @@ InternalFunctionDefinitionBase& add_stubborn_sets_atomic_centric_to_namespace(Na
 {
     auto& f = nspace.insert_function_definition(
         "atom_centric_stubborn_sets",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             downward::PruningMethod,
             StubbornSetsAtomCentric,
             bool,

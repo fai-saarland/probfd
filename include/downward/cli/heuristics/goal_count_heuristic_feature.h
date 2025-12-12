@@ -1,14 +1,14 @@
 #ifndef DOWNWARD_HEURISTICS_GOAL_COUNT_HEURISTIC_FEATURE_H
 #define DOWNWARD_HEURISTICS_GOAL_COUNT_HEURISTIC_FEATURE_H
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 class Registry;
 }
 
 namespace downward::cli::heuristics {
 
 void add_goal_count_heuristic_features(
-    downward::cli::plugins::Registry& registry);
+    language::plugins::Registry& registry);
 
 }
 

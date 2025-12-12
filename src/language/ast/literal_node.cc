@@ -21,7 +21,7 @@
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 LiteralNode::LiteralNode(const Token& value)
     : value(value)
@@ -29,7 +29,7 @@ LiteralNode::LiteralNode(const Token& value)
 }
 
 TypedDecoratedAstNodePtr
-LiteralNode::static_analysis(utils::Context& context, VariableEnvironment& env)
+LiteralNode::static_analysis(Context& context, VariableEnvironment& env)
     const
 {
     switch (value.type) {
@@ -45,7 +45,7 @@ LiteralNode::static_analysis(utils::Context& context, VariableEnvironment& env)
     }
     case TokenType::STRING: {
         if (value.content.front() != '"' || value.content.back() != '"') {
-            throw utils::CriticalError(
+            throw downward::utils::CriticalError(
                 "String literal value is not enclosed in quotation marks.");
         }
 
@@ -87,7 +87,7 @@ LiteralNode::static_analysis(utils::Context& context, VariableEnvironment& env)
 
         switch (ec) {
         case std::errc::invalid_argument:
-            throw utils::CriticalError(
+            throw downward::utils::CriticalError(
                 "Could not parse integer literal '{}'.",
                 value.content);
         case std::errc::result_out_of_range:
@@ -134,7 +134,7 @@ LiteralNode::static_analysis(utils::Context& context, VariableEnvironment& env)
 
         switch (ec) {
         case std::errc::invalid_argument:
-            throw utils::CriticalError(
+            throw downward::utils::CriticalError(
                 "Could not parse float literal '{}'.",
                 value.content);
         case std::errc::result_out_of_range:
@@ -172,10 +172,10 @@ LiteralNode::static_analysis(utils::Context& context, VariableEnvironment& env)
         }
     }
     default:
-        throw utils::CriticalError(
+        throw downward::utils::CriticalError(
             "LiteralNode has unexpected token type '{}'.",
             token_type_name(value.type));
     }
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

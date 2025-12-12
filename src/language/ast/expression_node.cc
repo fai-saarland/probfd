@@ -4,19 +4,19 @@
 
 #include "language/typed_ast/symbol_node.h"
 
-#include "downward/utils/logging.h"
+#include "language/context.h"
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 DecoratedASTNodePtr
 ASTNode::static_analysis(const plugins::Registry& registry) const
 {
-    utils::Context context;
+    Context context;
     VariableEnvironment env(registry);
-    utils::TraceBlock block(context, "Start semantic analysis");
+    TraceBlock block(context, "Start semantic analysis");
     return static_analysis(context, env).ast_node;
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

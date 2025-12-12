@@ -18,7 +18,7 @@ using namespace downward::utils;
 using namespace downward::pdbs;
 
 using namespace downward::cli::pdbs;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::utils::add_rng_options_to_feature;
 
@@ -28,7 +28,7 @@ InternalFunctionDefinitionBase& add_pattern_generator_cegar_to_namespace(Namespa
 {
     auto& f = nspace.insert_function_definition(
         "cegar_pattern",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             PatternGenerator,
             PatternGeneratorCEGAR,
             int,

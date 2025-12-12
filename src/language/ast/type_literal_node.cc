@@ -2,12 +2,11 @@
 
 #include "language/plugins/types.h"
 
-#include "downward/utils/logging.h"
-#include "downward/utils/system.h"
+#include "language/context.h"
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 TypeLiteralNode::TypeLiteralNode(const Token& value)
     : value(value)
@@ -15,7 +14,7 @@ TypeLiteralNode::TypeLiteralNode(const Token& value)
 }
 
 const plugins::Type& TypeLiteralNode::get_type(
-    utils::Context& context,
+    Context& context,
     plugins::TypeRegistry& type_registry) const
 {
     switch (value.type) {
@@ -27,4 +26,4 @@ const plugins::Type& TypeLiteralNode::get_type(
     }
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

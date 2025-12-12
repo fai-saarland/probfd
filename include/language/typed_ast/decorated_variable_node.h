@@ -3,11 +3,11 @@
 
 #include "language/typed_ast/decorated_ast_node.h"
 
-namespace downward::cli::parser {
+namespace language::parser {
 struct VariableDeclaration;
 }
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 class VariableNode : public DecoratedASTNode {
     friend VariableDeclaration;

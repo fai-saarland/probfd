@@ -4,14 +4,14 @@
 
 #include "language/plugins/types.h"
 
-#include "downward/utils/logging.h"
+#include "language/context.h"
 
 #include <functional>
 #include <ranges>
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 DecoratedListNode::DecoratedListNode(vector<DecoratedASTNodePtr>&& elements)
     : elements(move(elements))
@@ -25,11 +25,11 @@ void DecoratedListNode::remove_variable_usages()
 
 std::any DecoratedListNode::construct(ConstructContext& context) const
 {
-    utils::TraceBlock lblock(context, "Constructing list");
+    TraceBlock lblock(context, "Constructing list");
     vector<std::any> result;
     int i = 0;
     for (const DecoratedASTNodePtr& element : elements) {
-        utils::TraceBlock block(context, "Constructing element {}", i++);
+        TraceBlock block(context, "Constructing element {}", i++);
         result.push_back(element->construct(context));
     }
     return result;
@@ -57,4 +57,4 @@ void DecoratedListNode::print(
     std::print(out, "]");
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

@@ -10,7 +10,7 @@ using namespace utils;
 
 using namespace probfd::pdbs;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -18,8 +18,7 @@ InternalFunctionDefinitionBase& add_trivial_finder_to_namespace(Namespace& nspac
 {
     auto& f = nspace.insert_function_definition(
         "finder_trivial_factory",
-        &downward::cli::plugins::
-            construct_shared<SubCollectionFinderFactory, TrivialFinderFactory>);
+        &construct_shared<SubCollectionFinderFactory, TrivialFinderFactory>);
 
     return f;
 }

@@ -12,7 +12,7 @@ using namespace downward::utils;
 using namespace downward::pdbs;
 
 using namespace downward::cli::pdbs;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -20,7 +20,7 @@ InternalFunctionDefinitionBase& add_pattern_generator_manual_to_namespace(Namesp
 {
     auto& f = nspace.insert_function_definition(
         "manual_pattern",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             PatternGenerator,
             PatternGeneratorManual,
             const std::vector<int>&,

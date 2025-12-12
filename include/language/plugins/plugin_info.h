@@ -5,7 +5,7 @@
 
 #include <string>
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 
 struct PropertyInfo {
     std::string property;

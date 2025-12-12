@@ -13,7 +13,7 @@ using namespace std;
 using namespace downward::landmarks;
 using namespace downward::utils;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::landmarks::add_landmark_factory_options_to_feature;
 
@@ -23,7 +23,7 @@ InternalFunctionDefinitionBase& add_landmark_factory_merged_to_namespace(Namespa
 {
     auto& f = nspace.insert_function_definition(
         "lm_merged",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             LandmarkFactory,
             LandmarkFactoryMerged,
             const std::vector<std::shared_ptr<LandmarkFactory>>&,

@@ -13,7 +13,7 @@
 
 using namespace std;
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 FunctionArgument::FunctionArgument(DecoratedASTNodePtr value, bool is_default)
     : value(move(value))
@@ -51,18 +51,17 @@ void DecoratedFunctionCallNode::remove_variable_usages()
     for (auto& arg : arguments) { arg.get_value().remove_variable_usages(); }
 }
 
-using FType =
-    std::function<std::any(const plugins::Options&, const utils::Context&)>;
+using FType = std::function<std::any(const plugins::Options&, const Context&)>;
 
 std::any DecoratedFunctionCallNode::construct(ConstructContext& context) const
 {
-    utils::TraceBlock cblock(context, "Constructing callee");
+    TraceBlock cblock(context, "Constructing callee");
     const auto calleef = std::any_cast<FType>(callee->construct(context));
 
     plugins::Options opts(arguments.size());
     opts.set_unparsed_config(unparsed_config);
     for (std::size_t i = 0; const auto& arg : arguments) {
-        utils::TraceBlock block(context, "Constructing argument {}", i);
+        TraceBlock block(context, "Constructing argument {}", i);
         opts.set(i++, arg.get_value().construct(context));
     }
     return calleef(opts, context);
@@ -97,4 +96,4 @@ void DecoratedFunctionCallNode::print(
     std::print(out, ")");
 }
 
-} // namespace downward::cli::parser
+} // namespace language::parser

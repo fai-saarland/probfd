@@ -23,7 +23,7 @@ using namespace downward::cartesian_abstractions;
 using namespace downward::utils;
 
 using namespace downward::cli;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::utils::add_rng_options_to_feature;
 
@@ -99,7 +99,7 @@ InternalFunctionDefinitionBase& add_additive_cartesian_heuristic_to_namespace(Na
 {
     auto& f = nspace.insert_function_definition(
         "cegar",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             AdditiveCartesianHeuristicFactory,
             shared_ptr<TaskTransformation>,

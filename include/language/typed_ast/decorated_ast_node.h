@@ -6,12 +6,12 @@
 #include <iostream>
 #include <vector>
 
-namespace downward::cli::parser {
+namespace language::parser {
 class ConstructContext;
 struct VariableDefinition;
 } // namespace downward::cli::parser
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 class DecoratedASTNode;
 using DecoratedASTNodePtr = std::unique_ptr<DecoratedASTNode>;

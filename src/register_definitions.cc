@@ -222,6 +222,7 @@
 #include "probfd/cli/task_state_space_factory_features.h"
 
 using namespace downward::cli;
+using namespace language;
 
 namespace {
 

@@ -7,7 +7,7 @@
 
 using namespace std;
 using namespace downward;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -15,7 +15,7 @@ InternalFunctionDefinitionBase& add_identity_task_transformation_to_namespace(Na
 {
     auto& f = nspace.insert_function_definition(
         "no_transform",
-        &cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskTransformation,
             IdentityTaskTransformation>);
     f.document_title("Identity task transformation");

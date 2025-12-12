@@ -11,7 +11,7 @@ using namespace downward::cli::utils;
 namespace downward::cli::merge_and_shrink {
 
 std::size_t add_merge_tree_options_to_feature(
-    plugins::InternalFunctionDefinitionBase& feature,
+    language::plugins::InternalFunctionDefinitionBase& feature,
     std::size_t start_index)
 {
     const auto n = add_rng_options_to_feature(feature, start_index);

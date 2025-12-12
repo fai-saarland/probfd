@@ -10,7 +10,7 @@ using namespace utils;
 
 using namespace probfd::pdbs::cegar;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -18,8 +18,7 @@ InternalFunctionDefinitionBase& add_pucs_flaw_finder_to_namespace(Namespace& nsp
 {
     auto& f = nspace.insert_function_definition(
         "pucs_flaw_finder",
-        &downward::cli::plugins::
-            construct_shared<FlawFindingStrategy, PUCSFlawFinder, int>);
+        &construct_shared<FlawFindingStrategy, PUCSFlawFinder, int>);
     f.make_optional_argument_with_default(
             0,
             "max_search_states",

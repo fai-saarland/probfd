@@ -3,17 +3,17 @@
 
 #include <cstddef>
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 class InternalFunctionDefinitionBase;
-} // namespace downward::cli::plugins
+} // namespace language::plugins
 
 namespace downward::cli::pdbs {
 
 extern void add_multiple_algorithm_implementation_notes_to_feature(
-    plugins::InternalFunctionDefinitionBase& feature);
+    language::plugins::InternalFunctionDefinitionBase& feature);
 
 extern std::size_t add_multiple_options_to_feature(
-    plugins::InternalFunctionDefinitionBase& feature,
+    language::plugins::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 
 } // namespace downward::cli::pdbs

@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 class FunctionArgument {
     DecoratedASTNodePtr value;

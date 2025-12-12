@@ -14,7 +14,7 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 using namespace downward;
 using namespace probfd::merge_and_shrink;
 
@@ -24,7 +24,7 @@ InternalFunctionDefinitionBase& add_merge_scoring_function_total_order_to_namesp
 {
     auto& f = nspace.insert_function_definition(
         "ptotal_order",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             MergeScoringFunction,
             MergeScoringFunctionTotalOrder,
             AtomicTSOrder,

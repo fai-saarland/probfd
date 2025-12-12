@@ -1,15 +1,15 @@
 #ifndef LANGUAGE_TYPED_AST_CONSTRUCT_CONTEXT_H
 #define LANGUAGE_TYPED_AST_CONSTRUCT_CONTEXT_H
 
-#include "downward/utils/logging.h"
+#include "language/context.h"
 
 #include <any>
 #include <string>
 #include <unordered_map>
 
-namespace downward::cli::parser {
+namespace language::parser {
 
-class ConstructContext : public utils::Context {
+class ConstructContext : public Context {
     std::unordered_map<std::string, std::any> variables;
 
 public:

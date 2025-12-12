@@ -10,7 +10,7 @@ using namespace std;
 using namespace downward::landmarks;
 using namespace downward::utils;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::utils::add_log_options_to_feature;
 

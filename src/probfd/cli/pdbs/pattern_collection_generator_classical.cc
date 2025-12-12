@@ -15,7 +15,7 @@ using namespace utils;
 using namespace probfd::pdbs;
 using namespace probfd::cli::pdbs;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -24,7 +24,7 @@ add_classical_pattern_collection_generator_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "classical_generator",
-        &downward::cli::plugins::construct_shared<
+        &construct_shared<
             PatternCollectionGenerator,
             PatternCollectionGeneratorClassical,
             std::shared_ptr<pdbs::PatternCollectionGenerator>,

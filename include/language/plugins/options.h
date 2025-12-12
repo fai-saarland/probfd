@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 /*
   Elements in the storage of the class Options are stored as std::any. Normally,
   the type stored inside the std::any objects matches the type we eventually use

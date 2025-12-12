@@ -16,7 +16,7 @@ using namespace downward;
 using namespace downward::utils;
 using namespace downward::weighted_evaluator;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::add_evaluator_options_to_feature;
 
@@ -56,7 +56,7 @@ InternalFunctionDefinitionBase& add_sum_evaluator_feature_to_namespace(Namespace
 {
     auto& f = nspace.insert_function_definition(
         "weight",
-        &cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             WeightedEvaluatorFactory,
             std::string,

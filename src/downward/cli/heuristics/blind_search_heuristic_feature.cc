@@ -17,7 +17,7 @@ using namespace downward;
 using namespace downward::utils;
 using namespace downward::blind_search_heuristic;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::add_heuristic_options_to_feature;
 
@@ -57,7 +57,7 @@ InternalFunctionDefinitionBase& add_blind_heuristic_to_namespace(Namespace& nspa
 {
     auto& f = nspace.insert_function_definition(
         "blind",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskDependentFactory<Evaluator>,
             BlindSearchHeuristicFactory,
             shared_ptr<TaskTransformation>,

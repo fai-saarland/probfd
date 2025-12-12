@@ -1,14 +1,14 @@
 #ifndef DOWNWARD_CLI_UTILS_VERBOSITY_ENUM_H
 #define DOWNWARD_CLI_UTILS_VERBOSITY_ENUM_H
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 class Registry;
 }
 
 namespace downward::cli::utils {
 
 void add_verbosity_enum(
-    downward::cli::plugins::Registry& registry);
+    language::plugins::Registry& registry);
 
 }
 

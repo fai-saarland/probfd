@@ -5,16 +5,16 @@
 #include <string>
 #include <vector>
 
-namespace downward::utils {
+namespace language {
 class Context;
 }
 
-namespace downward::cli::parser {
+namespace language::parser {
 enum class TokenType;
 struct Token;
 }
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 class TokenStream {
     std::vector<Token> tokens;
@@ -32,9 +32,9 @@ public:
     ~TokenStream();
 
     bool has_tokens(int n) const;
-    Token peek(const utils::Context& context, int n = 0) const;
-    Token pop(const utils::Context& context);
-    Token pop(const utils::Context& context, TokenType expected_type);
+    Token peek(const Context& context, int n = 0) const;
+    Token pop(const Context& context);
+    Token pop(const Context& context, TokenType expected_type);
 
     int get_position() const;
     int size() const;

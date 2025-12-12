@@ -3,17 +3,13 @@
 
 #include "plugin.h"
 
-#include <iostream>
-#include <map>
-#include <regex>
-#include <string>
 #include <vector>
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 class InternalTypeDeclarationBase;
 }
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 class InternalFunctionDefinitionBase;
 class Registry;
 

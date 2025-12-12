@@ -11,7 +11,7 @@ using namespace std;
 using namespace downward::utils;
 using namespace downward::merge_and_shrink;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::merge_and_shrink::add_merge_strategy_options_to_feature;
 
@@ -21,7 +21,7 @@ InternalFunctionDefinitionBase& add_merge_strategy_factory_precomputed_to_namesp
 {
     auto& f = nspace.insert_function_definition(
         "merge_precomputed",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             MergeStrategyFactory,
             MergeStrategyFactoryPrecomputed,
             const std::shared_ptr<MergeTreeFactory>&,

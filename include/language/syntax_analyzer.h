@@ -4,12 +4,12 @@
 #include <memory>
 #include <string>
 
-namespace downward::cli::parser {
+namespace language::parser {
 class TokenStream;
 class ASTNode;
 } // namespace downward::cli::parser
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 extern std::unique_ptr<ASTNode> parse(TokenStream& tokens);
 

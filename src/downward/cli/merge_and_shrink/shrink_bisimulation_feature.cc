@@ -11,7 +11,7 @@
 using namespace std;
 
 using namespace downward::utils;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using namespace downward::merge_and_shrink;
 
@@ -21,7 +21,7 @@ InternalFunctionDefinitionBase& add_shrink_strategy_bisimulation_to_namespace(Na
 {
     auto& f = nspace.insert_function_definition(
         "shrink_bisimulation",
-        &downward::cli::plugins::
+        &language::plugins::
             construct_shared<ShrinkStrategy, ShrinkBisimulation, bool, AtLimit>);
     f.document_title("Bismulation based shrink strategy");
     f.document_synopsis(

@@ -16,7 +16,7 @@ using namespace std;
 using namespace downward;
 using namespace downward::tasks;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::add_cost_type_options_to_feature;
 
@@ -49,7 +49,7 @@ InternalFunctionDefinitionBase& add_cost_adapted_task_transformation_to_namespac
 {
     auto& f = nspace.insert_function_definition(
         "adapt_costs",
-        &cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             TaskTransformation,
             CostAdaptedTaskTransformation,
             OperatorCost>);

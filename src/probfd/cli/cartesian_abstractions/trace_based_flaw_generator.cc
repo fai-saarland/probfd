@@ -10,7 +10,7 @@ using namespace utils;
 
 using namespace probfd::cartesian_abstractions;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 namespace {
 
@@ -18,8 +18,7 @@ InternalFunctionDefinitionBase& add_astar_flaw_generator_astar_to_namespace(Name
 {
     auto& f = nspace.insert_function_definition(
         "flaws_astar",
-        &cli::plugins::
-            construct_shared<FlawGeneratorFactory, AStarFlawGeneratorFactory>);
+        &construct_shared<FlawGeneratorFactory, AStarFlawGeneratorFactory>);
 
     return f;
 }

@@ -6,7 +6,7 @@
 #include <memory>
 #include <vector>
 
-namespace downward::cli::parser {
+namespace language::parser {
 
 class DecoratedListNode : public DecoratedASTNode {
     std::vector<DecoratedASTNodePtr> elements;

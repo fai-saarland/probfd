@@ -8,7 +8,7 @@
 #include "probfd/merge_and_shrink/merge_scoring_function.h"
 
 using namespace std;
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 using namespace downward;
 using namespace probfd::merge_and_shrink;
 
@@ -18,7 +18,7 @@ InternalFunctionDefinitionBase& add_merge_selector_Score_based_filtering_to_name
 {
     auto& f = nspace.insert_function_definition(
         "pscore_based_filtering",
-        &downward::cli::plugins::construct_shared<
+        &language::plugins::construct_shared<
             MergeSelector,
             MergeSelectorScoreBasedFiltering,
             std::vector<std::shared_ptr<MergeScoringFunction>>>);

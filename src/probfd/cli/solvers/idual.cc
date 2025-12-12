@@ -27,7 +27,7 @@ using namespace probfd::solvers;
 
 using namespace probfd::cli::solvers;
 
-using namespace downward::cli::plugins;
+using namespace language::plugins;
 
 using downward::cli::lp::add_lp_solver_option_to_feature;
 
