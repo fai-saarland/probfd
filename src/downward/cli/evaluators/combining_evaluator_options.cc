@@ -1,6 +1,6 @@
 #include "downward/cli/evaluators/combining_evaluator_options.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 
 #include "downward/cli/evaluators/evaluator_options.h"
 

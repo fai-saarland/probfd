@@ -3,7 +3,7 @@
 #include "downward/cli/heuristics/heuristic_options.h"
 
 #include "downward/cli/lp/lp_solver_options.h"
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 
 #include "downward/utils/markup.h"
 

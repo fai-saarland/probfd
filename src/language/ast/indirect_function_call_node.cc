@@ -3,7 +3,7 @@
 #include "language/typed_ast/convert_node.h"
 #include "language/typed_ast/decorated_function_call_node.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/types.h"
 
 #include "language/context.h"

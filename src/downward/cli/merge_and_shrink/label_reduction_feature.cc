@@ -1,6 +1,6 @@
 #include "downward/cli/merge_and_shrink/label_reduction_feature.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "downward/cli/utils/rng_options.h"

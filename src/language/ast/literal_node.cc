@@ -9,7 +9,7 @@
 #include "language/typed_ast/decorated_int_literal_node.h"
 #include "language/typed_ast/decorated_string_literal_node.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 #include "language/plugins/types.h"
 

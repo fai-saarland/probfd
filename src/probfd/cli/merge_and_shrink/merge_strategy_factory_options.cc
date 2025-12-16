@@ -1,6 +1,6 @@
 #include "probfd/cli/merge_and_shrink/merge_strategy_factory_options.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 
 #include "downward/cli/utils/logging_options.h"
 

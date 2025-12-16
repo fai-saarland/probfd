@@ -1,6 +1,6 @@
 #include "probfd/cli/task_state_space_factory_features.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "probfd/caching_task_state_space.h"

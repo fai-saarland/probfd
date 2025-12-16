@@ -2,7 +2,7 @@
 
 #include "downward/cli/utils/rng_options.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 
 using namespace std;
 using namespace downward::utils;

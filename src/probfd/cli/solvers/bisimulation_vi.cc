@@ -1,6 +1,6 @@
 #include "probfd/cli/solvers/bisimulation_vi.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "probfd/solver_interface.h"

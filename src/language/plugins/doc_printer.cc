@@ -1,6 +1,6 @@
 #include "language/plugins/doc_printer.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "downward/utils/strings.h"

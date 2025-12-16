@@ -1,6 +1,6 @@
 #include "downward/cli/tasks/identity_task_transformation_feature.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "downward/transformations/identity_transformation.h"

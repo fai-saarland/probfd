@@ -2,7 +2,7 @@
 
 #include "downward/cli/pruning/pruning_method_options.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "downward/pruning/null_pruning_method.h"

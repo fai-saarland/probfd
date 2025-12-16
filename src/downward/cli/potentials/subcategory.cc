@@ -1,6 +1,6 @@
 #include "downward/cli/potentials/subcategory.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 namespace {

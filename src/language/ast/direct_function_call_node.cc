@@ -10,7 +10,7 @@
 #include "language/typed_ast/decorated_variable_node.h"
 #include "language/typed_ast/variable_definition.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 #include "language/plugins/types.h"
 

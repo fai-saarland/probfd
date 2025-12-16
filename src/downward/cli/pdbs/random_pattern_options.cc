@@ -1,6 +1,6 @@
 #include "downward/cli/pdbs/random_pattern_options.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 
 using namespace std;
 

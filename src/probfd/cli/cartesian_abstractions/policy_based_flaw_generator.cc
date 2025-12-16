@@ -1,6 +1,6 @@
 #include "probfd/cli/cartesian_abstractions/policy_based_flaw_generator.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "probfd/cartesian_abstractions/policy_based_flaw_generator.h"

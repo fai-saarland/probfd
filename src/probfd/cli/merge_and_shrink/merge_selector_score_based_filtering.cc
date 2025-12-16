@@ -1,6 +1,6 @@
 #include "probfd/cli/merge_and_shrink/merge_selector_score_based_filtering.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "probfd/merge_and_shrink/merge_selector_score_based_filtering.h"

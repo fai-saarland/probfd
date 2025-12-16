@@ -1,6 +1,6 @@
 #include "downward/cli/search_algorithms/search_algorithm_factory_category.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "downward/search_algorithm.h"

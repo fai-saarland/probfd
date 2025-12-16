@@ -1,6 +1,6 @@
 #include "downward/cli/merge_and_shrink/merge_strategy_factory_stateless_feature.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "downward/cli/merge_and_shrink/merge_strategy_options.h"

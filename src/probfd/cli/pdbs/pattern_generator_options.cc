@@ -1,6 +1,6 @@
 #include "probfd/cli/pdbs/pattern_generator_options.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 
 #include "downward/cli/utils/logging_options.h"
 

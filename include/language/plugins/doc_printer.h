@@ -1,7 +1,7 @@
 #ifndef LANGUAGE_PLUGINS_DOC_PRINTER_H
 #define LANGUAGE_PLUGINS_DOC_PRINTER_H
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 
 #include <vector>
 

@@ -1,6 +1,6 @@
 #include "downward/cli/evaluators/pref_evaluator_feature.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "downward/cli/evaluators/evaluator_options.h"

@@ -1,6 +1,6 @@
 #include "downward/cli/heuristics/zero_one_pdbs_heuristic_feature.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "downward/cli/heuristics/heuristic_options.h"

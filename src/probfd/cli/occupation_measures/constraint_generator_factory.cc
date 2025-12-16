@@ -1,6 +1,6 @@
 #include "probfd/cli/occupation_measures/constraint_generator_factory_category.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "probfd/occupation_measures/constraint_generator.h"

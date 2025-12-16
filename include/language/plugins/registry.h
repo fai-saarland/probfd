@@ -1,7 +1,11 @@
 #ifndef LANGUAGE_PLUGINS_REGISTRY_H
 #define LANGUAGE_PLUGINS_REGISTRY_H
 
-#include "language/plugins/plugin.h"
+#include "language/documentation/topic.h"
+
+#include "language/plugins/internal_enum_declaration.h"
+#include "language/plugins/internal_type_declaration.h"
+#include "language/plugins/internal_function_definition.h"
 
 #include <deque>
 #include <map>

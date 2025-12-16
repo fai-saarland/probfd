@@ -1,6 +1,6 @@
 #include "probfd/cli/solvers/exhaustive_ao.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 
 #include "probfd/cli/naming_conventions.h"
 

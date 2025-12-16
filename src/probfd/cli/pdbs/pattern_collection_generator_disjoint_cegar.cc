@@ -1,6 +1,6 @@
 #include "probfd/cli/pdbs/pattern_collection_generator_disjoint_cegar.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "downward/cli/utils/logging_options.h"

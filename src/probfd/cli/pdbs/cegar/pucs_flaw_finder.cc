@@ -1,6 +1,6 @@
 #include "probfd/cli/pdbs/cegar/pucs_flaw_finder.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "probfd/pdbs/cegar/pucs_flaw_finder.h"

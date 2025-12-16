@@ -1,7 +1,7 @@
 #include "downward/cli/search_algorithms/iterated_search_feature.h"
 #include "downward/cli/search_algorithms/search_algorithm_options.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "downward/search_algorithms/iterated_search.h"

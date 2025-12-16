@@ -1,6 +1,6 @@
 #include "downward/cli/pdbs/pattern_generator_category.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "downward/pdbs/pattern_generator.h"
