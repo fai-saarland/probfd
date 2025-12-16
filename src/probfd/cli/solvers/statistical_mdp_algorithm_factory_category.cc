@@ -1,6 +1,6 @@
 #include "probfd/cli/solvers/statistical_mdp_algorithm_factory_category.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "probfd/solvers/statistical_mdp_algorithm.h"

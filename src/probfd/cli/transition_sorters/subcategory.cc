@@ -1,6 +1,6 @@
 #include "probfd/cli/transition_sorters/subcategory.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "probfd/transition_sorters/vdiff_sorter.h"

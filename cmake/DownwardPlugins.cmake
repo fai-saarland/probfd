@@ -2,13 +2,17 @@ create_library(
     NAME plugins
     HELP "Plugin definition"
     SOURCES
+    language/documentation/plugin_info
+    language/documentation/topic
     language/plugins/any
     language/plugins/doc_printer
+    language/plugins/internal_enum_declaration
+    language/plugins/internal_function_definition
+    language/plugins/internal_type_declaration
     language/plugins/options
-    language/plugins/plugin
-    language/plugins/plugin_info
     language/plugins/registry
     language/plugins/registry_types
+    language/plugins/type_registry
     language/plugins/types
 )
 

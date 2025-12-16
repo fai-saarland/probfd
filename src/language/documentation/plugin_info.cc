@@ -1,4 +1,4 @@
-#include "language/plugins/plugin_info.h"
+#include "../../../include/language/documentation/plugin_info.h"
 
 #include <algorithm>
 #include <cassert>

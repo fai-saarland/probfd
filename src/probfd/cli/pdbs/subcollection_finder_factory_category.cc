@@ -1,6 +1,6 @@
 #include "probfd/cli/pdbs/subcollection_finder_factory_category.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "probfd/pdbs/subcollection_finder_factory.h"

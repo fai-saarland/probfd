@@ -1,6 +1,6 @@
 #include "probfd/cli/heuristics/determinization_cost_heuristic.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "probfd/heuristics/determinization_cost_heuristic.h"

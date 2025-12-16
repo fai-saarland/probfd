@@ -1,6 +1,6 @@
 #include "register_definitions.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 
 #include "downward/utils/timer.h"
 

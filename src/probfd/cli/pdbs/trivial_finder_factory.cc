@@ -1,6 +1,6 @@
 #include "probfd/cli/pdbs/trivial_finder_factory.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "probfd/pdbs/trivial_finder_factory.h"

@@ -1,6 +1,6 @@
 #include "probfd/cli/solvers/i2dual.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "downward/cli/lp/lp_solver_options.h"

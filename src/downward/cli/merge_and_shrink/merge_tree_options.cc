@@ -1,6 +1,6 @@
 #include "downward/cli/merge_and_shrink/merge_tree_options.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 
 #include "downward/cli/utils/rng_options.h"
 

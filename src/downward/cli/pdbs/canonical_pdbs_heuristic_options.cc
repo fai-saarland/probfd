@@ -1,6 +1,6 @@
 #include "downward/cli/pdbs/canonical_pdbs_heuristic_options.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 
 #include "downward/pdbs/canonical_pdbs_heuristic.h"
 

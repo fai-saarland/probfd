@@ -1,6 +1,6 @@
 #include "downward/cli/heuristics/landmark_sum_heuristic_feature.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "downward/cli/landmarks/landmark_heuristic_options.h"

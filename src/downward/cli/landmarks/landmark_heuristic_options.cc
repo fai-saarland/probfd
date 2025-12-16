@@ -2,7 +2,7 @@
 
 #include "downward/cli/heuristics/heuristic_options.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 
 #include "downward/landmarks/landmark_factory.h"
 

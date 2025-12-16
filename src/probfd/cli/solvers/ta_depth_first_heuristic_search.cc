@@ -1,6 +1,6 @@
 #include "probfd/cli/solvers/ta_depth_first_heuristic_search.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "probfd/cli/naming_conventions.h"

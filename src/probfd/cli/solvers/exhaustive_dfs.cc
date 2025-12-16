@@ -1,6 +1,6 @@
 #include "probfd/cli/solvers/exhaustive_dfs.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "probfd/cli/solvers/mdp_solver_options.h"

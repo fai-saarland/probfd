@@ -1,6 +1,6 @@
 #include "downward/cli/open_lists/open_list_options.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 
 using namespace std;
 

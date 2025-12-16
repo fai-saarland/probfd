@@ -1,6 +1,6 @@
 #include "probfd/cli/pdbs/pattern_collection_generator_multiple_cegar.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "probfd/cli/pdbs/cegar/cegar_options.h"

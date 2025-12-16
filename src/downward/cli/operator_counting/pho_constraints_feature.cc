@@ -1,6 +1,6 @@
 #include "downward/cli/operator_counting/pho_constraints_feature.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "downward/operator_counting/pho_constraints.h"

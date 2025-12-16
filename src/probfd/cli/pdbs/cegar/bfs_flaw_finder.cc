@@ -2,7 +2,7 @@
 
 #include "language/plugins/registry.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 
 #include "probfd/pdbs/cegar/bfs_flaw_finder.h"
 

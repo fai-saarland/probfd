@@ -1,6 +1,6 @@
 #include "probfd/cli/heuristics/additive_cartesian_heuristic.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "probfd/cli/heuristics/task_dependent_heuristic_options.h"

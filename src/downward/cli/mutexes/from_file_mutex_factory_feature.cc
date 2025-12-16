@@ -1,6 +1,6 @@
 #include "downward/cli/mutexes/from_file_mutex_factory_feature.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "downward/mutexes/from_file_mutex_factory.h"

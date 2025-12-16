@@ -1,6 +1,6 @@
 #include "downward/cli/pdbs/cegar_options.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 
 using namespace std;
 

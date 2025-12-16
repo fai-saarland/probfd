@@ -1,6 +1,6 @@
 #include "downward/cli/cartesian_abstractions/subtask_generators_features.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "downward/cli/utils/rng_options.h"

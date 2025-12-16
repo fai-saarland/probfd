@@ -1,8 +1,9 @@
 #ifndef LANGUAGE_PLUGINS_PLUGIN_H
 #define LANGUAGE_PLUGINS_PLUGIN_H
 
+#include "language/documentation/plugin_info.h"
+
 #include "language/plugins/options.h"
-#include "language/plugins/plugin_info.h"
 #include "language/plugins/type_registry.h"
 
 #include "language/context.h"
@@ -73,6 +74,23 @@ std::shared_ptr<Base> construct_shared(Args... args)
         std::forward<std::remove_reference_t<Args>>(args)...);
 }
 
+/*
+  Expects constructor arguments of T. Consecutive arguments may be
+  grouped in a tuple. All tuples in the arguments will be flattened
+  before calling the constructor. The resulting arguments will be used
+  as arguments to make_shared.
+*/
+template <typename T, typename... Arguments>
+std::shared_ptr<T> make_shared_from_arg_tuples(Arguments... arguments)
+{
+    return std::apply(
+        []<typename... A>(A&&... flattened_args)
+            requires requires { T{flattened_args...}; }
+        { return std::make_shared<T>(std::forward<A>(flattened_args)...); },
+        downward::utils::flatten_tuple(
+            std::tuple<Arguments...>(std::forward<Arguments>(arguments)...)));
+}
+
 struct ArgumentInfo {
     std::string key;
     std::string default_value;
@@ -120,6 +138,9 @@ public:
     InternalFunctionDefinitionBase(const InternalFunctionDefinitionBase&) =
         delete;
 
+    virtual std::any
+    construct(const Options& opts, const Context& context) const = 0;
+
     void make_optional_argument_with_default(
         std::size_t i,
         const std::string& key,
@@ -139,7 +160,7 @@ public:
         const std::string& feature,
         const std::string& note);
     void document_note(
-        const std::string& title,
+        const std::string& name,
         const std::string& note,
         bool long_text = false);
 
@@ -151,9 +172,6 @@ public:
     const std::vector<PropertyInfo>& get_properties() const;
     const std::vector<LanguageSupportInfo>& get_language_support() const;
     const std::vector<NoteInfo>& get_notes() const;
-
-    virtual std::any
-    construct(const Options& opts, const Context& context) const = 0;
 
     virtual const FunctionType& get_type() const = 0;
 };
@@ -227,135 +245,6 @@ private:
 template <typename F>
 InternalFunctionDefinition(std::string key, F f)
     -> InternalFunctionDefinition<detail::FSignature<F>>;
-
-/*
-  Expects constructor arguments of T. Consecutive arguments may be
-  grouped in a tuple. All tuples in the arguments will be flattened
-  before calling the constructor. The resulting arguments will be used
-  as arguments to make_shared.
-*/
-template <typename T, typename... Arguments>
-std::shared_ptr<T> make_shared_from_arg_tuples(Arguments... arguments)
-{
-    return std::apply(
-        []<typename... A>(A&&... flattened_args)
-            requires requires { T{flattened_args...}; }
-        { return std::make_shared<T>(std::forward<A>(flattened_args)...); },
-        downward::utils::flatten_tuple(
-            std::tuple<Arguments...>(std::forward<Arguments>(arguments)...)));
-}
-
-/*
-  The InternalTypeDeclarationBase class contains meta-information for a C++
-  type.
-*/
-class InternalTypeDeclarationBase {
-    std::type_index pointer_type;
-
-    std::string identifier;
-
-    /*
-      General documentation for the type.
-      This is included at the top of the wiki page for this feature type.
-    */
-    std::string synopsis;
-
-protected:
-    InternalTypeDeclarationBase(
-        std::type_index pointer_type,
-        std::string type_identifier,
-        std::string synopsis);
-
-public:
-    virtual ~InternalTypeDeclarationBase() = default;
-
-    std::type_index get_pointer_type() const;
-    std::string get_identifier() const;
-    std::string get_class_name() const;
-    std::string get_synopsis() const;
-};
-
-template <typename T>
-    requires std::is_class_v<T>
-class InternalTypeDeclaration : public InternalTypeDeclarationBase {
-public:
-    explicit InternalTypeDeclaration(
-        std::string type_identifier,
-        std::string synopsis)
-        : InternalTypeDeclarationBase(
-              typeid(T),
-              std::move(type_identifier),
-              std::move(synopsis))
-    {
-    }
-};
-
-template <typename T>
-using InternalSharedTypeDeclaration =
-    InternalTypeDeclaration<std::shared_ptr<T>>;
-
-class InternalEnumDeclarationBase {
-    std::type_index type;
-    EnumInfo enum_info;
-
-protected:
-    InternalEnumDeclarationBase(
-        std::type_index type,
-        std::initializer_list<std::pair<std::string, std::string>> enum_values);
-
-public:
-    std::type_index get_type() const;
-    std::string get_class_name() const;
-    const EnumInfo& get_enum_info() const;
-};
-
-template <typename T>
-    requires std::is_enum_v<T>
-class InternalEnumDeclaration : public InternalEnumDeclarationBase {
-public:
-    InternalEnumDeclaration(
-        std::initializer_list<std::pair<std::string, std::string>> enum_values)
-        : InternalEnumDeclarationBase(typeid(T), enum_values)
-    {
-    }
-};
-
-class DocumentationTopic {
-    std::string topic_name;
-    std::string title;
-    std::string synopsis;
-
-    std::vector<const InternalTypeDeclarationBase*> member_types;
-    std::vector<const InternalEnumDeclarationBase*> enum_types;
-    std::vector<const InternalFunctionDefinitionBase*> features;
-
-public:
-    explicit DocumentationTopic(const std::string& subcategory);
-
-    void document_title(const std::string& title);
-    void document_synopsis(const std::string& synopsis);
-
-    void
-    add_type_declaration(const InternalTypeDeclarationBase& type_declaration);
-    void add_enum(const InternalEnumDeclarationBase& enum_declaration);
-    void add_function(const InternalFunctionDefinitionBase& function);
-
-    auto get_types() { return std::views::all(member_types); }
-
-    auto get_types() const { return std::views::all(member_types); }
-
-    auto get_enums() { return std::views::all(enum_types); }
-
-    auto get_enums() const { return std::views::all(enum_types); }
-
-    auto get_functions() { return std::views::all(features); }
-
-    auto get_functions() const { return std::views::all(features); }
-
-    std::string get_topic_name() const;
-    std::string get_title() const;
-    std::string get_synopsis() const;
-};
 
 inline void InternalFunctionDefinitionBase::make_optional_argument_with_default(
     std::size_t i,

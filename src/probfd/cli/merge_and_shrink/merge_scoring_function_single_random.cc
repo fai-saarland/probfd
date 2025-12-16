@@ -1,6 +1,6 @@
 #include "probfd/cli/merge_and_shrink/merge_scoring_function_single_random.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "downward/cli/utils/rng_options.h"

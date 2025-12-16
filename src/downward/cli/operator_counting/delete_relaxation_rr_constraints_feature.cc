@@ -1,6 +1,6 @@
 #include "downward/cli/operator_counting/delete_relaxation_rr_constraints_feature.h"
 
-#include "language/plugins/plugin.h"
+#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "downward/operator_counting/delete_relaxation_rr_constraints.h"
