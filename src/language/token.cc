@@ -1,8 +1,9 @@
 #include "language/token.h"
 
-#include "downward/utils/system.h"
+#include "language/critical_error.h"
 
 #include <algorithm>
+#include <iostream>
 
 #undef IN
 #undef TRUE
@@ -69,7 +70,7 @@ string token_type_name(TokenType token_type)
     case TokenType::TYPE_STRING: return "string";
     case TokenType::TYPE_INTEGER: return "int";
     case TokenType::TYPE_FLOAT: return "float";
-    default: throw downward::utils::CriticalError("Unknown token type.");
+    default: throw CriticalError("Unknown token type.");
     }
 }
 

@@ -44,7 +44,7 @@ struct Token {
 extern std::string token_type_name(TokenType token_type);
 extern std::ostream& operator<<(std::ostream& out, TokenType token_type);
 extern std::ostream& operator<<(std::ostream& out, const Token& token);
-} // namespace downward::cli::parser
+} // namespace language::parser
 
 namespace std {
 

@@ -7,6 +7,7 @@
 
 #include "language/plugins/internal_function_definition.h"
 
+#include <ranges>
 #include <vector>
 
 using namespace std;

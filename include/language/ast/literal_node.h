@@ -17,6 +17,6 @@ public:
     static_analysis(Context& context, VariableEnvironment& env) const override;
 };
 
-} // namespace downward::cli::parser
+} // namespace language::parser
 
 #endif

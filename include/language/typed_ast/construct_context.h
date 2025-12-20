@@ -18,5 +18,5 @@ public:
     bool has_variable(const std::string& name) const;
     std::any get_variable(const std::string& name) const;
 };
-} // namespace downward::cli::parser
+} // namespace language::parser
 #endif

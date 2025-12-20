@@ -15,5 +15,5 @@ class Registry;
 class DocumentationTopic;
 
 using EnumInfo = std::vector<std::pair<std::string, std::string>>;
-} // namespace downward::cli::plugins
+} // namespace language::plugins
 #endif

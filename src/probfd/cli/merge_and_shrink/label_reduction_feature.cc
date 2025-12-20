@@ -16,8 +16,6 @@ using namespace std;
 using namespace downward;
 using namespace language::plugins;
 
-using utils::ExitCode;
-
 using namespace probfd::merge_and_shrink;
 
 namespace {

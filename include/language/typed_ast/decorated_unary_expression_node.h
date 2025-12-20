@@ -29,5 +29,5 @@ public:
 extern template class DecoratedUnaryExpressionNode<int>;
 extern template class DecoratedUnaryExpressionNode<double>;
 
-} // namespace downward::cli::parser
+} // namespace language::parser
 #endif

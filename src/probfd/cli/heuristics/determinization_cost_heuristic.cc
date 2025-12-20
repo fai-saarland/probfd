@@ -8,7 +8,6 @@
 #include <downward/task_dependent_factory.h>
 
 using namespace downward;
-using namespace utils;
 
 using namespace probfd;
 using namespace probfd::heuristics;

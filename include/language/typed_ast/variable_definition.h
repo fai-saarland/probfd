@@ -35,5 +35,5 @@ struct VariableDefinition : VariableDeclaration {
     VariableDefinition& operator=(VariableDefinition&& other) noexcept;
 };
 
-} // namespace downward::cli::parser
+} // namespace language::parser
 #endif

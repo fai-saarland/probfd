@@ -1,10 +1,10 @@
 #include "language/plugins/types.h"
 
 #include "language/plugins/internal_enum_declaration.h"
-#include "language/plugins/internal_type_declaration.h"
 #include "language/plugins/internal_function_definition.h"
+#include "language/plugins/internal_type_declaration.h"
 
-#include "downward/utils/system.h"
+#include "language/critical_error.h"
 
 #include <typeindex>
 
@@ -66,7 +66,7 @@ TypeRegistry::create_feature_type(const InternalTypeDeclarationBase& plugin)
             plugin.get_identifier()));
 
     if (!inserted) {
-        throw downward::utils::CriticalError(
+        throw CriticalError(
             "Creating the FeatureType '{}' but the type '{}' already exists "
             "and has the same type_index.",
             plugin.get_class_name(),
@@ -84,7 +84,7 @@ TypeRegistry::create_enum_type(const InternalEnumDeclarationBase& plugin)
         std::make_unique<EnumType>(plugin.get_type(), plugin.get_enum_info()));
 
     if (!inserted) {
-        throw downward::utils::CriticalError(
+        throw CriticalError(
             "Creating the EnumType '{}' but the type '{}' already exists and "
             "has the same type_index.",
             plugin.get_class_name(),
@@ -97,7 +97,7 @@ TypeRegistry::create_enum_type(const InternalEnumDeclarationBase& plugin)
 const ListType& TypeRegistry::create_list_type(const Type& element_type)
 {
     const Type* key = &element_type;
-    if (!registered_list_types.count(key)) {
+    if (!registered_list_types.contains(key)) {
         registered_list_types.insert(
             {key, std::make_unique<ListType>(element_type)});
     }
@@ -123,8 +123,6 @@ const Type& TypeRegistry::get_nonlist_type(type_index type) const
         return *it->second;
     }
 
-    throw downward::utils::CriticalError(
-        "Missing type {}",
-        demangle(type.name()));
+    throw CriticalError("Missing type {}", demangle(type.name()));
 }
 } // namespace language::plugins

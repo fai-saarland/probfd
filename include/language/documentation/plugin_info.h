@@ -31,6 +31,6 @@ struct LanguageSupportInfo {
         const std::string& feature,
         const std::string& description);
 };
-} // namespace downward::cli::plugins
+} // namespace language::plugins
 
 #endif

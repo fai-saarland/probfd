@@ -86,9 +86,22 @@ std::shared_ptr<T> make_shared_from_arg_tuples(Arguments... arguments)
         []<typename... A>(A&&... flattened_args)
             requires requires { T{flattened_args...}; }
         { return std::make_shared<T>(std::forward<A>(flattened_args)...); },
-        downward::utils::flatten_tuple(
+        flatten_tuple(
             std::tuple<Arguments...>(std::forward<Arguments>(arguments)...)));
 }
+
+class DuplicateKeywordError : public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+
+    template <class... Args>
+    explicit DuplicateKeywordError(
+        std::format_string<Args...> fmt,
+        Args&&... args)
+        : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
+    {
+    }
+};
 
 struct ArgumentInfo {
     std::string key;
@@ -222,12 +235,16 @@ private:
             return std::invoke(
                 f,
                 context,
-                options.get<detail::ArgType<FType, indices>>(indices - 1)...);
+                options.get<detail::ArgType<FType, indices>>(
+                    indices - 1,
+                    context)...);
         } else {
             return std::invoke(
                 f,
-                options.get<detail::ArgType<FType, findex>>(findex),
-                options.get<detail::ArgType<FType, indices>>(indices)...);
+                options.get<detail::ArgType<FType, findex>>(findex, context),
+                options.get<detail::ArgType<FType, indices>>(
+                    indices,
+                    context)...);
         }
     }
 
@@ -252,7 +269,7 @@ inline void InternalFunctionDefinitionBase::make_optional_argument_with_default(
     const std::string& help)
 {
     if (std::ranges::contains(arguments, key, &ArgumentInfo::key)) {
-        throw downward::utils::CriticalError(
+        throw DuplicateKeywordError(
             "Duplicate argument keyword argument '{}' of function '{}'.",
             key,
             this->identifier);
@@ -271,7 +288,7 @@ inline void InternalFunctionDefinitionBase::make_required_argument(
     const std::string& help)
 {
     if (std::ranges::contains(arguments, key, &ArgumentInfo::key)) {
-        throw downward::utils::CriticalError(
+        throw DuplicateKeywordError(
             "Duplicate argument keyword argument '{}' of function '{}'.",
             key,
             this->identifier);

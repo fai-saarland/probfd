@@ -6,7 +6,6 @@
 #include "probfd/heuristics/dead_end_pruning_heuristic.h"
 
 using namespace downward;
-using namespace utils;
 
 using namespace probfd;
 using namespace probfd::heuristics;
