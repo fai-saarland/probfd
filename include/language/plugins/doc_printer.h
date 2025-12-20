@@ -122,6 +122,6 @@ protected:
 public:
     PlainPrinter(std::ostream& out, Registry& registry, bool print_all = false);
 };
-} // namespace downward::cli::plugins
+} // namespace language::plugins
 
 #endif

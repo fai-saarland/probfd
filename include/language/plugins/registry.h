@@ -4,8 +4,8 @@
 #include "language/documentation/topic.h"
 
 #include "language/plugins/internal_enum_declaration.h"
-#include "language/plugins/internal_type_declaration.h"
 #include "language/plugins/internal_function_definition.h"
+#include "language/plugins/internal_type_declaration.h"
 
 #include <deque>
 #include <map>
@@ -35,6 +35,45 @@ concept strict_suffix_instantiable =
 
 template <template <bool...> typename T, bool... b>
 concept partial_specialization = !strict_suffix_instantiable<T, b...>;
+
+class DuplicateTopicError : public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+
+    template <class... Args>
+    explicit DuplicateTopicError(
+        std::format_string<Args...> fmt,
+        Args&&... args)
+        : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
+    {
+    }
+};
+
+class TypeDefinitionError : public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+
+    template <class... Args>
+    explicit TypeDefinitionError(
+        std::format_string<Args...> fmt,
+        Args&&... args)
+        : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
+    {
+    }
+};
+
+class FunctionDefinitionError : public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+
+    template <class... Args>
+    explicit FunctionDefinitionError(
+        std::format_string<Args...> fmt,
+        Args&&... args)
+        : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
+    {
+    }
+};
 
 class MissingFunctionError : public std::runtime_error {
 public:
@@ -174,7 +213,7 @@ public:
         auto [it, inserted] = topics_by_name.emplace(s.get_topic_name(), &s);
 
         if (!inserted) {
-            throw downward::utils::CriticalError(
+            throw DuplicateTopicError(
                 "Documentation topic with name {} already exists.",
                 s.get_topic_name());
         }
@@ -224,7 +263,7 @@ public:
         for (const auto& c : types_declarations) {
             if (const std::type_index t = typeid(T);
                 c.get_pointer_type() == t) {
-                throw downward::utils::CriticalError(
+                throw TypeDefinitionError(
                     "Type for class '{}' already defined.",
                     t.name());
             }
@@ -233,7 +272,7 @@ public:
         for (const auto& namespace_name :
              nested_namespaces | std::views::keys) {
             if (name == namespace_name) {
-                throw downward::utils::CriticalError(
+                throw TypeDefinitionError(
                     "Type '{}' has already been defined as a namespace.",
                     name);
             }
@@ -243,7 +282,7 @@ public:
             InternalTypeDeclaration<T>(std::move(name), std::move(synopsis)));
 
         if (!inserted) {
-            throw downward::utils::CriticalError(
+            throw TypeDefinitionError(
                 "Type with name {} already exists.",
                 it->get_identifier());
         }
@@ -310,7 +349,7 @@ public:
             functions_by_name.emplace(f.get_identifier(), &f);
 
         if (!inserted) {
-            throw downward::utils::CriticalError(
+            throw FunctionDefinitionError(
                 "Function with name '{}' already defined.",
                 f.get_identifier());
         }
@@ -318,7 +357,7 @@ public:
         for (const auto& namespace_name :
              nested_namespaces | std::views::keys) {
             if (f.get_identifier() == namespace_name) {
-                throw downward::utils::CriticalError(
+                throw FunctionDefinitionError(
                     "Function with name '{}' has already been defined as a "
                     "namespace.",
                     f.get_identifier());
@@ -338,7 +377,7 @@ public:
             functions_by_name.emplace(f->get_identifier(), f);
 
         if (!inserted) {
-            throw downward::utils::CriticalError(
+            throw FunctionDefinitionError(
                 "Function with name {} already defined.",
                 f->get_identifier());
         }
@@ -380,6 +419,6 @@ public:
         return std::views::all(nested_namespaces);
     }
 };
-} // namespace downward::cli::plugins
+} // namespace language::plugins
 
 #endif

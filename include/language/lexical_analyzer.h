@@ -9,5 +9,5 @@ class TokenStream;
 
 namespace language::parser {
 extern TokenStream split_tokens(const std::string& text);
-} // namespace downward::cli::parser
+} // namespace language::parser
 #endif

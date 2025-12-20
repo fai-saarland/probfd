@@ -2,6 +2,7 @@
 
 #include "language/plugins/internal_function_definition.h"
 
+#include "downward/utils/string_literal.h"
 #include "downward/utils/timer.h"
 
 #include "downward/cli/cartesian_abstractions/subtask_generators_category.h"

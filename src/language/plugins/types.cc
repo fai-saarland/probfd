@@ -4,6 +4,7 @@
 #include "language/plugins/internal_type_declaration.h"
 #include "language/plugins/internal_function_definition.h"
 
+#include <ranges>
 #include <typeindex>
 
 using namespace std;

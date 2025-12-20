@@ -9,7 +9,7 @@
 namespace language::parser {
 class ConstructContext;
 struct VariableDefinition;
-} // namespace downward::cli::parser
+} // namespace language::parser
 
 namespace language::parser {
 
@@ -30,5 +30,5 @@ public:
     std::any construct() const;
 };
 
-} // namespace downward::cli::parser
+} // namespace language::parser
 #endif

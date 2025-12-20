@@ -5,7 +5,6 @@
 #include "language/plugins/internal_function_definition.h"
 
 using namespace std;
-using namespace downward::utils;
 
 using namespace language::plugins;
 

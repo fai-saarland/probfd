@@ -3,9 +3,8 @@
 #include "language/context.h"
 #include "language/token.h"
 
-#include "downward/utils/system.h"
-
 #include <cassert>
+#include <ranges>
 
 using namespace std;
 

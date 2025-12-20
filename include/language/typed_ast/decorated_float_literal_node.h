@@ -17,5 +17,5 @@ public:
         const override;
 };
 
-} // namespace downward::cli::parser
+} // namespace language::parser
 #endif

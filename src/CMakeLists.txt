@@ -58,10 +58,12 @@ if (WIN32)
     copy_runtime_dlls_post_build(probfd)
 endif ()
 
-# Collect source files needed for the active plugins.
+# Collect base library sources
 include(DownwardFiles)
 include(ProbFDFiles)
 
+# Collect source for cli interface
+include(LanguageFiles)
 include(DownwardPlugins)
 include(ProbFDPlugins)
 

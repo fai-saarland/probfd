@@ -7,7 +7,7 @@
 
 namespace language {
 class Context;
-} // namespace downward::utils
+} // namespace language
 
 namespace language::plugins {
 class Registry;
@@ -34,9 +34,8 @@ public:
 
     std::unique_ptr<Scope>& get_parent();
 
-    void insert(
-        Context& context,
-        std::pair<std::string, TypedDeclaration> pair);
+    void
+    insert(Context& context, std::pair<std::string, TypedDeclaration> pair);
 
     bool insert(std::pair<std::string, TypedDeclaration> pair);
 

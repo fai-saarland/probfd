@@ -12,13 +12,14 @@
 
 #include "language/ast/type_identifier_node.h"
 #include "language/context.h"
+#include "language/critical_error.h"
 #include "language/lexical_analyzer.h"
 #include "language/token_stream.h"
 
-#include "downward/utils/system.h"
-
+#include <array>
 #include <algorithm>
 #include <functional>
+#include <sstream>
 #include <unordered_set>
 
 using namespace std;
@@ -82,7 +83,8 @@ static auto parse_block(
     return parsing_function(tokens, context, std::forward<Args>(args)...);
 }
 
-static std::unique_ptr<ASTNode> parse_node(TokenStream& tokens, SyntaxAnalyzerContext&);
+static std::unique_ptr<ASTNode>
+parse_node(TokenStream& tokens, SyntaxAnalyzerContext&);
 static std::unique_ptr<ASTNode> parse_node_in_block(
     const std::string& block_name,
     TokenStream& tokens,
@@ -235,7 +237,8 @@ parse_let_definition(TokenStream& tokens, SyntaxAnalyzerContext& context)
     return p;
 }
 
-static std::unique_ptr<ASTNode> parse_let(TokenStream& tokens, SyntaxAnalyzerContext& context)
+static std::unique_ptr<ASTNode>
+parse_let(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
     TraceBlock block(context, "Parsing Let");
     tokens.pop(context, TokenType::LET);
@@ -274,7 +277,7 @@ parse_type(TokenStream& tokens, SyntaxAnalyzerContext& context)
         return std::make_unique<TypeIdentifierNode>(
             parse_qualified_name(tokens, context));
     default:
-        throw downward::utils::CriticalError(
+        throw CriticalError(
             "Expected type, but got token of type '{}'.",
             token_type_name(t.type));
     }

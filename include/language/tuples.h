@@ -3,7 +3,7 @@
 
 #include <tuple>
 
-namespace downward::utils {
+namespace language {
 template <class... Ts, std::size_t... Is>
 auto flatten_tuple_elements(std::tuple<Ts...>&& t, std::index_sequence<Is...>);
 
@@ -28,6 +28,6 @@ auto flatten_tuple_elements(std::tuple<Ts...>&& t, std::index_sequence<Is...>)
 {
     return std::tuple_cat(flatten_tuple(std::get<Is>(std::move(t)))...);
 }
-} // namespace utils
+} // namespace language
 
 #endif

@@ -1,7 +1,7 @@
 #ifndef LANGUAGE_PLUGINS_OPTIONS_H
 #define LANGUAGE_PLUGINS_OPTIONS_H
 
-#include "downward/utils/system.h"
+#include "language/context.h"
 
 #include <any>
 #include <string>
@@ -102,10 +102,10 @@ public:
     }
 
     template <typename T>
-    T get(std::size_t i) const
+    T get(std::size_t i, const Context& context) const
     {
         if (i >= storage.size()) {
-            throw downward::utils::CriticalError(
+            context.error(
                 "Attempt to retrieve non-existing parameter (index {})",
                 i);
         }
@@ -113,7 +113,7 @@ public:
         const auto& obj = storage[i];
 
         if (!obj.has_value()) {
-            throw downward::utils::CriticalError(
+            context.error(
                 "Attempt to retrieve unset parameter at index {} "
                 "(type: {})",
                 i,
@@ -123,7 +123,7 @@ public:
         try {
             return OptionsAnyCaster<T>::cast(obj);
         } catch (const std::bad_any_cast&) {
-            throw downward::utils::CriticalError(
+            context.error(
                 "Invalid conversion while retrieving config options!\n"
                 "Parameter {} is not of type {} but of type {}",
                 i,
@@ -133,10 +133,10 @@ public:
     }
 
     template <typename T>
-    T get(std::size_t i, const T& default_value) const
+    T get(std::size_t i, const T& default_value, const Context& context) const
     {
         if (i >= storage.size()) {
-            throw downward::utils::CriticalError(
+            context.error(
                 "Attempt to retrieve non-existing parameter at index {} "
                 "(type: {})",
                 i,
@@ -147,7 +147,7 @@ public:
             try {
                 return OptionsAnyCaster<T>::cast(obj);
             } catch (const std::bad_any_cast&) {
-                throw downward::utils::CriticalError(
+                context.error(
                     "Invalid conversion while retrieving config options!\n"
                     "Parameter {} is not of type {} but of type {}",
                     i,
@@ -165,14 +165,14 @@ public:
         return get<std::vector<T>>(i);
     }
 
-    std::any get_raw(std::size_t i) const;
+    std::any get_raw(std::size_t i, const Context& context) const;
 
-    bool contains(std::size_t i) const;
+    bool contains(std::size_t i, const Context& context) const;
 
     const std::string& get_unparsed_config() const;
     void set_unparsed_config(const std::string& config);
 };
 
-} // namespace downward::cli::plugins
+} // namespace language::plugins
 
 #endif

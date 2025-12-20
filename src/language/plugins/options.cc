@@ -9,27 +9,21 @@ Options::Options(std::size_t num_opts)
 {
 }
 
-std::any Options::get_raw(std::size_t i) const
+std::any Options::get_raw(std::size_t i, const Context& context) const
 {
     if (i >= storage.size()) {
-        throw downward::utils::CriticalError(
-            "Attempt to retrieve non-existing object at index {}",
-            i);
+        context.error("Attempt to retrieve non-existing object at index {}", i);
     }
 
     if (const auto& obj = storage[i]; obj.has_value()) { return obj; }
 
-    throw downward::utils::CriticalError(
-        "Attempt to retrieve unset object at index {}",
-        i);
+    context.error("Attempt to retrieve unset object at index {}", i);
 }
 
-bool Options::contains(size_t i) const
+bool Options::contains(size_t i, const Context& context) const
 {
     if (i >= storage.size()) {
-        throw downward::utils::CriticalError(
-            "Attempt to retrieve non-existing object at index {}",
-            i);
+        context.error("Attempt to retrieve non-existing object at index {}", i);
     }
 
     return storage[i].has_value();

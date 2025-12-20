@@ -74,7 +74,7 @@ std::any DecoratedLambdaNode::construct(ConstructContext&) const
              const auto& arg_info : decorated_variable_declarations) {
             nested_context.set_variable(
                 arg_info.variable_name,
-                opts.get_raw(i++));
+                opts.get_raw(i++, nested_context));
         }
 
         return nested_value->construct(nested_context);
