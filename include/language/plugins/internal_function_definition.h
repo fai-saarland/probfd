@@ -7,8 +7,7 @@
 #include "language/plugins/type_registry.h"
 
 #include "language/context.h"
-
-#include "downward/utils/tuples.h"
+#include "language/tuples.h"
 
 #include <any>
 #include <functional>

@@ -7,10 +7,6 @@
 
 #include "language/plugins/internal_function_definition.h"
 
-#include "downward/utils/logging.h"
-#include "downward/utils/strings.h"
-
-#include <set>
 #include <vector>
 
 using namespace std;

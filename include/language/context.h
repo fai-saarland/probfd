@@ -29,6 +29,8 @@ public:
 
     Context(const Context& context) = delete;
 
+    virtual ~Context() = default;
+
     virtual std::string
     decorate_block_name(const std::string& block_name) const;
     void enter_block(const std::string& block_name);

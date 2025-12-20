@@ -9,8 +9,6 @@
 #include "language/plugins/internal_function_definition.h"
 #include "language/plugins/types.h"
 
-#include "downward/utils/logging.h"
-
 #include <vector>
 
 using namespace std;

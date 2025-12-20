@@ -1,9 +1,5 @@
 #include "language/context.h"
 
-#include "downward/utils/strings.h"
-#include "downward/utils/system.h"
-#include "downward/utils/timer.h"
-
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -79,4 +75,4 @@ TraceBlock::~TraceBlock()
     context.leave_block(block_name);
 }
 
-} // namespace downward::utils
+} // namespace language

@@ -3,8 +3,6 @@
 #include "language/plugins/internal_type_declaration.h"
 #include "language/plugins/internal_function_definition.h"
 
-#include "downward/utils/collections.h"
-
 #include <string>
 
 using namespace std;

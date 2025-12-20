@@ -18,7 +18,7 @@ namespace language::parser {
 
 class TokenStream {
     std::vector<Token> tokens;
-    int pos;
+    std::size_t pos;
 
 public:
     explicit TokenStream(std::vector<Token>&& tokens);
@@ -31,14 +31,14 @@ public:
 
     ~TokenStream();
 
-    bool has_tokens(int n) const;
-    Token peek(const Context& context, int n = 0) const;
+    bool has_tokens(std::size_t n) const;
+    Token peek(const Context& context, std::size_t n = 0) const;
     Token pop(const Context& context);
     Token pop(const Context& context, TokenType expected_type);
 
-    int get_position() const;
-    int size() const;
-    std::string str(int from, int to) const;
+    std::size_t get_position() const;
+    std::size_t size() const;
+    std::string str(std::size_t from, std::size_t to) const;
 };
 
 } // namespace downward::cli::parser

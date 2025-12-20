@@ -1,7 +1,8 @@
 #include "language/token.h"
 
-#include "downward/utils/strings.h"
 #include "downward/utils/system.h"
+
+#include <algorithm>
 
 #undef IN
 #undef TRUE
@@ -9,13 +10,27 @@
 
 using namespace std;
 
+namespace {
+
+std::string to_lower(const string& content)
+{
+    std::string lower;
+    lower.reserve(content.size());
+    ranges::transform(content, std::back_inserter(lower), [](char c) {
+        return std::tolower(c);
+    });
+    return lower;
+}
+
+} // namespace
+
 namespace language::parser {
 static string case_insensitive_to_lower(const string& content, TokenType type)
 {
     if (type == TokenType::TRUE || type == TokenType::FALSE ||
         type == TokenType::INTEGER || type == TokenType::FLOAT ||
         type == TokenType::IDENTIFIER) {
-        return downward::utils::tolower(content);
+        return to_lower(content);
     } else {
         return content;
     }

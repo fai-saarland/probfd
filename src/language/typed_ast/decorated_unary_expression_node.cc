@@ -2,10 +2,6 @@
 
 #include "language/typed_ast/construct_context.h"
 
-#include "language/plugins/types.h"
-
-#include "downward/utils/logging.h"
-
 #include <ranges>
 
 using namespace std;
