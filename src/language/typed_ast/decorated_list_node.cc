@@ -2,8 +2,6 @@
 
 #include "language/typed_ast/construct_context.h"
 
-#include "language/plugins/types.h"
-
 #include "language/context.h"
 
 #include <functional>

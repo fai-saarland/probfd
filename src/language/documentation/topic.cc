@@ -1,4 +1,4 @@
-#include "../../../include/language/documentation/topic.h"
+#include "language/documentation/topic.h"
 
 using namespace std;
 

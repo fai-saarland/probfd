@@ -4,8 +4,7 @@
 #include "language/token.h"
 #include "language/token_stream.h"
 
-#include "downward/utils/strings.h"
-
+#include <ranges>
 #include <regex>
 #include <sstream>
 

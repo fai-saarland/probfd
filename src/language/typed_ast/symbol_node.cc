@@ -1,7 +1,5 @@
 #include "language/typed_ast/symbol_node.h"
 
-#include "downward/utils/logging.h"
-
 using namespace std;
 
 namespace language::parser {

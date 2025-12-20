@@ -3,7 +3,6 @@
 #include "language/context.h"
 #include "language/token.h"
 
-#include "downward/utils/collections.h"
 #include "downward/utils/system.h"
 
 #include <cassert>
@@ -26,13 +25,13 @@ TokenStream& TokenStream::operator=(TokenStream&& other) noexcept = default;
 
 TokenStream::~TokenStream() = default;
 
-bool TokenStream::has_tokens(int n) const
+bool TokenStream::has_tokens(std::size_t n) const
 {
     assert(n > 0);
-    return downward::utils::in_bounds(pos + n - 1, tokens);
+    return pos - 1 + n < tokens.size();
 }
 
-Token TokenStream::peek(const Context& context, int n) const
+Token TokenStream::peek(const Context& context, std::size_t n) const
 {
     if (!has_tokens(n + 1)) {
         context.error(
@@ -67,22 +66,22 @@ Token TokenStream::pop(const Context& context, TokenType expected_type)
     return token;
 }
 
-int TokenStream::get_position() const
+std::size_t TokenStream::get_position() const
 {
     return pos;
 }
 
-int TokenStream::size() const
+std::size_t TokenStream::size() const
 {
     return tokens.size();
 }
 
-string TokenStream::str(int from, int to) const
+string TokenStream::str(std::size_t from, std::size_t to) const
 {
     const auto b = std::ranges::begin(tokens);
     std::ranges::subrange subrange(
         std::next(b, from),
-        std::next(b, std::min<int>(to, tokens.size())));
+        std::next(b, std::min(to, tokens.size())));
     return std::format(
         "{:n:s}",
         subrange | std::views::transform(&Token::content));

@@ -6,8 +6,6 @@
 #include "language/plugins/options.h"
 #include "language/plugins/types.h"
 
-#include "downward/utils/logging.h"
-
 #include <functional>
 #include <ranges>
 

@@ -13,8 +13,6 @@
 
 #include "language/context.h"
 
-#include "downward/utils/strings.h"
-
 #include <vector>
 
 using namespace std;
@@ -49,10 +47,7 @@ TypedDecoratedAstNodePtr IdentifierNode::static_analysis(
     }
 
     if (!qualification.empty()) {
-        context.error(
-            "Undefined variable {}.{}",
-            downward::utils::join_view(qualification, "."),
-            name);
+        context.error("Undefined variable", qualified_name);
     }
 
     return {

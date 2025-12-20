@@ -13,8 +13,7 @@
 #include "language/plugins/registry.h"
 #include "language/plugins/types.h"
 
-#include "downward/utils/logging.h"
-#include "downward/utils/strings.h"
+#include "downward/utils/system.h"
 
 #include <charconv>
 #include <vector>

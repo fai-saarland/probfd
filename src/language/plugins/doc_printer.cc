@@ -3,8 +3,6 @@
 #include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
-#include "downward/utils/strings.h"
-
 #include <iostream>
 #include <map>
 #include <print>

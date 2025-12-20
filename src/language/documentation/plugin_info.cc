@@ -1,7 +1,4 @@
-#include "../../../include/language/documentation/plugin_info.h"
-
-#include <algorithm>
-#include <cassert>
+#include "language/documentation/plugin_info.h"
 
 using namespace std;
 
