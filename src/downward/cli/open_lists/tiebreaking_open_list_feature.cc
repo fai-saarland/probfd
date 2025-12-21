@@ -26,8 +26,8 @@ add_tiebreaking_open_list_to_namespace(Namespace& nspace, std::string name)
         &language::plugins::construct_shared<
             downward::TaskDependentFactory<downward::OpenList<T>>,
             TieBreakingOpenListFactory<T>,
-            const std::vector<std::shared_ptr<
-                downward::TaskDependentFactory<downward::Evaluator>>>&,
+            std::vector<std::shared_ptr<
+                downward::TaskDependentFactory<downward::Evaluator>>>,
             bool,
             bool>);
 

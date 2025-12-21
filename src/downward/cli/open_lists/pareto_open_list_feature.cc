@@ -33,8 +33,8 @@ InternalFunctionDefinitionBase& add_pareto_open_list_to_namespace(Namespace& nsp
         &language::plugins::construct_shared<
             downward::TaskDependentFactory<downward::OpenList<T>>,
             ParetoOpenListFactory<T>,
-            const std::vector<std::shared_ptr<
-                downward::TaskDependentFactory<downward::Evaluator>>>&,
+            std::vector<std::shared_ptr<
+                downward::TaskDependentFactory<downward::Evaluator>>>,
             bool,
             std::shared_ptr<RandomNumberGenerator>,
             bool>);

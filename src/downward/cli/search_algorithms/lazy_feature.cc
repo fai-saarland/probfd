@@ -23,7 +23,7 @@ class LazySearchFactory : public TaskDependentFactory<SearchAlgorithm> {
     OperatorCost cost_type;
     int bound;
     utils::FSeconds max_time;
-    const std::string& description;
+    std::string description;
     utils::Verbosity verbosity;
     shared_ptr<TaskDependentFactory<EdgeOpenList>> open_list_factory;
     bool reopen_closed;
@@ -37,7 +37,7 @@ public:
         OperatorCost cost_type,
         int bound,
         utils::FSeconds max_time,
-        const std::string& description,
+        std::string description,
         utils::Verbosity verbosity,
         shared_ptr<TaskDependentFactory<EdgeOpenList>> open_list_factory,
         bool reopen_closed,
@@ -48,7 +48,7 @@ public:
         : cost_type(cost_type)
         , bound(bound)
         , max_time(max_time)
-        , description(description)
+        , description(std::move(description))
         , verbosity(verbosity)
         , open_list_factory(std::move(open_list_factory))
         , reopen_closed(reopen_closed)
@@ -94,7 +94,7 @@ InternalFunctionDefinitionBase& add_lazy_search_to_namespace(Namespace& nspace)
             OperatorCost,
             int,
             utils::FSeconds,
-            const std::string&,
+            std::string,
             utils::Verbosity,
             shared_ptr<TaskDependentFactory<EdgeOpenList>>,
             bool,

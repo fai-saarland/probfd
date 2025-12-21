@@ -22,8 +22,8 @@ add_alternation_open_list_to_namespace(Namespace& nspace, std::string name)
         &language::plugins::construct_shared<
             downward::TaskDependentFactory<downward::OpenList<T>>,
             AlternationOpenListFactory<T>,
-            const std::vector<shared_ptr<
-                downward::TaskDependentFactory<downward::OpenList<T>>>>&,
+            std::vector<shared_ptr<
+                downward::TaskDependentFactory<downward::OpenList<T>>>>,
             int>);
 
     if constexpr (std::same_as<T, downward::StateOpenListEntry>) {

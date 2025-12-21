@@ -26,7 +26,7 @@ InternalFunctionDefinitionBase& add_landmark_factory_merged_to_namespace(Namespa
         &language::plugins::construct_shared<
             LandmarkFactory,
             LandmarkFactoryMerged,
-            const std::vector<std::shared_ptr<LandmarkFactory>>&,
+            std::vector<std::shared_ptr<LandmarkFactory>>,
             downward::utils::Verbosity>);
     f.document_title("Merged Landmarks");
     f.document_synopsis(

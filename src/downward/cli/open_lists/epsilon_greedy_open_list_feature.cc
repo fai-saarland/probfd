@@ -34,8 +34,8 @@ add_epsilon_greedy_open_list_to_namespace(Namespace& nspace, std::string name)
         &language::plugins::construct_shared<
             downward::TaskDependentFactory<downward::OpenList<T>>,
             EpsilonGreedyOpenListFactory<T>,
-            const std::shared_ptr<
-                downward::TaskDependentFactory<downward::Evaluator>>&,
+            std::shared_ptr<
+                downward::TaskDependentFactory<downward::Evaluator>>,
             double,
             std::shared_ptr<RandomNumberGenerator>,
             bool>);

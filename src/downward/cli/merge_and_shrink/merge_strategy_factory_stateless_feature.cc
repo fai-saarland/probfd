@@ -24,7 +24,7 @@ InternalFunctionDefinitionBase& add_merge_strategy_factory_stateless_to_namespac
         &language::plugins::construct_shared<
             MergeStrategyFactory,
             MergeStrategyFactoryStateless,
-            const std::shared_ptr<MergeSelector>&,
+            std::shared_ptr<MergeSelector>,
             Verbosity>);
     f.document_title("Stateless merge strategy");
     f.document_synopsis(

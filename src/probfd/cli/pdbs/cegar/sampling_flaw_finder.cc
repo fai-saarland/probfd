@@ -24,7 +24,7 @@ add_sampling_flaw_finder_to_namespace(Namespace& nspace)
     auto& f = nspace.insert_function_definition(
         "sampling_flaw_finder",
         &language::plugins::construct_shared<
-            SamplingFlawFinder,
+            FlawFindingStrategy,
             SamplingFlawFinder,
             std::shared_ptr<RandomNumberGenerator>,
             int>);

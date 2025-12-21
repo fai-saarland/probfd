@@ -23,7 +23,7 @@ InternalFunctionDefinitionBase& add_pattern_collection_generator_manual_to_names
         &language::plugins::construct_shared<
             PatternCollectionGenerator,
             PatternCollectionGeneratorManual,
-            const std::vector<Pattern>&,
+            std::vector<Pattern>,
             Verbosity>);
     f.make_required_argument(
         0,

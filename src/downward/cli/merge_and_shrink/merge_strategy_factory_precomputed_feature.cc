@@ -24,7 +24,7 @@ InternalFunctionDefinitionBase& add_merge_strategy_factory_precomputed_to_namesp
         &language::plugins::construct_shared<
             MergeStrategyFactory,
             MergeStrategyFactoryPrecomputed,
-            const std::shared_ptr<MergeTreeFactory>&,
+            std::shared_ptr<MergeTreeFactory>,
             downward::utils::Verbosity>);
     f.document_title("Precomputed merge strategy");
     f.document_synopsis(

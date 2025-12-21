@@ -23,8 +23,7 @@ InternalFunctionDefinitionBase& add_pho_constraints_to_namespace(Namespace& nspa
         &language::plugins::construct_shared<
             ConstraintGenerator,
             PhOConstraints,
-            const std::shared_ptr<
-                downward::pdbs::PatternCollectionGenerator>&>);
+            std::shared_ptr<PatternCollectionGenerator>>);
     f.document_title("Posthoc optimization constraints");
     f.document_synopsis(
         "The generator will compute a PDB for each pattern and add the"

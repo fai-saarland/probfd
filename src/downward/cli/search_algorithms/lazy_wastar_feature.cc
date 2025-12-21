@@ -26,7 +26,7 @@ class LazyWAstarSearchFactory : public TaskDependentFactory<SearchAlgorithm> {
     OperatorCost cost_type;
     int bound;
     utils::FSeconds max_time;
-    const std::string& description;
+    std::string description;
     utils::Verbosity verbosity;
     bool reopen_closed;
     bool randomize_successors;
@@ -42,7 +42,7 @@ public:
         OperatorCost cost_type,
         int bound,
         utils::FSeconds max_time,
-        const std::string& description,
+        std::string description,
         utils::Verbosity verbosity,
         bool reopen_closed,
         bool randomize_successors,
@@ -55,7 +55,7 @@ public:
         : cost_type(cost_type)
         , bound(bound)
         , max_time(max_time)
-        , description(description)
+        , description(std::move(description))
         , verbosity(verbosity)
         , reopen_closed(reopen_closed)
         , randomize_successors(randomize_successors)
@@ -119,7 +119,7 @@ InternalFunctionDefinitionBase& add_lazy_weighted_astar_to_namespace(Namespace& 
             OperatorCost,
             int,
             utils::FSeconds,
-            const std::string&,
+            std::string,
             utils::Verbosity,
             bool,
             bool,
