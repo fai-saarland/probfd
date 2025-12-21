@@ -31,7 +31,7 @@ add_landmark_factory_reasonable_orders_hps_to_namespace(Namespace& nspace)
         &language::plugins::construct_shared<
             LandmarkFactory,
             LandmarkFactoryReasonableOrdersHPS,
-            const std::shared_ptr<LandmarkFactory>&,
+            std::shared_ptr<LandmarkFactory>,
             std::shared_ptr<TaskDependentFactory<MutexInformation>>,
             utils::Verbosity>);
     f.document_title("HPS Orders");

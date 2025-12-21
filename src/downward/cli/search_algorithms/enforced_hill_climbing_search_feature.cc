@@ -29,7 +29,7 @@ class EnforcedHillClimbingSearchFactory
     OperatorCost cost_type;
     int bound;
     utils::FSeconds max_time;
-    const std::string& description;
+    std::string description;
     utils::Verbosity verbosity;
 
 public:
@@ -40,7 +40,7 @@ public:
         OperatorCost cost_type,
         int bound,
         utils::FSeconds max_time,
-        const std::string& description,
+        std::string description,
         utils::Verbosity verbosity)
         : h_factory(std::move(h_factory))
         , preferred_usage(preferred_usage)
@@ -48,7 +48,7 @@ public:
         , cost_type(cost_type)
         , bound(bound)
         , max_time(max_time)
-        , description(description)
+        , description(std::move(description))
         , verbosity(verbosity)
     {
     }
@@ -88,7 +88,7 @@ InternalFunctionDefinitionBase& add_eager_hill_climbing_search_to_namespace(Name
             OperatorCost,
             int,
             FSeconds,
-            const std::string&,
+            std::string,
             Verbosity>);
 
     f.document_title("Lazy enforced hill-climbing");

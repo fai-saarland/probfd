@@ -92,8 +92,8 @@ add_pattern_collection_generator_disjoint_cegar_to_namespace(Namespace& nspace)
             int,
             FSeconds,
             std::shared_ptr<RandomNumberGenerator>,
-            const std::shared_ptr<SubCollectionFinderFactory>&,
-            const std::shared_ptr<FlawFindingStrategy>&,
+            std::shared_ptr<SubCollectionFinderFactory>,
+            std::shared_ptr<FlawFindingStrategy>,
             Verbosity>);
 
     f.make_optional_argument_with_default(

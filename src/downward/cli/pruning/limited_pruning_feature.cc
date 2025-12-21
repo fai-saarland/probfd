@@ -25,7 +25,7 @@ InternalFunctionDefinitionBase& add_limited_pruning_strategy_namespace(Namespace
         &language::plugins::construct_shared<
             downward::PruningMethod,
             LimitedPruning,
-            const std::shared_ptr<downward::PruningMethod>&,
+            std::shared_ptr<downward::PruningMethod>,
             double,
             int,
             Verbosity>);

@@ -20,7 +20,7 @@ InternalFunctionDefinitionBase& add_merge_selector_score_based_filtering_to_name
         &language::plugins::construct_shared<
             MergeSelector,
             MergeSelectorScoreBasedFiltering,
-            const std::vector<std::shared_ptr<MergeScoringFunction>>&>);
+            std::vector<std::shared_ptr<MergeScoringFunction>>>);
     f.document_title("Score based filtering merge selector");
     f.document_synopsis(
         "This merge selector has a list of scoring "

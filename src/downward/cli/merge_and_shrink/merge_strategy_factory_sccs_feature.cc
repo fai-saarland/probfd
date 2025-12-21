@@ -27,8 +27,8 @@ InternalFunctionDefinitionBase& add_merge_strategy_factory_sccs_to_namespace(Nam
         &language::plugins::construct_shared<
             MergeStrategyFactory,
             MergeStrategyFactorySCCs,
-            const OrderOfSCCs&,
-            const std::shared_ptr<MergeSelector>&,
+            OrderOfSCCs,
+            std::shared_ptr<MergeSelector>,
             Verbosity>);
     f.document_title("Merge strategy SSCs");
     f.document_synopsis(

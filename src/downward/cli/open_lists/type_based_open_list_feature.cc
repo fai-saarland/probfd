@@ -32,8 +32,8 @@ add_tiebreaking_open_list_to_namespace(Namespace& nspace, std::string name)
         &language::plugins::construct_shared<
             downward::TaskDependentFactory<downward::OpenList<T>>,
             TypeBasedOpenListFactory<T>,
-            const std::vector<std::shared_ptr<
-                downward::TaskDependentFactory<downward::Evaluator>>>&,
+            std::vector<std::shared_ptr<
+                downward::TaskDependentFactory<downward::Evaluator>>>,
             std::shared_ptr<RandomNumberGenerator>>);
 
     if constexpr (std::same_as<T, downward::StateOpenListEntry>) {

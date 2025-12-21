@@ -23,7 +23,7 @@ InternalFunctionDefinitionBase& add_pattern_generator_manual_to_namespace(Namesp
         &language::plugins::construct_shared<
             PatternGenerator,
             PatternGeneratorManual,
-            const std::vector<int>&,
+            std::vector<int>,
             Verbosity>);
     f.make_required_argument(
         0,
