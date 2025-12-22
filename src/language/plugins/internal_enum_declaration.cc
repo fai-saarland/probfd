@@ -1,14 +1,16 @@
 #include "language/plugins/internal_enum_declaration.h"
 
+#include "language/plugins/demangle.h"
+
 using namespace std;
 
 namespace language::plugins {
 
 InternalEnumDeclarationBase::InternalEnumDeclarationBase(
     type_index type,
-    initializer_list<pair<string, string>> enum_values)
+    std::vector<std::string> enumerator_documentation)
     : type(type)
-    , enum_info(enum_values)
+    , enumerator_documentation(std::move(enumerator_documentation))
 {
 }
 
@@ -19,12 +21,7 @@ type_index InternalEnumDeclarationBase::get_type() const
 
 string InternalEnumDeclarationBase::get_class_name() const
 {
-    return type.name();
-}
-
-const EnumInfo& InternalEnumDeclarationBase::get_enum_info() const
-{
-    return enum_info;
+    return demangle(type.name());
 }
 
 } // namespace language::plugins

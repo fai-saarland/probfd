@@ -21,8 +21,8 @@ using namespace std;
 namespace downward::operator_counting {
 
 PhOConstraints::PhOConstraints(
-    const shared_ptr<pdbs::PatternCollectionGenerator>& patterns)
-    : pattern_generator(patterns)
+    shared_ptr<pdbs::PatternCollectionGenerator> patterns)
+    : pattern_generator(std::move(patterns))
 {
 }
 

@@ -22,7 +22,7 @@ class PhOConstraints : public ConstraintGenerator {
 
 public:
     explicit PhOConstraints(
-        const std::shared_ptr<pdbs::PatternCollectionGenerator>& patterns);
+        std::shared_ptr<pdbs::PatternCollectionGenerator> patterns);
 
     void initialize_constraints(
         const SharedAbstractTask& task,

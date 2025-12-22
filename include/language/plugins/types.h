@@ -27,7 +27,6 @@ public:
     virtual bool is_list_type() const;
     virtual bool is_empty_list_type() const;
     virtual bool is_enum_type() const;
-    virtual bool is_symbol_type() const;
     virtual bool is_function_type() const;
     virtual bool is_keyword_function_type() const;
 
@@ -76,11 +75,11 @@ public:
 };
 
 class InternalType : public Type {
-    std::type_index pointer_type;
+    std::type_index type;
     std::string type_name;
 
 public:
-    InternalType(std::type_index pointer_type, const std::string& type_name);
+    InternalType(std::type_index pointer_type, std::string type_name);
 
     bool operator==(const Type& other) const override;
     bool is_internal_type() const override;
@@ -117,28 +116,14 @@ public:
 
 class EnumType : public Type {
     std::type_index type;
-    std::vector<std::string> values;
-    EnumInfo documented_values;
+    std::string type_name;
 
 public:
-    EnumType(std::type_index type, const EnumInfo& documented_values);
+    EnumType(std::type_index type, std::string type_name);
 
     bool operator==(const Type& other) const override;
     bool is_enum_type() const override;
 
-    std::string name() const override;
-    size_t get_hash() const override;
-
-    const EnumInfo& get_documented_enum_values() const;
-
-    int get_enum_index(const std::string& value, Context& context) const;
-};
-
-class SymbolType : public Type {
-public:
-    bool operator==(const Type& other) const override;
-    bool is_symbol_type() const override;
-    bool can_convert_into(const Type& other) const override;
     std::string name() const override;
     size_t get_hash() const override;
 };

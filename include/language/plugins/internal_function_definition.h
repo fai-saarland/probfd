@@ -56,6 +56,20 @@ constexpr auto num_args = FuncTraits<T>::num_args;
 
 template <typename T, std::size_t I>
 using ArgType = typename FuncTraits<T>::template ArgType<I>;
+
+template <typename T>
+struct strip_context;
+
+template <typename R, typename... Args>
+struct strip_context<R(const Context&, Args...)> {
+    using type = R(Args...);
+};
+
+template <typename R, typename... Args>
+struct strip_context<R(Args...)> {
+    using type = R(Args...);
+};
+
 } // namespace detail
 
 template <typename T, typename... Args>
@@ -67,7 +81,9 @@ T constructor(Args... args)
 
 template <typename Base, typename T, typename... Args>
 std::shared_ptr<Base> construct_shared(Args... args)
-    requires std::constructible_from<T, Args...> && std::derived_from<T, Base>
+    requires std::constructible_from<T, Args...> &&
+             std::derived_from<T, Base> && (!std::is_reference_v<T>) &&
+             (!std::is_reference_v<Args> && ...)
 {
     return std::make_shared<T>(
         std::forward<std::remove_reference_t<Args>>(args)...);
@@ -220,7 +236,8 @@ public:
 
     const FunctionType& get_type() const override
     {
-        return TypeRegistry::instance()->get_function_type<FType>();
+        return TypeRegistry::instance()
+            ->get_function_type<typename detail::strip_context<FType>::type>();
     }
 
 private:

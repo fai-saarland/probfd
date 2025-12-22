@@ -56,7 +56,9 @@ class VariableEnvironment {
     std::unique_ptr<Scope> scope;
 
 public:
-    explicit VariableEnvironment(const plugins::Registry& registry);
+    explicit VariableEnvironment(
+        const plugins::Registry& registry,
+        Context& context);
 
     void add_variable(
         Context& context,
@@ -73,7 +75,7 @@ public:
 
     const plugins::Type& get_variable_type(const std::string& name) const;
 
-    VariableDeclaration& get_variable_definition(const std::string& name) const;
+    VariableDeclaration& get_variable_declaration(const std::string& name) const;
 
     void enter_scope();
 

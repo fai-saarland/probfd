@@ -5,6 +5,7 @@ create_library(
     language/documentation/plugin_info
     language/documentation/topic
     language/plugins/any
+    language/plugins/demangle
     language/plugins/doc_printer
     language/plugins/internal_enum_declaration
     language/plugins/internal_function_definition
@@ -49,8 +50,7 @@ create_library(
     language/typed_ast/decorated_string_literal_node
     language/typed_ast/decorated_unary_expression_node
     language/typed_ast/decorated_variable_node
-    language/typed_ast/symbol_node
-    language/typed_ast/variable_definition
+    language/typed_ast/variable_declaration
     language/context
     language/lexical_analyzer
     language/syntax_analyzer

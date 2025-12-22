@@ -9,10 +9,10 @@ using namespace std;
 
 namespace downward::merge_and_shrink {
 MergeStrategyFactoryStateless::MergeStrategyFactoryStateless(
-    const shared_ptr<MergeSelector>& merge_selector,
+    shared_ptr<MergeSelector> merge_selector,
     utils::Verbosity verbosity)
     : MergeStrategyFactory(verbosity)
-    , merge_selector(merge_selector)
+    , merge_selector(std::move(merge_selector))
 {
 }
 

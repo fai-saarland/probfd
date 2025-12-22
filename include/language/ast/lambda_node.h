@@ -32,7 +32,9 @@ class LambdaNode : public ASTNode {
     std::unique_ptr<ASTNode> nested_value;
 
 public:
-    LambdaNode(std::vector<TypedParameter> parameters, std::unique_ptr<ASTNode> nested_value);
+    LambdaNode(
+        std::vector<TypedParameter> parameters,
+        std::unique_ptr<ASTNode> nested_value);
 
     TypedDecoratedAstNodePtr
     static_analysis(Context& context, VariableEnvironment& env) const override;

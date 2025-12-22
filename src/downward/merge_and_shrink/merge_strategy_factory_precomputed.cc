@@ -10,10 +10,10 @@ using namespace std;
 
 namespace downward::merge_and_shrink {
 MergeStrategyFactoryPrecomputed::MergeStrategyFactoryPrecomputed(
-    const shared_ptr<MergeTreeFactory>& merge_tree,
+    shared_ptr<MergeTreeFactory> merge_tree,
     utils::Verbosity verbosity)
     : MergeStrategyFactory(verbosity)
-    , merge_tree_factory(merge_tree)
+    , merge_tree_factory(std::move(merge_tree))
 {
 }
 

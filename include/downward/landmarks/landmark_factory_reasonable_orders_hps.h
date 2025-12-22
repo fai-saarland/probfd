@@ -42,7 +42,7 @@ class LandmarkFactoryReasonableOrdersHPS : public LandmarkFactory {
 
 public:
     LandmarkFactoryReasonableOrdersHPS(
-        const std::shared_ptr<LandmarkFactory>& lm_factory,
+        std::shared_ptr<LandmarkFactory> lm_factory,
         std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory,
         utils::Verbosity verbosity);
 

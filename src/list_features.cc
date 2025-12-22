@@ -236,19 +236,6 @@ protected:
             for (std::string_view line : lines | std::views::drop(1)) {
                 std::println(os, "{:>{}}{}", "", max_width + 4, line);
             }
-
-            if (!arg_type->is_enum_type()) continue;
-
-            for (const auto& expl : static_cast<const EnumType&>(*arg_type)
-                                        .get_documented_enum_values()) {
-                std::println(
-                    os,
-                    "{:>{}} {}: {}",
-                    '-',
-                    max_width + 7,
-                    expl.first,
-                    expl.second);
-            }
         }
 
         os << std::endl;

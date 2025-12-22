@@ -3,9 +3,7 @@
 #include "language/ast/variable_environment.h"
 
 #include "language/typed_ast/decorated_feature_literal_node.h"
-#include "language/typed_ast/decorated_variable_node.h"
-#include "language/typed_ast/symbol_node.h"
-#include "language/typed_ast/variable_definition.h"
+#include "language/typed_ast/variable_declaration.h"
 
 #include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
@@ -33,9 +31,8 @@ TypedDecoratedAstNodePtr IdentifierNode::static_analysis(
     const auto& [qualification, name] = qualified_name;
 
     if (qualification.empty() && env.has_variable(name)) {
-        auto& def = env.get_variable_definition(name);
-        auto n = std::make_unique<VariableNode>(def);
-        def.usages.push_back(n.get());
+        auto& def = env.get_variable_declaration(name);
+        auto n = def.create_load_node();
         return {std::move(n), &env.get_variable_type(name)};
     }
 
@@ -46,13 +43,7 @@ TypedDecoratedAstNodePtr IdentifierNode::static_analysis(
         return {std::move(node), &f.get_type()};
     }
 
-    if (!qualification.empty()) {
-        context.error("Undefined variable", qualified_name);
-    }
-
-    return {
-        std::make_unique<SymbolNode>(name),
-        &plugins::TypeRegistry::SYMBOL_TYPE};
+    context.error("Undefined variable", qualified_name);
 }
 
 const QualifiedName& IdentifierNode::get_name() const

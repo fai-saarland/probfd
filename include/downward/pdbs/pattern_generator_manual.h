@@ -13,7 +13,7 @@ class PatternGeneratorManual : public PatternGenerator {
 
 public:
     PatternGeneratorManual(
-        const std::vector<int>& pattern,
+        std::vector<int> pattern,
         utils::Verbosity verbosity);
 };
 } // namespace downward::pdbs

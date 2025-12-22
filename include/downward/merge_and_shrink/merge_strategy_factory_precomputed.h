@@ -15,7 +15,7 @@ protected:
 
 public:
     MergeStrategyFactoryPrecomputed(
-        const std::shared_ptr<MergeTreeFactory>& merge_tree,
+        std::shared_ptr<MergeTreeFactory> merge_tree,
         utils::Verbosity verbosity);
 
     std::unique_ptr<MergeStrategy> compute_merge_strategy(

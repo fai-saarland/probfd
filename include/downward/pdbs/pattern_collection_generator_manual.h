@@ -16,7 +16,7 @@ class PatternCollectionGeneratorManual : public PatternCollectionGenerator {
 
 public:
     explicit PatternCollectionGeneratorManual(
-        const std::vector<Pattern>& patterns,
+        std::vector<Pattern> patterns,
         utils::Verbosity verbosity);
 };
 } // namespace downward::pdbs

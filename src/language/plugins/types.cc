@@ -1,8 +1,8 @@
 #include "language/plugins/types.h"
 
 #include "language/plugins/internal_enum_declaration.h"
-#include "language/plugins/internal_type_declaration.h"
 #include "language/plugins/internal_function_definition.h"
+#include "language/plugins/internal_type_declaration.h"
 
 #include <ranges>
 #include <typeindex>
@@ -32,11 +32,6 @@ bool Type::is_empty_list_type() const
 }
 
 bool Type::is_enum_type() const
-{
-    return false;
-}
-
-bool Type::is_symbol_type() const
 {
     return false;
 }
@@ -139,16 +134,16 @@ size_t BasicType::get_hash() const
     return hash<type_index>()(type);
 }
 
-InternalType::InternalType(type_index pointer_type, const string& type_name)
-    : pointer_type(pointer_type)
-    , type_name(type_name)
+InternalType::InternalType(type_index pointer_type, std::string type_name)
+    : type(pointer_type)
+    , type_name(std::move(type_name))
 {
 }
 
 bool InternalType::operator==(const Type& other) const
 {
     const InternalType* other_ptr = dynamic_cast<const InternalType*>(&other);
-    return other_ptr && pointer_type == other_ptr->pointer_type;
+    return other_ptr && type == other_ptr->type;
 }
 
 bool InternalType::is_internal_type() const
@@ -164,12 +159,12 @@ string InternalType::name() const
 size_t InternalType::get_hash() const
 {
     return hash<type_index>()(typeid(InternalType)) ^
-           hash<type_index>()(pointer_type);
+           hash<type_index>()(type);
 }
 
 std::type_index InternalType::get_type_index() const
 {
-    return pointer_type;
+    return type;
 }
 
 ListType::ListType(const Type& nested_type)
@@ -241,14 +236,10 @@ size_t EmptyListType::get_hash() const
     return hash<type_index>()(typeid(EmptyListType));
 }
 
-EnumType::EnumType(type_index type, const EnumInfo& documented_values)
+EnumType::EnumType(type_index type, std::string type_name)
     : type(type)
-    , documented_values(documented_values)
+    , type_name(std::move(type_name))
 {
-    values.reserve(documented_values.size());
-    for (const auto& value : documented_values | views::keys) {
-        values.push_back(value);
-    }
 }
 
 bool EnumType::operator==(const Type& other) const
@@ -262,56 +253,15 @@ bool EnumType::is_enum_type() const
     return true;
 }
 
-int EnumType::get_enum_index(const string& value, Context& context) const
-{
-    const auto it = ranges::find(values, value);
-    const int enum_index = static_cast<int>(it - values.begin());
-    if (enum_index >= static_cast<int>(values.size())) {
-        context.error("Invalid enum value: {}\nOptions: {:n}", value, values);
-    }
-    return enum_index;
-}
-
-const EnumInfo& EnumType::get_documented_enum_values() const
-{
-    return documented_values;
-}
-
 string EnumType::name() const
 {
-    return std::format("{{{:n:s}}}", values);
+    return type_name;
 }
 
 size_t EnumType::get_hash() const
 {
-    size_t hash_value = 0;
-    for (const string& value : values) { hash_value ^= hash<string>()(value); }
-    return hash_value;
-}
-
-bool SymbolType::operator==(const Type& other) const
-{
-    return other.is_symbol_type();
-}
-
-bool SymbolType::is_symbol_type() const
-{
-    return true;
-}
-
-bool SymbolType::can_convert_into(const Type& other) const
-{
-    return (*this == other) || other.is_enum_type();
-}
-
-string SymbolType::name() const
-{
-    return "symbol";
-}
-
-size_t SymbolType::get_hash() const
-{
-    return hash<type_index>()(typeid(SymbolType));
+    return hash<type_index>()(typeid(EnumType)) ^
+           hash<type_index>()(type);
 }
 
 std::any convert(
@@ -336,12 +286,6 @@ std::any convert(
             return std::any(-numeric_limits<double>::infinity());
         }
         return std::any(static_cast<double>(int_value));
-    } else if (from_type.is_symbol_type() && to_type.is_enum_type()) {
-        string str_value = any_cast<string>(value);
-        return std::any(
-            static_cast<const EnumType&>(to_type).get_enum_index(
-                str_value,
-                context));
     } else if (from_type.is_list_type() && to_type.is_list_type()) {
         if (from_type.is_empty_list_type()) { return value; }
 

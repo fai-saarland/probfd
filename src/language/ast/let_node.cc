@@ -3,7 +3,6 @@
 #include "language/ast/variable_environment.h"
 
 #include "language/typed_ast/decorated_let_node.h"
-#include "language/typed_ast/variable_definition.h"
 
 #include "language/plugins/internal_function_definition.h"
 
@@ -31,7 +30,8 @@ LetNode::static_analysis(Context& context, VariableEnvironment& env) const
         variable_definitions |
             views::transform(&LetNodeDefinition::identifier));
 
-    std::vector<VariableDefinition> decorated_variable_definitions;
+    std::vector<std::unique_ptr<VariableDefinition>>
+        decorated_variable_definitions;
     decorated_variable_definitions.reserve(variable_definitions.size());
 
     env.enter_scope();
@@ -42,10 +42,11 @@ LetNode::static_analysis(Context& context, VariableEnvironment& env) const
         auto [ast_node, type] =
             variable_definition->static_analysis(context, env);
         auto& declaration = decorated_variable_definitions.emplace_back(
-            variable_name,
-            std::move(ast_node));
+            std::make_unique<VariableDefinition>(
+                variable_name,
+                std::move(ast_node)));
 
-        env.add_variable(context, variable_name, *type, declaration);
+        env.add_variable(context, variable_name, *type, *declaration);
     }
 
     TypedDecoratedAstNodePtr decorated_nested_value;

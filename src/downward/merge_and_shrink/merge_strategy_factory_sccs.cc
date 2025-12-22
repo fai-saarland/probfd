@@ -34,12 +34,12 @@ compare_sccs_decreasing(const vector<int>& lhs, const vector<int>& rhs)
 }
 
 MergeStrategyFactorySCCs::MergeStrategyFactorySCCs(
-    const OrderOfSCCs& order_of_sccs,
-    const shared_ptr<MergeSelector>& merge_selector,
+    OrderOfSCCs order_of_sccs,
+    shared_ptr<MergeSelector> merge_selector,
     utils::Verbosity verbosity)
     : MergeStrategyFactory(verbosity)
     , order_of_sccs(order_of_sccs)
-    , merge_selector(merge_selector)
+    , merge_selector(std::move(merge_selector))
 {
 }
 

@@ -5,7 +5,7 @@
 #include "language/ast/let_node.h"
 
 #include "language/typed_ast/decorated_ast_node.h"
-#include "language/typed_ast/variable_definition.h"
+#include "language/typed_ast/variable_declaration.h"
 
 #include "language/syntax_analyzer.h"
 
@@ -135,8 +135,8 @@ static auto construct_solver(argparse::ArgumentParser& parser)
             !defs.empty()) {
             std::println(
                 std::cout,
-                "Removed unused variables from feature expression: {}",
-                defs | views::transform(&VariableDefinition::variable_name));
+                "Removed unused declarations from feature expression: {}",
+                defs | views::transform(&VariableDeclaration::variable_name));
         }
     }
 

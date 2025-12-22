@@ -1,7 +1,7 @@
 #include "language/typed_ast/decorated_variable_node.h"
 
 #include "language/typed_ast/construct_context.h"
-#include "language/typed_ast/variable_definition.h"
+#include "language/typed_ast/variable_declaration.h"
 
 #include "language/plugins/types.h"
 

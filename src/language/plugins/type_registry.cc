@@ -1,5 +1,6 @@
 #include "language/plugins/types.h"
 
+#include "language/plugins/demangle.h"
 #include "language/plugins/internal_enum_declaration.h"
 #include "language/plugins/internal_function_definition.h"
 #include "language/plugins/internal_type_declaration.h"
@@ -8,36 +9,10 @@
 
 #include <typeindex>
 
-#ifdef __GNUG__
-#include <cstdlib>
-#include <cxxabi.h>
-#include <memory>
-#endif
-
 using namespace std;
-
-namespace {
-
-std::string demangle(const char* name)
-{
-#ifdef __GNUG__
-    int status;
-
-    const std::unique_ptr<char, void (*)(void*)> res{
-        abi::__cxa_demangle(name, nullptr, nullptr, &status),
-        std::free};
-
-    return status == 0 ? res.get() : name;
-#else
-    return name;
-#endif
-}
-
-} // namespace
 
 namespace language::plugins {
 
-SymbolType TypeRegistry::SYMBOL_TYPE;
 EmptyListType TypeRegistry::EMPTY_LIST_TYPE;
 
 TypeRegistry::TypeRegistry()
@@ -81,7 +56,7 @@ TypeRegistry::create_enum_type(const InternalEnumDeclarationBase& plugin)
 {
     auto [it, inserted] = registered_types.emplace(
         plugin.get_type(),
-        std::make_unique<EnumType>(plugin.get_type(), plugin.get_enum_info()));
+        std::make_unique<EnumType>(plugin.get_type(), plugin.get_class_name()));
 
     if (!inserted) {
         throw CriticalError(

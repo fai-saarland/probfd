@@ -43,13 +43,13 @@ public:
         int max_collection_size,
         downward::utils::FSeconds max_time,
         std::shared_ptr<downward::utils::RandomNumberGenerator> rng,
-        const std::shared_ptr<SubCollectionFinderFactory>&
+        std::shared_ptr<SubCollectionFinderFactory>
             subcollection_finder_factory,
-        const std::shared_ptr<cegar::FlawFindingStrategy>& flaw_strategy,
+        std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy,
         downward::utils::Verbosity verbosity);
 
-    PatternCollectionInformation generate(
-        const SharedProbabilisticTask& task) override;
+    PatternCollectionInformation
+    generate(const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::pdbs

@@ -1,6 +1,7 @@
 #include "language/ast/variable_environment.h"
 
 #include "language/context.h"
+#include "language/plugins/registry.h"
 
 #include <cassert>
 
@@ -74,10 +75,16 @@ VariableDeclaration& Scope::get_variable_declaration(const std::string& name)
     return *t->declaration;
 }
 
-VariableEnvironment::VariableEnvironment(const plugins::Registry& registry)
+VariableEnvironment::VariableEnvironment(
+    const plugins::Registry& registry,
+    Context& context)
     : registry(registry)
     , scope(std::make_unique<Scope>())
 {
+    for (const auto& ns = registry.get_global_name_space();
+         const auto& enum_decl : ns.get_enum_declarations()) {
+        enum_decl->static_analysis(*this, context);
+    }
 }
 
 void VariableEnvironment::add_variable(
@@ -109,7 +116,7 @@ VariableEnvironment::get_variable_type(const std::string& name) const
 }
 
 VariableDeclaration&
-VariableEnvironment::get_variable_definition(const std::string& name) const
+VariableEnvironment::get_variable_declaration(const std::string& name) const
 {
     return scope->get_variable_declaration(name);
 }

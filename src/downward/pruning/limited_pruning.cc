@@ -6,12 +6,12 @@ using namespace std;
 
 namespace downward::limited_pruning {
 LimitedPruning::LimitedPruning(
-    const shared_ptr<PruningMethod>& pruning,
+    shared_ptr<PruningMethod> pruning,
     double min_required_pruning_ratio,
     int expansions_before_checking_pruning_ratio,
     utils::Verbosity verbosity)
     : PruningMethod(verbosity)
-    , pruning_method(pruning)
+    , pruning_method(std::move(pruning))
     , min_required_pruning_ratio(min_required_pruning_ratio)
     , num_expansions_before_checking_pruning_ratio(
           expansions_before_checking_pruning_ratio)

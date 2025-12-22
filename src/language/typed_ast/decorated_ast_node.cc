@@ -1,7 +1,7 @@
 #include "language/typed_ast/decorated_ast_node.h"
 
 #include "language/typed_ast/construct_context.h"
-#include "language/typed_ast/variable_definition.h"
+#include "language/typed_ast/variable_declaration.h"
 
 #include "language/context.h"
 
@@ -12,9 +12,10 @@ using namespace std;
 
 namespace language::parser {
 
-std::vector<VariableDefinition> DecoratedASTNode::prune_unused_definitions()
+std::vector<std::unique_ptr<VariableDeclaration>>
+DecoratedASTNode::prune_unused_definitions()
 {
-    std::vector<VariableDefinition> defs;
+    std::vector<std::unique_ptr<VariableDeclaration>> defs;
     prune_unused_definitions(defs);
     return defs;
 }

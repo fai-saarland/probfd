@@ -11,8 +11,8 @@ using namespace std;
 
 namespace downward::merge_and_shrink {
 MergeSelectorScoreBasedFiltering::MergeSelectorScoreBasedFiltering(
-    const vector<shared_ptr<MergeScoringFunction>>& scoring_functions)
-    : merge_scoring_functions(scoring_functions)
+    vector<shared_ptr<MergeScoringFunction>> scoring_functions)
+    : merge_scoring_functions(std::move(scoring_functions))
 {
 }
 

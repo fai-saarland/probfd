@@ -1,7 +1,8 @@
 #include "language/typed_ast/decorated_lambda_node.h"
 
 #include "language/typed_ast/construct_context.h"
-#include "language/typed_ast/variable_definition.h"
+#include "language/typed_ast/decorated_variable_node.h"
+#include "language/typed_ast/variable_declaration.h"
 
 #include "language/plugins/options.h"
 #include "language/plugins/types.h"
@@ -39,9 +40,16 @@ struct std::formatter<TypedName, CharT> {
 
 namespace language::parser {
 
+std::unique_ptr<DecoratedASTNode> LambdaParameter::create_load_node()
+{
+    auto node = std::make_unique<VariableNode>(*this);
+    usages.push_back(node.get());
+    return node;
+}
+
 DecoratedLambdaNode::DecoratedLambdaNode(
     const plugins::FunctionType& type,
-    std::vector<VariableDeclaration> decorated_variable_declarations,
+    std::vector<LambdaParameter> decorated_variable_declarations,
     std::unique_ptr<DecoratedASTNode> nested_value)
     : type(type)
     , decorated_variable_declarations(
@@ -56,7 +64,7 @@ DecoratedLambdaNode::DecoratedLambdaNode(DecoratedLambdaNode&&) noexcept =
     default;
 
 void DecoratedLambdaNode::prune_unused_definitions(
-    std::vector<VariableDefinition>&)
+    std::vector<std::unique_ptr<VariableDeclaration>>&)
 {
 }
 

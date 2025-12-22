@@ -18,8 +18,7 @@ protected:
 
 public:
     explicit MergeSelectorScoreBasedFiltering(
-        const std::vector<std::shared_ptr<MergeScoringFunction>>&
-            scoring_functions);
+        std::vector<std::shared_ptr<MergeScoringFunction>> scoring_functions);
     std::pair<int, int> select_merge(
         const FactoredTransitionSystem& fts,
         const std::vector<int>& indices_subset =

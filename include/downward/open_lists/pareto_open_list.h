@@ -240,12 +240,12 @@ class ParetoOpenListFactory : public TaskDependentFactory<OpenList<T>> {
 
 public:
     ParetoOpenListFactory(
-        const std::vector<std::shared_ptr<TaskDependentFactory<Evaluator>>>&
+        std::vector<std::shared_ptr<TaskDependentFactory<Evaluator>>>
             eval_factories,
         bool state_uniform_selection,
         std::shared_ptr<utils::RandomNumberGenerator> rng,
         bool pref_only)
-        : eval_factories(eval_factories)
+        : eval_factories(std::move(eval_factories))
         , state_uniform_selection(state_uniform_selection)
         , rng(std::move(rng))
         , pref_only(pref_only)
