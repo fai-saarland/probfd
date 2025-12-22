@@ -77,13 +77,14 @@ VariableDeclaration& Scope::get_variable_declaration(const std::string& name)
 
 VariableEnvironment::VariableEnvironment(
     const plugins::Registry& registry,
-    Context& context)
+    Context& context,
+    plugins::TypeRegistry& type_registry)
     : registry(registry)
     , scope(std::make_unique<Scope>())
 {
     for (const auto& ns = registry.get_global_name_space();
          const auto& enum_decl : ns.get_enum_declarations()) {
-        enum_decl->static_analysis(*this, context);
+        enum_decl->static_analysis(*this, context, type_registry);
     }
 }
 

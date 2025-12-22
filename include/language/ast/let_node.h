@@ -23,8 +23,10 @@ public:
         std::vector<LetNodeDefinition> variable_definitions,
         std::unique_ptr<ASTNode> nested_value);
 
-    TypedDecoratedAstNodePtr
-    static_analysis(Context& context, VariableEnvironment& env) const override;
+    TypedDecoratedAstNodePtr static_analysis(
+        Context& context,
+        VariableEnvironment& env,
+        plugins::TypeRegistry& type_registry) const override;
 };
 
 } // namespace language::parser

@@ -27,20 +27,21 @@ LiteralNode::LiteralNode(const Token& value)
 {
 }
 
-TypedDecoratedAstNodePtr
-LiteralNode::static_analysis(Context& context, VariableEnvironment& env)
-    const
+TypedDecoratedAstNodePtr LiteralNode::static_analysis(
+    Context& context,
+    VariableEnvironment& env,
+    plugins::TypeRegistry& type_registry) const
 {
     switch (value.type) {
     case TokenType::TRUE: {
         return {
             std::make_unique<BoolLiteralNode>(true),
-            &plugins::TypeRegistry::instance()->get_type<bool>()};
+            &type_registry.get_type<bool>()};
     }
     case TokenType::FALSE: {
         return {
             std::make_unique<BoolLiteralNode>(false),
-            &plugins::TypeRegistry::instance()->get_type<bool>()};
+            &type_registry.get_type<bool>()};
     }
     case TokenType::STRING: {
         if (value.content.front() != '"' || value.content.back() != '"') {
@@ -75,7 +76,7 @@ LiteralNode::static_analysis(Context& context, VariableEnvironment& env)
 
         return {
             std::make_unique<StringLiteralNode>(std::move(result)),
-            &plugins::TypeRegistry::instance()->get_type<string>()};
+            &type_registry.get_type<string>()};
     }
     case TokenType::INTEGER: {
         const char* first = value.content.data();
@@ -97,7 +98,7 @@ LiteralNode::static_analysis(Context& context, VariableEnvironment& env)
             if (data == last) {
                 return {
                     std::make_unique<IntLiteralNode>(x),
-                    &plugins::TypeRegistry::instance()->get_type<int>()};
+                    &type_registry.get_type<int>()};
             }
 
             const auto& n = env.get_registry().get_global_name_space();
@@ -121,7 +122,7 @@ LiteralNode::static_analysis(Context& context, VariableEnvironment& env)
                     std::make_unique<FeatureLiteralNode>(feature),
                     std::move(arguments),
                     ""),
-                &feature.get_type().get_return_type()};
+                &feature.get_type(type_registry).get_return_type()};
         }
     }
     case TokenType::FLOAT: {
@@ -142,7 +143,7 @@ LiteralNode::static_analysis(Context& context, VariableEnvironment& env)
             if (data == last) {
                 return {
                     std::make_unique<FloatLiteralNode>(x),
-                    &plugins::TypeRegistry::instance()->get_type<double>()};
+                    &type_registry.get_type<double>()};
             }
 
             const auto& n = env.get_registry().get_global_name_space();
@@ -167,7 +168,7 @@ LiteralNode::static_analysis(Context& context, VariableEnvironment& env)
                     std::make_unique<FeatureLiteralNode>(feature),
                     std::move(arguments),
                     ""),
-                &feature.get_type().get_return_type()};
+                &feature.get_type(type_registry).get_return_type()};
         }
     }
     default:

@@ -43,9 +43,10 @@ public:
     std::type_index get_type() const;
     std::string get_class_name() const;
 
-    virtual void
-    static_analysis(parser::VariableEnvironment& env, Context& context)
-        const = 0;
+    virtual void static_analysis(
+        parser::VariableEnvironment& env,
+        Context& context,
+        TypeRegistry& type_registry) const = 0;
 };
 
 template <typename T>
@@ -70,14 +71,16 @@ public:
         }
     }
 
-    void static_analysis(parser::VariableEnvironment& env, Context& context)
-        const override
+    void static_analysis(
+        parser::VariableEnvironment& env,
+        Context& context,
+        TypeRegistry& type_registry) const override
     {
         for (const auto& enumerator : enumerators) {
             env.add_variable(
                 context,
                 enumerator->variable_name,
-                TypeRegistry::instance()->create_enum_type(*this),
+                type_registry.create_enum_type(*this),
                 *enumerator);
         }
     }

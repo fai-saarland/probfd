@@ -70,6 +70,9 @@ struct strip_context<R(Args...)> {
     using type = R(Args...);
 };
 
+template <typename T>
+using strip_context_t = typename strip_context<T>::type;
+
 } // namespace detail
 
 template <typename T, typename... Args>
@@ -201,7 +204,7 @@ public:
     const std::vector<LanguageSupportInfo>& get_language_support() const;
     const std::vector<NoteInfo>& get_notes() const;
 
-    virtual const FunctionType& get_type() const = 0;
+    virtual const FunctionType& get_type(TypeRegistry& registry) const = 0;
 };
 
 template <typename FType>
@@ -234,10 +237,9 @@ public:
         }
     }
 
-    const FunctionType& get_type() const override
+    const FunctionType& get_type(TypeRegistry& registry) const override
     {
-        return TypeRegistry::instance()
-            ->get_function_type<typename detail::strip_context<FType>::type>();
+        return registry.get_function_type<detail::strip_context_t<FType>>();
     }
 
 private:

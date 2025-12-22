@@ -10,19 +10,23 @@ using namespace std;
 
 namespace language::parser {
 
-UnaryNode::UnaryNode(std::unique_ptr<ASTNode> nested_expr, const TokenType& token_type)
+UnaryNode::UnaryNode(
+    std::unique_ptr<ASTNode> nested_expr,
+    const TokenType& token_type)
     : nested_expr(std::move(nested_expr))
     , token_type(token_type)
 {
 }
 
-TypedDecoratedAstNodePtr
-UnaryNode::static_analysis(Context& context, VariableEnvironment& env)
-    const
+TypedDecoratedAstNodePtr UnaryNode::static_analysis(
+    Context& context,
+    VariableEnvironment& env,
+    plugins::TypeRegistry& type_registry) const
 {
-    auto [ast_node, type] = nested_expr->static_analysis(context, env);
+    auto [ast_node, type] =
+        nested_expr->static_analysis(context, env, type_registry);
 
-    if (type == &plugins::TypeRegistry::instance()->get_type<int>()) {
+    if (type == &type_registry.get_type<int>()) {
         return {
             std::make_unique<DecoratedUnaryExpressionNode<int>>(
                 std::move(ast_node),
@@ -30,7 +34,7 @@ UnaryNode::static_analysis(Context& context, VariableEnvironment& env)
             type};
     }
 
-    if (type == &plugins::TypeRegistry::instance()->get_type<double>()) {
+    if (type == &type_registry.get_type<double>()) {
         return {
             std::make_unique<DecoratedUnaryExpressionNode<double>>(
                 std::move(ast_node),

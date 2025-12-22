@@ -14,11 +14,14 @@ class UnaryNode : public ASTNode {
     TokenType token_type;
 
 public:
-    UnaryNode(std::unique_ptr<ASTNode> nested_expr, const TokenType& token_type);
+    UnaryNode(
+        std::unique_ptr<ASTNode> nested_expr,
+        const TokenType& token_type);
 
-    TypedDecoratedAstNodePtr
-    static_analysis(Context& context, VariableEnvironment& env)
-        const override;
+    TypedDecoratedAstNodePtr static_analysis(
+        Context& context,
+        VariableEnvironment& env,
+        plugins::TypeRegistry& type_registry) const override;
 };
 
 } // namespace language::parser

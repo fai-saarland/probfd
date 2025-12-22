@@ -38,14 +38,18 @@ LambdaNode::LambdaNode(
 {
 }
 
-TypedDecoratedAstNodePtr
-LambdaNode::static_analysis(Context& context, VariableEnvironment& env)
-    const
+TypedDecoratedAstNodePtr LambdaNode::static_analysis(
+    Context& context,
+    VariableEnvironment& env,
+    plugins::TypeRegistry& type_registry) const
 {
     TraceBlock lblock(context, "Checking Lambda");
 
     Context nested_context;
-    VariableEnvironment nested_env(env.get_registry(), nested_context);
+    VariableEnvironment nested_env(
+        env.get_registry(),
+        nested_context,
+        type_registry);
 
     std::vector<LambdaParameter> decorated_variable_declarations;
     decorated_variable_declarations.reserve(parameters.size());
@@ -57,8 +61,7 @@ LambdaNode::static_analysis(Context& context, VariableEnvironment& env)
 
         auto& param_declaration =
             decorated_variable_declarations.emplace_back(variable_name);
-        const auto& t =
-            type_node->get_type(context, *plugins::TypeRegistry::instance());
+        const auto& t = type_node->get_type(context, type_registry);
         arg_types.emplace_back(&t);
         const bool s =
             nested_env.add_variable(variable_name, t, param_declaration);
@@ -72,12 +75,14 @@ LambdaNode::static_analysis(Context& context, VariableEnvironment& env)
 
     auto [ast_node, rtype] = [&] {
         TraceBlock block(context, "Checking Body.");
-        return nested_value->static_analysis(context, nested_env);
+        return nested_value->static_analysis(
+            context,
+            nested_env,
+            type_registry);
     }();
 
-    const auto& ftype = plugins::TypeRegistry::instance()->create_function_type(
-        *rtype,
-        std::move(arg_types));
+    const auto& ftype =
+        type_registry.create_function_type(*rtype, std::move(arg_types));
 
     return {
         std::make_unique<DecoratedLambdaNode>(

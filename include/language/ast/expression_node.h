@@ -10,6 +10,7 @@ class Context;
 namespace language::plugins {
 class Registry;
 class Type;
+class TypeRegistry;
 } // namespace language::plugins
 
 namespace language::parser {
@@ -31,8 +32,10 @@ public:
     std::unique_ptr<DecoratedASTNode>
     static_analysis(const plugins::Registry& registry) const;
 
-    virtual TypedDecoratedAstNodePtr
-    static_analysis(Context& context, VariableEnvironment& env) const = 0;
+    virtual TypedDecoratedAstNodePtr static_analysis(
+        Context& context,
+        VariableEnvironment& env,
+        plugins::TypeRegistry& registry) const = 0;
 };
 
 } // namespace language::parser

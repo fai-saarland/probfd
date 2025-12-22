@@ -24,7 +24,8 @@ IdentifierNode::IdentifierNode(QualifiedName qualified_name)
 
 TypedDecoratedAstNodePtr IdentifierNode::static_analysis(
     Context& context,
-    VariableEnvironment& env) const
+    VariableEnvironment& env,
+    plugins::TypeRegistry& type_registry) const
 {
     TraceBlock block(context, "Checking Identifier: {}", qualified_name);
 
@@ -40,7 +41,7 @@ TypedDecoratedAstNodePtr IdentifierNode::static_analysis(
         n.has_function(name)) {
         const auto& f = n.get_function_definition(name);
         auto node = std::make_unique<FeatureLiteralNode>(f);
-        return {std::move(node), &f.get_type()};
+        return {std::move(node), &f.get_type(type_registry)};
     }
 
     context.error("Undefined variable", qualified_name);

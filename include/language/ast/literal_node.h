@@ -13,8 +13,10 @@ class LiteralNode : public ASTNode {
 public:
     explicit LiteralNode(const Token& value);
 
-    TypedDecoratedAstNodePtr
-    static_analysis(Context& context, VariableEnvironment& env) const override;
+    TypedDecoratedAstNodePtr static_analysis(
+        Context& context,
+        VariableEnvironment& env,
+        plugins::TypeRegistry& type_registry) const override;
 };
 
 } // namespace language::parser

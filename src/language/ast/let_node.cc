@@ -21,8 +21,10 @@ LetNode::LetNode(
 {
 }
 
-TypedDecoratedAstNodePtr
-LetNode::static_analysis(Context& context, VariableEnvironment& env) const
+TypedDecoratedAstNodePtr LetNode::static_analysis(
+    Context& context,
+    VariableEnvironment& env,
+    plugins::TypeRegistry& type_registry) const
 {
     TraceBlock lblock(
         context,
@@ -40,7 +42,7 @@ LetNode::static_analysis(Context& context, VariableEnvironment& env) const
          variable_definitions) {
         TraceBlock block(context, "Check variable definition");
         auto [ast_node, type] =
-            variable_definition->static_analysis(context, env);
+            variable_definition->static_analysis(context, env, type_registry);
         auto& declaration = decorated_variable_definitions.emplace_back(
             std::make_unique<VariableDefinition>(
                 variable_name,
@@ -53,7 +55,8 @@ LetNode::static_analysis(Context& context, VariableEnvironment& env) const
 
     {
         TraceBlock block(context, "Check nested expression.");
-        decorated_nested_value = nested_value->static_analysis(context, env);
+        decorated_nested_value =
+            nested_value->static_analysis(context, env, type_registry);
     }
 
     env.leave_scope();

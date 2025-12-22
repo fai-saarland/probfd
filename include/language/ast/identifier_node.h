@@ -12,8 +12,10 @@ class IdentifierNode : public ASTNode {
 public:
     explicit IdentifierNode(QualifiedName qualified_name);
 
-    TypedDecoratedAstNodePtr
-    static_analysis(Context& context, VariableEnvironment& env) const override;
+    TypedDecoratedAstNodePtr static_analysis(
+        Context& context,
+        VariableEnvironment& env,
+        plugins::TypeRegistry& type_registry) const override;
 
     const QualifiedName& get_name() const;
 };

@@ -14,8 +14,10 @@ class ListNode : public ASTNode {
 public:
     explicit ListNode(std::vector<std::unique_ptr<ASTNode>>&& elements);
 
-    TypedDecoratedAstNodePtr
-    static_analysis(Context& context, VariableEnvironment& env) const override;
+    TypedDecoratedAstNodePtr static_analysis(
+        Context& context,
+        VariableEnvironment& env,
+        plugins::TypeRegistry& type_registry) const override;
 };
 
 } // namespace language::parser

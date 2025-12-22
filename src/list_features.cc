@@ -124,7 +124,8 @@ protected:
         os << "Type:\n  ";
 
         const auto& args_infos = function_def.get_arguments();
-        const auto& arg_types = function_def.get_type().get_argument_types();
+        const auto& arg_types = function_def.get_type(*TypeRegistry::instance())
+                                    .get_argument_types();
 
         const auto args = std::views::zip(args_infos, arg_types);
 
@@ -166,7 +167,10 @@ protected:
             }
         }
 
-        os << ") -> " << function_def.get_type().get_return_type().name()
+        os << ") -> "
+           << function_def.get_type(*TypeRegistry::instance())
+                  .get_return_type()
+                  .name()
            << std::endl;
 
         if (has_optional) {
@@ -199,7 +203,8 @@ protected:
 
         for (const auto& [arg_info, arg_type] : std::views::zip(
                  function_def.get_arguments(),
-                 function_def.get_type().get_argument_types())) {
+                 function_def.get_type(*TypeRegistry::instance())
+                     .get_argument_types())) {
             std::string& s = arg_strings.emplace_back(
                 std::format("{} : {}", arg_info, arg_type->name()));
 
@@ -213,7 +218,8 @@ protected:
         for (const auto& [s, arg_info, arg_type, arg_help] : std::views::zip(
                  arg_strings,
                  function_def.get_arguments(),
-                 function_def.get_type().get_argument_types(),
+                 function_def.get_type(*TypeRegistry::instance())
+                     .get_argument_types(),
                  function_def.get_argument_docs())) {
             std::stringstream ss;
             ss << arg_help;
