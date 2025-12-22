@@ -27,9 +27,9 @@ PatternCollectionGeneratorDisjointCegar::
         int max_collection_size,
         utils::FSeconds max_time,
         std::shared_ptr<utils::RandomNumberGenerator> rng,
-        const std::shared_ptr<SubCollectionFinderFactory>&
+        std::shared_ptr<SubCollectionFinderFactory>
             subcollection_finder_factory,
-        const std::shared_ptr<FlawFindingStrategy>& flaw_strategy,
+        std::shared_ptr<FlawFindingStrategy> flaw_strategy,
         utils::Verbosity verbosity)
     : PatternCollectionGenerator(verbosity)
     , convergence_epsilon_(convergence_epsilon)
@@ -39,8 +39,8 @@ PatternCollectionGeneratorDisjointCegar::
     , max_collection_size_(max_collection_size)
     , max_time_(max_time)
     , rng_(std::move(rng))
-    , subcollection_finder_factory_(subcollection_finder_factory)
-    , flaw_strategy_(flaw_strategy)
+    , subcollection_finder_factory_(std::move(subcollection_finder_factory))
+    , flaw_strategy_(std::move(flaw_strategy))
 {
     if (max_pdb_size < 1) {
         throw std::domain_error("max_pdb_size must be >= 1.");

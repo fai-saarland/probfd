@@ -8,7 +8,7 @@
 
 namespace language::parser {
 class ConstructContext;
-struct VariableDefinition;
+struct VariableDeclaration;
 } // namespace language::parser
 
 namespace language::parser {
@@ -17,16 +17,22 @@ class DecoratedASTNode {
 public:
     virtual ~DecoratedASTNode() = default;
 
-    virtual void prune_unused_definitions(std::vector<VariableDefinition>&) {}
+    virtual void
+    prune_unused_definitions(std::vector<std::unique_ptr<VariableDeclaration>>&)
+    {
+    }
 
     virtual void remove_variable_usages() {}
 
     virtual std::any construct(ConstructContext& context) const = 0;
+
     virtual void
     print(std::ostream& out, std::size_t indent, bool print_default_args)
         const = 0;
 
-    std::vector<VariableDefinition> prune_unused_definitions();
+    std::vector<std::unique_ptr<VariableDeclaration>>
+    prune_unused_definitions();
+
     std::any construct() const;
 };
 

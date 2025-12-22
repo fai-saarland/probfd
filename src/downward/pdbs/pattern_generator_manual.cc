@@ -12,10 +12,10 @@ using namespace std;
 
 namespace downward::pdbs {
 PatternGeneratorManual::PatternGeneratorManual(
-    const vector<int>& pattern,
+    vector<int> pattern,
     utils::Verbosity verbosity)
     : PatternGenerator(verbosity)
-    , pattern(pattern)
+    , pattern(std::move(pattern))
 {
 }
 

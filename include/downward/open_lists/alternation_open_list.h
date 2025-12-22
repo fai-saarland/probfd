@@ -130,10 +130,10 @@ class AlternationOpenListFactory : public TaskDependentFactory<OpenList<T>> {
 
 public:
     AlternationOpenListFactory(
-        const std::vector<std::shared_ptr<TaskDependentFactory<OpenList<T>>>>&
+        std::vector<std::shared_ptr<TaskDependentFactory<OpenList<T>>>>
             sublists,
         int boost)
-        : sublists(sublists)
+        : sublists(std::move(sublists))
         , boost(boost)
     {
         if (sublists.empty()) {

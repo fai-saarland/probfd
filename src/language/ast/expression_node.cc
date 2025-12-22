@@ -2,7 +2,7 @@
 
 #include "language/ast/variable_environment.h"
 
-#include "language/typed_ast/symbol_node.h"
+#include "language/typed_ast/decorated_ast_node.h"
 
 #include "language/context.h"
 
@@ -14,7 +14,7 @@ std::unique_ptr<DecoratedASTNode>
 ASTNode::static_analysis(const plugins::Registry& registry) const
 {
     Context context;
-    VariableEnvironment env(registry);
+    VariableEnvironment env(registry, context);
     TraceBlock block(context, "Start semantic analysis");
     return static_analysis(context, env).ast_node;
 }

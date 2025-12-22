@@ -77,39 +77,37 @@ public:
 
 class MissingFunctionError : public std::runtime_error {
 public:
-    explicit MissingFunctionError(const std::string& message)
-        : runtime_error(message.c_str())
-    {
-    }
+    using std::runtime_error::runtime_error;
 
-    explicit MissingFunctionError(const char* message)
-        : runtime_error(message)
+    template <class... Args>
+    explicit MissingFunctionError(
+        std::format_string<Args...> fmt,
+        Args&&... args)
+        : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
     {
     }
 };
 
 class MissingTypeDeclarationError : public std::runtime_error {
 public:
-    explicit MissingTypeDeclarationError(const std::string& message)
-        : runtime_error(message.c_str())
-    {
-    }
+    using std::runtime_error::runtime_error;
 
-    explicit MissingTypeDeclarationError(const char* message)
-        : runtime_error(message)
+    template <class... Args>
+    explicit MissingTypeDeclarationError(
+        std::format_string<Args...> fmt,
+        Args&&... args)
+        : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
     {
     }
 };
 
 class MissingTopicError : public std::runtime_error {
 public:
-    explicit MissingTopicError(const std::string& message)
-        : runtime_error(message.c_str())
-    {
-    }
+    using std::runtime_error::runtime_error;
 
-    explicit MissingTopicError(const char* message)
-        : runtime_error(message)
+    template <class... Args>
+    explicit MissingTopicError(std::format_string<Args...> fmt, Args&&... args)
+        : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
     {
     }
 };
@@ -234,7 +232,7 @@ class Namespace {
 
     std::set<InternalTypeDeclarationBase, TypeDeclarationComparator>
         types_declarations;
-    std::vector<InternalEnumDeclarationBase> enum_declarations;
+    std::vector<std::unique_ptr<InternalEnumDeclarationBase>> enum_declarations;
     std::deque<std::unique_ptr<InternalFunctionDefinitionBase>> functions;
     std::map<std::string, const InternalFunctionDefinitionBase*>
         functions_by_name;
@@ -337,8 +335,8 @@ public:
         std::initializer_list<std::pair<std::string, std::string>> enum_values)
     {
         auto& enum_plugin = enum_declarations.emplace_back(
-            InternalEnumDeclaration<T>(enum_values));
-        TypeRegistry::instance()->create_enum_type(enum_plugin);
+            std::make_unique<InternalEnumDeclaration<T>>(enum_values));
+        TypeRegistry::instance()->create_enum_type(*enum_plugin);
     }
 
     template <std::derived_from<InternalFunctionDefinitionBase> T>
@@ -410,6 +408,11 @@ public:
     auto get_type_declarations() const
     {
         return std::views::all(types_declarations);
+    }
+
+    auto get_enum_declarations() const
+    {
+        return std::views::all(enum_declarations);
     }
 
     auto get_nested_namespaces() { return std::views::all(nested_namespaces); }

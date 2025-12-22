@@ -70,7 +70,6 @@ class TypeRegistry {
     const Type& get_nonlist_type(std::type_index type) const;
 
 public:
-    static SymbolType SYMBOL_TYPE;
     static EmptyListType EMPTY_LIST_TYPE;
 
     TypeRegistry();

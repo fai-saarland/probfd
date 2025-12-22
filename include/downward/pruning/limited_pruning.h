@@ -15,7 +15,7 @@ class LimitedPruning : public PruningMethod {
 
 public:
     explicit LimitedPruning(
-        const std::shared_ptr<PruningMethod>& pruning,
+        std::shared_ptr<PruningMethod> pruning,
         double min_required_pruning_ratio,
         int expansions_before_checking_pruning_ratio,
         utils::Verbosity verbosity);

@@ -54,9 +54,8 @@ void DocPrinter::print_type_declaration(const string& qname) const
 
     if (it == categories.end() || it->get_identifier() != name) {
         throw MissingTypeDeclarationError(
-            std::format(
-                "could not find a type named '{}' in the registry",
-                name));
+            "could not find a type named '{}' in the registry",
+            name);
     }
 
     print_type_declaration(*it);
@@ -208,14 +207,6 @@ void Txt2TagsPrinter::print_arguments(
              function_def.get_argument_docs())) {
         os << "- //" << arg_info.key << "// (" << arg_type->name()
            << "): " << arg_help << endl;
-        if (arg_type->is_enum_type()) {
-            for (const pair<string, string>& explanation :
-                 static_cast<const EnumType&>(*arg_type)
-                     .get_documented_enum_values()) {
-                os << " - ``" << explanation.first
-                   << "``: " << explanation.second << endl;
-            }
-        }
     }
 }
 
@@ -320,14 +311,6 @@ void PlainPrinter::print_arguments(
              function_def.get_argument_docs())) {
         os << " " << arg_info.key << " (" << arg_type->name()
            << "): " << arg_help << endl;
-        if (arg_type->is_enum_type()) {
-            for (const pair<string, string>& explanation :
-                 static_cast<const EnumType&>(*arg_type)
-                     .get_documented_enum_values()) {
-                os << " - " << explanation.first << ": " << explanation.second
-                   << endl;
-            }
-        }
     }
 }
 

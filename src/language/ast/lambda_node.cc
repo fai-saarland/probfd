@@ -4,7 +4,7 @@
 #include "language/ast/variable_environment.h"
 
 #include "language/typed_ast/decorated_lambda_node.h"
-#include "language/typed_ast/variable_definition.h"
+#include "language/typed_ast/variable_declaration.h"
 
 #include "language/plugins/internal_function_definition.h"
 #include "language/plugins/types.h"
@@ -44,14 +44,15 @@ LambdaNode::static_analysis(Context& context, VariableEnvironment& env)
 {
     TraceBlock lblock(context, "Checking Lambda");
 
-    std::vector<const plugins::Type*> arg_types;
-    VariableEnvironment nested_env(env.get_registry());
+    Context nested_context;
+    VariableEnvironment nested_env(env.get_registry(), nested_context);
 
-    std::vector<VariableDeclaration> decorated_variable_declarations;
+    std::vector<LambdaParameter> decorated_variable_declarations;
     decorated_variable_declarations.reserve(parameters.size());
 
-    std::size_t i = 1;
-    for (auto& [variable_name, type_node] : parameters) {
+    std::vector<const plugins::Type*> arg_types;
+
+    for (std::size_t i = 0; auto& [variable_name, type_node] : parameters) {
         TraceBlock block(context, "Checking Parameter #{}", i++);
 
         auto& param_declaration =

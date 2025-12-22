@@ -16,11 +16,11 @@ using namespace std;
 
 namespace downward::landmarks {
 LandmarkFactoryReasonableOrdersHPS::LandmarkFactoryReasonableOrdersHPS(
-    const shared_ptr<LandmarkFactory>& lm_factory,
+    shared_ptr<LandmarkFactory> lm_factory,
     std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory,
     utils::Verbosity verbosity)
     : LandmarkFactory(verbosity)
-    , lm_factory(lm_factory)
+    , lm_factory(std::move(lm_factory))
     , mutex_factory(std::move(mutex_factory))
 {
 }

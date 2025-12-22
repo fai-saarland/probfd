@@ -8,7 +8,7 @@
 #include "language/typed_ast/decorated_feature_literal_node.h"
 #include "language/typed_ast/decorated_function_call_node.h"
 #include "language/typed_ast/decorated_variable_node.h"
-#include "language/typed_ast/variable_definition.h"
+#include "language/typed_ast/variable_declaration.h"
 
 #include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
@@ -75,7 +75,7 @@ TypedDecoratedAstNodePtr DirectFunctionCallNode::static_analysis(
     std::vector<plugins::ArgumentInfo> argument_infos;
 
     if (qualification.empty() && env.has_variable(name)) {
-        auto& def = env.get_variable_definition(name);
+        auto& def = env.get_variable_declaration(name);
         auto n = std::make_unique<VariableNode>(def);
         callee_node.reset(def.usages.emplace_back(n.get()));
 
