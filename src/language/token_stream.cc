@@ -82,8 +82,8 @@ string TokenStream::str(std::size_t from, std::size_t to) const
         std::next(b, from),
         std::next(b, std::min(to, tokens.size())));
     return std::format(
-        "{:n:s}",
-        subrange | std::views::transform(&Token::content));
+        "{:s}",
+        subrange | std::views::transform(&Token::content) | std::views::join);
 }
 
 } // namespace language::parser

@@ -38,7 +38,7 @@ struct Token {
     std::string content;
     TokenType type;
 
-    Token(const std::string& content, TokenType type);
+    Token(std::string content, TokenType type);
 };
 
 extern std::string token_type_name(TokenType token_type);

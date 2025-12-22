@@ -11,34 +11,10 @@
 
 using namespace std;
 
-namespace {
-
-std::string to_lower(const string& content)
-{
-    std::string lower;
-    lower.reserve(content.size());
-    ranges::transform(content, lower.begin(), [](char c) {
-        return std::tolower(c);
-    });
-    return lower;
-}
-
-} // namespace
-
 namespace language::parser {
-static string case_insensitive_to_lower(const string& content, TokenType type)
-{
-    if (type == TokenType::TRUE || type == TokenType::FALSE ||
-        type == TokenType::INTEGER || type == TokenType::FLOAT ||
-        type == TokenType::IDENTIFIER) {
-        return to_lower(content);
-    } else {
-        return content;
-    }
-}
 
-Token::Token(const string& content, TokenType type)
-    : content(case_insensitive_to_lower(content, type))
+Token::Token(string content, TokenType type)
+    : content(std::move(content))
     , type(type)
 {
 }
