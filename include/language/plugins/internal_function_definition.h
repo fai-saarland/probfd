@@ -82,7 +82,7 @@ T constructor(Args... args)
 template <typename Base, typename T, typename... Args>
 std::shared_ptr<Base> construct_shared(Args... args)
     requires std::constructible_from<T, Args...> &&
-             std::derived_from<T, Base> && !std::is_reference_v<T> &&
+             std::derived_from<T, Base> && (!std::is_reference_v<T>) &&
              (!std::is_reference_v<Args> && ...)
 {
     return std::make_shared<T>(
