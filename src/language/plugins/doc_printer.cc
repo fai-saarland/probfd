@@ -93,7 +93,8 @@ void DocPrinter::print_type_declaration(
 
         for (const auto& function_definition : n->get_function_definitions()) {
             if (const Type& type =
-                    function_definition->get_type().get_return_type();
+                    function_definition->get_type(*TypeRegistry::instance())
+                        .get_return_type();
                 type.is_internal_type() &&
                 static_cast<const InternalType&>(type).get_type_index() ==
                     type_declaration.get_pointer_type()) {
@@ -199,7 +200,7 @@ void Txt2TagsPrinter::print_usage(
 void Txt2TagsPrinter::print_arguments(
     const InternalFunctionDefinitionBase& function_def) const
 {
-    const auto& ftype = function_def.get_type();
+    const auto& ftype = function_def.get_type(*TypeRegistry::instance());
 
     for (const auto& [arg_type, arg_info, arg_help] : std::views::zip(
              ftype.get_argument_types(),
@@ -303,7 +304,7 @@ void PlainPrinter::print_usage(
 void PlainPrinter::print_arguments(
     const InternalFunctionDefinitionBase& function_def) const
 {
-    const auto& ftype = function_def.get_type();
+    const auto& ftype = function_def.get_type(*TypeRegistry::instance());
 
     for (const auto& [arg_type, arg_info, arg_help] : std::views::zip(
              ftype.get_argument_types(),

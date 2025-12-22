@@ -27,9 +27,10 @@ static std::unique_ptr<DecoratedASTNode> decorate_and_convert(
     const ASTNode& node,
     const plugins::Type& target_type,
     Context& context,
-    VariableEnvironment& env)
+    VariableEnvironment& env,
+    plugins::TypeRegistry& type_registry)
 {
-    auto [ast_node, type] = node.static_analysis(context, env);
+    auto [ast_node, type] = node.static_analysis(context, env, type_registry);
 
     if (*type != target_type) {
         TraceBlock block(context, "Adding casting node");
@@ -62,7 +63,8 @@ DirectFunctionCallNode::DirectFunctionCallNode(
 
 TypedDecoratedAstNodePtr DirectFunctionCallNode::static_analysis(
     Context& context,
-    VariableEnvironment& env) const
+    VariableEnvironment& env,
+    plugins::TypeRegistry& type_registry) const
 {
     TraceBlock block(context, "Checking Call");
 
@@ -90,7 +92,7 @@ TypedDecoratedAstNodePtr DirectFunctionCallNode::static_analysis(
                n.has_function(name)) {
         const auto& f = n.get_function_definition(name);
         callee_node = std::make_unique<FeatureLiteralNode>(f);
-        callee_type = &f.get_type();
+        callee_type = &f.get_type(type_registry);
         argument_infos = f.get_arguments();
     } else {
         context.error("Undefined variable {}", callee);
@@ -132,7 +134,12 @@ TypedDecoratedAstNodePtr DirectFunctionCallNode::static_analysis(
             }
 
             std::unique_ptr<DecoratedASTNode> decorated_arg =
-                decorate_and_convert(pos_arg, *arg_type, context, env);
+                decorate_and_convert(
+                    pos_arg,
+                    *arg_type,
+                    context,
+                    env,
+                    type_registry);
 
             arguments.emplace_back(move(decorated_arg), false);
         }
@@ -152,7 +159,12 @@ TypedDecoratedAstNodePtr DirectFunctionCallNode::static_analysis(
                 const auto& keyword_arg = it->second;
 
                 std::unique_ptr<DecoratedASTNode> decorated_arg =
-                    decorate_and_convert(*keyword_arg, *arg_type, context, env);
+                    decorate_and_convert(
+                        *keyword_arg,
+                        *arg_type,
+                        context,
+                        env,
+                        type_registry);
 
                 arguments.emplace_back(move(decorated_arg), false);
             } else if (arg_info.has_default()) {
@@ -162,7 +174,12 @@ TypedDecoratedAstNodePtr DirectFunctionCallNode::static_analysis(
                 }();
 
                 std::unique_ptr<DecoratedASTNode> decorated_arg =
-                    decorate_and_convert(*default_arg, *arg_type, context, env);
+                    decorate_and_convert(
+                        *default_arg,
+                        *arg_type,
+                        context,
+                        env,
+                        type_registry);
 
                 arguments.emplace_back(move(decorated_arg), true);
             } else {
@@ -193,7 +210,12 @@ TypedDecoratedAstNodePtr DirectFunctionCallNode::static_analysis(
             const auto& arg_type = argument_types[i];
 
             std::unique_ptr<DecoratedASTNode> decorated_arg =
-                decorate_and_convert(*arg, *arg_type, context, env);
+                decorate_and_convert(
+                    *arg,
+                    *arg_type,
+                    context,
+                    env,
+                    type_registry);
 
             arguments.emplace_back(move(decorated_arg), false);
         }

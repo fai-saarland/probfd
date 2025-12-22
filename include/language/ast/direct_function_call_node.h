@@ -24,8 +24,10 @@ public:
             keyword_arguments,
         const std::string& unparsed_config);
 
-    TypedDecoratedAstNodePtr
-    static_analysis(Context& context, VariableEnvironment& env) const override;
+    TypedDecoratedAstNodePtr static_analysis(
+        Context& context,
+        VariableEnvironment& env,
+        plugins::TypeRegistry& type_registry) const override;
 };
 
 } // namespace language::parser

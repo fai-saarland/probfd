@@ -12,6 +12,7 @@ class Context;
 namespace language::plugins {
 class Registry;
 class Type;
+class TypeRegistry;
 } // namespace language::plugins
 
 namespace language::parser {
@@ -58,7 +59,8 @@ class VariableEnvironment {
 public:
     explicit VariableEnvironment(
         const plugins::Registry& registry,
-        Context& context);
+        Context& context,
+        plugins::TypeRegistry& type_registry);
 
     void add_variable(
         Context& context,

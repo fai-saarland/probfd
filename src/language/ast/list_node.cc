@@ -36,9 +36,10 @@ get_common_element_type(const std::vector<const plugins::Type*>& types)
     return common_element_type;
 }
 
-TypedDecoratedAstNodePtr
-ListNode::static_analysis(Context& context, VariableEnvironment& env)
-    const
+TypedDecoratedAstNodePtr ListNode::static_analysis(
+    Context& context,
+    VariableEnvironment& env,
+    plugins::TypeRegistry& type_registry) const
 {
     TraceBlock lblock(context, "Checking list");
     vector<std::unique_ptr<DecoratedASTNode>> decorated_elements;
@@ -53,7 +54,8 @@ ListNode::static_analysis(Context& context, VariableEnvironment& env)
     for (size_t i = 0; i < elements.size(); i++) {
         TraceBlock block(context, "Checking element {}", i);
 
-        auto [ast_node, type] = elements[i]->static_analysis(context, env);
+        auto [ast_node, type] =
+            elements[i]->static_analysis(context, env, type_registry);
         decorated_elements.push_back(move(ast_node));
         types.push_back(type);
     }
@@ -75,7 +77,8 @@ ListNode::static_analysis(Context& context, VariableEnvironment& env)
         if (const plugins::Type* element_type = types[i];
             element_type != common_element_type) {
             assert(element_type->can_convert_into(*common_element_type));
-            std::unique_ptr<DecoratedASTNode>& decorated_element_node = decorated_elements[i];
+            std::unique_ptr<DecoratedASTNode>& decorated_element_node =
+                decorated_elements[i];
             decorated_element_node = std::make_unique<ConvertNode>(
                 move(decorated_element_node),
                 *element_type,
@@ -85,8 +88,7 @@ ListNode::static_analysis(Context& context, VariableEnvironment& env)
 
     return {
         std::make_unique<DecoratedListNode>(move(decorated_elements)),
-        &plugins::TypeRegistry::instance()->create_list_type(
-            *common_element_type)};
+        &type_registry.create_list_type(*common_element_type)};
 }
 
 } // namespace language::parser

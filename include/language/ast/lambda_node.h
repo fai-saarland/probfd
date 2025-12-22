@@ -36,8 +36,10 @@ public:
         std::vector<TypedParameter> parameters,
         std::unique_ptr<ASTNode> nested_value);
 
-    TypedDecoratedAstNodePtr
-    static_analysis(Context& context, VariableEnvironment& env) const override;
+    TypedDecoratedAstNodePtr static_analysis(
+        Context& context,
+        VariableEnvironment& env,
+        plugins::TypeRegistry& registry) const override;
 };
 
 } // namespace language::parser
