@@ -40,7 +40,7 @@ public:
     string decorate_block_name(const string& block_name) const override
     {
         ostringstream decorated_block_name;
-        const int pos = tokens.get_position();
+        const auto pos = tokens.get_position();
         decorated_block_name << block_name << ": "
                              << tokens.str(pos, pos + lookahead);
         if (pos + lookahead < tokens.size()) decorated_block_name << " ...";
