@@ -18,9 +18,10 @@ using namespace language::plugins;
 
 using downward::cli::utils::add_log_options_to_feature;
 
-namespace {
+namespace downward::cli::operator_counting {
 
-InternalFunctionDefinitionBase& add_state_equation_constraints_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_state_equation_constraints_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "state_equation_constraints",
@@ -77,16 +78,6 @@ InternalFunctionDefinitionBase& add_state_equation_constraints_to_namespace(Name
     add_log_options_to_feature(f, 0);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::operator_counting {
-
-void add_state_equation_constraints_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_state_equation_constraints_to_namespace(n);
 }
 
 } // namespace downward::cli::operator_counting

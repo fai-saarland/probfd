@@ -2,13 +2,15 @@
 #define PROBFD_CLI_HEURISTICS_DETERMINIZATION_COST_HEURISTIC_H
 
 namespace language::plugins {
-class Registry;
-}
+class InternalFunctionDefinitionBase;
+class Namespace;
+} // namespace language::plugins
 
 namespace probfd::cli::heuristics {
 
-void add_determinization_cost_heuristic_feature(
-    language::plugins::Registry& registry);
+language::plugins::InternalFunctionDefinitionBase&
+add_determinization_cost_heuristic_feature(
+    language::plugins::Namespace& nspace);
 
 }
 

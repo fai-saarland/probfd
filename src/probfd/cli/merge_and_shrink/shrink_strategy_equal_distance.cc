@@ -52,14 +52,13 @@ InternalFunctionDefinitionBase& add_shrink_strategy_equal_distance_to_namespace(
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_shrink_strategy_equal_distance_feature(Registry& registry)
+void add_shrink_strategy_equal_distance_feature(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_enum_declaration<ShrinkStrategyEqualDistance::Priority>(
+    nspace.insert_enum_declaration<ShrinkStrategyEqualDistance::Priority>(
         {{"high", "prefer shrinking states with high value"},
          {"low", "prefer shrinking states with low value"}});
 
-    add_shrink_strategy_equal_distance_to_namespace(n);
+    add_shrink_strategy_equal_distance_to_namespace(nspace);
 }
 
 } // namespace probfd::cli::merge_and_shrink

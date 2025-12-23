@@ -98,7 +98,12 @@ public:
     }
 };
 
-InternalFunctionDefinitionBase& add_diverse_potential_max_heuristic_to_namespace(Namespace& nspace)
+} // namespace
+
+namespace downward::cli::heuristics {
+
+InternalFunctionDefinitionBase&
+add_diverse_potential_heuristics_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "diverse_potentials",
@@ -135,19 +140,6 @@ InternalFunctionDefinitionBase& add_diverse_potential_max_heuristic_to_namespace
     add_rng_options_to_feature(f, n + 2);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::heuristics {
-
-void add_diverse_potential_heuristics_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    const InternalFunctionDefinitionBase& f = add_diverse_potential_max_heuristic_to_namespace(n);
-    DocumentationTopic& subcategory =
-        registry.get_topic_by_name("heuristics_potentials");
-    subcategory.add_function(f);
 }
 
 } // namespace downward::cli::heuristics

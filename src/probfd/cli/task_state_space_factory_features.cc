@@ -80,14 +80,16 @@ public:
     }
 };
 
-InternalFunctionDefinitionBase& add_default_task_state_space_factory_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_default_task_state_space_factory_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "default_state_space",
         &construct_shared<
             TaskStateSpaceFactory,
             DefaultTaskStateSpaceFactory,
-            std::vector<std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>>);
+            std::vector<
+                std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>>);
 
     f.document_synopsis("Default task state space implementation.");
     f.make_optional_argument_with_default(
@@ -101,17 +103,19 @@ InternalFunctionDefinitionBase& add_default_task_state_space_factory_to_namespac
     return f;
 }
 
-InternalFunctionDefinitionBase& add_caching_task_state_space_factory_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_caching_task_state_space_factory_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "caching_state_space",
         &construct_shared<
             TaskStateSpaceFactory,
             CachingTaskStateSpaceFactory,
-            std::vector<std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>>);
+            std::vector<
+                std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>>);
 
     f.document_synopsis(
-            "Task state space implementation with transition cache.");
+        "Task state space implementation with transition cache.");
     f.make_optional_argument_with_default(
         0,
         "path_dependent_evaluators",
@@ -127,11 +131,10 @@ InternalFunctionDefinitionBase& add_caching_task_state_space_factory_to_namespac
 
 namespace probfd::cli {
 
-void add_task_state_space_factory_features(Registry& registry)
+void add_task_state_space_factory_features(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    add_default_task_state_space_factory_to_namespace(n);
-    add_caching_task_state_space_factory_to_namespace(n);
+    add_default_task_state_space_factory_to_namespace(nspace);
+    add_caching_task_state_space_factory_to_namespace(nspace);
 }
 
 } // namespace probfd::cli

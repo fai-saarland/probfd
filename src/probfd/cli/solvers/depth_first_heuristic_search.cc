@@ -620,10 +620,9 @@ public:
 
 namespace probfd::cli::solvers {
 
-void add_depth_first_heuristic_search_features(Registry& registry)
+void add_depth_first_heuristic_search_features(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_enum_declaration<BacktrackingUpdateType>(
+    nspace.insert_enum_declaration<BacktrackingUpdateType>(
         {{"disabled",
           "No update is performed when backtracking from a state during the "
           "dfs "
@@ -641,15 +640,15 @@ void add_depth_first_heuristic_search_features(Registry& registry)
           "the "
           "dfs exploration."}});
 
-    n.insert_function_definitions<DFHSSolverFeature>();
-    n.insert_function_definitions<ILAOSolverFeature>();
-    n.insert_function_definitions<LILAOSolverFeature>();
-    n.insert_function_definitions<HDPSolverFeature>();
+    nspace.insert_function_definitions<DFHSSolverFeature>();
+    nspace.insert_function_definitions<ILAOSolverFeature>();
+    nspace.insert_function_definitions<LILAOSolverFeature>();
+    nspace.insert_function_definitions<HDPSolverFeature>();
 
-    n.insert_function_definitions<DFHSFretSolverFeature>();
-    n.insert_function_definitions<ILAOFretSolverFeature>();
-    n.insert_function_definitions<LILAOFretSolverFeature>();
-    n.insert_function_definitions<HDPFretSolverFeature>();
+    nspace.insert_function_definitions<DFHSFretSolverFeature>();
+    nspace.insert_function_definitions<ILAOFretSolverFeature>();
+    nspace.insert_function_definitions<LILAOFretSolverFeature>();
+    nspace.insert_function_definitions<HDPFretSolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

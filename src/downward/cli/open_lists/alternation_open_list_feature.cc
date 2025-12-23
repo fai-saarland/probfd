@@ -52,11 +52,14 @@ add_alternation_open_list_to_namespace(Namespace& nspace, std::string name)
 
 namespace downward::cli::open_lists {
 
-void add_alternation_open_list_features(Registry& registry)
+void add_alternation_open_list_features(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    add_alternation_open_list_to_namespace<StateOpenListEntry>(n, "state_alt");
-    add_alternation_open_list_to_namespace<EdgeOpenListEntry>(n, "edge_alt");
+    add_alternation_open_list_to_namespace<StateOpenListEntry>(
+        nspace,
+        "state_alt");
+    add_alternation_open_list_to_namespace<EdgeOpenListEntry>(
+        nspace,
+        "edge_alt");
 }
 
 } // namespace downward::cli::open_lists

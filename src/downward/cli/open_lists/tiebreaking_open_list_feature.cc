@@ -55,14 +55,13 @@ add_tiebreaking_open_list_to_namespace(Namespace& nspace, std::string name)
 
 namespace downward::cli::open_lists {
 
-void add_tiebreaking_open_list_features(Registry& registry)
+void add_tiebreaking_open_list_features(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
     add_tiebreaking_open_list_to_namespace<StateOpenListEntry>(
-        n,
+        nspace,
         "state_tiebreaking");
     add_tiebreaking_open_list_to_namespace<EdgeOpenListEntry>(
-        n,
+        nspace,
         "edge_tiebreaking");
 }
 

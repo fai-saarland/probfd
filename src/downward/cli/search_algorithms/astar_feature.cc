@@ -187,11 +187,10 @@ InternalFunctionDefinitionBase& add_astar_no_lazy_evaluator_to_namespace(Namespa
 
 namespace downward::cli::search_algorithms {
 
-void add_astar_feature(Registry& registry)
+void add_astar_feature(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    add_astar_to_namespace(n);
-    add_astar_no_lazy_evaluator_to_namespace(n);
+    add_astar_to_namespace(nspace);
+    add_astar_no_lazy_evaluator_to_namespace(nspace);
 }
 
 } // namespace downward::cli::search_algorithms

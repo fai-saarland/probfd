@@ -2,13 +2,14 @@
 #define PROBFD_CLI_CARTESIAN_ABSTRACTIONS_TRACE_BASED_FLAW_GENERATOR_H
 
 namespace language::plugins {
-class Registry;
+class InternalFunctionDefinitionBase;
+class Namespace;
 }
 
 namespace probfd::cli::cartesian_abstractions {
 
-void add_astar_flaw_generator_feature(
-    language::plugins::Registry& registry);
+language::plugins::InternalFunctionDefinitionBase&
+add_astar_flaw_generator_feature(language::plugins::Namespace& nspace);
 
 }
 

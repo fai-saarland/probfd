@@ -5,8 +5,6 @@
 
 #include "downward/cli/utils/rng_options.h"
 
-#include "probfd/cli/heuristics/task_dependent_heuristic_options.h"
-
 #include "probfd/heuristics/gzocp_heuristic.h"
 
 using namespace downward;
@@ -63,10 +61,9 @@ add_greedy_zero_one_cost_partitioning_heuristic_to_namespace(Namespace& nspace)
 
 namespace probfd::cli::heuristics {
 
-void add_gzocp_heuristic_feature(Registry& registry)
+void add_gzocp_heuristic_feature(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_enum_declaration<GZOCPHeuristicFactory::OrderingStrategy>(
+    nspace.insert_enum_declaration<GZOCPHeuristicFactory::OrderingStrategy>(
         {{"random", "the order is random"},
          {"size_asc", "orders the PDBs by increasing size"},
          {"size_desc", "orders the PDBs by decreasing size"},
@@ -74,7 +71,7 @@ void add_gzocp_heuristic_feature(Registry& registry)
           "inherits the order from the underlying pattern generation "
           "algorithm"}});
 
-    add_greedy_zero_one_cost_partitioning_heuristic_to_namespace(n);
+    add_greedy_zero_one_cost_partitioning_heuristic_to_namespace(nspace);
 }
 
 } // namespace probfd::cli::heuristics

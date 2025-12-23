@@ -1,6 +1,5 @@
 #include "downward/cli/evaluators/evaluator_category.h"
 
-#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "downward/evaluator.h"
@@ -10,10 +9,9 @@ using namespace downward::cli;
 
 namespace downward::cli::evaluators {
 
-void add_evaluator_category(language::plugins::Registry& registry)
+void add_evaluator_category(language::plugins::Namespace& nspace)
 {
-    language::plugins::Namespace& n = registry.get_global_name_space();
-    n.insert_shared_type_declaration<TaskDependentFactory<Evaluator>>(
+    nspace.insert_shared_type_declaration<TaskDependentFactory<Evaluator>>(
         "Heuristic",
         "An evaluator specification is either a newly created evaluator "
         "instance or an evaluator that has been defined previously. "

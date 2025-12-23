@@ -19,7 +19,12 @@ using namespace language::plugins;
 
 namespace {
 
-InternalFunctionDefinitionBase& add_stubborn_sets_simple_to_namespace(Namespace& nspace)
+} // namespace
+
+namespace downward::cli::pruning {
+
+InternalFunctionDefinitionBase&
+add_stubborn_sets_simple_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "stubborn_sets_simple",
@@ -65,16 +70,6 @@ InternalFunctionDefinitionBase& add_stubborn_sets_simple_to_namespace(Namespace&
     add_pruning_options_to_feature(f, 0);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::pruning {
-
-void add_stubborn_sets_simple_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_stubborn_sets_simple_to_namespace(n);
 }
 
 } // namespace downward::cli::pruning

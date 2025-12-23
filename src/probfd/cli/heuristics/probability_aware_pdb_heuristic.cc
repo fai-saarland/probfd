@@ -16,9 +16,9 @@ using namespace probfd::cli::heuristics;
 
 using namespace language::plugins;
 
-namespace {
+namespace probfd::cli::heuristics {
 
-InternalFunctionDefinitionBase& add_pattern_database_heuristic_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_pdb_heuristic_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "ppdbs",
@@ -55,16 +55,6 @@ InternalFunctionDefinitionBase& add_pattern_database_heuristic_to_namespace(Name
     add_task_dependent_heuristic_options_to_feature(f, 2);
 
     return f;
-}
-
-} // namespace
-
-namespace probfd::cli::heuristics {
-
-void add_pdb_heuristic_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_pattern_database_heuristic_to_namespace(n);
 }
 
 } // namespace probfd::cli::heuristics

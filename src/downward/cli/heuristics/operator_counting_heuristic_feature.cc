@@ -74,7 +74,12 @@ public:
     }
 };
 
-InternalFunctionDefinitionBase& add_operator_counting_heuristic_to_namespace(Namespace& nspace)
+} // namespace
+
+namespace downward::cli::heuristics {
+
+InternalFunctionDefinitionBase&
+add_operator_counting_heuristic_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "operator_counting",
@@ -87,7 +92,7 @@ InternalFunctionDefinitionBase& add_operator_counting_heuristic_to_namespace(Nam
             Verbosity,
             std::vector<std::shared_ptr<ConstraintGenerator>>,
             bool,
-            lp::LPSolverType>);
+            downward::lp::LPSolverType>);
 
     f.document_title("Operator-counting heuristic");
     f.document_synopsis(
@@ -156,16 +161,6 @@ InternalFunctionDefinitionBase& add_operator_counting_heuristic_to_namespace(Nam
     add_heuristic_options_to_feature(f, "operatorcounting", n + 2);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::heuristics {
-
-void add_operator_counting_heuristic_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_operator_counting_heuristic_to_namespace(n);
 }
 
 } // namespace downward::cli::heuristics

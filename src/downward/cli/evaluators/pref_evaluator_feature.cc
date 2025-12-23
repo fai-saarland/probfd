@@ -39,7 +39,11 @@ public:
     }
 };
 
-InternalFunctionDefinitionBase& add_pref_evaluator_feature_to_namespace(Namespace& nspace)
+} // namespace
+
+namespace downward::cli::evaluators {
+
+InternalFunctionDefinitionBase& add_pref_evaluator_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "pref",
@@ -53,19 +57,6 @@ InternalFunctionDefinitionBase& add_pref_evaluator_feature_to_namespace(Namespac
     add_evaluator_options_to_feature(f, "pref", 0);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::evaluators {
-
-void add_pref_evaluator_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    const InternalFunctionDefinitionBase& f = add_pref_evaluator_feature_to_namespace(n);
-    DocumentationTopic& subcategory =
-        registry.get_topic_by_name("evaluators_basic");
-    subcategory.add_function(f);
 }
 
 } // namespace downward::cli::evaluators

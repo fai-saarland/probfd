@@ -14,13 +14,13 @@ public:
         document_title("Basic Evaluators");
     }
 };
-}
+} // namespace
 
 namespace downward::cli::evaluators {
 
-void add_evaluator_subcategory(Registry& registry)
+DocumentationTopic& add_evaluator_subcategory(Registry& registry)
 {
-    registry.insert_documentation_topic<EvaluatorGroupPlugin>();
+    return registry.insert_documentation_topic<EvaluatorGroupPlugin>();
 }
 
-} // namespace
+} // namespace downward::cli::evaluators

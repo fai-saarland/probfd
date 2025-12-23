@@ -8,11 +8,7 @@
 #include "probfd/merge_and_shrink/distances.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
-#include "downward/utils/logging.h"
 #include "downward/utils/markup.h"
-
-#include <deque>
-#include <memory>
 
 using namespace std;
 using namespace downward;
@@ -67,16 +63,15 @@ InternalFunctionDefinitionBase& add_shrink_strategy_bisimulation_to_namespace(Na
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_shrink_strategy_bisimulation_feature(Registry& registry)
+void add_shrink_strategy_bisimulation_feature(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_enum_declaration<ShrinkStrategyBisimulation::AtLimit>(
+    nspace.insert_enum_declaration<ShrinkStrategyBisimulation::AtLimit>(
         {{"return", "stop without refining the equivalence class further"},
          {"use_up",
           "continue refining the equivalence class until "
           "the size limit is hit"}});
 
-    add_shrink_strategy_bisimulation_to_namespace(n);
+    add_shrink_strategy_bisimulation_to_namespace(nspace);
 }
 
 } // namespace probfd::cli::merge_and_shrink

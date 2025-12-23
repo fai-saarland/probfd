@@ -12,9 +12,10 @@ using namespace language::plugins;
 
 using namespace probfd::cartesian_abstractions;
 
-namespace {
+namespace probfd::cli::cartesian_abstractions {
 
-InternalFunctionDefinitionBase& add_ilao_flaw_generator_astar_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_policy_based_flaw_generator_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "flaws_ilao",
@@ -39,16 +40,6 @@ InternalFunctionDefinitionBase& add_ilao_flaw_generator_astar_to_namespace(Names
         "search before giving up");
 
     return f;
-}
-
-} // namespace
-
-namespace probfd::cli::cartesian_abstractions {
-
-void add_policy_based_flaw_generator_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_ilao_flaw_generator_astar_to_namespace(n);
 }
 
 } // namespace probfd::cli::cartesian_abstractions

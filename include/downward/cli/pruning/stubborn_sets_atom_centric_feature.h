@@ -2,13 +2,13 @@
 #define DOWNWARD_CLI_PRUNING_STUBBORN_SETS_ATOM_CENTRIC_FEATURE_H
 
 namespace language::plugins {
-class Registry;
+class Namespace;
 }
 
 namespace downward::cli::pruning {
 
 void add_stubborn_sets_atom_centric_feature(
-    language::plugins::Registry& registry);
+    language::plugins::Namespace& nspace);
 
 }
 

@@ -40,11 +40,10 @@ add_multiplicative_max_orthogonality_factory_to_namespace(Namespace& nspace)
 
 namespace probfd::cli::pdbs {
 
-void add_max_orthogonal_finder_factory_feature(Registry& registry)
+void add_max_orthogonal_finder_factory_feature(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    add_additive_max_orthogonality_factory_to_namespace(n);
-    add_multiplicative_max_orthogonality_factory_to_namespace(n);
+    add_additive_max_orthogonality_factory_to_namespace(nspace);
+    add_multiplicative_max_orthogonality_factory_to_namespace(nspace);
 }
 
 } // namespace probfd::cli::pdbs

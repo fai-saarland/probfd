@@ -2,13 +2,14 @@
 #define DOWNWARD_HEURISTICS_PDB_HEURISTIC_FEATURE_H
 
 namespace language::plugins {
-class Registry;
-}
+class InternalFunctionDefinitionBase;
+class Namespace;
+} // namespace language::plugins
 
 namespace downward::cli::heuristics {
 
-void add_pdb_heuristic_feature(
-    language::plugins::Registry& registry);
+language::plugins::InternalFunctionDefinitionBase&
+add_pdb_heuristic_feature(language::plugins::Namespace& nspace);
 
 }
 

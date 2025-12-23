@@ -56,8 +56,12 @@ std::string paper_references()
                "2012");
 }
 
+} // namespace
+
+namespace downward::cli::pdbs {
+
 InternalFunctionDefinitionBase&
-add_pattern_collection_generator_hillclimbing_to_namespace(Namespace& nspace)
+add_pattern_collection_generator_hillclimbing_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "hillclimbing",
@@ -85,14 +89,5 @@ add_pattern_collection_generator_hillclimbing_to_namespace(Namespace& nspace)
     return f;
 }
 
-} // namespace
-
-namespace downward::cli::pdbs {
-
-void add_pattern_collection_generator_hillclimbing_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_pattern_collection_generator_hillclimbing_to_namespace(n);
-}
 
 } // namespace downward::cli::pdbs

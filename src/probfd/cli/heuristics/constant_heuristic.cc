@@ -13,9 +13,10 @@ using namespace probfd::heuristics;
 
 using namespace language::plugins;
 
-namespace {
+namespace probfd::cli::heuristics {
 
-InternalFunctionDefinitionBase& add_blind_heuristic_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_blind_heuristic_factory_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "blind_heuristic",
@@ -27,16 +28,6 @@ InternalFunctionDefinitionBase& add_blind_heuristic_to_namespace(Namespace& nspa
         "This heuristic always returns an estimate of 0 for every state.");
 
     return f;
-}
-
-} // namespace
-
-namespace probfd::cli::heuristics {
-
-void add_blind_heuristic_factory_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_blind_heuristic_to_namespace(n);
 }
 
 } // namespace probfd::cli::heuristics

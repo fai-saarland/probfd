@@ -52,7 +52,12 @@ public:
     }
 };
 
-InternalFunctionDefinitionBase& add_sum_evaluator_feature_to_namespace(Namespace& nspace)
+} // namespace
+
+namespace downward::cli::evaluators {
+
+InternalFunctionDefinitionBase&
+add_weighted_evaluator_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "weight",
@@ -72,19 +77,6 @@ InternalFunctionDefinitionBase& add_sum_evaluator_feature_to_namespace(Namespace
     add_evaluator_options_to_feature(f, "weight", 2);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::evaluators {
-
-void add_weighted_evaluator_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    const InternalFunctionDefinitionBase& f = add_sum_evaluator_feature_to_namespace(n);
-    DocumentationTopic& subcategory =
-        registry.get_topic_by_name("evaluators_basic");
-    subcategory.add_function(f);
 }
 
 } // namespace downward::cli::evaluators

@@ -165,10 +165,9 @@ protected:
 
 namespace probfd::cli::solvers {
 
-void add_exhaustive_dfs_feature(Registry& registry)
+void add_exhaustive_dfs_feature(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_function_definition<ExhaustiveDFSSolverFeature>();
+    nspace.insert_function_definition<ExhaustiveDFSSolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

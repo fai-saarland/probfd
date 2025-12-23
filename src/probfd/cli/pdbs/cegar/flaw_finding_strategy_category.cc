@@ -1,6 +1,5 @@
 #include "probfd/cli/pdbs/cegar/flaw_finding_strategy_category.h"
 
-#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "probfd/pdbs/cegar/flaw_finding_strategy.h"
@@ -11,10 +10,9 @@ using namespace language::plugins;
 
 namespace probfd::cli::pdbs::cegar {
 
-void add_flaw_finding_strategy_category(Registry& registry)
+void add_flaw_finding_strategy_category(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_shared_type_declaration<FlawFindingStrategy>(
+    nspace.insert_shared_type_declaration<FlawFindingStrategy>(
         "FlawFindingStrategy",
         "Policy CEGAR flaw finding strategy.");
 }

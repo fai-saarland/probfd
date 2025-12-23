@@ -1,6 +1,5 @@
 #include "probfd/cli/merge_and_shrink/shrink_strategy_category.h"
 
-#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "probfd/merge_and_shrink/shrink_strategy.h"
@@ -10,10 +9,9 @@ using namespace probfd::merge_and_shrink;
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_shrink_strategy_category(Registry& registry)
+void add_shrink_strategy_category(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_shared_type_declaration<ShrinkStrategy>(
+    nspace.insert_shared_type_declaration<ShrinkStrategy>(
         "PShrinkStrategy",
         "This page describes the various shrink strategies supported "
         "by the planner.");

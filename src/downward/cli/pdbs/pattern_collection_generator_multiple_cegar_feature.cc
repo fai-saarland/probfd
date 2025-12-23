@@ -17,10 +17,10 @@ using namespace downward::pdbs;
 using namespace downward::cli::pdbs;
 using namespace language::plugins;
 
-namespace {
+namespace downward::cli::pdbs {
 
 InternalFunctionDefinitionBase&
-add_pattern_collection_generator_multiple_cegar_to_namespace(Namespace& nspace)
+add_pattern_collection_generator_multiple_cegar_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "multiple_cegar",
@@ -57,16 +57,6 @@ add_pattern_collection_generator_multiple_cegar_to_namespace(Namespace& nspace)
     add_multiple_options_to_feature(f, n);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::pdbs {
-
-void add_pattern_collection_generator_multiple_cegar_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_pattern_collection_generator_multiple_cegar_to_namespace(n);
 }
 
 } // namespace downward::cli::pdbs

@@ -108,10 +108,9 @@ protected:
 
 namespace probfd::cli::solvers {
 
-void add_interval_iteration_solver_feature(Registry& registry)
+void add_interval_iteration_solver_feature(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_function_definition<IntervalIterationSolverFeature>();
+    nspace.insert_function_definition<IntervalIterationSolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

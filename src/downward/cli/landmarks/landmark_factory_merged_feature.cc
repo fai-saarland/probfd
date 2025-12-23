@@ -17,9 +17,10 @@ using namespace language::plugins;
 
 using downward::cli::landmarks::add_landmark_factory_options_to_feature;
 
-namespace {
+namespace downward::cli::landmarks {
 
-InternalFunctionDefinitionBase& add_landmark_factory_merged_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_landmark_factory_merged_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "lm_merged",
@@ -47,16 +48,6 @@ InternalFunctionDefinitionBase& add_landmark_factory_merged_to_namespace(Namespa
     add_landmark_factory_options_to_feature(f, 1);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::landmarks {
-
-void add_landmark_factory_merged_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_landmark_factory_merged_to_namespace(n);
 }
 
 } // namespace downward::cli::landmarks

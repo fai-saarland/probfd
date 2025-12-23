@@ -11,10 +11,9 @@ using downward::utils::Verbosity;
 
 namespace downward::cli::utils {
 
-void add_verbosity_enum(language::plugins::Registry& registry)
+void add_verbosity_enum(language::plugins::Namespace& nspace)
 {
-    language::plugins::Namespace& n = registry.get_global_name_space();
-    n.insert_enum_declaration<Verbosity>(
+    nspace.insert_enum_declaration<Verbosity>(
         {{"silent", "only the most basic output"},
          {"normal", "relevant information to monitor progress"},
          {"verbose", "full output"},

@@ -2,13 +2,12 @@
 #define DOWNWARD_SUBTASK_GENERATORS_CATEGORY_H
 
 namespace language::plugins {
-class Registry;
+class Namespace;
 }
 
 namespace downward::cli::cartesian_abstractions {
 
-void add_subtask_generator_category(
-    language::plugins::Registry& registry);
+void add_subtask_generator_category(language::plugins::Namespace& nspace);
 
 } // namespace downward::cli::cartesian_abstractions
 

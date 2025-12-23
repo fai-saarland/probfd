@@ -1,6 +1,5 @@
 #include "downward/cli/pdbs/pattern_generator_category.h"
 
-#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "downward/pdbs/pattern_generator.h"
@@ -11,10 +10,9 @@ using namespace language::plugins;
 
 namespace downward::cli::pdbs {
 
-void add_pattern_generator_category(Registry& registry)
+void add_pattern_generator_category(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_shared_type_declaration<PatternGenerator>(
+    nspace.insert_shared_type_declaration<PatternGenerator>(
         "PatternGenerator",
         "Factory for single patterns");
 }

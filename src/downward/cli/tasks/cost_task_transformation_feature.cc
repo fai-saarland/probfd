@@ -45,7 +45,12 @@ public:
     }
 };
 
-InternalFunctionDefinitionBase& add_cost_adapted_task_transformation_to_namespace(Namespace& nspace)
+} // namespace
+
+namespace downward::cli::tasks {
+
+InternalFunctionDefinitionBase&
+add_cost_task_transformation_features(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "adapt_costs",
@@ -59,16 +64,6 @@ InternalFunctionDefinitionBase& add_cost_adapted_task_transformation_to_namespac
     add_cost_type_options_to_feature(f, 0);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::tasks {
-
-void add_cost_task_transformation_features(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_cost_adapted_task_transformation_to_namespace(n);
 }
 
 } // namespace downward::cli::tasks

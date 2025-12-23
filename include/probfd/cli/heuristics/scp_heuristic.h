@@ -2,13 +2,12 @@
 #define PROBFD_CLI_HEURISTICS_SCP_HEURISTIC_H
 
 namespace language::plugins {
-class Registry;
+class Namespace;
 }
 
 namespace probfd::cli::heuristics {
 
-void add_scp_heuristic_feature(
-    language::plugins::Registry& registry);
+void add_scp_heuristic_feature(language::plugins::Namespace& nspace);
 
 }
 

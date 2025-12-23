@@ -12,10 +12,10 @@ using namespace language::plugins;
 using namespace downward;
 using namespace probfd::merge_and_shrink;
 
-namespace {
+namespace probfd::cli::merge_and_shrink {
 
 InternalFunctionDefinitionBase&
-add_merge_scoring_function_goal_relevance_to_namespace(Namespace& nspace)
+add_merge_scoring_function_goal_relevance_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "pgoal_relevance",
@@ -33,16 +33,6 @@ add_merge_scoring_function_goal_relevance_to_namespace(Namespace& nspace)
         "All other candidates get a score of positive infinity.");
 
     return f;
-}
-
-} // namespace
-
-namespace probfd::cli::merge_and_shrink {
-
-void add_merge_scoring_function_goal_relevance_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_merge_scoring_function_goal_relevance_to_namespace(n);
 }
 
 } // namespace probfd::cli::merge_and_shrink

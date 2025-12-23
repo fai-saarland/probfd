@@ -128,25 +128,23 @@ InternalFunctionDefinitionBase& add_split_selector_max_hadd_to_namespace(Namespa
 
 namespace probfd::cli::cartesian_abstractions {
 
-void add_split_selector_category(Registry& registry)
+void add_split_selector_category(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_shared_type_declaration<SplitSelectorFactory>(
+    nspace.insert_shared_type_declaration<SplitSelectorFactory>(
         "SplitSelectorFactory",
         "Factory for split selection algorithms used in the "
         "cartesian abstraction refinement loop");
 }
 
-void add_split_selector_features(Registry& registry)
+void add_split_selector_features(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    add_split_selector_random_to_namespace(n);
-    add_split_selector_min_refined_to_namespace(n);
-    add_split_selector_max_refined_to_namespace(n);
-    add_split_selector_min_unwanted_to_namespace(n);
-    add_split_selector_max_unwanted_to_namespace(n);
-    add_split_selector_min_hadd_to_namespace(n);
-    add_split_selector_max_hadd_to_namespace(n);
+    add_split_selector_random_to_namespace(nspace);
+    add_split_selector_min_refined_to_namespace(nspace);
+    add_split_selector_max_refined_to_namespace(nspace);
+    add_split_selector_min_unwanted_to_namespace(nspace);
+    add_split_selector_max_unwanted_to_namespace(nspace);
+    add_split_selector_min_hadd_to_namespace(nspace);
+    add_split_selector_max_hadd_to_namespace(nspace);
 }
 
 } // namespace probfd::cli::cartesian_abstractions

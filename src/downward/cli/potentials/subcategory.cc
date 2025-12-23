@@ -1,6 +1,5 @@
 #include "downward/cli/potentials/subcategory.h"
 
-#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 namespace {
@@ -19,9 +18,11 @@ public:
 
 namespace downward::cli::potentials {
 
-void add_potential_heuristics_subcategory(language::plugins::Registry& registry)
+language::plugins::DocumentationTopic&
+add_potential_heuristics_subcategory(language::plugins::Registry& registry)
 {
-    registry.insert_documentation_topic<PotentialHeuristicsGroupPlugin>();
+    return registry
+        .insert_documentation_topic<PotentialHeuristicsGroupPlugin>();
 }
 
-}
+} // namespace downward::cli::potentials

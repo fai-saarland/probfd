@@ -2,14 +2,15 @@
 #define PROBFD_CLI_PDBS_TRIVIAL_FINDER_FACTORY_H
 
 namespace language::plugins {
-class Registry;
+class InternalFunctionDefinitionBase;
+class Namespace;
 }
 
 namespace probfd::cli::pdbs {
 
-void add_trivial_finder_factory_feature(
-    language::plugins::Registry& registry);
+language::plugins::InternalFunctionDefinitionBase&
+add_trivial_finder_factory_feature(language::plugins::Namespace& nspace);
 
-}
+} // namespace probfd::cli::pdbs
 
 #endif

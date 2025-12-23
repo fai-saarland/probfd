@@ -29,18 +29,16 @@ InternalFunctionDefinitionBase& add_vdiff_sorter_to_namespace(Namespace& nspace)
 
 namespace probfd::cli::transiton_sorters {
 
-void add_transition_sorter_category(Registry& registry)
+void add_transition_sorter_category(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_shared_type_declaration<FDRTransitionSorter>(
+    nspace.insert_shared_type_declaration<FDRTransitionSorter>(
         "FDRTransitionSorter",
         "");
 }
 
-void add_transition_sorter_features(Registry& registry)
+void add_transition_sorter_features(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    add_vdiff_sorter_to_namespace(n);
+    add_vdiff_sorter_to_namespace(nspace);
 }
 
 } // namespace probfd::cli::transiton_sorters

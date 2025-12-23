@@ -2,13 +2,12 @@
 #define PROBFD_CLI_MERGE_AND_SHRINK_MERGE_TREE_FACTORY_CATEGORY_H
 
 namespace language::plugins {
-class Registry;
+class Namespace;
 }
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_merge_tree_factory_category(
-    language::plugins::Registry& registry);
+void add_merge_tree_factory_category(language::plugins::Namespace& nspace);
 
 }
 

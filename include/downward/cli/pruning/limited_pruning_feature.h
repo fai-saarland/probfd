@@ -2,13 +2,14 @@
 #define DOWNWARD_CLI_PRUNING_LIMITED_PRUNING_FEATURE_H
 
 namespace language::plugins {
-class Registry;
+class InternalFunctionDefinitionBase;
+class Namespace;
 }
 
 namespace downward::cli::pruning {
 
-void add_limited_pruning_feature(
-    language::plugins::Registry& registry);
+language::plugins::InternalFunctionDefinitionBase&
+add_limited_pruning_feature(language::plugins::Namespace& nspace);
 
 }
 

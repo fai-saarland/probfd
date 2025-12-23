@@ -1,6 +1,5 @@
 #include "downward/cli/merge_and_shrink/merge_scoring_function_category.h"
 
-#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "downward/merge_and_shrink/merge_scoring_function.h"
@@ -11,10 +10,9 @@ using namespace language::plugins;
 
 namespace downward::cli::merge_and_shrink {
 
-void add_merge_scoring_function_category(Registry& registry)
+void add_merge_scoring_function_category(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_shared_type_declaration<MergeScoringFunction>(
+    nspace.insert_shared_type_declaration<MergeScoringFunction>(
         "MergeScoringFunction",
         "This page describes various merge scoring functions. A scoring "
         "function, "

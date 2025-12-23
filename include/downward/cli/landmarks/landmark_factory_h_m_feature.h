@@ -2,13 +2,14 @@
 #define DOWNWARD_LANDMARKS_LANDMARK_FACTORY_HM_FEATURE_H
 
 namespace language::plugins {
-class Registry;
+class InternalFunctionDefinitionBase;
+class Namespace;
 }
 
 namespace downward::cli::landmarks {
 
-void add_landmark_factory_hm_feature(
-    language::plugins::Registry& registry);
+language::plugins::InternalFunctionDefinitionBase&
+add_landmark_factory_hm_feature(language::plugins::Namespace& nspace);
 
 }
 

@@ -16,9 +16,9 @@ using namespace downward::utils;
 using namespace downward::cli;
 using namespace language::plugins;
 
-namespace {
+namespace downward::cli::pruning {
 
-InternalFunctionDefinitionBase& add_limited_pruning_strategy_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_limited_pruning_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "limited_pruning",
@@ -65,16 +65,6 @@ InternalFunctionDefinitionBase& add_limited_pruning_strategy_namespace(Namespace
     add_pruning_options_to_feature(f, 3);
 
     return f;
-}
-
-}
-
-namespace downward::cli::pruning {
-
-void add_limited_pruning_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_limited_pruning_strategy_namespace(n);
 }
 
 } // namespace downward::cli::pruning

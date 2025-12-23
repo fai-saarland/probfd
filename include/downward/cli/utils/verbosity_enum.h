@@ -2,13 +2,12 @@
 #define DOWNWARD_CLI_UTILS_VERBOSITY_ENUM_H
 
 namespace language::plugins {
-class Registry;
+class Namespace;
 }
 
 namespace downward::cli::utils {
 
-void add_verbosity_enum(
-    language::plugins::Registry& registry);
+void add_verbosity_enum(language::plugins::Namespace& nspace);
 
 }
 

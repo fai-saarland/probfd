@@ -57,7 +57,8 @@ template <bool Bisimulation, bool Fret>
 using PolicyPicker = Wrapper<algorithms::PolicyPicker, Bisimulation, Fret>;
 
 template <bool Bisimulation, bool Fret>
-InternalFunctionDefinitionBase& add_arbitrary_policy_picker_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_arbitrary_policy_picker_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<Bisimulation, Fret>(
@@ -72,12 +73,16 @@ InternalFunctionDefinitionBase& add_arbitrary_policy_picker_to_namespace(Namespa
     return f;
 }
 
-InternalFunctionDefinitionBase& add_operator_id_policy_picker_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_operator_id_policy_picker_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "operator_id_policy_tiebreaker",
-        &language::plugins::
-            construct_shared<FDRPolicyPicker, OperatorIdTiebreaker, bool, bool>);
+        &language::plugins::construct_shared<
+            FDRPolicyPicker,
+            OperatorIdTiebreaker,
+            bool,
+            bool>);
 
     f.make_optional_argument_with_default(0, "stable_policy", "true");
     f.make_optional_argument_with_default(1, "prefer_smaller", "true");
@@ -86,7 +91,8 @@ InternalFunctionDefinitionBase& add_operator_id_policy_picker_to_namespace(Names
 }
 
 template <bool Bisimulation, bool Fret>
-InternalFunctionDefinitionBase& add_random_tiebreaker_policy_picker_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_random_tiebreaker_policy_picker_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<Bisimulation, Fret>("random_policy_tiebreaker"),
@@ -103,7 +109,8 @@ InternalFunctionDefinitionBase& add_random_tiebreaker_policy_picker_to_namespace
 }
 
 template <bool Bisimulation, bool Fret>
-InternalFunctionDefinitionBase& add_value_gap_policy_picker_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_value_gap_policy_picker_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<Bisimulation, Fret>(
@@ -124,36 +131,33 @@ InternalFunctionDefinitionBase& add_value_gap_policy_picker_to_namespace(Namespa
 
 namespace probfd::cli::policy_pickers {
 
-void add_policy_picker_category(Registry& registry)
+void add_policy_picker_category(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_shared_type_declarations<PolicyPicker>(
+    nspace.insert_shared_type_declarations<PolicyPicker>(
         []<bool Bisimulation, bool Fret> {
             return add_mdp_type_to_category<Bisimulation, Fret>("PolicyPicker");
         },
         []<bool, bool> { return "Tiebreaker for greedy actions."; });
 }
 
-void add_policy_picker_features(Registry& registry)
+void add_policy_picker_features(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
+    add_arbitrary_policy_picker_to_namespace<false, false>(nspace);
+    add_arbitrary_policy_picker_to_namespace<false, true>(nspace);
+    add_arbitrary_policy_picker_to_namespace<true, false>(nspace);
+    add_arbitrary_policy_picker_to_namespace<true, true>(nspace);
 
-    add_arbitrary_policy_picker_to_namespace<false, false>(n);
-    add_arbitrary_policy_picker_to_namespace<false, true>(n);
-    add_arbitrary_policy_picker_to_namespace<true, false>(n);
-    add_arbitrary_policy_picker_to_namespace<true, true>(n);
+    add_operator_id_policy_picker_to_namespace(nspace);
 
-    add_operator_id_policy_picker_to_namespace(n);
+    add_random_tiebreaker_policy_picker_to_namespace<false, false>(nspace);
+    add_random_tiebreaker_policy_picker_to_namespace<false, true>(nspace);
+    add_random_tiebreaker_policy_picker_to_namespace<true, false>(nspace);
+    add_random_tiebreaker_policy_picker_to_namespace<true, true>(nspace);
 
-    add_random_tiebreaker_policy_picker_to_namespace<false, false>(n);
-    add_random_tiebreaker_policy_picker_to_namespace<false, true>(n);
-    add_random_tiebreaker_policy_picker_to_namespace<true, false>(n);
-    add_random_tiebreaker_policy_picker_to_namespace<true, true>(n);
-
-    add_value_gap_policy_picker_to_namespace<false, false>(n);
-    add_value_gap_policy_picker_to_namespace<false, true>(n);
-    add_value_gap_policy_picker_to_namespace<true, false>(n);
-    add_value_gap_policy_picker_to_namespace<true, true>(n);
+    add_value_gap_policy_picker_to_namespace<false, false>(nspace);
+    add_value_gap_policy_picker_to_namespace<false, true>(nspace);
+    add_value_gap_policy_picker_to_namespace<true, false>(nspace);
+    add_value_gap_policy_picker_to_namespace<true, true>(nspace);
 }
 
 } // namespace probfd::cli::policy_pickers

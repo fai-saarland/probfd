@@ -2,13 +2,14 @@
 #define PROBFD_CLI_HEURISTICS_DEAD_END_PRUNING_HEURISTIC_H
 
 namespace language::plugins {
-class Registry;
+class InternalFunctionDefinitionBase;
+class Namespace;
 }
 
 namespace probfd::cli::heuristics {
 
-void add_dead_end_pruning_heuristic_feature(
-    language::plugins::Registry& registry);
+language::plugins::InternalFunctionDefinitionBase&
+add_dead_end_pruning_heuristic_feature(language::plugins::Namespace& nspace);
 
 }
 

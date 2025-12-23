@@ -11,25 +11,16 @@ using namespace probfd::pdbs;
 
 using namespace language::plugins;
 
-namespace {
+namespace probfd::cli::pdbs {
 
-InternalFunctionDefinitionBase& add_trivial_finder_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_trivial_finder_factory_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "finder_trivial_factory",
         &construct_shared<SubCollectionFinderFactory, TrivialFinderFactory>);
 
     return f;
-}
-
-} // namespace
-
-namespace probfd::cli::pdbs {
-
-void add_trivial_finder_factory_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_trivial_finder_to_namespace(n);
 }
 
 } // namespace probfd::cli::pdbs

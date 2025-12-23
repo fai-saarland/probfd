@@ -16,9 +16,10 @@ using downward::cli::landmarks::add_landmark_factory_options_to_feature;
 
 using namespace downward::landmarks;
 
-namespace {
+namespace downward::cli::landmarks {
 
-InternalFunctionDefinitionBase& add_landmark_factory_rpg_exhaust_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_landmark_factory_rpg_exhaust_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "lm_exhaust",
@@ -50,16 +51,6 @@ InternalFunctionDefinitionBase& add_landmark_factory_rpg_exhaust_to_namespace(Na
     add_landmark_factory_options_to_feature(f, 1);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::landmarks {
-
-void add_landmark_factory_rpg_exhaust_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_landmark_factory_rpg_exhaust_to_namespace(n);
 }
 
 } // namespace downward::cli::landmarks

@@ -3,8 +3,6 @@
 #include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
-#include "downward/cli/utils/logging_options.h"
-
 #include "probfd/cli/pdbs/pattern_collection_generator_options.h"
 
 #include "probfd/pdbs/pattern_collection_generator_classical.h"
@@ -17,17 +15,17 @@ using namespace probfd::cli::pdbs;
 
 using namespace language::plugins;
 
-namespace {
+namespace probfd::cli::pdbs {
 
 InternalFunctionDefinitionBase&
-add_classical_pattern_collection_generator_to_namespace(Namespace& nspace)
+add_pattern_collection_generator_classical_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "classical_generator",
         &construct_shared<
             PatternCollectionGenerator,
             PatternCollectionGeneratorClassical,
-            std::shared_ptr<pdbs::PatternCollectionGenerator>,
+            std::shared_ptr<downward::pdbs::PatternCollectionGenerator>,
             std::shared_ptr<SubCollectionFinderFactory>,
             Verbosity>);
 
@@ -53,16 +51,6 @@ add_classical_pattern_collection_generator_to_namespace(Namespace& nspace)
     add_pattern_collection_generator_options_to_feature(f, 2);
 
     return f;
-}
-
-} // namespace
-
-namespace probfd::cli::pdbs {
-
-void add_pattern_collection_generator_classical_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_classical_pattern_collection_generator_to_namespace(n);
 }
 
 } // namespace probfd::cli::pdbs

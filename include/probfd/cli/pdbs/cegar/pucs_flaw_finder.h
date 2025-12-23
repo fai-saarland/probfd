@@ -2,13 +2,14 @@
 #define PROBFD_CLI_PDBS_CEGAR_PUCS_FLAW_FINDER_H
 
 namespace language::plugins {
-class Registry;
-}
+class InternalFunctionDefinitionBase;
+class Namespace;
+} // namespace language::plugins
 
 namespace probfd::cli::pdbs::cegar {
 
-void add_pucs_flaw_finder_feature(
-    language::plugins::Registry& registry);
+language::plugins::InternalFunctionDefinitionBase&
+add_pucs_flaw_finder_feature(language::plugins::Namespace& nspace);
 
 }
 

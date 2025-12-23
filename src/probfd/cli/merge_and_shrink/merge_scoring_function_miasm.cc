@@ -11,7 +11,6 @@
 
 #include "probfd/cli/merge_and_shrink/merge_and_shrink_algorithm_options.h"
 
-#include "downward/utils/logging.h"
 #include "downward/utils/markup.h"
 
 using namespace std;
@@ -42,7 +41,12 @@ shared_ptr<MergeScoringFunction> create_merge_scoring_function_miasm(
         threshold_before_merge);
 }
 
-InternalFunctionDefinitionBase& add_merge_scoring_function_miasm_to_namespace(Namespace& nspace)
+} // namespace
+
+namespace probfd::cli::merge_and_shrink {
+
+InternalFunctionDefinitionBase&
+add_merge_scoring_function_miasm_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "psf_miasm",
@@ -134,16 +138,6 @@ InternalFunctionDefinitionBase& add_merge_scoring_function_miasm_to_namespace(Na
     add_transition_system_size_limit_options_to_feature(f, 2);
 
     return f;
-}
-
-} // namespace
-
-namespace probfd::cli::merge_and_shrink {
-
-void add_merge_scoring_function_miasm_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_merge_scoring_function_miasm_to_namespace(n);
 }
 
 } // namespace probfd::cli::merge_and_shrink

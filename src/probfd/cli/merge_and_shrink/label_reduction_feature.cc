@@ -2,11 +2,9 @@
 
 #include "probfd/merge_and_shrink/label_reduction.h"
 
-#include "downward/utils/logging.h"
 #include "downward/utils/markup.h"
 #include "downward/utils/rng.h"
 
-#include "language/plugins/options.h"
 #include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
@@ -20,7 +18,8 @@ using namespace probfd::merge_and_shrink;
 
 namespace {
 
-InternalFunctionDefinitionBase& add_exact_label_reduction_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_exact_label_reduction_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "pexact",
@@ -90,19 +89,17 @@ InternalFunctionDefinitionBase& add_exact_label_reduction_to_namespace(Namespace
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_label_reduction_category(Registry& registry)
+void add_label_reduction_category(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_shared_type_declaration<LabelReduction>(
+    nspace.insert_shared_type_declaration<LabelReduction>(
         "PLabelReduction",
         "This page describes the current single 'option' for "
         "label reduction.");
 }
 
-void add_label_reduction_features(Registry& registry)
+void add_label_reduction_features(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_enum_declaration<LabelReductionMethod>(
+    nspace.insert_enum_declaration<LabelReductionMethod>(
         {{"two_transition_systems",
           "compute the 'combinable relation' only for the two transition "
           "systems being merged next"},
@@ -113,14 +110,14 @@ void add_label_reduction_features(Registry& registry)
           "keep computing the 'combinable relation' for labels iteratively "
           "for all transition systems until no more labels can be reduced"}});
 
-    n.insert_enum_declaration<LabelReductionSystemOrder>(
+    nspace.insert_enum_declaration<LabelReductionSystemOrder>(
         {{"regular",
           "transition systems are considered in the order given in the planner "
           "input if atomic and in the order of their creation if composite."},
          {"reverse", "inverse of regular"},
          {"random", "random order"}});
 
-    add_exact_label_reduction_to_namespace(n);
+    add_exact_label_reduction_to_namespace(nspace);
 }
 
 } // namespace probfd::cli::merge_and_shrink

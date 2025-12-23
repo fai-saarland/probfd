@@ -59,7 +59,11 @@ public:
     }
 };
 
-InternalFunctionDefinitionBase& add_max_evaluator_feature_to_namespace(Namespace& nspace)
+} // namespace
+
+namespace downward::cli::evaluators {
+
+InternalFunctionDefinitionBase& add_max_evaluator_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "max",
@@ -74,19 +78,6 @@ InternalFunctionDefinitionBase& add_max_evaluator_feature_to_namespace(Namespace
     add_combining_evaluator_options_to_feature(f, "max", 0);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::evaluators {
-
-void add_max_evaluator_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    const InternalFunctionDefinitionBase& f = add_max_evaluator_feature_to_namespace(n);
-    DocumentationTopic& subcategory =
-        registry.get_topic_by_name("evaluators_basic");
-    subcategory.add_function(f);
 }
 
 } // namespace downward::cli::evaluators

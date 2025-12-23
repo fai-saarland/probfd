@@ -2,13 +2,14 @@
 #define PROBFD_CLI_HEURISTICS_UCP_HEURISTIC_H
 
 namespace language::plugins {
-class Registry;
-}
+class InternalFunctionDefinitionBase;
+class Namespace;
+} // namespace language::plugins
 
 namespace probfd::cli::heuristics {
 
-void add_ucp_heuristic_feature(
-    language::plugins::Registry& registry);
+language::plugins::InternalFunctionDefinitionBase&
+add_ucp_heuristic_feature(language::plugins::Namespace& nspace);
 
 }
 

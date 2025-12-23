@@ -1,6 +1,5 @@
 #include "downward/cli/merge_and_shrink/shrink_strategy_category.h"
 
-#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "downward/merge_and_shrink/shrink_strategy.h"
@@ -11,10 +10,9 @@ using namespace language::plugins;
 
 namespace downward::cli::merge_and_shrink {
 
-void add_shrink_strategy_category(Registry& registry)
+void add_shrink_strategy_category(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_shared_type_declaration<ShrinkStrategy>(
+    nspace.insert_shared_type_declaration<ShrinkStrategy>(
         "ShrinkStrategy",
         "This page describes the various shrink strategies supported "
         "by the planner.");

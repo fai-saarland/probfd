@@ -15,9 +15,10 @@ using namespace language::plugins;
 
 using downward::cli::pdbs::add_generator_options_to_feature;
 
-namespace {
+namespace downward::cli::pdbs {
 
-InternalFunctionDefinitionBase& add_pattern_collection_generator_combo_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_pattern_collection_generator_combo_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "combo",
@@ -34,16 +35,6 @@ InternalFunctionDefinitionBase& add_pattern_collection_generator_combo_to_namesp
     add_generator_options_to_feature(f, 1);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::pdbs {
-
-void add_pattern_collection_generator_combo_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_pattern_collection_generator_combo_to_namespace(n);
 }
 
 } // namespace downward::cli::pdbs

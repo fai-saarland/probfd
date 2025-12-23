@@ -16,10 +16,10 @@ using namespace language::plugins;
 
 using downward::cli::utils::add_log_options_to_feature;
 
-namespace {
+namespace probfd::cli::pdbs {
 
 InternalFunctionDefinitionBase&
-add_pattern_collection_generator_systematic_to_namespace(Namespace& nspace)
+add_pattern_collection_generator_systematic_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "psystematic",
@@ -60,16 +60,6 @@ add_pattern_collection_generator_systematic_to_namespace(Namespace& nspace)
     add_log_options_to_feature(f, 2);
 
     return f;
-}
-
-} // namespace
-
-namespace probfd::cli::pdbs {
-
-void add_pattern_collection_generator_systematic_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_pattern_collection_generator_systematic_to_namespace(n);
 }
 
 } // namespace probfd::cli::pdbs

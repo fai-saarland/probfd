@@ -2,13 +2,14 @@
 #define DOWNWARD_CLI_MUTEXES_FROM_FILE_MUTEX_FACTORY_FEATURE_H
 
 namespace language::plugins {
-class Registry;
-}
+class InternalFunctionDefinitionBase;
+class Namespace;
+} // namespace language::plugins
 
 namespace downward::cli::mutexes {
 
-void add_from_file_mutex_factory_feature(
-    language::plugins::Registry& registry);
+language::plugins::InternalFunctionDefinitionBase&
+add_from_file_mutex_factory_feature(language::plugins::Namespace& nspace);
 
 }
 

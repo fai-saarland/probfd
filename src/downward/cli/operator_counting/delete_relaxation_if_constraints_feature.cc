@@ -13,9 +13,10 @@ using namespace downward::operator_counting;
 
 using namespace language::plugins;
 
-namespace {
+namespace downward::cli::operator_counting {
 
-InternalFunctionDefinitionBase& add_delete_relaxation_if_constraints_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_delete_relaxation_if_constraints_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "delete_relaxation_if_constraints",
@@ -86,16 +87,6 @@ InternalFunctionDefinitionBase& add_delete_relaxation_if_constraints_to_namespac
         "at the cost of increased runtime.");
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::operator_counting {
-
-void add_delete_relaxation_if_constraints_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_delete_relaxation_if_constraints_to_namespace(n);
 }
 
 } // namespace downward::cli::operator_counting

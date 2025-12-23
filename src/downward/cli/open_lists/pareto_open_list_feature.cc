@@ -26,7 +26,8 @@ using downward::cli::utils::add_rng_options_to_feature;
 namespace {
 
 template <typename T>
-InternalFunctionDefinitionBase& add_pareto_open_list_to_namespace(Namespace& nspace, std::string name)
+InternalFunctionDefinitionBase&
+add_pareto_open_list_to_namespace(Namespace& nspace, std::string name)
 {
     auto& f = nspace.insert_function_definition(
         std::move(name),
@@ -68,11 +69,12 @@ InternalFunctionDefinitionBase& add_pareto_open_list_to_namespace(Namespace& nsp
 
 namespace downward::cli::open_lists {
 
-void add_pareto_open_list_features(Registry& registry)
+void add_pareto_open_list_features(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    add_pareto_open_list_to_namespace<StateOpenListEntry>(n, "state_pareto");
-    add_pareto_open_list_to_namespace<EdgeOpenListEntry>(n, "edge_pareto");
+    add_pareto_open_list_to_namespace<StateOpenListEntry>(
+        nspace,
+        "state_pareto");
+    add_pareto_open_list_to_namespace<EdgeOpenListEntry>(nspace, "edge_pareto");
 }
 
 } // namespace downward::cli::open_lists
