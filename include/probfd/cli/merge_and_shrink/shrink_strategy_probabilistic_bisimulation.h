@@ -2,13 +2,13 @@
 #define PROBFD_CLI_MERGE_AND_SHRINK_SHRINK_STRATEGY_PROBABILISTIC_BISIMULATION_H
 
 namespace language::plugins {
-class Registry;
+class Namespace;
 }
 
 namespace probfd::cli::merge_and_shrink {
 
 void add_shrink_strategy_probabilistic_bisimulation_feature(
-    language::plugins::Registry& registry);
+    language::plugins::Namespace& nspace);
 
 }
 

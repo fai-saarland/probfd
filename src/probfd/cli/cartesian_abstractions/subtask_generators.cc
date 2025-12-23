@@ -90,26 +90,24 @@ InternalFunctionDefinitionBase& add_landmark_decomposition_to_namespace(Namespac
 
 namespace probfd::cli::cartesian_abstractions {
 
-void add_subtask_generator_category(Registry& registry)
+void add_subtask_generator_category(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_shared_type_declaration<SubtaskGenerator>(
+    nspace.insert_shared_type_declaration<SubtaskGenerator>(
         "PSubtaskGenerator",
         "Subtask generator (used by the CEGAR heuristic).");
 }
 
-void add_subtask_generator_features(Registry& registry)
+void add_subtask_generator_features(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_enum_declaration<FactOrder>(
+    nspace.insert_enum_declaration<FactOrder>(
         {{"original", "according to their (internal) variable index"},
          {"random", "according to a random permutation"},
          {"hadd_up", "according to their h^add value, lowest first"},
          {"hadd_down", "according to their h^add value, highest first "}});
 
-    add_task_duplicator_to_namespace(n);
-    add_goal_decomposition_to_namespace(n);
-    add_landmark_decomposition_to_namespace(n);
+    add_task_duplicator_to_namespace(nspace);
+    add_goal_decomposition_to_namespace(nspace);
+    add_landmark_decomposition_to_namespace(nspace);
 }
 
 } // namespace probfd::cli::cartesian_abstractions

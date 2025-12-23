@@ -1,6 +1,5 @@
 #include "downward/cli/pdbs/subcategory.h"
 
-#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 using namespace language::plugins;
@@ -20,9 +19,9 @@ public:
 
 namespace downward::cli::pdbs {
 
-void add_pdb_heuristic_subcategory(Registry& registry)
+DocumentationTopic& add_pdb_heuristic_subcategory(Registry& registry)
 {
-    registry.insert_documentation_topic<PDBGroupPlugin>();
+    return registry.insert_documentation_topic<PDBGroupPlugin>();
 }
 
 } // namespace downward::cli::pdbs

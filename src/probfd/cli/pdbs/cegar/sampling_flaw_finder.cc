@@ -16,10 +16,10 @@ using namespace language::plugins;
 
 using downward::cli::utils::add_rng_options_to_feature;
 
-namespace {
+namespace probfd::cli::pdbs::cegar {
 
 InternalFunctionDefinitionBase&
-add_sampling_flaw_finder_to_namespace(Namespace& nspace)
+add_sampling_flaw_finder_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "sampling_flaw_finder",
@@ -38,16 +38,6 @@ add_sampling_flaw_finder_to_namespace(Namespace& nspace)
         "aborted.");
 
     return f;
-}
-
-} // namespace
-
-namespace probfd::cli::pdbs::cegar {
-
-void add_sampling_flaw_finder_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_sampling_flaw_finder_to_namespace(n);
 }
 
 } // namespace probfd::cli::pdbs::cegar

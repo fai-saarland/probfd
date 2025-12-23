@@ -546,11 +546,10 @@ InternalFunctionDefinitionBase& add_merge_and_shrink_heuristic_no_lr_to_namespac
 
 namespace downward::cli::heuristics {
 
-void add_merge_and_shrink_heuristic_feature(Registry& registry)
+void add_merge_and_shrink_heuristic_feature(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    add_merge_and_shrink_heuristic_to_namespace(n);
-    add_merge_and_shrink_heuristic_no_lr_to_namespace(n);
+    add_merge_and_shrink_heuristic_to_namespace(nspace);
+    add_merge_and_shrink_heuristic_no_lr_to_namespace(nspace);
 }
 
 } // namespace downward::cli::heuristics

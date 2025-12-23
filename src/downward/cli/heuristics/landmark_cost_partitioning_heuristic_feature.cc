@@ -89,7 +89,22 @@ public:
     }
 };
 
-InternalFunctionDefinitionBase& add_landmarkcost_partitioning_heuristic_to_namespace(Namespace& nspace)
+} // namespace
+
+namespace downward::cli::heuristics {
+
+void add_landmark_cost_partitioning_heuristic_categories(Namespace& nspace)
+{
+    nspace.insert_enum_declaration<CostPartitioningMethod>({
+        {"optimal", "use optimal (LP-based) cost partitioning"},
+        {"uniform",
+         "partition operator costs uniformly among all landmarks "
+         "achieved by that operator"},
+    });
+}
+
+InternalFunctionDefinitionBase&
+add_landmark_cost_partitioning_heuristic_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "landmark_cost_partitioning",
@@ -107,7 +122,7 @@ InternalFunctionDefinitionBase& add_landmarkcost_partitioning_heuristic_to_names
             bool,
             CostPartitioningMethod,
             bool,
-            lp::LPSolverType>);
+            downward::lp::LPSolverType>);
 
     f.document_title("Landmark cost partitioning heuristic");
     f.document_synopsis(
@@ -197,27 +212,6 @@ InternalFunctionDefinitionBase& add_landmarkcost_partitioning_heuristic_to_names
     add_lp_solver_option_to_feature(f, n + 2);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::heuristics {
-
-void add_landmark_cost_partitioning_heuristic_categories(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    n.insert_enum_declaration<CostPartitioningMethod>({
-        {"optimal", "use optimal (LP-based) cost partitioning"},
-        {"uniform",
-         "partition operator costs uniformly among all landmarks "
-         "achieved by that operator"},
-    });
-}
-
-void add_landmark_cost_partitioning_heuristic_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_landmarkcost_partitioning_heuristic_to_namespace(n);
 }
 
 } // namespace downward::cli::heuristics

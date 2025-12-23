@@ -56,7 +56,11 @@ public:
     }
 };
 
-InternalFunctionDefinitionBase& add_zero_one_pdbs_heuristic_to_namespace(Namespace& nspace)
+} // namespace
+
+namespace downward::cli::heuristics {
+
+InternalFunctionDefinitionBase& add_zero_one_pdbs_heuristic_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "zopdbs",
@@ -104,19 +108,6 @@ InternalFunctionDefinitionBase& add_zero_one_pdbs_heuristic_to_namespace(Namespa
     add_heuristic_options_to_feature(f, "zopdbs", 1);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::heuristics {
-
-void add_zero_one_pdbs_heuristic_features(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    const InternalFunctionDefinitionBase& f = add_zero_one_pdbs_heuristic_to_namespace(n);
-    DocumentationTopic& subcategory =
-        registry.get_topic_by_name("heuristics_pdb");
-    subcategory.add_function(f);
 }
 
 } // namespace downward::cli::heuristics

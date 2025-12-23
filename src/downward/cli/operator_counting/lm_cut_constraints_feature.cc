@@ -13,9 +13,10 @@ using namespace downward::operator_counting;
 
 using namespace language::plugins;
 
-namespace {
+namespace downward::cli::operator_counting {
 
-InternalFunctionDefinitionBase& add_delete_relaxation_rr_constraints_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_lm_cut_constraints_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "lmcut_constraints",
@@ -56,16 +57,6 @@ InternalFunctionDefinitionBase& add_delete_relaxation_rr_constraints_to_namespac
             "2013"));
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::operator_counting {
-
-void add_lm_cut_constraints_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_delete_relaxation_rr_constraints_to_namespace(n);
 }
 
 } // namespace downward::cli::operator_counting

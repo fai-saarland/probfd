@@ -2,13 +2,12 @@
 #define DOWNWARD_CLI_PRUNING_PRUNING_METHOD_CATEGORY_H
 
 namespace language::plugins {
-class Registry;
+class Namespace;
 }
 
 namespace downward::cli::pruning {
 
-void add_pruning_method_category(
-    language::plugins::Registry& registry);
+void add_pruning_method_category(language::plugins::Namespace& nspace);
 
 }
 

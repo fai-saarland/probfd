@@ -1,6 +1,5 @@
 #include "probfd/cli/pdbs/subcollection_finder_factory_category.h"
 
-#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "probfd/pdbs/subcollection_finder_factory.h"
@@ -11,10 +10,9 @@ using namespace language::plugins;
 
 namespace probfd::cli::pdbs {
 
-void add_subcollection_finder_factory_category(Registry& registry)
+void add_subcollection_finder_factory_category(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_shared_type_declaration<SubCollectionFinderFactory>(
+    nspace.insert_shared_type_declaration<SubCollectionFinderFactory>(
         "SubCollectionFinderFactory",
         "");
 }

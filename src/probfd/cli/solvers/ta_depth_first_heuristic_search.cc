@@ -429,10 +429,9 @@ public:
 
 namespace probfd::cli::solvers {
 
-void add_ta_depth_first_heuristic_search_feature(Registry& registry)
+void add_ta_depth_first_heuristic_search_feature(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_enum_declaration<BacktrackingUpdateType>(
+    nspace.insert_enum_declaration<BacktrackingUpdateType>(
         {{"disabled",
           "No update is performed when backtracking from a state during the "
           "dfs "
@@ -450,10 +449,10 @@ void add_ta_depth_first_heuristic_search_feature(Registry& registry)
           "the "
           "dfs exploration."}});
 
-    n.insert_function_definition<TrapAwareDFHSSolverFeature>();
-    n.insert_function_definition<TrapAwareILAOSolverFeature>();
-    n.insert_function_definition<TrapAwareLILAOSolverFeature>();
-    n.insert_function_definition<TrapAwareHDPSolverFeature>();
+    nspace.insert_function_definition<TrapAwareDFHSSolverFeature>();
+    nspace.insert_function_definition<TrapAwareILAOSolverFeature>();
+    nspace.insert_function_definition<TrapAwareLILAOSolverFeature>();
+    nspace.insert_function_definition<TrapAwareHDPSolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

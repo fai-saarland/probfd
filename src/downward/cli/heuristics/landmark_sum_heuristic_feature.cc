@@ -73,7 +73,12 @@ public:
     }
 };
 
-InternalFunctionDefinitionBase& add_landmark_sum_heuristic_to_namespace(Namespace& nspace)
+} // namespace
+
+namespace downward::cli::heuristics {
+
+InternalFunctionDefinitionBase&
+add_landmark_sum_heuristic_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "landmark_sum",
@@ -173,16 +178,6 @@ InternalFunctionDefinitionBase& add_landmark_sum_heuristic_to_namespace(Namespac
     add_landmark_heuristic_options_to_feature(f, "landmark_sum_heuristic", 0);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::heuristics {
-
-void add_landmark_sum_heuristic_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_landmark_sum_heuristic_to_namespace(n);
 }
 
 } // namespace downward::cli::heuristics

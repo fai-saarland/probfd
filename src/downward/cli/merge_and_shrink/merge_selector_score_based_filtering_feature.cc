@@ -11,9 +11,10 @@ using namespace downward::merge_and_shrink;
 
 using namespace language::plugins;
 
-namespace {
+namespace downward::cli::merge_and_shrink {
 
-InternalFunctionDefinitionBase& add_merge_selector_score_based_filtering_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_merge_selector_score_based_filtering_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "score_based_filtering",
@@ -36,16 +37,6 @@ InternalFunctionDefinitionBase& add_merge_selector_score_based_filtering_to_name
         "candidates.");
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::merge_and_shrink {
-
-void add_merge_selector_score_based_filtering_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_merge_selector_score_based_filtering_to_namespace(n);
 }
 
 } // namespace downward::cli::merge_and_shrink

@@ -2,13 +2,14 @@
 #define DOWNWARD_HEURISTICS_IPDBS_HEURISTIC_FEATURE_H
 
 namespace language::plugins {
-class Registry;
+class InternalFunctionDefinitionBase;
+class Namespace;
 }
 
 namespace downward::cli::heuristics {
 
-void add_ipdbs_heuristic_features(
-    language::plugins::Registry& registry);
+language::plugins::InternalFunctionDefinitionBase&
+add_ipdbs_heuristic_features(language::plugins::Namespace& nspace);
 
 }
 

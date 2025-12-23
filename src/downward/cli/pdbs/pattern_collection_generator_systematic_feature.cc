@@ -16,10 +16,10 @@ using namespace downward::pdbs;
 using namespace downward::cli::pdbs;
 using namespace language::plugins;
 
-namespace {
+namespace downward::cli::pdbs {
 
 InternalFunctionDefinitionBase&
-add_pattern_collection_generator_systematic_to_namespace(Namespace& nspace)
+add_pattern_collection_generator_systematic_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "systematic",
@@ -60,16 +60,6 @@ add_pattern_collection_generator_systematic_to_namespace(Namespace& nspace)
     add_generator_options_to_feature(f, 2);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::pdbs {
-
-void add_pattern_collection_generator_systematic_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_pattern_collection_generator_systematic_to_namespace(n);
 }
 
 } // namespace downward::cli::pdbs

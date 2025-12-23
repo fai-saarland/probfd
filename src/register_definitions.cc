@@ -130,9 +130,9 @@
 #include "downward/cli/utils/verbosity_enum.h"
 
 #include "downward/cli/operator_cost_category.h"
-#include "language/plugins/registry.h"
 #include "downward/cli/utils/rng_options.h"
 #include "downward/utils/math.h"
+#include "language/plugins/registry.h"
 
 #include "probfd/cli/cartesian_abstractions/adaptive_flaw_generator.h"
 #include "probfd/cli/cartesian_abstractions/flaw_generator_category.h"
@@ -224,7 +224,6 @@
 #include "probfd/cli/task_state_space_factory_category.h"
 #include "probfd/cli/task_state_space_factory_features.h"
 
-using namespace downward::cli;
 using namespace language;
 
 namespace {
@@ -295,92 +294,7 @@ void add_infinite_duration_feature_to_namespace(
 
 } // namespace
 
-namespace probfd {
-
-static void register_fast_downward_types(plugins::Registry& registry)
-{
-    // Duration types
-    plugins::Namespace& n = registry.get_global_name_space();
-
-    n.insert_type_declaration<downward::utils::FNanoSeconds>(
-        "nanoseconds",
-        "Type representing a nanosecond.");
-    n.insert_type_declaration<downward::utils::FMicroSeconds>(
-        "microseconds",
-        "Type representing a microsecond.");
-    n.insert_type_declaration<downward::utils::FMilliSeconds>(
-        "milliseconds",
-        "Type representing a millisecond.");
-    n.insert_type_declaration<downward::utils::FSeconds>(
-        "seconds",
-        "Type representing a second.");
-    n.insert_type_declaration<downward::utils::FMinutes>(
-        "minutes",
-        "Type representing a minute.");
-    n.insert_type_declaration<downward::utils::FHours>(
-        "hours",
-        "Type representing an hour.");
-
-    // Cartesian abstractions
-    cartesian_abstractions::add_subtask_generator_category(registry);
-
-    // Evaluators
-    evaluators::add_evaluator_category(registry);
-    evaluators::add_evaluator_subcategory(registry);
-
-    // Heuristics
-    heuristics::add_additive_cartesian_heuristic_categories(registry);
-    heuristics::add_landmark_cost_partitioning_heuristic_categories(registry);
-
-    // Landmarks
-    landmarks::add_landmark_factory_category(registry);
-
-    // LP
-    lp::add_lp_solver_enum(registry);
-
-    // Merge-and-shrink
-    merge_and_shrink::add_label_reduction_category(registry);
-    merge_and_shrink::add_merge_scoring_function_category(registry);
-    merge_and_shrink::add_merge_strategy_factory_category(registry);
-    merge_and_shrink::add_merge_selector_category(registry);
-    merge_and_shrink::add_merge_tree_factory_category(registry);
-    merge_and_shrink::add_shrink_strategy_category(registry);
-
-    // Mutexes
-    mutexes::add_mutex_factory_category(registry);
-
-    // Open Lists
-    open_lists::add_open_list_factory_category(registry);
-
-    // Operator Counting
-    operator_counting::add_constraint_generator_category(registry);
-
-    // PDBs
-    pdbs::add_pattern_collection_generator_category(registry);
-    pdbs::add_pdb_heuristic_subcategory(registry);
-    pdbs::add_pattern_generator_category(registry);
-
-    // Potentials
-    potentials::add_potential_heuristics_subcategory(registry);
-
-    // Pruning
-    pruning::add_pruning_method_category(registry);
-
-    // Search Algorithms
-    search_algorithms::add_search_algorithm_factory_category(registry);
-
-    // Task Transformations
-    tasks::add_task_transformation_category(registry);
-
-    // Utils
-    utils::add_rng_type(registry);
-    utils::add_verbosity_enum(registry);
-
-    // Operator Cost Enum
-    add_operator_cost_category(registry);
-}
-
-static void register_fast_downward_definitions(plugins::Registry& registry)
+static void register_language_definitions(plugins::Registry& registry)
 {
     using namespace downward::utils::string_literals;
 
@@ -466,300 +380,388 @@ static void register_fast_downward_definitions(plugins::Registry& registry)
     add_infinite_duration_feature_to_namespace<downward::utils::FHours>(
         n,
         "hours_max");
+}
+
+static void register_fast_downward_types(plugins::Registry& registry)
+{
+    using namespace downward::cli;
+
+    // Duration types
+    plugins::Namespace& n = registry.get_global_name_space();
+
+    n.insert_type_declaration<downward::utils::FNanoSeconds>(
+        "nanoseconds",
+        "Type representing a nanosecond.");
+    n.insert_type_declaration<downward::utils::FMicroSeconds>(
+        "microseconds",
+        "Type representing a microsecond.");
+    n.insert_type_declaration<downward::utils::FMilliSeconds>(
+        "milliseconds",
+        "Type representing a millisecond.");
+    n.insert_type_declaration<downward::utils::FSeconds>(
+        "seconds",
+        "Type representing a second.");
+    n.insert_type_declaration<downward::utils::FMinutes>(
+        "minutes",
+        "Type representing a minute.");
+    n.insert_type_declaration<downward::utils::FHours>(
+        "hours",
+        "Type representing an hour.");
 
     // Cartesian abstractions
-    cartesian_abstractions::add_subtask_generators_features(registry);
+    cartesian_abstractions::add_subtask_generator_category(n);
 
     // Evaluators
-    evaluators::add_const_evaluator_feature(registry);
-    evaluators::add_g_evaluator_feature(registry);
-    evaluators::add_max_evaluator_feature(registry);
-    evaluators::add_pref_evaluator_feature(registry);
-    evaluators::add_sum_evaluator_feature(registry);
-    evaluators::add_weighted_evaluator_feature(registry);
+    evaluators::add_evaluator_category(n);
 
     // Heuristics
-    heuristics::add_additive_cartesian_heuristic_feature(registry);
-    heuristics::add_additive_heuristic_feature(registry);
-    heuristics::add_blind_heuristic_feature(registry);
-    heuristics::add_canonical_pdbs_heuristic_feature(registry);
-    heuristics::add_cg_heuristic_feature(registry);
-    heuristics::add_cea_heuristic_feature(registry);
-    heuristics::add_diverse_potential_heuristics_feature(registry);
-    heuristics::add_ff_heuristic_features(registry);
-    heuristics::add_goal_count_heuristic_features(registry);
-    heuristics::add_hm_heuristic_features(registry);
-    heuristics::add_pdb_heuristic_feature(registry);
-    heuristics::add_ipdbs_heuristic_features(registry);
-    heuristics::add_landmark_cost_partitioning_heuristic_feature(registry);
-    heuristics::add_landmark_cut_heuristic_feature(registry);
-    heuristics::add_max_heuristic_feature(registry);
-    heuristics::add_landmark_sum_heuristic_feature(registry);
-    heuristics::add_merge_and_shrink_heuristic_feature(registry);
-    heuristics::add_operator_counting_heuristic_feature(registry);
-    heuristics::add_sample_based_potential_heuristics_feature(registry);
-    heuristics::add_single_potential_heuristics_features(registry);
-    heuristics::add_zero_one_pdbs_heuristic_features(registry);
+    heuristics::add_additive_cartesian_heuristic_categories(n);
+    heuristics::add_landmark_cost_partitioning_heuristic_categories(n);
 
     // Landmarks
-    landmarks::add_landmark_factory_hm_feature(registry);
-    landmarks::add_landmark_factory_merged_feature(registry);
-    landmarks::add_landmark_factory_reasonable_orders_hps_feature(registry);
-    landmarks::add_landmark_factory_rpg_exhaust_feature(registry);
-    landmarks::add_landmark_factory_rpg_sasp_feature(registry);
-    landmarks::add_landmark_factory_zhu_givan_feature(registry);
+    landmarks::add_landmark_factory_category(n);
+
+    // LP
+    lp::add_lp_solver_enum(n);
 
     // Merge-and-shrink
-    merge_and_shrink::add_label_reduction_features(registry);
-    merge_and_shrink::add_merge_scoring_function_dfp_feature(registry);
-    merge_and_shrink::add_merge_scoring_function_goal_relevance_feature(
-        registry);
-    merge_and_shrink::add_merge_scoring_function_miasm_feature(registry);
-    merge_and_shrink::add_merge_scoring_function_total_order_feature(registry);
-    merge_and_shrink::add_merge_scoring_function_single_random_feature(
-        registry);
-    merge_and_shrink::add_merge_selector_score_based_filtering_feature(
-        registry);
-    merge_and_shrink::add_merge_strategy_factory_precomputed_feature(registry);
-    merge_and_shrink::add_merge_strategy_factory_sccs_feature(registry);
-    merge_and_shrink::add_merge_strategy_factory_stateless_feature(registry);
-    merge_and_shrink::add_merge_tree_factory_linear_feature(registry);
-    merge_and_shrink::add_shrink_bisimulation_feature(registry);
-    merge_and_shrink::add_shrink_fh_feature(registry);
-    merge_and_shrink::add_shrink_random_feature(registry);
+    merge_and_shrink::add_label_reduction_category(n);
+    merge_and_shrink::add_merge_scoring_function_category(n);
+    merge_and_shrink::add_merge_strategy_factory_category(n);
+    merge_and_shrink::add_merge_selector_category(n);
+    merge_and_shrink::add_merge_tree_factory_category(n);
+    merge_and_shrink::add_shrink_strategy_category(n);
 
     // Mutexes
-    mutexes::add_from_file_mutex_factory_feature(registry);
+    mutexes::add_mutex_factory_category(n);
 
     // Open Lists
-    open_lists::add_alternation_open_list_features(registry);
-    open_lists::add_best_first_open_list_features(registry);
-    open_lists::add_epsilon_greedy_open_list_features(registry);
-    open_lists::add_pareto_open_list_features(registry);
-    open_lists::add_tiebreaking_open_list_features(registry);
-    open_lists::add_type_based_open_list_features(registry);
+    open_lists::add_open_list_factory_category(n);
 
     // Operator Counting
-    operator_counting::add_delete_relaxation_if_constraints_feature(registry);
-    operator_counting::add_delete_relaxation_rr_constraints_feature(registry);
-    operator_counting::add_lm_cut_constraints_feature(registry);
-    operator_counting::add_pho_constraints_feature(registry);
-    operator_counting::add_state_equation_constraints_feature(registry);
+    operator_counting::add_constraint_generator_category(n);
 
     // PDBs
-    pdbs::add_pattern_collection_generator_combo_feature(registry);
-    pdbs::add_pattern_collection_generator_disjoint_cegar_feature(registry);
-    pdbs::add_pattern_collection_generator_genetic_feature(registry);
-    pdbs::add_pattern_collection_generator_hillclimbing_feature(registry);
-    pdbs::add_pattern_collection_generator_manual_feature(registry);
-    pdbs::add_pattern_collection_generator_multiple_cegar_feature(registry);
-    pdbs::add_pattern_collection_generator_multiple_random_feature(registry);
-    pdbs::add_pattern_collection_generator_systematic_feature(registry);
-    pdbs::add_pattern_generator_cegar_feature(registry);
-    pdbs::add_pattern_generator_greedy_feature(registry);
-    pdbs::add_pattern_generator_manual_feature(registry);
-    pdbs::add_pattern_generator_random_feature(registry);
+    pdbs::add_pattern_collection_generator_category(n);
+    pdbs::add_pattern_generator_category(n);
 
     // Pruning
-    pruning::add_limited_pruning_feature(registry);
-    pruning::add_null_pruning_method_feature(registry);
-    pruning::add_stubborn_sets_atom_centric_feature(registry);
-    pruning::add_stubborn_sets_ec_feature(registry);
-    pruning::add_stubborn_sets_simple_feature(registry);
+    pruning::add_pruning_method_category(n);
 
     // Search Algorithms
-    search_algorithms::add_astar_feature(registry);
-    search_algorithms::add_eager_feature(registry);
-    search_algorithms::add_eager_greedy_feature(registry);
-    search_algorithms::add_eager_wastar_feature(registry);
-    search_algorithms::add_enforce_hill_climbing_search_feature(registry);
-    search_algorithms::add_iterated_search_feature(registry);
-    search_algorithms::add_lazy_feature(registry);
-    search_algorithms::add_lazy_greedy_feature(registry);
-    search_algorithms::add_lazy_wastar_feature(registry);
+    search_algorithms::add_search_algorithm_factory_category(n);
 
     // Task Transformations
-    tasks::add_cost_task_transformation_features(registry);
-    tasks::add_identity_task_transformation_features(registry);
+    tasks::add_task_transformation_category(n);
 
     // Utils
-    utils::add_default_rng_function(registry);
-    utils::add_seeded_rng_function(registry);
+    utils::add_rng_type(n);
+    utils::add_verbosity_enum(n);
+
+    // Operator Cost Enum
+    add_operator_cost_category(n);
+}
+
+static void register_fast_downward_definitions(plugins::Registry& registry)
+{
+    using namespace downward::cli;
+
+    plugins::Namespace& n = registry.get_global_name_space();
+
+    // Cartesian abstractions
+    cartesian_abstractions::add_subtask_generators_features(n);
+
+    // Evaluators
+    {
+        plugins::DocumentationTopic& subcategory =
+            evaluators::add_evaluator_subcategory(registry);
+
+        subcategory.add_function(evaluators::add_const_evaluator_feature(n));
+        subcategory.add_function(evaluators::add_g_evaluator_feature(n));
+        subcategory.add_function(evaluators::add_max_evaluator_feature(n));
+        subcategory.add_function(evaluators::add_pref_evaluator_feature(n));
+        subcategory.add_function(evaluators::add_sum_evaluator_feature(n));
+        subcategory.add_function(evaluators::add_weighted_evaluator_feature(n));
+    }
+
+    // Heuristics
+    heuristics::add_additive_cartesian_heuristic_feature(n);
+    heuristics::add_additive_heuristic_feature(n);
+    heuristics::add_blind_heuristic_feature(n);
+    heuristics::add_canonical_pdbs_heuristic_feature(n);
+    heuristics::add_cg_heuristic_feature(n);
+    heuristics::add_cea_heuristic_feature(n);
+
+    {
+        plugins::DocumentationTopic& subcategory =
+            potentials::add_potential_heuristics_subcategory(registry);
+        subcategory.add_function(
+            heuristics::add_diverse_potential_heuristics_feature(n));
+        subcategory.add_function(
+            heuristics::add_sample_based_potential_heuristics_feature(n));
+        subcategory.add_function(
+            heuristics::add_initial_state_potential_heuristic_feature(n));
+        subcategory.add_function(
+            heuristics::add_all_states_potential_heuristic_feature(n));
+    }
+
+    heuristics::add_ff_heuristic_features(n);
+    heuristics::add_goal_count_heuristic_features(n);
+    heuristics::add_hm_heuristic_features(n);
+
+    {
+        plugins::DocumentationTopic& subcategory =
+            pdbs::add_pdb_heuristic_subcategory(registry);
+        subcategory.add_function(heuristics::add_pdb_heuristic_feature(n));
+        subcategory.add_function(heuristics::add_ipdbs_heuristic_features(n));
+        subcategory.add_function(
+            heuristics::add_zero_one_pdbs_heuristic_feature(n));
+    }
+
+    heuristics::add_landmark_cost_partitioning_heuristic_feature(n);
+    heuristics::add_landmark_cut_heuristic_feature(n);
+    heuristics::add_max_heuristic_feature(n);
+    heuristics::add_landmark_sum_heuristic_feature(n);
+    heuristics::add_merge_and_shrink_heuristic_feature(n);
+    heuristics::add_operator_counting_heuristic_feature(n);
+
+    // Landmarks
+    landmarks::add_landmark_factory_hm_feature(n);
+    landmarks::add_landmark_factory_merged_feature(n);
+    landmarks::add_landmark_factory_reasonable_orders_hps_feature(n);
+    landmarks::add_landmark_factory_rpg_exhaust_feature(n);
+    landmarks::add_landmark_factory_rpg_sasp_feature(n);
+    landmarks::add_landmark_factory_zhu_givan_feature(n);
+
+    // Merge-and-shrink
+    merge_and_shrink::add_label_reduction_to_namespace(n);
+    merge_and_shrink::add_merge_scoring_function_dfp_feature(n);
+    merge_and_shrink::add_merge_scoring_function_goal_relevance_feature(n);
+    merge_and_shrink::add_merge_scoring_function_miasm_feature(n);
+    merge_and_shrink::add_merge_scoring_function_total_order_feature(n);
+    merge_and_shrink::add_merge_scoring_function_single_random_feature(n);
+    merge_and_shrink::add_merge_selector_score_based_filtering_feature(n);
+    merge_and_shrink::add_merge_strategy_factory_precomputed_feature(n);
+    merge_and_shrink::add_merge_strategy_factory_sccs_feature(n);
+    merge_and_shrink::add_merge_strategy_factory_stateless_feature(n);
+    merge_and_shrink::add_merge_tree_factory_linear_feature(n);
+    merge_and_shrink::add_shrink_bisimulation_feature(n);
+    merge_and_shrink::add_shrink_fh_feature(n);
+    merge_and_shrink::add_shrink_random_feature(n);
+
+    // Mutexes
+    mutexes::add_from_file_mutex_factory_feature(n);
+
+    // Open Lists
+    open_lists::add_alternation_open_list_features(n);
+    open_lists::add_best_first_open_list_features(n);
+    open_lists::add_epsilon_greedy_open_list_features(n);
+    open_lists::add_pareto_open_list_features(n);
+    open_lists::add_tiebreaking_open_list_features(n);
+    open_lists::add_type_based_open_list_features(n);
+
+    // Operator Counting
+    operator_counting::add_delete_relaxation_if_constraints_feature(n);
+    operator_counting::add_delete_relaxation_rr_constraints_feature(n);
+    operator_counting::add_lm_cut_constraints_feature(n);
+    operator_counting::add_pho_constraints_feature(n);
+    operator_counting::add_state_equation_constraints_feature(n);
+
+    // PDBs
+    pdbs::add_pattern_collection_generator_combo_feature(n);
+    pdbs::add_pattern_collection_generator_disjoint_cegar_feature(n);
+    pdbs::add_pattern_collection_generator_genetic_feature(n);
+    pdbs::add_pattern_collection_generator_hillclimbing_feature(n);
+    pdbs::add_pattern_collection_generator_manual_feature(n);
+    pdbs::add_pattern_collection_generator_multiple_cegar_feature(n);
+    pdbs::add_pattern_collection_generator_multiple_random_feature(n);
+    pdbs::add_pattern_collection_generator_systematic_feature(n);
+    pdbs::add_pattern_generator_cegar_feature(n);
+    pdbs::add_pattern_generator_greedy_feature(n);
+    pdbs::add_pattern_generator_manual_feature(n);
+    pdbs::add_pattern_generator_random_feature(n);
+
+    // Pruning
+    pruning::add_limited_pruning_feature(n);
+    pruning::add_null_pruning_method_feature(n);
+    pruning::add_stubborn_sets_atom_centric_feature(n);
+    pruning::add_stubborn_sets_ec_feature(n);
+    pruning::add_stubborn_sets_simple_feature(n);
+
+    // Search Algorithms
+    search_algorithms::add_astar_feature(n);
+    search_algorithms::add_eager_feature(n);
+    search_algorithms::add_eager_greedy_feature(n);
+    search_algorithms::add_eager_wastar_feature(n);
+    search_algorithms::add_enforce_hill_climbing_search_feature(n);
+    search_algorithms::add_iterated_search_feature(n);
+    search_algorithms::add_lazy_feature(n);
+    search_algorithms::add_lazy_greedy_feature(n);
+    search_algorithms::add_lazy_wastar_feature(n);
+
+    // Task Transformations
+    tasks::add_cost_task_transformation_features(n);
+    tasks::add_identity_task_transformation_features(n);
+
+    // Utils
+    utils::add_default_rng_function(n);
+    utils::add_seeded_rng_function(n);
 }
 
 static void register_probfd_types(plugins::Registry& registry)
 {
+    using namespace probfd::cli;
+
+    plugins::Namespace& n = registry.get_global_name_space();
+
     // Cartesian Abstractions
-    probfd::cli::cartesian_abstractions::add_flaw_generator_category(registry);
-    probfd::cli::cartesian_abstractions::add_subtask_generator_category(
-        registry);
-    probfd::cli::cartesian_abstractions::add_split_selector_category(registry);
+    cartesian_abstractions::add_flaw_generator_category(n);
+    cartesian_abstractions::add_subtask_generator_category(n);
+    cartesian_abstractions::add_split_selector_category(n);
 
     // Heuristics
-    probfd::cli::heuristics::add_task_heuristic_factory_category(registry);
+    heuristics::add_task_heuristic_factory_category(n);
 
     // Merge-and-shrink
-    probfd::cli::merge_and_shrink::add_label_reduction_category(registry);
-    probfd::cli::merge_and_shrink::add_merge_scoring_function_category(
-        registry);
-    probfd::cli::merge_and_shrink::add_merge_selector_category(registry);
-    probfd::cli::merge_and_shrink::add_merge_strategy_factory_category(
-        registry);
-    probfd::cli::merge_and_shrink::add_merge_tree_factory_category(registry);
-    probfd::cli::merge_and_shrink::add_prune_strategy_category(registry);
-    probfd::cli::merge_and_shrink::add_shrink_strategy_category(registry);
+    merge_and_shrink::add_label_reduction_category(n);
+    merge_and_shrink::add_merge_scoring_function_category(n);
+    merge_and_shrink::add_merge_selector_category(n);
+    merge_and_shrink::add_merge_strategy_factory_category(n);
+    merge_and_shrink::add_merge_tree_factory_category(n);
+    merge_and_shrink::add_prune_strategy_category(n);
+    merge_and_shrink::add_shrink_strategy_category(n);
 
     // Occupation Measures
-    probfd::cli::occupation_measures::add_constraint_generator_factory_category(
-        registry);
+    occupation_measures::add_constraint_generator_factory_category(n);
 
     // Open Lists
-    probfd::cli::open_lists::add_open_list_categories(registry);
+    open_lists::add_open_list_categories(n);
 
     // PDBs
-    probfd::cli::pdbs::add_pattern_collection_generator_category(registry);
-    probfd::cli::pdbs::add_pattern_generator_category(registry);
-    probfd::cli::pdbs::add_subcollection_finder_factory_category(registry);
-    probfd::cli::pdbs::cegar::add_flaw_finding_strategy_category(registry);
+    pdbs::add_pattern_collection_generator_category(n);
+    pdbs::add_pattern_generator_category(n);
+    pdbs::add_subcollection_finder_factory_category(n);
+    pdbs::cegar::add_flaw_finding_strategy_category(n);
 
     // Policy Pickers
-    probfd::cli::policy_pickers::add_policy_picker_category(registry);
+    policy_pickers::add_policy_picker_category(n);
 
     // Solvers
-    probfd::cli::solvers::add_task_solver_factory_category(registry);
-    probfd::cli::solvers::add_statistical_mdp_algorithm_factory_category(
-        registry);
+    solvers::add_task_solver_factory_category(n);
+    solvers::add_statistical_mdp_algorithm_factory_category(n);
 
     // Successor Samplers
-    probfd::cli::successor_samplers::add_successor_sampler_category(registry);
+    successor_samplers::add_successor_sampler_category(n);
 
     // Transition Sorters
-    probfd::cli::transiton_sorters::add_transition_sorter_category(registry);
+    transiton_sorters::add_transition_sorter_category(n);
 
     // Task State Spaces
-    probfd::cli::add_task_state_space_factory_category(registry);
+    add_task_state_space_factory_category(n);
 }
 
 static void register_probfd_definitions(plugins::Registry& registry)
 {
+    using namespace probfd::cli;
+
+    plugins::Namespace& n = registry.get_global_name_space();
+
     // Cartesian Abstractions
-    probfd::cli::cartesian_abstractions::add_adaptive_flaw_generator_feature(
-        registry);
-    probfd::cli::cartesian_abstractions::add_astar_flaw_generator_feature(
-        registry);
-    probfd::cli::cartesian_abstractions::
-        add_policy_based_flaw_generator_feature(registry);
-    probfd::cli::cartesian_abstractions::add_split_selector_features(registry);
-    probfd::cli::cartesian_abstractions::add_subtask_generator_features(
-        registry);
+    cartesian_abstractions::add_adaptive_flaw_generator_feature(n);
+    cartesian_abstractions::add_astar_flaw_generator_feature(n);
+    cartesian_abstractions::add_policy_based_flaw_generator_feature(n);
+    cartesian_abstractions::add_split_selector_features(n);
+    cartesian_abstractions::add_subtask_generator_features(n);
 
     // Heuristics
-    probfd::cli::heuristics::add_additive_cartesian_heuristic_feature(registry);
-    probfd::cli::heuristics::add_dead_end_pruning_heuristic_feature(registry);
-    probfd::cli::heuristics::add_gzocp_heuristic_feature(registry);
-    probfd::cli::heuristics::add_merge_and_shrink_heuristic_feature(registry);
-    probfd::cli::heuristics::add_blind_heuristic_factory_feature(registry);
-    probfd::cli::heuristics::add_pdb_heuristic_feature(registry);
-    probfd::cli::heuristics::add_scp_heuristic_feature(registry);
-    probfd::cli::heuristics::add_ucp_heuristic_feature(registry);
-    probfd::cli::heuristics::add_determinization_cost_heuristic_feature(
-        registry);
+    heuristics::add_additive_cartesian_heuristic_feature(n);
+    heuristics::add_dead_end_pruning_heuristic_feature(n);
+    heuristics::add_gzocp_heuristic_feature(n);
+    heuristics::add_merge_and_shrink_heuristic_feature(n);
+    heuristics::add_blind_heuristic_factory_feature(n);
+    heuristics::add_pdb_heuristic_feature(n);
+    heuristics::add_scp_heuristic_feature(n);
+    heuristics::add_ucp_heuristic_feature(n);
+    heuristics::add_determinization_cost_heuristic_feature(n);
 
     // Merge-and-shrink
-    probfd::cli::merge_and_shrink::add_label_reduction_features(registry);
-    probfd::cli::merge_and_shrink::add_merge_scoring_function_dfp_feature(
-        registry);
-    probfd::cli::merge_and_shrink::
-        add_merge_scoring_function_goal_relevance_feature(registry);
-    probfd::cli::merge_and_shrink::add_merge_scoring_function_miasm_feature(
-        registry);
-    probfd::cli::merge_and_shrink::
-        add_merge_scoring_function_single_random_feature(registry);
-    probfd::cli::merge_and_shrink::
-        add_merge_scoring_function_total_order_feature(registry);
-    probfd::cli::merge_and_shrink::
-        add_merge_selector_score_based_filtering_feature(registry);
-    probfd::cli::merge_and_shrink::
-        add_merge_strategy_factory_precomputed_feature(registry);
-    probfd::cli::merge_and_shrink::add_merge_strategy_factory_sccs_feature(
-        registry);
-    probfd::cli::merge_and_shrink::add_merge_strategy_factory_stateless_feature(
-        registry);
-    probfd::cli::merge_and_shrink::add_merge_tree_factory_linear_feature(
-        registry);
-    probfd::cli::merge_and_shrink::add_prune_strategy_alive_feature(registry);
-    probfd::cli::merge_and_shrink::add_prune_strategy_identity_feature(
-        registry);
-    probfd::cli::merge_and_shrink::add_prune_strategy_solvable_feature(
-        registry);
-    probfd::cli::merge_and_shrink::add_shrink_strategy_bisimulation_feature(
-        registry);
-    probfd::cli::merge_and_shrink::add_shrink_strategy_equal_distance_feature(
-        registry);
-    probfd::cli::merge_and_shrink::add_shrink_strategy_random_feature(registry);
-    probfd::cli::merge_and_shrink::
-        add_shrink_strategy_probabilistic_bisimulation_feature(registry);
+    merge_and_shrink::add_label_reduction_features(n);
+    merge_and_shrink::add_merge_scoring_function_dfp_feature(n);
+    merge_and_shrink::add_merge_scoring_function_goal_relevance_feature(n);
+    merge_and_shrink::add_merge_scoring_function_miasm_feature(n);
+    merge_and_shrink::add_merge_scoring_function_single_random_feature(n);
+    merge_and_shrink::add_merge_scoring_function_total_order_feature(n);
+    merge_and_shrink::add_merge_selector_score_based_filtering_feature(n);
+    merge_and_shrink::add_merge_strategy_factory_precomputed_feature(n);
+    merge_and_shrink::add_merge_strategy_factory_sccs_feature(n);
+    merge_and_shrink::add_merge_strategy_factory_stateless_feature(n);
+    merge_and_shrink::add_merge_tree_factory_linear_feature(n);
+    merge_and_shrink::add_prune_strategy_alive_feature(n);
+    merge_and_shrink::add_prune_strategy_identity_feature(n);
+    merge_and_shrink::add_prune_strategy_solvable_feature(n);
+    merge_and_shrink::add_shrink_strategy_bisimulation_feature(n);
+    merge_and_shrink::add_shrink_strategy_equal_distance_feature(n);
+    merge_and_shrink::add_shrink_strategy_random_feature(n);
+    merge_and_shrink::add_shrink_strategy_probabilistic_bisimulation_feature(n);
 
     // Occupation Measures
-    probfd::cli::occupation_measures::
-        add_occupation_measure_heuristics_features(registry);
+    occupation_measures::add_occupation_measure_heuristics_features(n);
 
     // Open Lists
-    probfd::cli::open_lists::add_open_list_features(registry);
+    open_lists::add_open_list_features(n);
 
     // PDBs
-    probfd::cli::pdbs::add_fully_additive_finder_factory_feature(registry);
-    probfd::cli::pdbs::add_max_orthogonal_finder_factory_feature(registry);
-    probfd::cli::pdbs::add_pattern_collection_generator_classical_feature(
-        registry);
-    probfd::cli::pdbs::add_pattern_collection_generator_disjoint_cegar_feature(
-        registry);
-    probfd::cli::pdbs::add_pattern_collection_generator_hillclimbing_feature(
-        registry);
-    probfd::cli::pdbs::add_pattern_collection_generator_multiple_cegar_feature(
-        registry);
-    probfd::cli::pdbs::add_pattern_collection_generator_systematic_feature(
-        registry);
-    probfd::cli::pdbs::add_trivial_finder_factory_feature(registry);
-    probfd::cli::pdbs::cegar::add_bfs_flaw_finder_feature(registry);
-    probfd::cli::pdbs::cegar::add_pucs_flaw_finder_feature(registry);
-    probfd::cli::pdbs::cegar::add_sampling_flaw_finder_feature(registry);
+    pdbs::add_fully_additive_finder_factory_feature(n);
+    pdbs::add_max_orthogonal_finder_factory_feature(n);
+    pdbs::add_pattern_collection_generator_classical_feature(n);
+    pdbs::add_pattern_collection_generator_disjoint_cegar_feature(n);
+    pdbs::add_pattern_collection_generator_hillclimbing_feature(n);
+    pdbs::add_pattern_collection_generator_multiple_cegar_feature(n);
+    pdbs::add_pattern_collection_generator_systematic_feature(n);
+    pdbs::add_trivial_finder_factory_feature(n);
+    pdbs::cegar::add_bfs_flaw_finder_feature(n);
+    pdbs::cegar::add_pucs_flaw_finder_feature(n);
+    pdbs::cegar::add_sampling_flaw_finder_feature(n);
 
     // Policy Pickers
-    probfd::cli::policy_pickers::add_policy_picker_features(registry);
+    policy_pickers::add_policy_picker_features(n);
 
     // Solvers
-    probfd::cli::solvers::add_acyclic_value_iteration_feature(registry);
-    probfd::cli::solvers::add_aostar_solver_features(registry);
-    probfd::cli::solvers::add_bisimulation_value_iteration_features(registry);
-    probfd::cli::solvers::add_depth_first_heuristic_search_features(registry);
-    probfd::cli::solvers::add_exhaustive_ao_solver_features(registry);
-    probfd::cli::solvers::add_exhaustive_dfs_feature(registry);
-    probfd::cli::solvers::add_i2dual_feature(registry);
-    probfd::cli::solvers::add_idual_feature(registry);
-    probfd::cli::solvers::add_interval_iteration_solver_feature(registry);
-    probfd::cli::solvers::add_lrtdp_features(registry);
-    probfd::cli::solvers::add_ta_depth_first_heuristic_search_feature(registry);
-    probfd::cli::solvers::add_ta_topological_value_iteration_feature(registry);
-    probfd::cli::solvers::add_ta_lrtdp_feature(registry);
-    probfd::cli::solvers::add_topological_value_iteration_feature(registry);
+    solvers::add_acyclic_value_iteration_feature(n);
+    solvers::add_aostar_solver_features(n);
+    solvers::add_bisimulation_value_iteration_features(n);
+    solvers::add_depth_first_heuristic_search_features(n);
+    solvers::add_exhaustive_ao_solver_features(n);
+    solvers::add_exhaustive_dfs_feature(n);
+    solvers::add_i2dual_feature(n);
+    solvers::add_idual_feature(n);
+    solvers::add_interval_iteration_solver_feature(n);
+    solvers::add_lrtdp_features(n);
+    solvers::add_ta_depth_first_heuristic_search_feature(n);
+    solvers::add_ta_topological_value_iteration_feature(n);
+    solvers::add_ta_lrtdp_feature(n);
+    solvers::add_topological_value_iteration_feature(n);
 
     // Successor Samplers
-    probfd::cli::successor_samplers::add_successor_sampler_features(registry);
+    successor_samplers::add_successor_sampler_features(n);
 
     // Transition Sorters
-    probfd::cli::transiton_sorters::add_transition_sorter_features(registry);
+    transiton_sorters::add_transition_sorter_features(n);
 
     // Task State Spaces
-    probfd::cli::add_task_state_space_factory_features(registry);
+    add_task_state_space_factory_features(n);
 }
+
+namespace probfd {
 
 void register_definitions(plugins::Registry& registry)
 {
-    register_fast_downward_types(registry);
-    register_probfd_types(registry);
+    register_language_definitions(registry);
 
+    register_fast_downward_types(registry);
     register_fast_downward_definitions(registry);
+
+    register_probfd_types(registry);
     register_probfd_definitions(registry);
 }
 

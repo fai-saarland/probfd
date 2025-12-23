@@ -11,9 +11,10 @@ using namespace probfd::pdbs;
 
 using namespace language::plugins;
 
-namespace {
+namespace probfd::cli::pdbs {
 
-InternalFunctionDefinitionBase& add_fully_additive_factory_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_fully_additive_finder_factory_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "fully_additive_factory",
@@ -22,16 +23,6 @@ InternalFunctionDefinitionBase& add_fully_additive_factory_to_namespace(Namespac
             FullyAdditiveFinderFactory>);
 
     return f;
-}
-
-} // namespace
-
-namespace probfd::cli::pdbs {
-
-void add_fully_additive_finder_factory_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_fully_additive_factory_to_namespace(n);
 }
 
 } // namespace probfd::cli::pdbs

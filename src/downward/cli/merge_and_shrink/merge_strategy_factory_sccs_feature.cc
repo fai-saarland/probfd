@@ -73,10 +73,9 @@ InternalFunctionDefinitionBase& add_merge_strategy_factory_sccs_to_namespace(Nam
 
 namespace downward::cli::merge_and_shrink {
 
-void add_merge_strategy_factory_sccs_feature(Registry& registry)
+void add_merge_strategy_factory_sccs_feature(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_enum_declaration<OrderOfSCCs>(
+    nspace.insert_enum_declaration<OrderOfSCCs>(
         {{"topological",
           "according to the topological ordering of the directed graph "
           "where each obtained SCC is a 'supervertex'"},
@@ -88,7 +87,7 @@ void add_merge_strategy_factory_sccs_feature(Registry& registry)
          {"increasing",
           "smallest SCCs first, using 'topological' as tie-breaker"}});
 
-    add_merge_strategy_factory_sccs_to_namespace(n);
+    add_merge_strategy_factory_sccs_to_namespace(nspace);
 }
 
 } // namespace downward::cli::merge_and_shrink

@@ -123,10 +123,9 @@ protected:
 
 namespace probfd::cli::solvers {
 
-void add_aostar_solver_features(Registry& registry)
+void add_aostar_solver_features(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_function_definitions<AOStarSolverFeature>();
+    nspace.insert_function_definitions<AOStarSolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

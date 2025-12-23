@@ -76,10 +76,9 @@ InternalFunctionDefinitionBase& add_stubborn_sets_atomic_centric_to_namespace(Na
 
 namespace downward::cli::pruning {
 
-void add_stubborn_sets_atom_centric_feature(Registry& registry)
+void add_stubborn_sets_atom_centric_feature(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_enum_declaration<AtomSelectionStrategy>(
+    nspace.insert_enum_declaration<AtomSelectionStrategy>(
         {{"fast_downward",
           "select the atom (v, d) with the variable v that comes first in the "
           "Fast "
@@ -94,7 +93,7 @@ void add_stubborn_sets_atom_centric_feature(Registry& registry)
           "not "
           "yet part of the stubborn set"}});
 
-    add_stubborn_sets_atomic_centric_to_namespace(n);
+    add_stubborn_sets_atomic_centric_to_namespace(nspace);
 }
 
 } // namespace downward::cli::pruning

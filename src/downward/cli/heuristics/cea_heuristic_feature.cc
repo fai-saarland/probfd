@@ -54,7 +54,11 @@ public:
     }
 };
 
-InternalFunctionDefinitionBase& add_context_enhanced_additive_heuristic_to_namespace(Namespace& nspace)
+} // namespace
+
+namespace downward::cli::heuristics {
+
+InternalFunctionDefinitionBase& add_cea_heuristic_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "cea",
@@ -84,16 +88,6 @@ InternalFunctionDefinitionBase& add_context_enhanced_additive_heuristic_to_names
     add_heuristic_options_to_feature(f, "cea", 0);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::heuristics {
-
-void add_cea_heuristic_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_context_enhanced_additive_heuristic_to_namespace(n);
 }
 
 } // namespace downward::cli::heuristics

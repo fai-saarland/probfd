@@ -2,14 +2,14 @@
 #define DOWNWARD_CLI_PDBS_PATTERN_GENERATOR_RANDOM_FEATURE_H
 
 namespace language::plugins {
-class Registry;
+class InternalFunctionDefinitionBase;
+class Namespace;
 }
 
 namespace downward::cli::pdbs {
 
-void add_pattern_generator_random_feature(
-    language::plugins::Registry& registry);
-
+language::plugins::InternalFunctionDefinitionBase&
+add_pattern_generator_random_feature(language::plugins::Namespace& nspace);
 }
 
 #endif

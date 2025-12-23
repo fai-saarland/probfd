@@ -2,13 +2,12 @@
 #define PROBFD_CLI_HEURISTICS_TASK_HEURISTIC_FACTORY_CATEGORY_H
 
 namespace language::plugins {
-class Registry;
+class Namespace;
 }
 
 namespace probfd::cli::heuristics {
 
-void add_task_heuristic_factory_category(
-    language::plugins::Registry& registry);
+void add_task_heuristic_factory_category(language::plugins::Namespace& nspace);
 
 }
 

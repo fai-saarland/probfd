@@ -100,10 +100,9 @@ protected:
 
 namespace probfd::cli::solvers {
 
-void add_ta_topological_value_iteration_feature(Registry& registry)
+void add_ta_topological_value_iteration_feature(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_function_definition<TATopologicalVISolverFeature>();
+    nspace.insert_function_definition<TATopologicalVISolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

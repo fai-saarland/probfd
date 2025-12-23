@@ -2,13 +2,14 @@
 #define DOWNWARD_HEURISTICS_LANDMARK_CUT_HEURISTIC_FEATURE_H
 
 namespace language::plugins {
-class Registry;
+class InternalFunctionDefinitionBase;
+class Namespace;
 }
 
 namespace downward::cli::heuristics {
 
-void add_landmark_cut_heuristic_feature(
-    language::plugins::Registry& registry);
+language::plugins::InternalFunctionDefinitionBase&
+add_landmark_cut_heuristic_feature(language::plugins::Namespace& nspace);
 
 }
 

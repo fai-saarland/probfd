@@ -14,9 +14,10 @@ using namespace probfd::heuristics;
 
 using namespace language::plugins;
 
-namespace {
+namespace probfd::cli::heuristics {
 
-InternalFunctionDefinitionBase& add_determinization_heuristic_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_determinization_cost_heuristic_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "det",
@@ -37,16 +38,6 @@ InternalFunctionDefinitionBase& add_determinization_heuristic_to_namespace(Names
         "The classical planning heuristic.");
 
     return f;
-}
-
-} // namespace
-
-namespace probfd::cli::heuristics {
-
-void add_determinization_cost_heuristic_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_determinization_heuristic_to_namespace(n);
 }
 
 } // namespace probfd::cli::heuristics

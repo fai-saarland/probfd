@@ -100,7 +100,11 @@ public:
     }
 };
 
-InternalFunctionDefinitionBase& add_lazy_greedy_search_to_namespace(Namespace& nspace)
+} // namespace
+
+namespace downward::cli::search_algorithms {
+
+InternalFunctionDefinitionBase& add_lazy_greedy_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "lazy_greedy",
@@ -185,16 +189,6 @@ InternalFunctionDefinitionBase& add_lazy_greedy_search_to_namespace(Namespace& n
     add_search_algorithm_options_to_feature(f, "lazy_greedy", n + 4);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::search_algorithms {
-
-void add_lazy_greedy_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_lazy_greedy_search_to_namespace(n);
 }
 
 } // namespace downward::cli::search_algorithms

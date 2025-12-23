@@ -85,16 +85,15 @@ InternalFunctionDefinitionBase& add_shrink_strategy_bisimulation_to_namespace(Na
 
 namespace downward::cli::merge_and_shrink {
 
-void add_shrink_bisimulation_feature(Registry& registry)
+void add_shrink_bisimulation_feature(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_enum_declaration<AtLimit>(
+    nspace.insert_enum_declaration<AtLimit>(
         {{"return", "stop without refining the equivalence class further"},
          {"use_up",
           "continue refining the equivalence class until "
           "the size limit is hit"}});
 
-    add_shrink_strategy_bisimulation_to_namespace(n);
+    add_shrink_strategy_bisimulation_to_namespace(nspace);
 }
 
 } // namespace downward::cli::merge_and_shrink

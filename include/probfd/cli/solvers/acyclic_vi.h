@@ -2,12 +2,14 @@
 #define PROBFD_CLI_SOLVERS_ACYCLIC_VI_H
 
 namespace language::plugins {
-class Registry;
-}
+class InternalFunctionDefinitionBase;
+class Namespace;
+} // namespace language::plugins
 
 namespace probfd::cli::solvers {
 
-void add_acyclic_value_iteration_feature(language::plugins::Registry& registry);
+language::plugins::InternalFunctionDefinitionBase&
+add_acyclic_value_iteration_feature(language::plugins::Namespace& nspace);
 
 }
 

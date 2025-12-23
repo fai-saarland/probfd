@@ -80,7 +80,11 @@ public:
     }
 };
 
-InternalFunctionDefinitionBase& add_iterated_search_to_namespace(Namespace& nspace)
+} // namespace
+
+namespace downward::cli::search_algorithms {
+
+InternalFunctionDefinitionBase& add_iterated_search_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "iterated",
@@ -151,16 +155,6 @@ InternalFunctionDefinitionBase& add_iterated_search_to_namespace(Namespace& nspa
     add_search_algorithm_options_to_feature(f, "iterated", 5);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::search_algorithms {
-
-void add_iterated_search_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_iterated_search_to_namespace(n);
 }
 
 } // namespace downward::cli::search_algorithms

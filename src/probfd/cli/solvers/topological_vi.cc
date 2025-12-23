@@ -106,10 +106,9 @@ protected:
 
 namespace probfd::cli::solvers {
 
-void add_topological_value_iteration_feature(Registry& registry)
+void add_topological_value_iteration_feature(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_function_definition<TopologicalVISolverFeature>();
+    nspace.insert_function_definition<TopologicalVISolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

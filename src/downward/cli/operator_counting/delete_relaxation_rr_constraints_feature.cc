@@ -93,10 +93,9 @@ InternalFunctionDefinitionBase& add_delete_relaxation_rr_constraints_to_namespac
 
 namespace downward::cli::operator_counting {
 
-void add_delete_relaxation_rr_constraints_feature(Registry& registry)
+void add_delete_relaxation_rr_constraints_feature(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_enum_declaration<AcyclicityType>(
+    nspace.insert_enum_declaration<AcyclicityType>(
         {{"time_labels",
           "introduces MIP variables that encode the time at which each fact is "
           "reached. Acyclicity is enforced with constraints that ensure that "
@@ -113,7 +112,7 @@ void add_delete_relaxation_rr_constraints_feature(Registry& registry)
           "No acyclicity is enforced. The resulting heuristic is a relaxation "
           "of the delete-relaxation heuristic."}});
 
-    add_delete_relaxation_rr_constraints_to_namespace(n);
+    add_delete_relaxation_rr_constraints_to_namespace(nspace);
 }
 
 } // namespace downward::cli::operator_counting

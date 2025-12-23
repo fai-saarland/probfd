@@ -16,9 +16,10 @@ using namespace downward;
 using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
 
-namespace {
+namespace probfd::cli::merge_and_shrink {
 
-InternalFunctionDefinitionBase& add_merge_strategy_precomputed_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_merge_strategy_factory_precomputed_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "pmerge_precomputed",
@@ -53,16 +54,6 @@ InternalFunctionDefinitionBase& add_merge_strategy_precomputed_to_namespace(Name
     f.make_required_argument(n, "merge_tree", "The precomputed merge tree.");
 
     return f;
-}
-
-} // namespace
-
-namespace probfd::cli::merge_and_shrink {
-
-void add_merge_strategy_factory_precomputed_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_merge_strategy_precomputed_to_namespace(n);
 }
 
 } // namespace probfd::cli::merge_and_shrink

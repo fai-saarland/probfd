@@ -2,13 +2,14 @@
 #define DOWNWARD_HEURISTICS_MAX_HEURISTIC_FEATURE_H
 
 namespace language::plugins {
-class Registry;
+class InternalFunctionDefinitionBase;
+class Namespace;
 }
 
 namespace downward::cli::heuristics {
 
-void add_max_heuristic_feature(
-    language::plugins::Registry& registry);
+language::plugins::InternalFunctionDefinitionBase&
+add_max_heuristic_feature(language::plugins::Namespace& nspace);
 
 }
 

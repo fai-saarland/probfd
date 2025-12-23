@@ -95,7 +95,40 @@ public:
     }
 };
 
-InternalFunctionDefinitionBase& add_additive_cartesian_heuristic_to_namespace(Namespace& nspace)
+} // namespace
+
+namespace downward::cli::heuristics {
+
+void add_additive_cartesian_heuristic_categories(Namespace& nspace)
+{
+    nspace.insert_enum_declaration<PickSplit>(
+        {{"random", "select a random variable (among all eligible variables)"},
+         {"min_unwanted",
+          "select an eligible variable which has the least unwanted values "
+          "(number of values of v that land in the abstract state whose "
+          "h-value will probably be raised) in the flaw state"},
+         {"max_unwanted",
+          "select an eligible variable which has the most unwanted values "
+          "(number of values of v that land in the abstract state whose "
+          "h-value will probably be raised) in the flaw state"},
+         {"min_refined",
+          "select an eligible variable which is the least refined "
+          "(-1 * (remaining_values(v) / original_domain_size(v))) "
+          "in the flaw state"},
+         {"max_refined",
+          "select an eligible variable which is the most refined "
+          "(-1 * (remaining_values(v) / original_domain_size(v))) "
+          "in the flaw state"},
+         {"min_hadd",
+          "select an eligible variable with minimal h^add(s_0) value "
+          "over all facts that need to be removed from the flaw state"},
+         {"max_hadd",
+          "select an eligible variable with maximal h^add(s_0) value "
+          "over all facts that need to be removed from the flaw state"}});
+}
+
+InternalFunctionDefinitionBase&
+add_additive_cartesian_heuristic_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "cegar",
@@ -195,45 +228,6 @@ InternalFunctionDefinitionBase& add_additive_cartesian_heuristic_to_namespace(Na
     add_rng_options_to_feature(f, n + 6);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::heuristics {
-
-void add_additive_cartesian_heuristic_categories(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    n.insert_enum_declaration<PickSplit>(
-        {{"random", "select a random variable (among all eligible variables)"},
-         {"min_unwanted",
-          "select an eligible variable which has the least unwanted values "
-          "(number of values of v that land in the abstract state whose "
-          "h-value will probably be raised) in the flaw state"},
-         {"max_unwanted",
-          "select an eligible variable which has the most unwanted values "
-          "(number of values of v that land in the abstract state whose "
-          "h-value will probably be raised) in the flaw state"},
-         {"min_refined",
-          "select an eligible variable which is the least refined "
-          "(-1 * (remaining_values(v) / original_domain_size(v))) "
-          "in the flaw state"},
-         {"max_refined",
-          "select an eligible variable which is the most refined "
-          "(-1 * (remaining_values(v) / original_domain_size(v))) "
-          "in the flaw state"},
-         {"min_hadd",
-          "select an eligible variable with minimal h^add(s_0) value "
-          "over all facts that need to be removed from the flaw state"},
-         {"max_hadd",
-          "select an eligible variable with maximal h^add(s_0) value "
-          "over all facts that need to be removed from the flaw state"}});
-}
-
-void add_additive_cartesian_heuristic_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_additive_cartesian_heuristic_to_namespace(n);
 }
 
 } // namespace downward::cli::heuristics

@@ -2,13 +2,13 @@
 #define DOWNWARD_CLI_OPEN_LISTS_EPSILON_GREEDY_OPEN_LIST_FEATURE_H
 
 namespace language::plugins {
-class Registry;
+class Namespace;
 }
 
 namespace downward::cli::open_lists {
 
 void add_epsilon_greedy_open_list_features(
-    language::plugins::Registry& registry);
+    language::plugins::Namespace& nspace);
 
 }
 

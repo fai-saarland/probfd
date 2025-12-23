@@ -19,7 +19,8 @@ using downward::cli::merge_and_shrink::add_merge_tree_options_to_feature;
 
 namespace {
 
-InternalFunctionDefinitionBase& add_merge_strategy_factory_linear_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_merge_strategy_factory_linear_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "linear",
@@ -60,10 +61,10 @@ InternalFunctionDefinitionBase& add_merge_strategy_factory_linear_to_namespace(N
 
 namespace downward::cli::merge_and_shrink {
 
-void add_merge_tree_factory_linear_feature(Registry& registry)
+void add_merge_tree_factory_linear_feature(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_enum_declaration<downward::variable_order_finder::VariableOrderType>(
+    nspace.insert_enum_declaration<
+        downward::variable_order_finder::VariableOrderType>(
         {{"cg_goal_level",
           "variables are prioritized first if they have an arc to a previously "
           "added variable, second if their goal value is defined "
@@ -82,7 +83,7 @@ void add_merge_tree_factory_linear_feature(Registry& registry)
          {"reverse_level",
           "variables are ordered reverse to their level in the causal graph"}});
 
-    add_merge_strategy_factory_linear_to_namespace(n);
+    add_merge_strategy_factory_linear_to_namespace(nspace);
 }
 
 } // namespace downward::cli::merge_and_shrink

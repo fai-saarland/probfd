@@ -3,8 +3,6 @@
 #include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
-#include "downward/cli/utils/logging_options.h"
-
 #include "probfd/merge_and_shrink/merge_strategy_factory_sccs.h"
 
 #include "probfd/merge_and_shrink/merge_selector.h"
@@ -25,7 +23,8 @@ using namespace probfd::cli::merge_and_shrink;
 
 namespace {
 
-InternalFunctionDefinitionBase& add_merge_strategy_sccs_tree_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_merge_strategy_sccs_tree_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "pmerge_sccs_tree",
@@ -77,7 +76,8 @@ InternalFunctionDefinitionBase& add_merge_strategy_sccs_tree_to_namespace(Namesp
     return f;
 }
 
-InternalFunctionDefinitionBase& add_merge_strategy_sccs_selector_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_merge_strategy_sccs_selector_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "pmerge_sccs_selector",
@@ -133,10 +133,9 @@ InternalFunctionDefinitionBase& add_merge_strategy_sccs_selector_to_namespace(Na
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_merge_strategy_factory_sccs_feature(Registry& registry)
+void add_merge_strategy_factory_sccs_feature(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_enum_declaration<OrderOfSCCs>(
+    nspace.insert_enum_declaration<OrderOfSCCs>(
         {{"topological",
           "according to the topological ordering of the directed graph "
           "where each obtained SCC is a 'supervertex'"},
@@ -148,8 +147,8 @@ void add_merge_strategy_factory_sccs_feature(Registry& registry)
          {"increasing",
           "smallest SCCs first, using 'topological' as tie-breaker"}});
 
-    add_merge_strategy_sccs_tree_to_namespace(n);
-    add_merge_strategy_sccs_selector_to_namespace(n);
+    add_merge_strategy_sccs_tree_to_namespace(nspace);
+    add_merge_strategy_sccs_selector_to_namespace(nspace);
 }
 
 } // namespace probfd::cli::merge_and_shrink

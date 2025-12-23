@@ -2,13 +2,14 @@
 #define DOWNWARD_EVALUATORS_CONST_EVALUATOR_FEATURE_H
 
 namespace language::plugins {
-class Registry;
-}
+class InternalFunctionDefinitionBase;
+class Namespace;
+} // namespace language::plugins
 
 namespace downward::cli::evaluators {
 
-void add_const_evaluator_feature(
-    language::plugins::Registry& registry);
+language::plugins::InternalFunctionDefinitionBase&
+add_const_evaluator_feature(language::plugins::Namespace& nspace);
 
 }
 

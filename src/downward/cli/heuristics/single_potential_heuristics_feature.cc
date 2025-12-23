@@ -135,7 +135,12 @@ create_all_states_potential_heuristic(
         OptimizeFor::ALL_STATES);
 }
 
-InternalFunctionDefinitionBase& add_initial_state_potential_heuristic_to_namespace(Namespace& nspace)
+} // namespace
+
+namespace downward::cli::heuristics {
+
+InternalFunctionDefinitionBase&
+add_initial_state_potential_heuristic_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "initial_state_potential",
@@ -152,7 +157,8 @@ InternalFunctionDefinitionBase& add_initial_state_potential_heuristic_to_namespa
     return f;
 }
 
-InternalFunctionDefinitionBase& add_all_states_potential_heuristic_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_all_states_potential_heuristic_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "all_states_potential",
@@ -164,21 +170,6 @@ InternalFunctionDefinitionBase& add_all_states_potential_heuristic_to_namespace(
     add_admissible_potentials_options_to_feature(f, "all_states_potential", 0);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::heuristics {
-
-void add_single_potential_heuristics_features(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    DocumentationTopic& subcategory =
-        registry.get_topic_by_name("heuristics_potentials");
-    const InternalFunctionDefinitionBase& f = add_initial_state_potential_heuristic_to_namespace(n);
-    const InternalFunctionDefinitionBase& f2 = add_all_states_potential_heuristic_to_namespace(n);
-    subcategory.add_function(f);
-    subcategory.add_function(f2);
 }
 
 } // namespace downward::cli::heuristics

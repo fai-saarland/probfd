@@ -7,8 +7,6 @@
 
 #include "probfd/merge_and_shrink/transition_system.h"
 
-#include "downward/utils/logging.h"
-
 using namespace std;
 using namespace downward;
 using namespace language::plugins;
@@ -52,16 +50,16 @@ add_shrink_strategy_probabilistic_bisimulation_to_namespace(Namespace& nspace)
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_shrink_strategy_probabilistic_bisimulation_feature(Registry& registry)
+void add_shrink_strategy_probabilistic_bisimulation_feature(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_enum_declaration<ShrinkStrategyProbabilisticBisimulation::AtLimit>(
+    nspace.insert_enum_declaration<
+        ShrinkStrategyProbabilisticBisimulation::AtLimit>(
         {{"return", "stop without refining the equivalence class further"},
          {"use_up",
           "continue refining the equivalence class until "
           "the size limit is hit"}});
 
-    add_shrink_strategy_probabilistic_bisimulation_to_namespace(n);
+    add_shrink_strategy_probabilistic_bisimulation_to_namespace(nspace);
 }
 
 } // namespace probfd::cli::merge_and_shrink

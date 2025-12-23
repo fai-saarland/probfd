@@ -2,13 +2,14 @@
 #define DOWNWARD_LANDMARKS_LANDMARK_FACTORY_RPG_SASP_FEATURE_H
 
 namespace language::plugins {
-class Registry;
-}
+class InternalFunctionDefinitionBase;
+class Namespace;
+} // namespace language::plugins
 
 namespace downward::cli::landmarks {
 
-void add_landmark_factory_rpg_sasp_feature(
-    language::plugins::Registry& registry);
+language::plugins::InternalFunctionDefinitionBase&
+add_landmark_factory_rpg_sasp_feature(language::plugins::Namespace& nspace);
 
 }
 

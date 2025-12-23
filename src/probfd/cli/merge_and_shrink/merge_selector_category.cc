@@ -1,6 +1,5 @@
 #include "probfd/cli/merge_and_shrink/merge_selector_category.h"
 
-#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "probfd/merge_and_shrink/merge_selector.h"
@@ -10,10 +9,9 @@ using namespace probfd::merge_and_shrink;
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_merge_selector_category(Registry& registry)
+void add_merge_selector_category(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_shared_type_declaration<MergeSelector>(
+    nspace.insert_shared_type_declaration<MergeSelector>(
         "PMergeSelector",
         "This page describes the available merge selectors. They are used "
         "to "

@@ -102,7 +102,12 @@ std::shared_ptr<TaskSolverFactory> create_acyclic_vi_solver(
         verbosity);
 }
 
-InternalFunctionDefinitionBase& add_state_equation_constraints_to_namespace(Namespace& nspace)
+} // namespace
+
+namespace probfd::cli::solvers {
+
+InternalFunctionDefinitionBase&
+add_acyclic_value_iteration_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "acyclic_value_iteration",
@@ -111,16 +116,6 @@ InternalFunctionDefinitionBase& add_state_equation_constraints_to_namespace(Name
     add_base_solver_options_except_algorithm_to_feature(f, 0);
 
     return f;
-}
-
-} // namespace
-
-namespace probfd::cli::solvers {
-
-void add_acyclic_value_iteration_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_state_equation_constraints_to_namespace(n);
 }
 
 } // namespace probfd::cli::solvers

@@ -15,9 +15,10 @@ using namespace downward::pdbs;
 using namespace downward::cli::pdbs;
 using namespace language::plugins;
 
-namespace {
+namespace downward::cli::pdbs {
 
-InternalFunctionDefinitionBase& add_pattern_collection_generator_random_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_pattern_collection_generator_multiple_random_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "random_patterns",
@@ -53,17 +54,6 @@ InternalFunctionDefinitionBase& add_pattern_collection_generator_random_to_names
     add_multiple_options_to_feature(f, n);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::pdbs {
-
-void add_pattern_collection_generator_multiple_random_feature(
-    Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_pattern_collection_generator_random_to_namespace(n);
 }
 
 } // namespace downward::cli::pdbs

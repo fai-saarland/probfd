@@ -2,13 +2,14 @@
 #define DOWNWARD_CLI_PRUNING_NULL_PRUNING_METHOD_FEATURE_H
 
 namespace language::plugins {
-class Registry;
-}
+class InternalFunctionDefinitionBase;
+class Namespace;
+} // namespace language::plugins
 
 namespace downward::cli::pruning {
 
-void add_null_pruning_method_feature(
-    language::plugins::Registry& registry);
+language::plugins::InternalFunctionDefinitionBase&
+add_null_pruning_method_feature(language::plugins::Namespace& nspace);
 
 }
 

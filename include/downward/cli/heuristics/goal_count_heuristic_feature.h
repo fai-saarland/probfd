@@ -2,13 +2,14 @@
 #define DOWNWARD_HEURISTICS_GOAL_COUNT_HEURISTIC_FEATURE_H
 
 namespace language::plugins {
-class Registry;
-}
+class InternalFunctionDefinitionBase;
+class Namespace;
+} // namespace language::plugins
 
 namespace downward::cli::heuristics {
 
-void add_goal_count_heuristic_features(
-    language::plugins::Registry& registry);
+language::plugins::InternalFunctionDefinitionBase&
+add_goal_count_heuristic_features(language::plugins::Namespace& nspace);
 
 }
 

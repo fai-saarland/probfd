@@ -187,11 +187,10 @@ InternalFunctionDefinitionBase& add_eager_search_no_f_evaluator_to_namespace(Nam
 
 namespace downward::cli::search_algorithms {
 
-void add_eager_feature(Registry& registry)
+void add_eager_feature(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    add_eager_search_to_namespace(n);
-    add_eager_search_no_f_evaluator_to_namespace(n);
+    add_eager_search_to_namespace(nspace);
+    add_eager_search_no_f_evaluator_to_namespace(nspace);
 }
 
 } // namespace downward::cli::search_algorithms

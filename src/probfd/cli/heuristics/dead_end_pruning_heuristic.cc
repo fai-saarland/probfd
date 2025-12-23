@@ -12,9 +12,10 @@ using namespace probfd::heuristics;
 
 using namespace language::plugins;
 
-namespace {
+namespace probfd::cli::heuristics {
 
-InternalFunctionDefinitionBase& add_dead_end_pruning_heuristic_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_dead_end_pruning_heuristic_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "prune_dead_ends",
@@ -34,16 +35,6 @@ InternalFunctionDefinitionBase& add_dead_end_pruning_heuristic_to_namespace(Name
     f.make_required_argument(0, "evaluator");
 
     return f;
-}
-
-} // namespace
-
-namespace probfd::cli::heuristics {
-
-void add_dead_end_pruning_heuristic_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_dead_end_pruning_heuristic_to_namespace(n);
 }
 
 } // namespace probfd::cli::heuristics

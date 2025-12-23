@@ -7,10 +7,8 @@
 
 #include "probfd/merge_and_shrink/merge_scoring_function_total_order.h"
 
-#include "probfd/merge_and_shrink/factored_transition_system.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
-#include "downward/utils/logging.h"
 #include "downward/utils/markup.h"
 
 using namespace std;
@@ -89,21 +87,20 @@ InternalFunctionDefinitionBase& add_merge_scoring_function_total_order_to_namesp
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_merge_scoring_function_total_order_feature(Registry& registry)
+void add_merge_scoring_function_total_order_feature(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_enum_declaration<AtomicTSOrder>(
+    nspace.insert_enum_declaration<AtomicTSOrder>(
         {{"reverse_level", "the variable order of Fast Downward"},
          {"level", "opposite of reverse_level"},
          {"random", "a randomized order"}});
 
-    n.insert_enum_declaration<ProductTSOrder>(
+    nspace.insert_enum_declaration<ProductTSOrder>(
         {{"old_to_new",
           "consider composite transition systems from oldest to most recent"},
          {"new_to_old", "opposite of old_to_new"},
          {"random", "a randomized order"}});
 
-    add_merge_scoring_function_total_order_to_namespace(n);
+    add_merge_scoring_function_total_order_to_namespace(nspace);
 }
 
 } // namespace probfd::cli::merge_and_shrink

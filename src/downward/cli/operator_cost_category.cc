@@ -11,10 +11,9 @@ namespace downward::cli {
 
 using namespace language::plugins;
 
-void add_operator_cost_category(Registry& registry)
+void add_operator_cost_category(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_enum_declaration<OperatorCost>(
+    nspace.insert_enum_declaration<OperatorCost>(
         {{"normal", "all actions are accounted for with their real cost"},
          {"one", "all actions are accounted for as unit cost"},
          {"plusone",

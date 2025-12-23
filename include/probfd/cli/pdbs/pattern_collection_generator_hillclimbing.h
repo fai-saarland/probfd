@@ -2,13 +2,15 @@
 #define PROBFD_CLI_PDBS_PATTERN_COLLECTION_GENERATOR_HILLCLIMBING_H
 
 namespace language::plugins {
-class Registry;
-}
+class InternalFunctionDefinitionBase;
+class Namespace;
+} // namespace language::plugins
 
 namespace probfd::cli::pdbs {
 
-void add_pattern_collection_generator_hillclimbing_feature(
-    language::plugins::Registry& registry);
+language::plugins::InternalFunctionDefinitionBase&
+add_pattern_collection_generator_hillclimbing_feature(
+    language::plugins::Namespace& nspace);
 
 }
 

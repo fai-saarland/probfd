@@ -114,17 +114,16 @@ InternalFunctionDefinitionBase& add_eager_hill_climbing_search_to_namespace(Name
 
 namespace downward::cli::search_algorithms {
 
-void add_enforce_hill_climbing_search_feature(Registry& registry)
+void add_enforce_hill_climbing_search_feature(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_enum_declaration<PreferredUsage>(
+    nspace.insert_enum_declaration<PreferredUsage>(
         {{"prune_by_preferred",
           "prune successors achieved by non-preferred operators"},
          {"rank_preferred_first",
           "first insert successors achieved by preferred operators, "
           "then those by non-preferred operators"}});
 
-    add_eager_hill_climbing_search_to_namespace(n);
+    add_eager_hill_climbing_search_to_namespace(nspace);
 }
 
 } // namespace downward::cli::search_algorithms

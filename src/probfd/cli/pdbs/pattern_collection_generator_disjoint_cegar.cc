@@ -77,8 +77,12 @@ std::size_t add_pattern_collection_generator_cegar_options_to_feature(
     return n + n2 + 6;
 }
 
+} // namespace
+
+namespace probfd::cli::pdbs {
+
 InternalFunctionDefinitionBase&
-add_pattern_collection_generator_disjoint_cegar_to_namespace(Namespace& nspace)
+add_pattern_collection_generator_disjoint_cegar_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "ppdbs_disjoint_cegar",
@@ -107,16 +111,6 @@ add_pattern_collection_generator_disjoint_cegar_to_namespace(Namespace& nspace)
     add_rng_options_to_feature(f, n + 1);
 
     return f;
-}
-
-} // namespace
-
-namespace probfd::cli::pdbs {
-
-void add_pattern_collection_generator_disjoint_cegar_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_pattern_collection_generator_disjoint_cegar_to_namespace(n);
 }
 
 } // namespace probfd::cli::pdbs

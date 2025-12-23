@@ -9,9 +9,10 @@ using namespace probfd::merge_and_shrink;
 using namespace downward;
 using namespace language::plugins;
 
-namespace {
+namespace probfd::cli::merge_and_shrink {
 
-InternalFunctionDefinitionBase& add_prune_strategy_alive_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_prune_strategy_alive_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "prune_alive",
@@ -22,16 +23,6 @@ InternalFunctionDefinitionBase& add_prune_strategy_alive_to_namespace(Namespace&
     f.document_synopsis("This prune strategy keeps only alive states.");
 
     return f;
-}
-
-} // namespace
-
-namespace probfd::cli::merge_and_shrink {
-
-void add_prune_strategy_alive_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_prune_strategy_alive_to_namespace(n);
 }
 
 } // namespace probfd::cli::merge_and_shrink

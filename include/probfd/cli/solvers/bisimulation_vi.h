@@ -2,13 +2,13 @@
 #define PROBFD_CLI_SOLVERS_BISIMULATION_VI_H
 
 namespace language::plugins {
-class Registry;
+class Namespace;
 }
 
 namespace probfd::cli::solvers {
 
 void add_bisimulation_value_iteration_features(
-    language::plugins::Registry& registry);
+    language::plugins::Namespace& nspace);
 
 }
 

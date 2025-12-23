@@ -21,10 +21,10 @@ using namespace language::plugins;
 
 using downward::cli::landmarks::add_landmark_factory_options_to_feature;
 
-namespace {
+namespace downward::cli::landmarks {
 
 InternalFunctionDefinitionBase&
-add_landmark_factory_reasonable_orders_hps_to_namespace(Namespace& nspace)
+add_landmark_factory_reasonable_orders_hps_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "lm_reasonable_orders_hps",
@@ -69,16 +69,6 @@ add_landmark_factory_reasonable_orders_hps_to_namespace(Namespace& nspace)
     add_landmark_factory_options_to_feature(f, 2);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::landmarks {
-
-void add_landmark_factory_reasonable_orders_hps_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_landmark_factory_reasonable_orders_hps_to_namespace(n);
 }
 
 } // namespace downward::cli::landmarks

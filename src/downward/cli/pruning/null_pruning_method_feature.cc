@@ -15,9 +15,10 @@ using namespace downward::null_pruning_method;
 using namespace downward::cli;
 using namespace language::plugins;
 
-namespace {
+namespace downward::cli::pruning {
 
-InternalFunctionDefinitionBase& add_null_pruning_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_null_pruning_method_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "null_pruning",
@@ -35,16 +36,6 @@ InternalFunctionDefinitionBase& add_null_pruning_to_namespace(Namespace& nspace)
     add_pruning_options_to_feature(f, 0);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::pruning {
-
-void add_null_pruning_method_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_null_pruning_to_namespace(n);
 }
 
 } // namespace downward::cli::pruning

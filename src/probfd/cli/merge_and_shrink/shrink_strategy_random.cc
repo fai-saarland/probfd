@@ -16,9 +16,10 @@ using namespace language::plugins;
 using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
 
-namespace {
+namespace probfd::cli::merge_and_shrink {
 
-InternalFunctionDefinitionBase& add_shrink_strategy_random_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_shrink_strategy_random_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "pshrink_random",
@@ -34,16 +35,6 @@ InternalFunctionDefinitionBase& add_shrink_strategy_random_to_namespace(Namespac
     add_bucket_based_shrink_options_to_feature(f, 0);
 
     return f;
-}
-
-} // namespace
-
-namespace probfd::cli::merge_and_shrink {
-
-void add_shrink_strategy_random_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_shrink_strategy_random_to_namespace(n);
 }
 
 } // namespace probfd::cli::merge_and_shrink

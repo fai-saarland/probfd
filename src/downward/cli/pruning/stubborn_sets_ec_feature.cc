@@ -20,14 +20,16 @@ using namespace downward::stubborn_sets_ec;
 
 namespace {
 
-InternalFunctionDefinitionBase& add_stubborn_sets_ec_to_namespace(Namespace& nspace)
+} // namespace
+
+namespace downward::cli::pruning {
+
+InternalFunctionDefinitionBase& add_stubborn_sets_ec_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "stubborn_sets_ec",
-        &language::plugins::construct_shared<
-            PruningMethod,
-            StubbornSetsEC,
-            utils::Verbosity>);
+        &language::plugins::
+            construct_shared<PruningMethod, StubbornSetsEC, utils::Verbosity>);
     f.document_title("StubbornSetsEC");
     f.document_synopsis(
         "Stubborn sets represent a state pruning method which computes a "
@@ -59,16 +61,6 @@ InternalFunctionDefinitionBase& add_stubborn_sets_ec_to_namespace(Namespace& nsp
     add_pruning_options_to_feature(f, 0);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::pruning {
-
-void add_stubborn_sets_ec_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_stubborn_sets_ec_to_namespace(n);
 }
 
 } // namespace downward::cli::pruning

@@ -2,13 +2,12 @@
 #define DOWNWARD_CLI_TASKS_TASK_TRANSFORMATION_CATEGORY_H
 
 namespace language::plugins {
-class Registry;
+class Namespace;
 }
 
 namespace downward::cli::tasks {
 
-void add_task_transformation_category(
-    language::plugins::Registry& registry);
+void add_task_transformation_category(language::plugins::Namespace& nspace);
 
 }
 

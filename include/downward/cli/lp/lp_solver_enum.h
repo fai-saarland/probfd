@@ -2,13 +2,12 @@
 #define DOWNWARD_CLI_LP_LP_SOLVER_ENUM_H
 
 namespace language::plugins {
-class Registry;
+class Namespace;
 }
 
 namespace downward::cli::lp {
 
-void add_lp_solver_enum(
-    language::plugins::Registry& registry);
+void add_lp_solver_enum(language::plugins::Namespace& nspace);
 
 }
 

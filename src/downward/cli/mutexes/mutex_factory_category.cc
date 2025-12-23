@@ -1,6 +1,5 @@
 #include "downward/cli/mutexes/mutex_factory_category.h"
 
-#include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
 #include "downward/mutex_information.h"
@@ -12,13 +11,13 @@ using namespace std;
 
 namespace downward::cli::mutexes {
 
-void add_mutex_factory_category(language::plugins::Registry& registry)
+void add_mutex_factory_category(language::plugins::Namespace& nspace)
 {
-    language::plugins::Namespace& n = registry.get_global_name_space();
-    n.insert_shared_type_declaration<TaskDependentFactory<MutexInformation>>(
-        "MutexFactory",
-        "A mutex factory computes mutually exclusive facts for a given "
-        "planning task.");
+    nspace
+        .insert_shared_type_declaration<TaskDependentFactory<MutexInformation>>(
+            "MutexFactory",
+            "A mutex factory computes mutually exclusive facts for a given "
+            "planning task.");
 }
 
 } // namespace downward::cli::mutexes

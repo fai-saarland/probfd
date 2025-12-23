@@ -1,3 +1,5 @@
+#include "downward/cli/open_lists/best_first_open_list_feature.h"
+
 #include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
@@ -97,19 +99,20 @@ InternalFunctionDefinitionBase& add_best_first_open_list_with_eval_to_namespace(
 
 namespace downward::cli::open_lists {
 
-void add_best_first_open_list_features(Registry& registry)
+void add_best_first_open_list_features(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
     add_best_first_open_list_to_namespace<StateOpenListEntry>(
-        n,
+        nspace,
         "state_single");
-    add_best_first_open_list_to_namespace<EdgeOpenListEntry>(n, "edge_single");
+    add_best_first_open_list_to_namespace<EdgeOpenListEntry>(
+        nspace,
+        "edge_single");
 
     add_best_first_open_list_with_eval_to_namespace<StateOpenListEntry>(
-        n,
+        nspace,
         "state_single_with_eval");
     add_best_first_open_list_with_eval_to_namespace<EdgeOpenListEntry>(
-        n,
+        nspace,
         "edge_single_with_eval");
 }
 

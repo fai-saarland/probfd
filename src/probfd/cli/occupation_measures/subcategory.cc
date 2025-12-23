@@ -203,13 +203,12 @@ InternalFunctionDefinitionBase& add_hpho_to_namespace(Namespace& nspace)
 
 namespace probfd::cli::occupation_measures {
 
-void add_occupation_measure_heuristics_features(Registry& registry)
+void add_occupation_measure_heuristics_features(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    add_hroc_to_namespace(n);
-    add_hpom_to_namespace(n);
-    add_higher_order_hpom_heuristic_to_namespace(n);
-    add_hpho_to_namespace(n);
+    add_hroc_to_namespace(nspace);
+    add_hpom_to_namespace(nspace);
+    add_higher_order_hpom_heuristic_to_namespace(nspace);
+    add_hpho_to_namespace(nspace);
 }
 
 } // namespace probfd::cli::occupation_measures

@@ -2,13 +2,14 @@
 #define PROBFD_CLI_MERGE_AND_SHRINK_SHRINK_STRATEGY_RANDOM_H
 
 namespace language::plugins {
-class Registry;
-}
+class InternalFunctionDefinitionBase;
+class Namespace;
+} // namespace language::plugins
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_shrink_strategy_random_feature(
-    language::plugins::Registry& registry);
+language::plugins::InternalFunctionDefinitionBase&
+add_shrink_strategy_random_feature(language::plugins::Namespace& nspace);
 
 }
 

@@ -51,7 +51,11 @@ public:
     }
 };
 
-InternalFunctionDefinitionBase& add_hmax_to_namespace(Namespace& nspace)
+} // namespace
+
+namespace downward::cli::heuristics {
+
+InternalFunctionDefinitionBase& add_max_heuristic_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "hmax",
@@ -81,16 +85,6 @@ InternalFunctionDefinitionBase& add_hmax_to_namespace(Namespace& nspace)
     add_heuristic_options_to_feature(f, "hmax", 0);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::heuristics {
-
-void add_max_heuristic_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_hmax_to_namespace(n);
 }
 
 } // namespace downward::cli::heuristics

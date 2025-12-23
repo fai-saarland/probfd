@@ -14,8 +14,6 @@
 #include "probfd/successor_samplers/vbiased_successor_sampler.h"
 #include "probfd/successor_samplers/vdiff_successor_sampler.h"
 
-#include "probfd/bisimulation/types.h"
-
 #include "probfd/quotients/quotient_system.h"
 
 #include "downward/operator_id.h"
@@ -45,7 +43,8 @@ template <bool Fret>
 using SuccessorSampler = Wrapper<algorithms::SuccessorSampler, Fret>;
 
 template <bool Fret>
-InternalFunctionDefinitionBase& add_arbitrary_successor_sampler_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_arbitrary_successor_sampler_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<false, Fret>("arbitrary_successor_sampler"),
@@ -57,7 +56,8 @@ InternalFunctionDefinitionBase& add_arbitrary_successor_sampler_to_namespace(Nam
 }
 
 template <bool Fret>
-InternalFunctionDefinitionBase& add_most_likely_successor_sampler_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_most_likely_successor_sampler_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<false, Fret>("most_likely_successor_Sampler"),
@@ -69,7 +69,8 @@ InternalFunctionDefinitionBase& add_most_likely_successor_sampler_to_namespace(N
 }
 
 template <bool Fret>
-InternalFunctionDefinitionBase& add_uniform_successor_sampler_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_uniform_successor_sampler_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<false, Fret>("uniform_random_successor_sampler"),
@@ -84,7 +85,8 @@ InternalFunctionDefinitionBase& add_uniform_successor_sampler_to_namespace(Names
 }
 
 template <bool Fret>
-InternalFunctionDefinitionBase& add_random_successor_sampler_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_random_successor_sampler_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<false, Fret>("random_successor_sampler"),
@@ -99,7 +101,8 @@ InternalFunctionDefinitionBase& add_random_successor_sampler_to_namespace(Namesp
 }
 
 template <bool Fret>
-InternalFunctionDefinitionBase& add_vbiased_successor_sampler_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_vbiased_successor_sampler_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<false, Fret>("vbiased_successor_sampler"),
@@ -114,7 +117,8 @@ InternalFunctionDefinitionBase& add_vbiased_successor_sampler_to_namespace(Names
 }
 
 template <bool Fret>
-InternalFunctionDefinitionBase& add_vdiff_successor_sampler_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_vdiff_successor_sampler_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         add_mdp_type_to_option<false, Fret>("value_gap_successor_sampler"),
@@ -134,31 +138,29 @@ InternalFunctionDefinitionBase& add_vdiff_successor_sampler_to_namespace(Namespa
 
 namespace probfd::cli::successor_samplers {
 
-void add_successor_sampler_category(Registry& registry)
+void add_successor_sampler_category(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_shared_type_declarations<SuccessorSampler>(
+    nspace.insert_shared_type_declarations<SuccessorSampler>(
         []<bool Fret> {
             return add_mdp_type_to_category<false, Fret>("SuccessorSampler");
         },
         []<bool> { return ""; });
 }
 
-void add_successor_sampler_features(Registry& registry)
+void add_successor_sampler_features(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    add_arbitrary_successor_sampler_to_namespace<true>(n);
-    add_arbitrary_successor_sampler_to_namespace<false>(n);
-    add_most_likely_successor_sampler_to_namespace<true>(n);
-    add_most_likely_successor_sampler_to_namespace<false>(n);
-    add_random_successor_sampler_to_namespace<true>(n);
-    add_random_successor_sampler_to_namespace<false>(n);
-    add_uniform_successor_sampler_to_namespace<true>(n);
-    add_uniform_successor_sampler_to_namespace<false>(n);
-    add_vbiased_successor_sampler_to_namespace<true>(n);
-    add_vbiased_successor_sampler_to_namespace<false>(n);
-    add_vdiff_successor_sampler_to_namespace<true>(n);
-    add_vdiff_successor_sampler_to_namespace<false>(n);
+    add_arbitrary_successor_sampler_to_namespace<true>(nspace);
+    add_arbitrary_successor_sampler_to_namespace<false>(nspace);
+    add_most_likely_successor_sampler_to_namespace<true>(nspace);
+    add_most_likely_successor_sampler_to_namespace<false>(nspace);
+    add_random_successor_sampler_to_namespace<true>(nspace);
+    add_random_successor_sampler_to_namespace<false>(nspace);
+    add_uniform_successor_sampler_to_namespace<true>(nspace);
+    add_uniform_successor_sampler_to_namespace<false>(nspace);
+    add_vbiased_successor_sampler_to_namespace<true>(nspace);
+    add_vbiased_successor_sampler_to_namespace<false>(nspace);
+    add_vdiff_successor_sampler_to_namespace<true>(nspace);
+    add_vdiff_successor_sampler_to_namespace<false>(nspace);
 }
 
 } // namespace probfd::cli::successor_samplers

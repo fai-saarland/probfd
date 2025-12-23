@@ -229,17 +229,16 @@ protected:
 
 namespace probfd::cli::solvers {
 
-void add_lrtdp_features(Registry& registry)
+void add_lrtdp_features(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_enum_declaration<TrialTerminationCondition>(
+    nspace.insert_enum_declaration<TrialTerminationCondition>(
         {{"terminal", "Stop trials at terminal states"},
          {"consistent", "Stop trials at epsilon consistent states"},
          {"inconsistent", "Stop trials at epsilon inconsistent states"},
          {"revisited", "Stop trials upon revisiting a state"}});
 
-    n.insert_function_definitions<LRTDPSolverFeature>();
-    n.insert_function_definitions<LRTDPFretSolverFeature>();
+    nspace.insert_function_definitions<LRTDPSolverFeature>();
+    nspace.insert_function_definitions<LRTDPFretSolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

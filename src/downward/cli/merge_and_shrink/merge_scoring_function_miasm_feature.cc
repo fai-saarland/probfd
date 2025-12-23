@@ -44,7 +44,12 @@ shared_ptr<MergeScoringFunction> create_merge_scoring_function_miasm(
         use_caching);
 }
 
-InternalFunctionDefinitionBase& add_merge_scoring_function_miasm_to_namespace(Namespace& nspace)
+} // namespace
+
+namespace downward::cli::merge_and_shrink {
+
+InternalFunctionDefinitionBase&
+add_merge_scoring_function_miasm_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "sf_miasm",
@@ -135,16 +140,6 @@ InternalFunctionDefinitionBase& add_merge_scoring_function_miasm_to_namespace(Na
         "scores for the new merge candidates need to be computed.");
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::merge_and_shrink {
-
-void add_merge_scoring_function_miasm_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_merge_scoring_function_miasm_to_namespace(n);
 }
 
 } // namespace downward::cli::merge_and_shrink

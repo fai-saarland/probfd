@@ -17,10 +17,10 @@ using namespace language::plugins;
 
 using downward::cli::utils::add_rng_options_to_feature;
 
-namespace {
+namespace downward::cli::merge_and_shrink {
 
 InternalFunctionDefinitionBase&
-add_merge_scoring_function_single_random_to_namespace(Namespace& nspace)
+add_merge_scoring_function_single_random_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "single_random",
@@ -37,16 +37,6 @@ add_merge_scoring_function_single_random_to_namespace(Namespace& nspace)
     add_rng_options_to_feature(f, 0);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::merge_and_shrink {
-
-void add_merge_scoring_function_single_random_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_merge_scoring_function_single_random_to_namespace(n);
 }
 
 } // namespace downward::cli::merge_and_shrink

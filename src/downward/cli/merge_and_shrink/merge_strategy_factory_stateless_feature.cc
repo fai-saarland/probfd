@@ -15,9 +15,10 @@ using namespace language::plugins;
 
 using downward::cli::merge_and_shrink::add_merge_strategy_options_to_feature;
 
-namespace {
+namespace downward::cli::merge_and_shrink {
 
-InternalFunctionDefinitionBase& add_merge_strategy_factory_stateless_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_merge_strategy_factory_stateless_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "merge_stateless",
@@ -60,16 +61,6 @@ InternalFunctionDefinitionBase& add_merge_strategy_factory_stateless_to_namespac
     add_merge_strategy_options_to_feature(f, 1);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::merge_and_shrink {
-
-void add_merge_strategy_factory_stateless_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_merge_strategy_factory_stateless_to_namespace(n);
 }
 
 } // namespace downward::cli::merge_and_shrink

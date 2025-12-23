@@ -17,9 +17,10 @@ using downward::cli::landmarks::add_use_orders_option_to_feature;
 
 using downward::cli::landmarks::add_landmark_factory_options_to_feature;
 
-namespace {
+namespace downward::cli::landmarks {
 
-InternalFunctionDefinitionBase& add_landmark_factory_zhu_givan_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_landmark_factory_zhu_givan_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "lm_zg",
@@ -42,16 +43,6 @@ InternalFunctionDefinitionBase& add_landmark_factory_zhu_givan_to_namespace(Name
         "We think they are supported, but this is not 100% sure.");
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::landmarks {
-
-void add_landmark_factory_zhu_givan_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_landmark_factory_zhu_givan_to_namespace(n);
 }
 
 } // namespace downward::cli::landmarks

@@ -16,10 +16,10 @@ using namespace probfd::cli::heuristics;
 
 using namespace language::plugins;
 
-namespace {
+namespace probfd::cli::heuristics {
 
 InternalFunctionDefinitionBase&
-add_probabilistic_additive_cartesian_cegar_to_namespace(Namespace& nspace)
+add_additive_cartesian_heuristic_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "pcegar",
@@ -94,16 +94,6 @@ add_probabilistic_additive_cartesian_cegar_to_namespace(Namespace& nspace)
     add_task_dependent_heuristic_options_to_feature(f, 7);
 
     return f;
-}
-
-} // namespace
-
-namespace probfd::cli::heuristics {
-
-void add_additive_cartesian_heuristic_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_probabilistic_additive_cartesian_cegar_to_namespace(n);
 }
 
 } // namespace probfd::cli::heuristics

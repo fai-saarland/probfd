@@ -19,9 +19,10 @@ using namespace downward;
 using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
 
-namespace {
+namespace probfd::cli::merge_and_shrink {
 
-InternalFunctionDefinitionBase& add_merge_strategy_linear_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_merge_tree_factory_linear_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "plinear",
@@ -56,16 +57,6 @@ InternalFunctionDefinitionBase& add_merge_strategy_linear_to_namespace(Namespace
         "the order in which atomic transition systems are merged");
 
     return f;
-}
-
-} // namespace
-
-namespace probfd::cli::merge_and_shrink {
-
-void add_merge_tree_factory_linear_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_merge_strategy_linear_to_namespace(n);
 }
 
 } // namespace probfd::cli::merge_and_shrink

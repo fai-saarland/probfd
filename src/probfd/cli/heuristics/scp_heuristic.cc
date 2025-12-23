@@ -5,8 +5,6 @@
 
 #include "downward/cli/utils/rng_options.h"
 
-#include "probfd/cli/heuristics/task_dependent_heuristic_options.h"
-
 #include "probfd/heuristics/scp_heuristic.h"
 
 using namespace downward;
@@ -75,10 +73,9 @@ add_saturated_cost_partitioning_heuristic_to_namespace(Namespace& nspace)
 
 namespace probfd::cli::heuristics {
 
-void add_scp_heuristic_feature(Registry& registry)
+void add_scp_heuristic_feature(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_enum_declaration<SCPHeuristicFactory::OrderingStrategy>(
+    nspace.insert_enum_declaration<SCPHeuristicFactory::OrderingStrategy>(
         {{"random", "the order is random"},
          {"size_asc", "orders the PDBs by increasing size"},
          {"size_desc", "orders the PDBs by decreasing size"},
@@ -86,7 +83,7 @@ void add_scp_heuristic_feature(Registry& registry)
           "inherits the order from the underlying pattern generation "
           "algorithm"}});
 
-    add_saturated_cost_partitioning_heuristic_to_namespace(n);
+    add_saturated_cost_partitioning_heuristic_to_namespace(nspace);
 }
 
 } // namespace probfd::cli::heuristics

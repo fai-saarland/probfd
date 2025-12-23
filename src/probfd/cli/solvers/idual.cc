@@ -114,10 +114,9 @@ protected:
 
 namespace probfd::cli::solvers {
 
-void add_idual_feature(Registry& registry)
+void add_idual_feature(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_function_definition<IDualSolverFeature>();
+    nspace.insert_function_definition<IDualSolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

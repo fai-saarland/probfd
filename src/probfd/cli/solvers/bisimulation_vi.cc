@@ -283,11 +283,10 @@ protected:
 
 namespace probfd::cli::solvers {
 
-void add_bisimulation_value_iteration_features(Registry& registry)
+void add_bisimulation_value_iteration_features(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    n.insert_function_definition<BisimulationVISolverFeature>();
-    n.insert_function_definition<BisimulationIISolverFeature>();
+    nspace.insert_function_definition<BisimulationVISolverFeature>();
+    nspace.insert_function_definition<BisimulationIISolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

@@ -18,9 +18,9 @@ using namespace probfd::cli::heuristics;
 
 using namespace language::plugins;
 
-namespace {
+namespace probfd::cli::heuristics {
 
-InternalFunctionDefinitionBase& add_uniform_cost_partitioning_heuristic_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_ucp_heuristic_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "ucp_heuristic",
@@ -47,16 +47,6 @@ InternalFunctionDefinitionBase& add_uniform_cost_partitioning_heuristic_to_names
         "The pattern generation algorithm to construct the projections.");
 
     return f;
-}
-
-} // namespace
-
-namespace probfd::cli::heuristics {
-
-void add_ucp_heuristic_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_uniform_cost_partitioning_heuristic_to_namespace(n);
 }
 
 } // namespace probfd::cli::heuristics

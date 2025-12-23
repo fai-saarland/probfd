@@ -17,9 +17,10 @@ using downward::cli::landmarks::add_landmark_factory_options_to_feature;
 
 using downward::cli::landmarks::add_use_orders_option_to_feature;
 
-namespace {
+namespace downward::cli::landmarks {
 
-InternalFunctionDefinitionBase& add_landmark_factory_rpg_sasp_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_landmark_factory_rpg_sasp_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "lm_rhw",
@@ -44,16 +45,6 @@ InternalFunctionDefinitionBase& add_landmark_factory_rpg_sasp_to_namespace(Names
     add_landmark_factory_options_to_feature(f, n + 1);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::landmarks {
-
-void add_landmark_factory_rpg_sasp_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_landmark_factory_rpg_sasp_to_namespace(n);
 }
 
 } // namespace downward::cli::landmarks

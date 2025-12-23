@@ -14,9 +14,10 @@ using namespace downward::pdbs;
 using namespace downward::cli::pdbs;
 using namespace language::plugins;
 
-namespace {
+namespace downward::cli::pdbs {
 
-InternalFunctionDefinitionBase& add_pattern_generator_manual_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_pattern_generator_manual_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "manual_pattern",
@@ -33,16 +34,6 @@ InternalFunctionDefinitionBase& add_pattern_generator_manual_to_namespace(Namesp
     add_generator_options_to_feature(f, 1);
 
     return f;
-}
-
-} // namespace
-
-namespace downward::cli::pdbs {
-
-void add_pattern_generator_manual_feature(Registry& registry)
-{
-    Namespace& n = registry.get_global_name_space();
-    add_pattern_generator_manual_to_namespace(n);
 }
 
 } // namespace downward::cli::pdbs

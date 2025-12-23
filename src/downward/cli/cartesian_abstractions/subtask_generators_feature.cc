@@ -88,12 +88,11 @@ void add_landmark_decomposition_feature(Namespace& nspace)
 
 namespace downward::cli::cartesian_abstractions {
 
-void add_subtask_generators_features(Registry& registry)
+void add_subtask_generators_features(Namespace& nspace)
 {
-    Namespace& n = registry.get_global_name_space();
-    add_task_duplicator_feature(n);
-    add_goal_decomposition_feature(n);
-    add_landmark_decomposition_feature(n);
+    add_task_duplicator_feature(nspace);
+    add_goal_decomposition_feature(nspace);
+    add_landmark_decomposition_feature(nspace);
 }
 
 } // namespace downward::cli::cartesian_abstractions
