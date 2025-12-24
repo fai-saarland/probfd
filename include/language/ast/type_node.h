@@ -11,6 +11,10 @@ class TypeRegistry;
 } // namespace language::plugins
 
 namespace language::parser {
+class VariableEnvironment;
+}
+
+namespace language::parser {
 
 class TypeNode {
 public:
@@ -18,6 +22,7 @@ public:
 
     virtual const plugins::Type& get_type(
         Context& context,
+        const VariableEnvironment& environment,
         plugins::TypeRegistry& type_registry) const = 0;
 };
 

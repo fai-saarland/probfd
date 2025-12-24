@@ -35,7 +35,6 @@ create_library(
     language/ast/type_literal_node
     language/ast/type_node
     language/ast/unary_expression_node
-    language/ast/variable_environment
     language/typed_ast/construct_context
     language/typed_ast/convert_node
     language/typed_ast/decorated_ast_node
@@ -51,6 +50,7 @@ create_library(
     language/typed_ast/decorated_unary_expression_node
     language/typed_ast/decorated_variable_node
     language/typed_ast/variable_declaration
+    language/typed_ast/variable_environment
     language/context
     language/lexical_analyzer
     language/syntax_analyzer

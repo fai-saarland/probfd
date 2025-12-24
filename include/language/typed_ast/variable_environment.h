@@ -1,5 +1,5 @@
-#ifndef LANGUAGE_AST_VARIABLE_ENVIRONMENT_H
-#define LANGUAGE_AST_VARIABLE_ENVIRONMENT_H
+#ifndef LANGUAGE_TYPED_AST_VARIABLE_ENVIRONMENT_H
+#define LANGUAGE_TYPED_AST_VARIABLE_ENVIRONMENT_H
 
 #include <memory>
 #include <string>
@@ -19,14 +19,15 @@ namespace language::parser {
 
 struct VariableDeclaration;
 
-struct TypedDeclaration {
+struct TypedVariableDeclaration {
     const plugins::Type* type;
     VariableDeclaration* declaration;
 };
 
 class Scope {
     std::unique_ptr<Scope> parent = nullptr;
-    std::unordered_map<std::string, TypedDeclaration> variables;
+    std::unordered_map<std::string, TypedVariableDeclaration> variables;
+    std::unordered_map<std::string, const plugins::Type*> types;
 
 public:
     Scope();
@@ -35,21 +36,11 @@ public:
 
     std::unique_ptr<Scope>& get_parent();
 
-    void
-    insert(Context& context, std::pair<std::string, TypedDeclaration> pair);
+    bool insert(std::string name, TypedVariableDeclaration tdecl);
 
-    bool insert(std::pair<std::string, TypedDeclaration> pair);
+    TypedVariableDeclaration* get_variable_declaration(const std::string& name);
 
-    bool has_variable(const std::string& name) const;
-
-    TypedDeclaration* get_typed_declaration(const std::string& name);
-
-    const TypedDeclaration*
-    get_typed_declaration(const std::string& name) const;
-
-    const plugins::Type& get_variable_type(const std::string& name);
-
-    VariableDeclaration& get_variable_declaration(const std::string& name);
+    const plugins::Type* get_type(const std::string& name);
 };
 
 class VariableEnvironment {
@@ -62,22 +53,15 @@ public:
         Context& context,
         plugins::TypeRegistry& type_registry);
 
-    void add_variable(
-        Context& context,
-        const std::string& name,
-        const plugins::Type& type,
-        VariableDeclaration& declaration);
-
     bool add_variable(
         const std::string& name,
         const plugins::Type& type,
         VariableDeclaration& declaration);
 
-    bool has_variable(const std::string& name) const;
+    const plugins::Type* get_type(const std::string& name) const;
 
-    const plugins::Type& get_variable_type(const std::string& name) const;
-
-    VariableDeclaration& get_variable_declaration(const std::string& name) const;
+    TypedVariableDeclaration*
+    get_variable_declaration(const std::string& name) const;
 
     void enter_scope();
 

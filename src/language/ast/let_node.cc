@@ -1,6 +1,6 @@
 #include "language/ast/let_node.h"
 
-#include "language/ast/variable_environment.h"
+#include "language/typed_ast/variable_environment.h"
 
 #include "language/typed_ast/decorated_let_node.h"
 
@@ -48,7 +48,12 @@ TypedDecoratedAstNodePtr LetNode::static_analysis(
                 variable_name,
                 std::move(ast_node)));
 
-        env.add_variable(context, variable_name, *type, *declaration);
+        if (const bool b = env.add_variable(variable_name, *type, *declaration);
+            !b) {
+            context.error(
+                "Variable '{}' has already been declared.",
+                variable_name);
+        }
     }
 
     TypedDecoratedAstNodePtr decorated_nested_value;

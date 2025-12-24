@@ -1,6 +1,6 @@
 #include "language/ast/identifier_node.h"
 
-#include "language/ast/variable_environment.h"
+#include "language/typed_ast/variable_environment.h"
 
 #include "language/typed_ast/decorated_feature_literal_node.h"
 #include "language/typed_ast/variable_declaration.h"
@@ -31,10 +31,11 @@ TypedDecoratedAstNodePtr IdentifierNode::static_analysis(
 
     const auto& [qualification, name] = qualified_name;
 
-    if (qualification.empty() && env.has_variable(name)) {
-        auto& def = env.get_variable_declaration(name);
-        auto n = def.create_load_node();
-        return {std::move(n), &env.get_variable_type(name)};
+    if (qualification.empty()) {
+        if (const auto* tdecl = env.get_variable_declaration(name)) {
+            auto n = tdecl->declaration->create_load_node();
+            return {std::move(n), tdecl->type};
+        }
     }
 
     if (const auto& n = env.get_registry().get_namespace(qualification);
