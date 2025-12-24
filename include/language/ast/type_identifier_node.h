@@ -8,14 +8,15 @@
 namespace language::parser {
 
 class TypeIdentifierNode : public TypeNode {
-    QualifiedName name;
+    QualifiedName qualified_name;
 
 public:
     explicit TypeIdentifierNode(QualifiedName name);
 
-    const plugins::Type&
-    get_type(Context& context, plugins::TypeRegistry& type_registry)
-        const override;
+    const plugins::Type& get_type(
+        Context& context,
+        const VariableEnvironment& environment,
+        plugins::TypeRegistry& type_registry) const override;
 };
 
 } // namespace language::parser

@@ -1,7 +1,7 @@
 #include "language/ast/lambda_node.h"
 
+#include "language/typed_ast/variable_environment.h"
 #include "language/ast/type_node.h"
-#include "language/ast/variable_environment.h"
 
 #include "language/typed_ast/decorated_lambda_node.h"
 #include "language/typed_ast/variable_declaration.h"
@@ -61,7 +61,7 @@ TypedDecoratedAstNodePtr LambdaNode::static_analysis(
 
         auto& param_declaration =
             decorated_variable_declarations.emplace_back(variable_name);
-        const auto& t = type_node->get_type(context, type_registry);
+        const auto& t = type_node->get_type(context, nested_env, type_registry);
         arg_types.emplace_back(&t);
         const bool s =
             nested_env.add_variable(variable_name, t, param_declaration);

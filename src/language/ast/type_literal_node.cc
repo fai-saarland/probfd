@@ -15,6 +15,7 @@ TypeLiteralNode::TypeLiteralNode(const Token& value)
 
 const plugins::Type& TypeLiteralNode::get_type(
     Context& context,
+    const VariableEnvironment&,
     plugins::TypeRegistry& type_registry) const
 {
     switch (value.type) {

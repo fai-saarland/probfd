@@ -1,6 +1,6 @@
 #include "language/ast/direct_function_call_node.h"
 
-#include "language/ast/variable_environment.h"
+#include "language/typed_ast/variable_environment.h"
 
 #include "language/syntax_analyzer.h"
 
@@ -76,26 +76,33 @@ TypedDecoratedAstNodePtr DirectFunctionCallNode::static_analysis(
     const plugins::FunctionType* callee_type;
     std::vector<plugins::ArgumentInfo> argument_infos;
 
-    if (qualification.empty() && env.has_variable(name)) {
-        auto& def = env.get_variable_declaration(name);
-        auto n = std::make_unique<VariableNode>(def);
-        callee_node.reset(def.usages.emplace_back(n.get()));
+    if (qualification.empty()) {
+        if (const auto* tdecl = env.get_variable_declaration(name)) {
+            auto n = std::make_unique<VariableNode>(*tdecl->declaration);
+            callee_node.reset(tdecl->declaration->usages.emplace_back(n.get()));
 
-        const auto& type = &env.get_variable_type(name);
+            if (!tdecl->type->is_function_type()) {
+                context.error(
+                    "Variable '{}' does not have function type",
+                    callee);
+            }
 
-        if (!type->is_function_type()) {
-            context.error("Variable '{}' does not have function type", callee);
+            callee_type =
+                static_cast<const plugins::FunctionType*>(tdecl->type);
+        } else {
+            goto namespace_lookup;
         }
-
-        callee_type = static_cast<const plugins::FunctionType*>(type);
-    } else if (const auto& n = env.get_registry().get_namespace(qualification);
-               n.has_function(name)) {
-        const auto& f = n.get_function_definition(name);
-        callee_node = std::make_unique<FeatureLiteralNode>(f);
-        callee_type = &f.get_type(type_registry);
-        argument_infos = f.get_arguments();
     } else {
-        context.error("Undefined variable {}", callee);
+    namespace_lookup:
+        const auto& n = env.get_registry().get_namespace(qualification);
+        if (n.has_function(name)) {
+            const auto& f = n.get_function_definition(name);
+            callee_node = std::make_unique<FeatureLiteralNode>(f);
+            callee_type = &f.get_type(type_registry);
+            argument_infos = f.get_arguments();
+        } else {
+            context.error("Undefined variable '{}'", callee);
+        }
     }
 
     const auto& argument_types = callee_type->get_argument_types();

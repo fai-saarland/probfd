@@ -1,6 +1,6 @@
 #include "language/ast/expression_node.h"
 
-#include "language/ast/variable_environment.h"
+#include "language/typed_ast/variable_environment.h"
 
 #include "language/plugins/type_registry.h"
 

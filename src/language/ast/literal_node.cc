@@ -1,6 +1,6 @@
 #include "language/ast/literal_node.h"
 
-#include "language/ast/variable_environment.h"
+#include "language/typed_ast/variable_environment.h"
 
 #include "language/typed_ast/decorated_bool_literal_node.h"
 #include "language/typed_ast/decorated_feature_literal_node.h"
