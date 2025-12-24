@@ -1,6 +1,7 @@
 #ifndef LANGUAGE_TYPED_AST_VARIABLE_ENVIRONMENT_H
 #define LANGUAGE_TYPED_AST_VARIABLE_ENVIRONMENT_H
 
+#include <deque>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -25,27 +26,21 @@ struct TypedVariableDeclaration {
 };
 
 class Scope {
-    std::unique_ptr<Scope> parent = nullptr;
     std::unordered_map<std::string, TypedVariableDeclaration> variables;
     std::unordered_map<std::string, const plugins::Type*> types;
 
 public:
-    Scope();
-
-    explicit Scope(std::unique_ptr<Scope> parent);
-
-    std::unique_ptr<Scope>& get_parent();
-
     bool insert(std::string name, TypedVariableDeclaration tdecl);
 
-    TypedVariableDeclaration* get_variable_declaration(const std::string& name);
+    const TypedVariableDeclaration*
+    get_variable_declaration(const std::string& name) const;
 
-    const plugins::Type* get_type(const std::string& name);
+    const plugins::Type* get_type(const std::string& name) const;
 };
 
 class VariableEnvironment {
     const plugins::Registry& registry;
-    std::unique_ptr<Scope> scope;
+    std::deque<Scope> scopes; // top-level scope first
 
 public:
     explicit VariableEnvironment(
@@ -60,7 +55,7 @@ public:
 
     const plugins::Type* get_type(const std::string& name) const;
 
-    TypedVariableDeclaration*
+    const TypedVariableDeclaration*
     get_variable_declaration(const std::string& name) const;
 
     void enter_scope();

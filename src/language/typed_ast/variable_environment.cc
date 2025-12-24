@@ -9,34 +9,22 @@ using namespace std;
 
 namespace language::parser {
 
-Scope::Scope() = default;
-
-Scope::Scope(std::unique_ptr<Scope> parent)
-    : parent(std::move(parent))
-{
-}
-
-std::unique_ptr<Scope>& Scope::get_parent()
-{
-    return parent;
-}
-
 bool Scope::insert(std::string name, TypedVariableDeclaration tdecl)
 {
     return variables.emplace(std::move(name), tdecl).second;
 }
 
-TypedVariableDeclaration*
-Scope::get_variable_declaration(const std::string& name)
+const TypedVariableDeclaration*
+Scope::get_variable_declaration(const std::string& name) const
 {
     if (const auto it = variables.find(name); it != variables.end()) {
         return &it->second;
     }
 
-    return parent ? parent->get_variable_declaration(name) : nullptr;
+    return nullptr;
 }
 
-const plugins::Type* Scope::get_type(const std::string& name)
+const plugins::Type* Scope::get_type(const std::string& name) const
 {
     if (const auto it = types.find(name); it != types.end()) {
         return it->second;
@@ -50,7 +38,7 @@ VariableEnvironment::VariableEnvironment(
     Context& context,
     plugins::TypeRegistry& type_registry)
     : registry(registry)
-    , scope(std::make_unique<Scope>())
+    , scopes(1, Scope())
 {
     for (const auto& ns = registry.get_global_name_space();
          const auto& enum_decl : ns.get_enum_declarations()) {
@@ -63,29 +51,41 @@ bool VariableEnvironment::add_variable(
     const plugins::Type& type,
     VariableDeclaration& declaration)
 {
-    return scope->insert(name, TypedVariableDeclaration{&type, &declaration});
+    return scopes.back().insert(
+        name,
+        TypedVariableDeclaration{&type, &declaration});
 }
 
 const plugins::Type*
 VariableEnvironment::get_type(const std::string& name) const
 {
-    return scope->get_type(name);
+    for (const auto& scope : scopes | std::views::reverse) {
+        if (const auto* type = scope.get_type(name)) { return type; }
+    }
+
+    return nullptr;
 }
 
-TypedVariableDeclaration*
+const TypedVariableDeclaration*
 VariableEnvironment::get_variable_declaration(const std::string& name) const
 {
-    return scope->get_variable_declaration(name);
+    for (const auto& scope : scopes | std::views::reverse) {
+        if (const auto* decl = scope.get_variable_declaration(name)) {
+            return decl;
+        }
+    }
+
+    return nullptr;
 }
 
 void VariableEnvironment::enter_scope()
 {
-    scope = std::make_unique<Scope>(std::move(scope));
+    scopes.emplace_back();
 }
 
 void VariableEnvironment::leave_scope()
 {
-    scope = std::move(scope->get_parent());
+    scopes.pop_back();
 }
 
 const plugins::Registry& VariableEnvironment::get_registry() const
