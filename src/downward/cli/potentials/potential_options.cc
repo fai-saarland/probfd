@@ -3,9 +3,10 @@
 #include "downward/cli/heuristics/heuristic_options.h"
 
 #include "downward/cli/lp/lp_solver_options.h"
-#include "language/plugins/internal_function_definition.h"
 
 #include "downward/utils/markup.h"
+
+#include "language/ast/internal_function_definition.h"
 
 using namespace std;
 
@@ -26,7 +27,7 @@ string get_admissible_potentials_reference()
 }
 
 std::size_t add_admissible_potentials_options_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     const string& description,
     std::size_t start_index)
 {

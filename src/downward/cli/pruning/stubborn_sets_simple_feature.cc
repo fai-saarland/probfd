@@ -2,12 +2,10 @@
 
 #include "downward/cli/pruning/pruning_method_options.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/pruning/stubborn_sets_simple.h"
 
-#include "downward/utils/logging.h"
 #include "downward/utils/markup.h"
 
 using namespace std;
@@ -15,7 +13,7 @@ using namespace downward::utils;
 using namespace downward::stubborn_sets_simple;
 
 using namespace downward::cli;
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace {
 
@@ -24,14 +22,14 @@ namespace {
 namespace downward::cli::pruning {
 
 InternalFunctionDefinitionBase&
-add_stubborn_sets_simple_feature(Namespace& nspace)
+add_stubborn_sets_simple_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "stubborn_sets_simple",
-        &language::plugins::construct_shared<
-            downward::PruningMethod,
-            StubbornSetsSimple,
-            Verbosity>);
+    auto& f = insert_function_definition<
+        &language::parser::
+            construct_shared<PruningMethod, StubbornSetsSimple, Verbosity>>(
+        nspace,
+        "stubborn_sets_simple");
+
     f.document_title("Stubborn sets simple");
     f.document_synopsis(
         "Stubborn sets represent a state pruning method which computes a "

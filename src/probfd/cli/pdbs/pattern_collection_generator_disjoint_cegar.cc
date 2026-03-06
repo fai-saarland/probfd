@@ -1,7 +1,6 @@
 #include "probfd/cli/pdbs/pattern_collection_generator_disjoint_cegar.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/utils/logging_options.h"
 #include "downward/cli/utils/rng_options.h"
@@ -20,7 +19,7 @@ using namespace probfd;
 using namespace probfd::pdbs;
 using namespace probfd::pdbs::cegar;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::utils::add_log_options_to_feature;
 using downward::cli::utils::add_rng_options_to_feature;
@@ -82,23 +81,22 @@ std::size_t add_pattern_collection_generator_cegar_options_to_feature(
 namespace probfd::cli::pdbs {
 
 InternalFunctionDefinitionBase&
-add_pattern_collection_generator_disjoint_cegar_feature(Namespace& nspace)
+add_pattern_collection_generator_disjoint_cegar_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "ppdbs_disjoint_cegar",
-        &construct_shared<
-            PatternCollectionGenerator,
-            PatternCollectionGeneratorDisjointCegar,
-            value_t,
-            bool,
-            bool,
-            int,
-            int,
-            FSeconds,
-            std::shared_ptr<RandomNumberGenerator>,
-            std::shared_ptr<SubCollectionFinderFactory>,
-            std::shared_ptr<FlawFindingStrategy>,
-            Verbosity>);
+    auto& f = insert_function_definition<&construct_shared<
+        PatternCollectionGenerator,
+        PatternCollectionGeneratorDisjointCegar,
+        value_t,
+        bool,
+        bool,
+        int,
+        int,
+        FSeconds,
+        std::shared_ptr<RandomNumberGenerator>,
+        std::shared_ptr<SubCollectionFinderFactory>,
+        std::shared_ptr<FlawFindingStrategy>,
+        Verbosity>>(nspace, "ppdbs_disjoint_cegar");
 
     f.make_optional_argument_with_default(
         0,

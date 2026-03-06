@@ -1,17 +1,18 @@
 #include "downward/cli/evaluators/evaluator_category.h"
 
-#include "language/plugins/registry.h"
-
 #include "downward/evaluator.h"
 #include "downward/task_dependent_factory.h"
+
+#include "language/ast/internal_type_declaration.h"
 
 using namespace downward::cli;
 
 namespace downward::cli::evaluators {
 
-void add_evaluator_category(language::plugins::Namespace& nspace)
+void add_evaluator_category(language::parser::NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_shared_type_declaration<TaskDependentFactory<Evaluator>>(
+    insert_shared_type_declaration<TaskDependentFactory<Evaluator>>(
+        nspace,
         "Heuristic",
         "An evaluator specification is either a newly created evaluator "
         "instance or an evaluator that has been defined previously. "

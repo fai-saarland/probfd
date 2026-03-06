@@ -3,14 +3,14 @@
 
 #include <tuple>
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-} // namespace language::plugins
+} // namespace language::parser
 
 namespace downward::cli {
 
 extern std::size_t add_pruning_options_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 
 } // namespace downward::cli

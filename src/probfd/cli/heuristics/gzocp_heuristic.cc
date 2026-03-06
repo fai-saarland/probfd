@@ -1,11 +1,11 @@
 #include "probfd/cli/heuristics/gzocp_heuristic.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
-
 #include "downward/cli/utils/rng_options.h"
 
 #include "probfd/heuristics/gzocp_heuristic.h"
+
+#include "language/ast/internal_enum_declaration.h"
+#include "language/ast/internal_function_definition.h"
 
 using namespace downward;
 using namespace probfd;
@@ -14,23 +14,24 @@ using namespace probfd::heuristics;
 
 using namespace probfd::cli::heuristics;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::utils::add_rng_options_to_feature;
 
 namespace {
 
 InternalFunctionDefinitionBase&
-add_greedy_zero_one_cost_partitioning_heuristic_to_namespace(Namespace& nspace)
+add_greedy_zero_one_cost_partitioning_heuristic_to_namespace(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "gzocp_heuristic",
-        &construct_shared<
-            TaskHeuristicFactory,
-            GZOCPHeuristicFactory,
-            std::shared_ptr<PatternCollectionGenerator>,
-            GZOCPHeuristicFactory::OrderingStrategy,
-            std::shared_ptr<utils::RandomNumberGenerator>>);
+    auto& f = insert_function_definition<&construct_shared<
+        TaskHeuristicFactory,
+        GZOCPHeuristicFactory,
+        std::shared_ptr<PatternCollectionGenerator>,
+        GZOCPHeuristicFactory::OrderingStrategy,
+        std::shared_ptr<utils::RandomNumberGenerator>>>(
+        nspace,
+        "gzocp_heuristic");
 
     f.document_title("Greedy Zero-One Operator Cost Partitioning Heuristic");
     f.document_synopsis(
@@ -61,9 +62,11 @@ add_greedy_zero_one_cost_partitioning_heuristic_to_namespace(Namespace& nspace)
 
 namespace probfd::cli::heuristics {
 
-void add_gzocp_heuristic_feature(Namespace& nspace)
+void add_gzocp_heuristic_feature(NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_enum_declaration<GZOCPHeuristicFactory::OrderingStrategy>(
+    insert_enum_declaration<GZOCPHeuristicFactory::OrderingStrategy>(
+        nspace,
+        "OrderingStrategy",
         {{"random", "the order is random"},
          {"size_asc", "orders the PDBs by increasing size"},
          {"size_desc", "orders the PDBs by decreasing size"},

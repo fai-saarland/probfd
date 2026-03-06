@@ -1,16 +1,16 @@
 #ifndef DOWNWARD_LANDMARKS_LANDMARK_FACTORY_REASONABLE_ORDERS_HPS_FEATURE_H
 #define DOWNWARD_LANDMARKS_LANDMARK_FACTORY_REASONABLE_ORDERS_HPS_FEATURE_H
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-class Namespace;
-} // namespace language::plugins
+class NamespaceLevelDeclarationList;
+}
 
 namespace downward::cli::landmarks {
 
-language::plugins::InternalFunctionDefinitionBase&
+language::parser::InternalFunctionDefinitionBase&
 add_landmark_factory_reasonable_orders_hps_feature(
-    language::plugins::Namespace& nspace);
+    language::parser::NamespaceLevelDeclarationList& nspace);
 
 }
 

@@ -1,28 +1,28 @@
 #include "probfd/cli/merge_and_shrink/merge_selector_score_based_filtering.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "probfd/merge_and_shrink/merge_selector_score_based_filtering.h"
 
 #include "probfd/merge_and_shrink/merge_scoring_function.h"
 
 using namespace std;
-using namespace language::plugins;
+using namespace language::parser;
 using namespace downward;
 using namespace probfd::merge_and_shrink;
 
 namespace probfd::cli::merge_and_shrink {
 
 InternalFunctionDefinitionBase&
-add_merge_selector_score_based_filtering_feature(Namespace& nspace)
+add_merge_selector_score_based_filtering_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "pscore_based_filtering",
-        &language::plugins::construct_shared<
-            MergeSelector,
-            MergeSelectorScoreBasedFiltering,
-            std::vector<std::shared_ptr<MergeScoringFunction>>>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        MergeSelector,
+        MergeSelectorScoreBasedFiltering,
+        std::vector<std::shared_ptr<MergeScoringFunction>>>>(
+        nspace,
+        "pscore_based_filtering");
 
     f.document_title("Score based filtering merge selector");
     f.document_synopsis(

@@ -2,34 +2,33 @@
 
 #include "downward/cli/pruning/pruning_method_options.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
-
 #include "downward/pruning/stubborn_sets_atom_centric.h"
 
 #include "downward/utils/logging.h"
 #include "downward/utils/markup.h"
+
+#include "language/ast/internal_enum_declaration.h"
+#include "language/ast/internal_function_definition.h"
 
 using namespace std;
 using namespace downward::utils;
 using namespace downward::stubborn_sets_atom_centric;
 
 using namespace downward::cli;
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace {
 
-InternalFunctionDefinitionBase&
-add_stubborn_sets_atomic_centric_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_stubborn_sets_atomic_centric_to_namespace(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "atom_centric_stubborn_sets",
-        &language::plugins::construct_shared<
-            downward::PruningMethod,
-            StubbornSetsAtomCentric,
-            bool,
-            AtomSelectionStrategy,
-            Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        downward::PruningMethod,
+        StubbornSetsAtomCentric,
+        bool,
+        AtomSelectionStrategy,
+        Verbosity>>(nspace, "atom_centric_stubborn_sets");
+
     f.document_title("Atom-centric stubborn sets");
     f.document_synopsis(
         "Stubborn sets are a state pruning method which computes a subset "
@@ -77,9 +76,12 @@ add_stubborn_sets_atomic_centric_to_namespace(Namespace& nspace)
 
 namespace downward::cli::pruning {
 
-void add_stubborn_sets_atom_centric_feature(Namespace& nspace)
+void add_stubborn_sets_atom_centric_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_enum_declaration<AtomSelectionStrategy>(
+    insert_enum_declaration<AtomSelectionStrategy>(
+        nspace,
+        "AtomSelectionStrategy",
         {{"fast_downward",
           "select the atom (v, d) with the variable v that comes first in the "
           "Fast "

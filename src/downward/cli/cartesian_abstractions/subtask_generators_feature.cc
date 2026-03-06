@@ -1,7 +1,6 @@
 #include "downward/cli/cartesian_abstractions/subtask_generators_features.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -11,25 +10,24 @@
 
 #include "downward/heuristics/additive_heuristic.h"
 
-#include "downward/utils/logging.h"
-
 using namespace std;
 using namespace downward;
 using namespace downward::cartesian_abstractions;
 using namespace downward::utils;
 
 using namespace downward::cli;
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::utils::add_rng_options_to_feature;
 
 namespace {
 
-void add_task_duplicator_feature(Namespace& nspace)
+void add_task_duplicator_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "original",
-        &construct_shared<SubtaskGenerator, TaskDuplicator, int>);
+    auto& f = insert_function_definition<
+        &construct_shared<SubtaskGenerator, TaskDuplicator, int>>(
+        nspace,
+        "original");
     f.make_optional_argument_with_default(
         0,
         "copies",
@@ -37,15 +35,14 @@ void add_task_duplicator_feature(Namespace& nspace)
         "number of task copies");
 };
 
-void add_goal_decomposition_feature(Namespace& nspace)
+void add_goal_decomposition_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "goals",
-        &construct_shared<
-            SubtaskGenerator,
-            GoalDecomposition,
-            FactOrder,
-            std::shared_ptr<RandomNumberGenerator>>);
+    auto& f = insert_function_definition<&construct_shared<
+        SubtaskGenerator,
+        GoalDecomposition,
+        FactOrder,
+        std::shared_ptr<RandomNumberGenerator>>>(nspace, "goals");
+
     f.make_optional_argument_with_default(
         0,
         "order",
@@ -55,17 +52,16 @@ void add_goal_decomposition_feature(Namespace& nspace)
     add_rng_options_to_feature(f, 1);
 }
 
-void add_landmark_decomposition_feature(Namespace& nspace)
+void add_landmark_decomposition_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "landmarks",
-        &construct_shared<
-            SubtaskGenerator,
-            LandmarkDecomposition,
-            std::shared_ptr<TaskDependentFactory<MutexInformation>>,
-            FactOrder,
-            std::shared_ptr<RandomNumberGenerator>,
-            bool>);
+    auto& f = insert_function_definition<&construct_shared<
+        SubtaskGenerator,
+        LandmarkDecomposition,
+        std::shared_ptr<TaskDependentFactory<MutexInformation>>,
+        FactOrder,
+        std::shared_ptr<RandomNumberGenerator>,
+        bool>>(nspace, "landmarks");
+
     f.make_optional_argument_with_default(
         0,
         "mutexes",
@@ -88,7 +84,7 @@ void add_landmark_decomposition_feature(Namespace& nspace)
 
 namespace downward::cli::cartesian_abstractions {
 
-void add_subtask_generators_features(Namespace& nspace)
+void add_subtask_generators_features(NamespaceLevelDeclarationList& nspace)
 {
     add_task_duplicator_feature(nspace);
     add_goal_decomposition_feature(nspace);

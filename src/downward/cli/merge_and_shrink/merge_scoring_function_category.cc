@@ -1,18 +1,19 @@
 #include "downward/cli/merge_and_shrink/merge_scoring_function_category.h"
 
-#include "language/plugins/registry.h"
-
 #include "downward/merge_and_shrink/merge_scoring_function.h"
+
+#include "language/ast/internal_type_declaration.h"
 
 using namespace downward::merge_and_shrink;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace downward::cli::merge_and_shrink {
 
-void add_merge_scoring_function_category(Namespace& nspace)
+void add_merge_scoring_function_category(NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_shared_type_declaration<MergeScoringFunction>(
+    insert_shared_type_declaration<MergeScoringFunction>(
+        nspace,
         "MergeScoringFunction",
         "This page describes various merge scoring functions. A scoring "
         "function, "

@@ -1,6 +1,6 @@
 #include "probfd/cli/solvers/mdp_heuristic_search_options.h"
 
-#include "language/plugins/internal_function_definition.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "probfd/cli/naming_conventions.h"
 
@@ -8,14 +8,7 @@
 
 #include "probfd/solvers/mdp_heuristic_search.h"
 
-#include "probfd/bisimulation/types.h"
-
-#include <memory>
-#include <string>
-#include <type_traits>
-#include <utility>
-
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace probfd::cli::solvers {
 

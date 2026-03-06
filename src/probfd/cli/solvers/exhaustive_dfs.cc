@@ -1,7 +1,6 @@
 #include "probfd/cli/solvers/exhaustive_dfs.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "probfd/cli/solvers/mdp_solver_options.h"
 
@@ -29,7 +28,7 @@ using namespace probfd::solvers;
 
 using namespace probfd::cli::solvers;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace {
 class ExhaustiveDFSSolver : public StatisticalMDPAlgorithmFactory {
@@ -88,88 +87,67 @@ public:
     }
 };
 
-class ExhaustiveDFSSolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
-          std::shared_ptr<TaskStateSpaceFactory>,
-          std::shared_ptr<TaskHeuristicFactory>,
-          std::string,
-          bool,
-          value_t,
-          bool,
-          utils::Verbosity,
-          value_t,
-          std::shared_ptr<FDRTransitionSorter>,
-          bool,
-          bool,
-          bool)> {
-public:
-    ExhaustiveDFSSolverFeature()
-        : InternalFunctionDefinition(
-              "exhaustive_dfs",
-              &ExhaustiveDFSSolverFeature::func)
-    {
-        document_title("Exhaustive Depth-First Search");
+std::shared_ptr<TaskSolverFactory> create_exhaustive_dfs(
+    std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+    std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+    std::string policy_filename,
+    bool print_fact_names,
+    value_t report_epsilon,
+    bool report_enabled,
+    utils::Verbosity verbosity,
+    value_t convergence_epsilon,
+    std::shared_ptr<FDRTransitionSorter> order,
+    bool dual_bounds,
+    bool reverse_path_updates,
+    bool only_propagate_when_changed)
+{
+    return make_shared_from_arg_tuples<MDPSolver>(
+        make_shared_from_arg_tuples<ExhaustiveDFSSolver>(
+            convergence_epsilon,
+            std::move(order),
+            dual_bounds,
+            reverse_path_updates,
+            only_propagate_when_changed),
+        std::move(task_state_space_factory),
+        std::move(heuristic_factory),
+        std::move(policy_filename),
+        print_fact_names,
+        report_epsilon,
+        report_enabled,
+        verbosity);
+}
 
-        const auto n =
-            add_base_solver_options_except_algorithm_to_feature(*this, 0);
-
-        make_optional_argument_with_default(
-            n,
-            "convergence_epsilon",
-            "10e-4",
-            "The tolerance for convergence checks.");
-
-        make_required_argument(n + 1, "order");
-
-        make_optional_argument_with_default(n + 2, "dual_bounds", "false");
-        make_optional_argument_with_default(
-            n + 3,
-            "reverse_path_updates",
-            "true");
-        make_optional_argument_with_default(
-            n + 4,
-            "only_propagate_when_changed",
-            "true");
-    }
-
-protected:
-    static std::shared_ptr<TaskSolverFactory> func(
-        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-        std::string policy_filename,
-        bool print_fact_names,
-        value_t report_epsilon,
-        bool report_enabled,
-        utils::Verbosity verbosity,
-        value_t convergence_epsilon,
-        std::shared_ptr<FDRTransitionSorter> order,
-        bool dual_bounds,
-        bool reverse_path_updates,
-        bool only_propagate_when_changed)
-    {
-        return make_shared_from_arg_tuples<MDPSolver>(
-            make_shared_from_arg_tuples<ExhaustiveDFSSolver>(
-                convergence_epsilon,
-                std::move(order),
-                dual_bounds,
-                reverse_path_updates,
-                only_propagate_when_changed),
-            std::move(task_state_space_factory),
-            std::move(heuristic_factory),
-            std::move(policy_filename),
-            print_fact_names,
-            report_epsilon,
-            report_enabled,
-            verbosity);
-    }
-};
 } // namespace
 
 namespace probfd::cli::solvers {
 
-void add_exhaustive_dfs_feature(Namespace& nspace)
+void add_exhaustive_dfs_feature(NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_function_definition<ExhaustiveDFSSolverFeature>();
+    auto& f = insert_function_definition<create_exhaustive_dfs>(
+        nspace,
+        "exhaustive_dfs");
+
+    f.document_title("Exhaustive Depth-First Search");
+
+    const auto n = add_base_solver_options_except_algorithm_to_feature(f, 0);
+
+    f.make_optional_argument_with_default(
+        n,
+        "convergence_epsilon",
+        "10e-4",
+        "The tolerance for convergence checks.");
+
+    f.make_required_argument(n + 1, "order");
+
+    f.make_optional_argument_with_default(n + 2, "dual_bounds", "false");
+    f.make_optional_argument_with_default(
+        n + 3,
+        "reverse_path_updates",
+        "true");
+    f.make_optional_argument_with_default(
+        n + 4,
+        "only_propagate_when_changed",
+        "true");
 }
 
 } // namespace probfd::cli::solvers

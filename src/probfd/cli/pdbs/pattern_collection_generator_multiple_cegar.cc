@@ -1,7 +1,6 @@
 #include "probfd/cli/pdbs/pattern_collection_generator_multiple_cegar.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "probfd/cli/pdbs/cegar/cegar_options.h"
 #include "probfd/cli/pdbs/pattern_collection_generator_multiple_options.h"
@@ -16,31 +15,30 @@ using namespace probfd::cli::pdbs;
 using namespace probfd::pdbs;
 using namespace probfd::pdbs::cegar;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace probfd::cli::pdbs {
 
 InternalFunctionDefinitionBase&
-add_pattern_collection_generator_multiple_cegar_feature(Namespace& nspace)
+add_pattern_collection_generator_multiple_cegar_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "ppdbs_multiple_cegar",
-        &construct_shared<
-            PatternCollectionGenerator,
-            PatternCollectionGeneratorMultipleCegar,
-            probfd::value_t,
-            std::shared_ptr<FlawFindingStrategy>,
-            bool,
-            int,
-            int,
-            FSeconds,
-            FSeconds,
-            FSeconds,
-            double,
-            bool,
-            bool,
-            std::shared_ptr<RandomNumberGenerator>,
-            Verbosity>);
+    auto& f = insert_function_definition<&construct_shared<
+        PatternCollectionGenerator,
+        PatternCollectionGeneratorMultipleCegar,
+        value_t,
+        std::shared_ptr<FlawFindingStrategy>,
+        bool,
+        int,
+        int,
+        FSeconds,
+        FSeconds,
+        FSeconds,
+        double,
+        bool,
+        bool,
+        std::shared_ptr<RandomNumberGenerator>,
+        Verbosity>>(nspace, "ppdbs_multiple_cegar");
 
     f.make_optional_argument_with_default(
         0,

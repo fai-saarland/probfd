@@ -2,7 +2,7 @@
 
 #include "downward/cli/utils/logging_options.h"
 
-#include "language/plugins/internal_function_definition.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/utils/logging.h"
 
@@ -11,7 +11,7 @@ using namespace std;
 namespace downward::cli {
 
 std::size_t add_evaluator_options_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     const string& description,
     std::size_t start_index)
 {

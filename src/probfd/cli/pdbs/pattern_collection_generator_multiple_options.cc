@@ -1,6 +1,6 @@
 #include "probfd/cli/pdbs/pattern_collection_generator_multiple_options.h"
 
-#include "language/plugins/internal_function_definition.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -9,7 +9,7 @@
 using namespace std;
 using namespace downward;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::utils::add_rng_options_to_feature;
 

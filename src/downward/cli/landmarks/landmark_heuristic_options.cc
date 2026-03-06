@@ -2,7 +2,7 @@
 
 #include "downward/cli/heuristics/heuristic_options.h"
 
-#include "language/plugins/internal_function_definition.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/landmarks/landmark_factory.h"
 
@@ -14,7 +14,7 @@ using namespace downward::landmarks;
 namespace downward::cli::landmarks {
 
 std::size_t add_landmark_heuristic_options_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     const string& description,
     std::size_t start_index)
 {

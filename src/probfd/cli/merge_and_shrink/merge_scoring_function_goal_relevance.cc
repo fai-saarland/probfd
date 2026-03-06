@@ -1,27 +1,25 @@
 #include "probfd/cli/merge_and_shrink/merge_scoring_function_goal_relevance.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "probfd/merge_and_shrink/merge_scoring_function_goal_relevance.h"
 
 #include "probfd/merge_and_shrink/transition_system.h"
 
 using namespace std;
-using namespace language::plugins;
+using namespace language::parser;
 using namespace downward;
 using namespace probfd::merge_and_shrink;
 
 namespace probfd::cli::merge_and_shrink {
 
 InternalFunctionDefinitionBase&
-add_merge_scoring_function_goal_relevance_feature(Namespace& nspace)
+add_merge_scoring_function_goal_relevance_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "pgoal_relevance",
-        &language::plugins::construct_shared<
-            MergeScoringFunction,
-            MergeScoringFunctionGoalRelevance>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        MergeScoringFunction,
+        MergeScoringFunctionGoalRelevance>>(nspace, "pgoal_relevance");
 
     f.document_title("Goal relevance scoring");
     f.document_synopsis(

@@ -1,13 +1,13 @@
 #ifndef DOWNWARD_CLI_OPEN_LISTS_ALTERNATION_OPEN_LIST_FEATURE_H
 #define DOWNWARD_CLI_OPEN_LISTS_ALTERNATION_OPEN_LIST_FEATURE_H
 
-namespace language::plugins {
-class Namespace;
+namespace language::parser {
+class NamespaceLevelDeclarationList;
 }
 
 namespace downward::cli::open_lists {
 
-void add_alternation_open_list_features(language::plugins::Namespace& nspace);
+void add_alternation_open_list_features(language::parser::NamespaceLevelDeclarationList& nspace);
 
 }
 

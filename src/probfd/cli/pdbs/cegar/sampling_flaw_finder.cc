@@ -1,7 +1,6 @@
 #include "probfd/cli/pdbs/cegar/sampling_flaw_finder.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -12,22 +11,20 @@ using namespace utils;
 
 using namespace probfd::pdbs::cegar;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::utils::add_rng_options_to_feature;
 
 namespace probfd::cli::pdbs::cegar {
 
 InternalFunctionDefinitionBase&
-add_sampling_flaw_finder_feature(Namespace& nspace)
+add_sampling_flaw_finder_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "sampling_flaw_finder",
-        &language::plugins::construct_shared<
-            FlawFindingStrategy,
-            SamplingFlawFinder,
-            std::shared_ptr<RandomNumberGenerator>,
-            int>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        FlawFindingStrategy,
+        SamplingFlawFinder,
+        std::shared_ptr<RandomNumberGenerator>,
+        int>>(nspace, "sampling_flaw_finder");
 
     const auto n = add_rng_options_to_feature(f, 0);
     f.make_optional_argument_with_default(

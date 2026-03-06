@@ -1,7 +1,7 @@
 #include "downward/cli/landmarks/landmark_factory_rpg_exhaust_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/landmarks/landmark_factory_options.h"
 
@@ -10,7 +10,7 @@
 using namespace std;
 using namespace downward::utils;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::landmarks::add_landmark_factory_options_to_feature;
 
@@ -19,15 +19,13 @@ using namespace downward::landmarks;
 namespace downward::cli::landmarks {
 
 InternalFunctionDefinitionBase&
-add_landmark_factory_rpg_exhaust_feature(Namespace& nspace)
+add_landmark_factory_rpg_exhaust_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "lm_exhaust",
-        &language::plugins::construct_shared<
-            LandmarkFactory,
-            LandmarkFactoryRpgExhaust,
-            bool,
-            Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        LandmarkFactory,
+        LandmarkFactoryRpgExhaust,
+        bool,
+        Verbosity>>(nspace, "lm_exhaust");
     f.document_title("Exhaustive Landmarks");
     f.document_synopsis(
         "Exhaustively checks for each fact if it is a landmark."

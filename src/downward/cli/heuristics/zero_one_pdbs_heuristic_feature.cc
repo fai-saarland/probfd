@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/zero_one_pdbs_heuristic_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/heuristics/heuristic_options.h"
 
@@ -15,7 +15,7 @@ using namespace downward;
 using namespace downward::utils;
 using namespace downward::pdbs;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::add_heuristic_options_to_feature;
 
@@ -24,7 +24,7 @@ class ZOPDBsHeuristicFactory : public TaskDependentFactory<Evaluator> {
     std::shared_ptr<TaskTransformation> transformation;
     bool cache_estimates;
     std::string description;
-    utils::Verbosity verbosity;
+    Verbosity verbosity;
     std::shared_ptr<PatternCollectionGenerator> generator;
 
 public:
@@ -32,7 +32,7 @@ public:
         shared_ptr<TaskTransformation> transformation,
         bool cache_estimates,
         string description,
-        utils::Verbosity verbosity,
+        Verbosity verbosity,
         std::shared_ptr<PatternCollectionGenerator> generator)
         : transformation(std::move(transformation))
         , cache_estimates(cache_estimates)
@@ -61,18 +61,16 @@ public:
 namespace downward::cli::heuristics {
 
 InternalFunctionDefinitionBase&
-add_zero_one_pdbs_heuristic_feature(Namespace& nspace)
+add_zero_one_pdbs_heuristic_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "zopdbs",
-        &language::plugins::construct_shared<
-            TaskDependentFactory<Evaluator>,
-            ZOPDBsHeuristicFactory,
-            shared_ptr<TaskTransformation>,
-            bool,
-            string,
-            Verbosity,
-            std::shared_ptr<PatternCollectionGenerator>>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskDependentFactory<Evaluator>,
+        ZOPDBsHeuristicFactory,
+        shared_ptr<TaskTransformation>,
+        bool,
+        string,
+        Verbosity,
+        std::shared_ptr<PatternCollectionGenerator>>>(nspace, "zopdbs");
 
     f.document_title("Zero-One PDB");
     f.document_synopsis(

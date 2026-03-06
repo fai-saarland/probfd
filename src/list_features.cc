@@ -4,10 +4,17 @@
 
 #include "language/syntax_analyzer.h"
 
-#include "language/plugins/doc_printer.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
+#include "language/ast/internal_type_declaration.h"
+
+#include "language/documentation/doc_printer.h"
+#include "language/documentation/txt2tags_printer.h"
+
+#include "language/utils/demangle.h"
 
 #include "downward/utils/system.h"
+#include "language/ast/internal_enum_declaration.h"
 
 #include <cassert>
 #include <charconv>
@@ -20,7 +27,6 @@
 
 using namespace std;
 using namespace language::parser;
-using namespace language::plugins;
 
 using downward::utils::ExitCode;
 
@@ -29,6 +35,7 @@ static constexpr int MAX_LINE_WIDTH = 180;
 namespace probfd {
 
 namespace {
+
 std::vector<std::string_view> split_lines(const std::string& s, int line_wrap)
 {
     std::vector<std::string_view> lines;
@@ -85,13 +92,13 @@ std::vector<std::string_view> split_lines(const std::string& s, int line_wrap)
     return lines;
 }
 
-class FeaturePrinter : public DocPrinter {
+class FeaturePrinter : public language::documentation::DocPrinter {
     // If this is false, notes, properties and language_features are omitted.
     bool print_all;
 
 public:
-    FeaturePrinter(ostream& out, Registry& registry, bool print_all = false)
-        : DocPrinter(out, registry)
+    explicit FeaturePrinter(ostream& out, bool print_all = false)
+        : DocPrinter(out)
         , print_all(print_all)
     {
     }
@@ -123,9 +130,8 @@ protected:
     {
         os << "Type:\n  ";
 
-        const auto& args_infos = function_def.get_arguments();
-        const auto& arg_types = function_def.get_type(*TypeRegistry::instance())
-                                    .get_argument_types();
+        const auto& args_infos = function_def.get_argument_infos();
+        const auto& arg_types = function_def.get_arg_types();
 
         const auto args = std::views::zip(args_infos, arg_types);
 
@@ -140,7 +146,7 @@ protected:
         if (it != end) {
             {
                 const auto& [arg_info, arg_type] = *it;
-                os << arg_type->name();
+                os << language::utils::demangle(arg_type.name());
                 if (arg_info.has_default()) {
                     os << "*";
                     has_optional = true;
@@ -154,7 +160,7 @@ protected:
 
             for (++it; it != end; ++it) {
                 const auto& [arg_info, arg_type] = *it;
-                os << ", " << arg_type->name();
+                os << ", " << language::utils::demangle(arg_type.name());
                 if (arg_info.has_default()) {
                     os << "*";
                     has_optional = true;
@@ -168,9 +174,7 @@ protected:
         }
 
         os << ") -> "
-           << function_def.get_type(*TypeRegistry::instance())
-                  .get_return_type()
-                  .name()
+           << language::utils::demangle(function_def.get_return_type().name())
            << std::endl;
 
         if (has_optional) {
@@ -190,7 +194,7 @@ protected:
     void print_arguments(
         const InternalFunctionDefinitionBase& function_def) const override
     {
-        if (function_def.get_arguments().empty()) {
+        if (function_def.get_argument_infos().empty()) {
             os << "This function_def has no arguments.\n" << std::endl;
             return;
         }
@@ -202,11 +206,13 @@ protected:
         std::vector<std::string> arg_strings;
 
         for (const auto& [arg_info, arg_type] : std::views::zip(
-                 function_def.get_arguments(),
-                 function_def.get_type(*TypeRegistry::instance())
-                     .get_argument_types())) {
+                 function_def.get_argument_infos(),
+                 function_def.get_arg_types())) {
             std::string& s = arg_strings.emplace_back(
-                std::format("{} : {}", arg_info, arg_type->name()));
+                std::format(
+                    "{} : {}",
+                    arg_info,
+                    language::utils::demangle(arg_type.name())));
 
             if (const auto width = static_cast<int>(s.size());
                 width > max_width)
@@ -215,11 +221,9 @@ protected:
 
         int remaining_width = std::max(10, MAX_LINE_WIDTH - max_width + 4);
 
-        for (const auto& [s, arg_info, arg_type, arg_help] : std::views::zip(
+        for (const auto& [s, arg_info, arg_help] : std::views::zip(
                  arg_strings,
-                 function_def.get_arguments(),
-                 function_def.get_type(*TypeRegistry::instance())
-                     .get_argument_types(),
+                 function_def.get_argument_infos(),
                  function_def.get_argument_docs())) {
             std::stringstream ss;
             ss << arg_help;
@@ -251,7 +255,7 @@ protected:
         const InternalFunctionDefinitionBase& function_def) const override
     {
         if (print_all) {
-            for (const NoteInfo& note : function_def.get_notes()) {
+            for (const auto& note : function_def.get_notes()) {
                 if (note.long_text) {
                     os << "=== " << note.name << " ===" << endl
                        << note.description << endl
@@ -269,8 +273,7 @@ protected:
     {
         if (print_all && !function_def.get_language_support().empty()) {
             os << "Language features supported:" << endl;
-            for (const LanguageSupportInfo& ls :
-                 function_def.get_language_support()) {
+            for (const auto& ls : function_def.get_language_support()) {
                 os << " * " << ls.feature << ": " << ls.description << endl;
             }
         }
@@ -281,23 +284,25 @@ protected:
     {
         if (print_all && !function_def.get_properties().empty()) {
             os << "Properties:" << endl;
-            for (const PropertyInfo& prop : function_def.get_properties()) {
+            for (const auto& prop : function_def.get_properties()) {
                 os << " * " << prop.property << ": " << prop.description
                    << endl;
             }
         }
     }
 
-    void print_type_declaration_header(
-        const InternalTypeDeclarationBase& type_declaration) const override
+    void
+    print_header(const InternalTypeDeclaration& type_declaration) const override
     {
         os << "##### Type " << type_declaration.get_identifier()
            << " #####\n\n";
     }
 
-    void print_type_declaration_synopsis(const string& synopsis) const override
+    void print_synopsis(
+        const InternalTypeDeclaration& type_declaration) const override
     {
-        if (!synopsis.empty()) {
+        if (const auto& synopsis = type_declaration.get_synopsis();
+            !synopsis.empty()) {
             std::println(os, "Description:\n{}\n", synopsis);
         } else {
             std::println(os, "No description.\n");
@@ -305,7 +310,7 @@ protected:
     }
 
     void print_type_declaration_related_functions(
-        const InternalTypeDeclarationBase&,
+        const InternalTypeDeclaration&,
         const std::vector<const InternalFunctionDefinitionBase*> features)
         const override
     {
@@ -334,11 +339,11 @@ protected:
     }
 
     void print_topic_members(
-        const DocumentationTopic&,
-        const std::vector<const InternalFunctionDefinitionBase*> features)
+        const language::documentation::DocumentationTopic&,
+        const std::vector<const InternalFunctionDefinitionBase*> decls)
         const override
     {
-        if (features.empty()) {
+        if (decls.empty()) {
             os << "This topic has no members.\n" << std::endl;
             return;
         }
@@ -347,13 +352,13 @@ protected:
 
         std::size_t max_width = 0;
 
-        for (const auto& function_def : features) {
+        for (const auto& function_def : decls) {
             if (const auto& name = function_def->get_identifier();
                 name.size() > max_width)
                 max_width = name.size();
         }
 
-        for (const auto& function_def : features) {
+        for (const auto& function_def : decls) {
             const auto& name = function_def->get_identifier();
             const auto& synopsis = function_def->get_title();
             std::print(os, "  {:{}}  {}\n", name, max_width, synopsis);
@@ -362,63 +367,119 @@ protected:
         std::println(os);
     }
 
-    void print_type_declaration_footer() const override {}
+    void print_footer(const InternalTypeDeclaration&) const override {}
+
+    void print_header(
+        const InternalEnumDeclarationBase& enum_declaration) const override
+    {
+        os << "##### Enumeration " << enum_declaration.get_identifier()
+           << " #####\n\n";
+    }
+
+    void print_synopsis(
+        const InternalEnumDeclarationBase& enum_declaration) const override
+    {
+        if (const auto& synopsis = enum_declaration.get_synopsis();
+            !synopsis.empty()) {
+            std::println(os, "Description:\n{}\n", synopsis);
+        } else {
+            std::println(os, "No description.\n");
+        }
+    }
+
+    void print_enumerators(
+        const InternalEnumDeclarationBase& enum_def) const override
+    {
+        if (enum_def.get_enumerator_names().empty()) {
+            os << "This enumeration has no enumerators.\n" << std::endl;
+            return;
+        }
+
+        os << "Enumerators:\n";
+
+        int max_width = 0;
+
+        std::vector<std::string> arg_strings;
+
+        for (const auto& name : enum_def.get_enumerator_names()) {
+            if (const auto width = static_cast<int>(name.size());
+                width > max_width)
+                max_width = width;
+        }
+
+        const int remaining_width =
+            std::max(10, MAX_LINE_WIDTH - max_width + 4);
+
+        for (const auto& [name, help] : std::views::zip(
+                 enum_def.get_enumerator_names(),
+                 enum_def.get_enumerator_docs())) {
+            std::stringstream ss;
+            ss << help;
+
+            if (!help.empty() && help.back() != '\n') ss << " ";
+
+            std::string temps = ss.str();
+            std::vector<std::string_view> lines =
+                split_lines(temps, remaining_width);
+
+            // Print help line by line
+            std::println(os, "  {:{}}  {}", name, max_width, lines.front());
+
+            for (std::string_view line : lines | std::views::drop(1)) {
+                std::println(os, "{:>{}}{}", "", max_width + 4, line);
+            }
+        }
+
+        os << std::endl;
+    }
+
+    void print_footer(const InternalEnumDeclarationBase&) const override {}
 };
 
 } // namespace
 
 static int list_features(argparse::ArgumentParser& parser)
 {
-    Registry registry;
+    CompilationContext registry;
     register_definitions(registry);
 
-    unique_ptr<DocPrinter> doc_printer;
+    unique_ptr<language::documentation::DocPrinter> doc_printer;
     if (parser.get<bool>("--txt2tags")) {
-        doc_printer = std::make_unique<Txt2TagsPrinter>(cout, registry);
+        doc_printer =
+            std::make_unique<language::documentation::Txt2TagsPrinter>(cout);
     } else {
-        doc_printer = std::make_unique<FeaturePrinter>(cout, registry);
+        doc_printer = std::make_unique<FeaturePrinter>(cout);
     }
 
-    int exitcode = 0;
+    std::string topic_regex = "$^";
+    std::string type_regex = "$^";
+    std::string enum_regex = "$^";
+    std::string function_regex = "$^";
 
     if (parser.present("--types")) {
-        const auto types = parser.get<std::vector<std::string>>("--types");
-        for (const string& name : types) {
-            try {
-                doc_printer->print_type_declaration(name);
-            } catch (const MissingTypeDeclarationError&) {
-                std::println(std::cerr, "Type '{}' does not exist.", name);
-                exitcode = 1;
-            }
-        }
+        type_regex = parser.get<std::string>("--types");
     }
 
-    if (parser.present("--features")) {
-        const auto features =
-            parser.get<std::vector<std::string>>("--functions");
-        for (const string& name : features) {
-            try {
-                doc_printer->print_function_declaration(name);
-            } catch (const MissingFunctionError&) {
-                std::println(std::cerr, "Function '{}' does not exist.", name);
-                exitcode = 1;
-            }
-        }
+    if (parser.present("--functions")) {
+        function_regex = parser.get<std::string>("--functions");
     }
 
     if (parser.present("--topics")) {
-        const auto topics = parser.get<std::vector<std::string>>("--topics");
-        for (const string& name : topics) {
-            try {
-                doc_printer->print_topic(name);
-            } catch (const MissingTopicError&) {
-                std::println(std::cerr, "Topic '{}' does not exist.", name);
-                exitcode = 1;
-            }
-        }
+        topic_regex = parser.get<std::string>("--topics");
     }
 
-    return exitcode;
+    if (parser.present("--enums")) {
+        enum_regex = parser.get<std::string>("--enums");
+    }
+
+    doc_printer->print_documentation(
+        registry,
+        topic_regex,
+        type_regex,
+        enum_regex,
+        function_regex);
+
+    return 0;
 }
 
 void add_list_features_subcommand(argparse::ArgumentParser& arg_parser)
@@ -440,14 +501,19 @@ void add_list_features_subcommand(argparse::ArgumentParser& arg_parser)
     feature_list_parser.add_argument("--txt2tags")
         .help("Emit output in txt2tags format.")
         .flag();
-    feature_list_parser.add_argument("--features")
+    feature_list_parser.add_argument("--functions")
         .help(
-            "One or more identifiers of pre-defined variables that should be "
+            "One or more identifiers of pre-defined functions that should be "
             "listed.")
         .nargs(argparse::nargs_pattern::at_least_one);
     feature_list_parser.add_argument("--types")
         .help(
             "One or more identifiers of pre-defined types that should be "
+            "listed.")
+        .nargs(argparse::nargs_pattern::at_least_one);
+    feature_list_parser.add_argument("--enums")
+        .help(
+            "One or more identifiers of pre-defined enums that should be "
             "listed.")
         .nargs(argparse::nargs_pattern::at_least_one);
     feature_list_parser.add_argument("--topics")

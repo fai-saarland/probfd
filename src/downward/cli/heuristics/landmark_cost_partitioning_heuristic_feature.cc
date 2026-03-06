@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/landmark_cost_partitioning_heuristic_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/landmarks/landmark_heuristic_options.h"
 
@@ -13,12 +13,13 @@
 
 #include "downward/task_dependent_factory.h"
 #include "downward/task_transformation.h"
+#include "language/ast/internal_enum_declaration.h"
 
 using namespace std;
 using namespace downward;
 using namespace downward::landmarks;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::landmarks::add_landmark_heuristic_options_to_feature;
 
@@ -93,42 +94,45 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_landmark_cost_partitioning_heuristic_categories(Namespace& nspace)
+void add_landmark_cost_partitioning_heuristic_categories(
+    NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_enum_declaration<CostPartitioningMethod>({
-        {"optimal", "use optimal (LP-based) cost partitioning"},
-        {"uniform",
-         "partition operator costs uniformly among all landmarks "
-         "achieved by that operator"},
-    });
+    insert_enum_declaration<CostPartitioningMethod>(
+        nspace,
+        "CostPartitioningMethod",
+        {
+            {"optimal", "use optimal (LP-based) cost partitioning"},
+            {"uniform",
+             "partition operator costs uniformly among all landmarks "
+             "achieved by that operator"},
+        });
 }
 
 InternalFunctionDefinitionBase&
-add_landmark_cost_partitioning_heuristic_feature(Namespace& nspace)
+add_landmark_cost_partitioning_heuristic_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "landmark_cost_partitioning",
-        &language::plugins::construct_shared<
-            TaskDependentFactory<Evaluator>,
-            LandmarkCostPartitioningHeuristicFactory,
-            shared_ptr<TaskTransformation>,
-            bool,
-            string,
-            utils::Verbosity,
-            shared_ptr<LandmarkFactory>,
-            bool,
-            bool,
-            bool,
-            bool,
-            CostPartitioningMethod,
-            bool,
-            downward::lp::LPSolverType>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskDependentFactory<Evaluator>,
+        LandmarkCostPartitioningHeuristicFactory,
+        shared_ptr<TaskTransformation>,
+        bool,
+        string,
+        utils::Verbosity,
+        shared_ptr<LandmarkFactory>,
+        bool,
+        bool,
+        bool,
+        bool,
+        CostPartitioningMethod,
+        bool,
+        downward::lp::LPSolverType>>(nspace, "landmark_cost_partitioning");
 
     f.document_title("Landmark cost partitioning heuristic");
     f.document_synopsis(
         "Formerly known as the admissible landmark heuristic.\n"
         "See the papers" +
-        downward::utils::format_conference_reference(
+        utils::format_conference_reference(
             {"Erez Karpas", "Carmel Domshlak"},
             "Cost-Optimal Planning with Landmarks",
             "https://www.ijcai.org/Proceedings/09/Papers/288.pdf",
@@ -138,7 +142,7 @@ add_landmark_cost_partitioning_heuristic_feature(Namespace& nspace)
             "AAAI Press",
             "2009") +
         "and" +
-        downward::utils::format_conference_reference(
+        utils::format_conference_reference(
             {"Emil Keyder and Silvia Richter and Malte Helmert"},
             "Sound and Complete Landmarks for And/Or Graphs",
             "https://ai.dmi.unibas.ch/papers/keyder-et-al-ecai2010.pdf",

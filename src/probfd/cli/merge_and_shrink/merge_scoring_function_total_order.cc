@@ -1,8 +1,5 @@
 #include "probfd/cli/merge_and_shrink/merge_scoring_function_total_order.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
-
 #include "downward/cli/utils/rng_options.h"
 
 #include "probfd/merge_and_shrink/merge_scoring_function_total_order.h"
@@ -11,25 +8,27 @@
 
 #include "downward/utils/markup.h"
 
+#include "language/ast/internal_enum_declaration.h"
+#include "language/ast/internal_function_definition.h"
+
 using namespace std;
-using namespace language::plugins;
+using namespace language::parser;
 using namespace downward;
 using namespace probfd::merge_and_shrink;
 
 namespace {
 
 InternalFunctionDefinitionBase&
-add_merge_scoring_function_total_order_to_namespace(Namespace& nspace)
+add_merge_scoring_function_total_order_to_namespace(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "ptotal_order",
-        &language::plugins::construct_shared<
-            MergeScoringFunction,
-            MergeScoringFunctionTotalOrder,
-            AtomicTSOrder,
-            ProductTSOrder,
-            bool,
-            std::shared_ptr<utils::RandomNumberGenerator>>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        MergeScoringFunction,
+        MergeScoringFunctionTotalOrder,
+        AtomicTSOrder,
+        ProductTSOrder,
+        bool,
+        std::shared_ptr<utils::RandomNumberGenerator>>>(nspace, "ptotal_order");
 
     f.document_title("Total order");
     f.document_synopsis(
@@ -88,14 +87,19 @@ add_merge_scoring_function_total_order_to_namespace(Namespace& nspace)
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_merge_scoring_function_total_order_feature(Namespace& nspace)
+void add_merge_scoring_function_total_order_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_enum_declaration<AtomicTSOrder>(
+    insert_enum_declaration<AtomicTSOrder>(
+        nspace,
+        "AtomicTSOrder",
         {{"reverse_level", "the variable order of Fast Downward"},
          {"level", "opposite of reverse_level"},
          {"random", "a randomized order"}});
 
-    nspace.insert_enum_declaration<ProductTSOrder>(
+    insert_enum_declaration<ProductTSOrder>(
+        nspace,
+        "ProductTSOrder",
         {{"old_to_new",
           "consider composite transition systems from oldest to most recent"},
          {"new_to_old", "opposite of old_to_new"},

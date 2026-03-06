@@ -1,15 +1,18 @@
 #ifndef DOWNWARD_EVALUATORS_SUBCATEGORY_H
 #define DOWNWARD_EVALUATORS_SUBCATEGORY_H
 
-namespace language::plugins {
+namespace language::parser {
+class CompilationContext;
+}
+
+namespace language::documentation {
 class DocumentationTopic;
-class Registry;
-} // namespace language::plugins
+}
 
 namespace downward::cli::evaluators {
 
-language::plugins::DocumentationTopic&
-add_evaluator_subcategory(language::plugins::Registry& registry);
+language::documentation::DocumentationTopic& add_evaluator_subcategory(
+    language::parser::CompilationContext& registry);
 
 }
 

@@ -1,8 +1,7 @@
 #include "downward/cli/search_algorithms/eager_greedy_feature.h"
 #include "downward/cli/search_algorithms/eager_search_options.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/search_algorithms/eager_search.h"
 #include "downward/search_algorithms/search_common.h"
@@ -14,7 +13,7 @@ using namespace std;
 using namespace downward;
 
 using namespace downward::cli::eager_search;
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace {
 class EagerGreedySearchFactory : public TaskDependentFactory<SearchAlgorithm> {
@@ -96,22 +95,21 @@ public:
 
 namespace downward::cli::search_algorithms {
 
-InternalFunctionDefinitionBase& add_eager_greedy_feature(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_eager_greedy_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "eager_greedy",
-        &language::plugins::construct_shared<
-            TaskDependentFactory<SearchAlgorithm>,
-            EagerGreedySearchFactory,
-            std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
-            std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
-            int,
-            std::shared_ptr<PruningMethod>,
-            OperatorCost,
-            int,
-            utils::FSeconds,
-            std::string,
-            utils::Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskDependentFactory<SearchAlgorithm>,
+        EagerGreedySearchFactory,
+        std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
+        std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
+        int,
+        std::shared_ptr<PruningMethod>,
+        OperatorCost,
+        int,
+        utils::FSeconds,
+        std::string,
+        utils::Verbosity>>(nspace, "eager_greedy");
 
     f.document_title("Greedy search (eager)");
     f.document_synopsis("");

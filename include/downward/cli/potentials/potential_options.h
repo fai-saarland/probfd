@@ -4,16 +4,16 @@
 #include <cstddef>
 #include <string>
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-} // namespace language::plugins
+} // namespace language::parser
 
 namespace downward::cli::potentials {
 
 std::string get_admissible_potentials_reference();
 
 std::size_t add_admissible_potentials_options_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     const std::string& description,
     std::size_t start_index);
 

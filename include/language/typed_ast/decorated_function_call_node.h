@@ -1,42 +1,36 @@
 #ifndef LANGUAGE_DECORATED_FUNCTION_CALL_NODE_H
 #define LANGUAGE_DECORATED_FUNCTION_CALL_NODE_H
 
-#include "language/typed_ast/decorated_ast_node.h"
+#include "language/typed_ast/decorated_expression_node.h"
 
 #include <memory>
 #include <string>
 #include <vector>
 
-namespace language::parser {
+namespace language::typed_ast {
 
 class FunctionArgument {
-    std::unique_ptr<DecoratedASTNode> value;
+    std::unique_ptr<DecoratedExpressionNode> value;
     bool is_default;
 
 public:
-    FunctionArgument(std::unique_ptr<DecoratedASTNode> value, bool is_default);
+    FunctionArgument(std::unique_ptr<DecoratedExpressionNode> value, bool is_default);
 
-    DecoratedASTNode& get_value();
-    const DecoratedASTNode& get_value() const;
+    DecoratedExpressionNode& get_value();
+    const DecoratedExpressionNode& get_value() const;
     bool is_default_argument() const;
 };
 
-class DecoratedFunctionCallNode : public DecoratedASTNode {
-    std::unique_ptr<DecoratedASTNode> callee;
+class DecoratedFunctionCallNode : public DecoratedExpressionNode {
+    std::unique_ptr<DecoratedExpressionNode> callee;
     std::vector<FunctionArgument> arguments;
-    std::string unparsed_config;
 
 public:
     DecoratedFunctionCallNode(
-        std::unique_ptr<DecoratedASTNode> callee,
-        std::vector<FunctionArgument> arguments,
-        const std::string& unparsed_config);
-
-    void remove_variable_usages() override;
+        std::unique_ptr<DecoratedExpressionNode> callee,
+        std::vector<FunctionArgument> arguments);
 
     std::any construct(ConstructContext& context) const override;
-    void print(std::ostream& out, std::size_t indent, bool print_default_args)
-        const override;
 };
 
 } // namespace language::parser

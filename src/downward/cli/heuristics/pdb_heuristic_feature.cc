@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/pdb_heuristic_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/heuristics/heuristic_options.h"
 
@@ -15,7 +15,7 @@ using namespace downward;
 using namespace downward::utils;
 using namespace downward::pdbs;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::add_heuristic_options_to_feature;
 
@@ -24,7 +24,7 @@ class PDBHeuristicFactory : public TaskDependentFactory<Evaluator> {
     std::shared_ptr<TaskTransformation> transformation;
     bool cache_estimates;
     std::string description;
-    utils::Verbosity verbosity;
+    Verbosity verbosity;
     std::shared_ptr<PatternGenerator> generator;
 
 public:
@@ -32,7 +32,7 @@ public:
         shared_ptr<TaskTransformation> transformation,
         bool cache_estimates,
         string description,
-        utils::Verbosity verbosity,
+        Verbosity verbosity,
         std::shared_ptr<PatternGenerator> generator)
         : transformation(std::move(transformation))
         , cache_estimates(cache_estimates)
@@ -60,18 +60,17 @@ public:
 
 namespace downward::cli::heuristics {
 
-InternalFunctionDefinitionBase& add_pdb_heuristic_feature(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_pdb_heuristic_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "pdb",
-        &language::plugins::construct_shared<
-            TaskDependentFactory<Evaluator>,
-            PDBHeuristicFactory,
-            shared_ptr<TaskTransformation>,
-            bool,
-            string,
-            Verbosity,
-            std::shared_ptr<PatternGenerator>>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskDependentFactory<Evaluator>,
+        PDBHeuristicFactory,
+        shared_ptr<TaskTransformation>,
+        bool,
+        string,
+        Verbosity,
+        std::shared_ptr<PatternGenerator>>>(nspace, "pdb");
 
     f.document_title("Pattern database heuristic");
     f.document_synopsis("TODO");

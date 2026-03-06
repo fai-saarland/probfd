@@ -1,8 +1,8 @@
 #include "probfd/cli/pdbs/cegar/cegar_options.h"
 
-#include "language/plugins/internal_function_definition.h"
+#include "language/ast/internal_function_definition.h"
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace probfd::cli::pdbs {
 

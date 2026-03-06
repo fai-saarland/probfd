@@ -1,19 +1,21 @@
 #include "downward/cli/operator_cost_category.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
-
 #include "downward/operator_cost.h"
+
+#include "language/ast/internal_enum_declaration.h"
+#include "language/ast/internal_function_definition.h"
 
 using namespace std;
 
 namespace downward::cli {
 
-using namespace language::plugins;
+using namespace language::parser;
 
-void add_operator_cost_category(Namespace& nspace)
+void add_operator_cost_category(NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_enum_declaration<OperatorCost>(
+    insert_enum_declaration<OperatorCost>(
+        nspace,
+        "OperatorCost",
         {{"normal", "all actions are accounted for with their real cost"},
          {"one", "all actions are accounted for as unit cost"},
          {"plusone",

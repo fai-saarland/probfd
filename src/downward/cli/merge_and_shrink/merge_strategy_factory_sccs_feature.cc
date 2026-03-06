@@ -1,36 +1,35 @@
 #include "downward/cli/merge_and_shrink/merge_strategy_factory_sccs_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/merge_and_shrink/merge_strategy_options.h"
 
 #include "downward/merge_and_shrink/merge_strategy_factory_sccs.h"
 
-#include "downward/utils/logging.h"
 #include "downward/utils/markup.h"
+#include "language/ast/internal_enum_declaration.h"
 
 using namespace std;
 using namespace downward::merge_and_shrink;
 using namespace downward::utils;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::merge_and_shrink::add_merge_strategy_options_to_feature;
 
 namespace {
 
-InternalFunctionDefinitionBase&
-add_merge_strategy_factory_sccs_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_merge_strategy_factory_sccs_to_namespace(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "merge_sccs",
-        &language::plugins::construct_shared<
-            MergeStrategyFactory,
-            MergeStrategyFactorySCCs,
-            OrderOfSCCs,
-            std::shared_ptr<MergeSelector>,
-            Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        MergeStrategyFactory,
+        MergeStrategyFactorySCCs,
+        OrderOfSCCs,
+        std::shared_ptr<MergeSelector>,
+        Verbosity>>(nspace, "merge_sccs");
+
     f.document_title("Merge strategy SSCs");
     f.document_synopsis(
         "This merge strategy implements the algorithm described in the "
@@ -74,9 +73,12 @@ add_merge_strategy_factory_sccs_to_namespace(Namespace& nspace)
 
 namespace downward::cli::merge_and_shrink {
 
-void add_merge_strategy_factory_sccs_feature(Namespace& nspace)
+void add_merge_strategy_factory_sccs_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_enum_declaration<OrderOfSCCs>(
+    insert_enum_declaration<OrderOfSCCs>(
+        nspace,
+        "OrderOfSCCs",
         {{"topological",
           "according to the topological ordering of the directed graph "
           "where each obtained SCC is a 'supervertex'"},

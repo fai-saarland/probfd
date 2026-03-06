@@ -1,18 +1,18 @@
 #ifndef DOWNWARD_HEURISTICS_ADDITIVE_CARTESIAN_HEURISTIC_FEATURE_H
 #define DOWNWARD_HEURISTICS_ADDITIVE_CARTESIAN_HEURISTIC_FEATURE_H
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-class Namespace;
-} // namespace language::plugins
+class NamespaceLevelDeclarationList;
+} // namespace language::parser
 
 namespace downward::cli::heuristics {
 
 void add_additive_cartesian_heuristic_categories(
-    language::plugins::Namespace& nspace);
+    language::parser::NamespaceLevelDeclarationList& nspace);
 
-language::plugins::InternalFunctionDefinitionBase&
-add_additive_cartesian_heuristic_feature(language::plugins::Namespace& nspace);
+language::parser::InternalFunctionDefinitionBase&
+add_additive_cartesian_heuristic_feature(language::parser::NamespaceLevelDeclarationList& nspace);
 
 } // namespace downward::cli::heuristics
 

@@ -1,8 +1,5 @@
 #include "probfd/cli/merge_and_shrink/shrink_strategy_bisimulation.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
-
 #include "probfd/merge_and_shrink/shrink_strategy_bisimulation.h"
 
 #include "probfd/merge_and_shrink/distances.h"
@@ -10,23 +7,24 @@
 
 #include "downward/utils/markup.h"
 
+#include "language/ast/internal_enum_declaration.h"
+#include "language/ast/internal_function_definition.h"
+
 using namespace std;
 using namespace downward;
-using namespace language::plugins;
+using namespace language::parser;
 using namespace probfd::merge_and_shrink;
 
 namespace {
 
-InternalFunctionDefinitionBase&
-add_shrink_strategy_bisimulation_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_shrink_strategy_bisimulation_to_namespace(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "pshrink_bisimulation",
-        &language::plugins::construct_shared<
-            ShrinkStrategy,
-            ShrinkStrategyBisimulation,
-            ShrinkStrategyBisimulation::AtLimit,
-            bool>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        ShrinkStrategy,
+        ShrinkStrategyBisimulation,
+        ShrinkStrategyBisimulation::AtLimit,
+        bool>>(nspace, "pshrink_bisimulation");
 
     f.document_title("Bismulation based shrink strategy");
     f.document_synopsis(
@@ -64,9 +62,12 @@ add_shrink_strategy_bisimulation_to_namespace(Namespace& nspace)
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_shrink_strategy_bisimulation_feature(Namespace& nspace)
+void add_shrink_strategy_bisimulation_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_enum_declaration<ShrinkStrategyBisimulation::AtLimit>(
+    insert_enum_declaration<ShrinkStrategyBisimulation::AtLimit>(
+        nspace,
+        "AtLimit",
         {{"return", "stop without refining the equivalence class further"},
          {"use_up",
           "continue refining the equivalence class until "

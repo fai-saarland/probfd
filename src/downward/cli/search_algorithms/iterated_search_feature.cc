@@ -1,21 +1,18 @@
 #include "downward/cli/search_algorithms/iterated_search_feature.h"
 #include "downward/cli/search_algorithms/search_algorithm_options.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/search_algorithms/iterated_search.h"
 
 #include "downward/search_algorithm.h"
 #include "downward/task_dependent_factory.h"
 
-#include "downward/utils/logging.h"
-
 using namespace std;
 using namespace downward;
 using namespace downward::iterated_search;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::add_search_algorithm_options_to_feature;
 
@@ -84,23 +81,22 @@ public:
 
 namespace downward::cli::search_algorithms {
 
-InternalFunctionDefinitionBase& add_iterated_search_feature(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_iterated_search_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "iterated",
-        &language::plugins::construct_shared<
-            TaskDependentFactory<SearchAlgorithm>,
-            IteratedSearchFactory,
-            OperatorCost,
-            int,
-            utils::FSeconds,
-            std::string,
-            utils::Verbosity,
-            std::vector<std::shared_ptr<TaskDependentFactory<SearchAlgorithm>>>,
-            bool,
-            bool,
-            bool,
-            bool>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskDependentFactory<SearchAlgorithm>,
+        IteratedSearchFactory,
+        OperatorCost,
+        int,
+        utils::FSeconds,
+        std::string,
+        utils::Verbosity,
+        std::vector<std::shared_ptr<TaskDependentFactory<SearchAlgorithm>>>,
+        bool,
+        bool,
+        bool,
+        bool>>(nspace, "iterated");
 
     f.document_title("Iterated search");
     f.document_synopsis("");

@@ -1,15 +1,16 @@
 #ifndef PROBFD_CLI_SOLVERS_ACYCLIC_VI_H
 #define PROBFD_CLI_SOLVERS_ACYCLIC_VI_H
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-class Namespace;
-} // namespace language::plugins
+class NamespaceLevelDeclarationList;
+} // namespace language::parser
 
 namespace probfd::cli::solvers {
 
-language::plugins::InternalFunctionDefinitionBase&
-add_acyclic_value_iteration_feature(language::plugins::Namespace& nspace);
+language::parser::InternalFunctionDefinitionBase&
+add_acyclic_value_iteration_feature(
+    language::parser::NamespaceLevelDeclarationList& nspace);
 
 }
 

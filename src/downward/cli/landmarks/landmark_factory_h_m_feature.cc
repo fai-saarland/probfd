@@ -1,7 +1,7 @@
 #include "downward/cli/landmarks/landmark_factory_h_m_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/landmarks/landmark_factory_options.h"
 
@@ -16,27 +16,25 @@ using namespace downward;
 using namespace downward::landmarks;
 using namespace downward::utils;
 
-using namespace language::plugins;
-
-using downward::cli::landmarks::add_use_orders_option_to_feature;
+using namespace language::parser;
 
 using downward::cli::landmarks::add_landmark_factory_options_to_feature;
+using downward::cli::landmarks::add_use_orders_option_to_feature;
 
 namespace downward::cli::landmarks {
 
 InternalFunctionDefinitionBase&
-add_landmark_factory_hm_feature(Namespace& nspace)
+add_landmark_factory_hm_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "lm_hm",
-        &language::plugins::construct_shared<
-            LandmarkFactory,
-            LandmarkFactoryHM,
-            std::shared_ptr<TaskDependentFactory<MutexInformation>>,
-            int,
-            bool,
-            bool,
-            utils::Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        LandmarkFactory,
+        LandmarkFactoryHM,
+        std::shared_ptr<TaskDependentFactory<MutexInformation>>,
+        int,
+        bool,
+        bool,
+        Verbosity>>(nspace, "lm_hm");
+
     // document_group("");
     f.document_title("h^m Landmarks");
     f.document_synopsis(
@@ -58,6 +56,7 @@ add_landmark_factory_hm_feature(Namespace& nspace)
         "conjunctive_landmarks",
         "true",
         "keep conjunctive landmarks");
+
     const auto n = add_use_orders_option_to_feature(f, 3);
     add_landmark_factory_options_to_feature(f, n + 3);
 

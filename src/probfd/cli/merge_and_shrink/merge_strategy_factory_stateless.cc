@@ -1,7 +1,6 @@
 #include "probfd/cli/merge_and_shrink/merge_strategy_factory_stateless.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "probfd/merge_and_shrink/merge_strategy_factory_stateless.h"
 
@@ -11,23 +10,21 @@
 #include "probfd/cli/merge_and_shrink/merge_strategy_factory_options.h"
 
 using namespace std;
-using namespace language::plugins;
+using namespace language::parser;
 using namespace downward;
 using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
 
 namespace probfd::cli::merge_and_shrink {
 
-InternalFunctionDefinitionBase&
-add_merge_strategy_factory_stateless_feature(Namespace& nspace)
+InternalFunctionDefinitionBase& add_merge_strategy_factory_stateless_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "pmerge_stateless",
-        &language::plugins::construct_shared<
-            MergeStrategyFactory,
-            MergeStrategyFactoryStateless,
-            utils::Verbosity,
-            std::shared_ptr<MergeSelector>>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        MergeStrategyFactory,
+        MergeStrategyFactoryStateless,
+        utils::Verbosity,
+        std::shared_ptr<MergeSelector>>>(nspace, "pmerge_stateless");
 
     f.document_title("Stateless merge strategy");
     f.document_synopsis(

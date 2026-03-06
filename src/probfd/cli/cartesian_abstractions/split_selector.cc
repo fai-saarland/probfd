@@ -1,16 +1,16 @@
 #include "probfd/cli/cartesian_abstractions/split_selector.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
-
 #include "downward/cli/utils/rng_options.h"
 
 #include "probfd/cartesian_abstractions/split_selector.h"
 
+#include "language/ast/internal_function_definition.h"
+#include "language/ast/internal_type_declaration.h"
+
 using namespace downward;
 using namespace downward::utils;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using namespace probfd::cartesian_abstractions;
 
@@ -19,14 +19,12 @@ using downward::cli::utils::add_rng_options_to_feature;
 namespace {
 
 InternalFunctionDefinitionBase&
-add_split_selector_random_to_namespace(Namespace& nspace)
+add_split_selector_random_to_namespace(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "random",
-        &language::plugins::construct_shared<
-            SplitSelectorFactory,
-            SplitSelectorRandomFactory,
-            std::shared_ptr<RandomNumberGenerator>>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        SplitSelectorFactory,
+        SplitSelectorRandomFactory,
+        std::shared_ptr<RandomNumberGenerator>>>(nspace, "random");
 
     f.document_synopsis(
         "select a random variable (among all eligible variables)");
@@ -36,14 +34,12 @@ add_split_selector_random_to_namespace(Namespace& nspace)
     return f;
 }
 
-InternalFunctionDefinitionBase&
-add_split_selector_min_unwanted_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_split_selector_min_unwanted_to_namespace(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "min_unwanted",
-        &language::plugins::construct_shared<
-            SplitSelectorFactory,
-            SplitSelectorMinUnwantedFactory>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        SplitSelectorFactory,
+        SplitSelectorMinUnwantedFactory>>(nspace, "min_unwanted");
 
     f.document_synopsis(
         "select an eligible variable which has the least unwanted values "
@@ -53,14 +49,12 @@ add_split_selector_min_unwanted_to_namespace(Namespace& nspace)
     return f;
 }
 
-InternalFunctionDefinitionBase&
-add_split_selector_max_unwanted_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_split_selector_max_unwanted_to_namespace(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "max_unwanted",
-        &language::plugins::construct_shared<
-            SplitSelectorFactory,
-            SplitSelectorMaxUnwantedFactory>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        SplitSelectorFactory,
+        SplitSelectorMaxUnwantedFactory>>(nspace, "max_unwanted");
 
     f.document_synopsis(
         "select an eligible variable which has the most unwanted values "
@@ -70,14 +64,12 @@ add_split_selector_max_unwanted_to_namespace(Namespace& nspace)
     return f;
 }
 
-InternalFunctionDefinitionBase&
-add_split_selector_min_refined_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_split_selector_min_refined_to_namespace(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "min_refined",
-        &language::plugins::construct_shared<
-            SplitSelectorFactory,
-            SplitSelectorMinRefinedFactory>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        SplitSelectorFactory,
+        SplitSelectorMinRefinedFactory>>(nspace, "min_refined");
 
     f.document_synopsis(
         "select an eligible variable which is the least refined "
@@ -87,14 +79,12 @@ add_split_selector_min_refined_to_namespace(Namespace& nspace)
     return f;
 }
 
-InternalFunctionDefinitionBase&
-add_split_selector_max_refined_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_split_selector_max_refined_to_namespace(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "max_refined",
-        &language::plugins::construct_shared<
-            SplitSelectorFactory,
-            SplitSelectorMaxRefinedFactory>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        SplitSelectorFactory,
+        SplitSelectorMaxRefinedFactory>>(nspace, "max_refined");
 
     f.document_synopsis(
         "select an eligible variable which is the most refined "
@@ -105,13 +95,11 @@ add_split_selector_max_refined_to_namespace(Namespace& nspace)
 }
 
 InternalFunctionDefinitionBase&
-add_split_selector_min_hadd_to_namespace(Namespace& nspace)
+add_split_selector_min_hadd_to_namespace(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "min_hadd",
-        &language::plugins::construct_shared<
-            SplitSelectorFactory,
-            SplitSelectorMinHAddFactory>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        SplitSelectorFactory,
+        SplitSelectorMinHAddFactory>>(nspace, "min_hadd");
 
     f.document_synopsis(
         "select an eligible variable with minimal h^add(s_0) value "
@@ -121,13 +109,11 @@ add_split_selector_min_hadd_to_namespace(Namespace& nspace)
 }
 
 InternalFunctionDefinitionBase&
-add_split_selector_max_hadd_to_namespace(Namespace& nspace)
+add_split_selector_max_hadd_to_namespace(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "max_hadd",
-        &language::plugins::construct_shared<
-            SplitSelectorFactory,
-            SplitSelectorMaxHAddFactory>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        SplitSelectorFactory,
+        SplitSelectorMaxHAddFactory>>(nspace, "max_hadd");
 
     f.document_synopsis(
         "Select an eligible variable with maximal h^add(s_0) value "
@@ -141,15 +127,16 @@ add_split_selector_max_hadd_to_namespace(Namespace& nspace)
 
 namespace probfd::cli::cartesian_abstractions {
 
-void add_split_selector_category(Namespace& nspace)
+void add_split_selector_category(NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_shared_type_declaration<SplitSelectorFactory>(
+    insert_shared_type_declaration<SplitSelectorFactory>(
+        nspace,
         "SplitSelectorFactory",
         "Factory for split selection algorithms used in the "
         "cartesian abstraction refinement loop");
 }
 
-void add_split_selector_features(Namespace& nspace)
+void add_split_selector_features(NamespaceLevelDeclarationList& nspace)
 {
     add_split_selector_random_to_namespace(nspace);
     add_split_selector_min_refined_to_namespace(nspace);

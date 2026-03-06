@@ -1,15 +1,19 @@
 #ifndef DOWNWARD_CLI_POTENTIALS_SUBCATEGORY_H
 #define DOWNWARD_CLI_POTENTIALS_SUBCATEGORY_H
 
-namespace language::plugins {
+namespace language::parser {
+class CompilationContext;
+} // namespace language::parser
+
+namespace language::documentation {
 class DocumentationTopic;
-class Registry;
-} // namespace language::plugins
+} // namespace language::documentation
 
 namespace downward::cli::potentials {
 
-language::plugins::DocumentationTopic&
-add_potential_heuristics_subcategory(language::plugins::Registry& registry);
+language::documentation::DocumentationTopic&
+add_potential_heuristics_subcategory(
+    language::parser::CompilationContext& registry);
 
 }
 

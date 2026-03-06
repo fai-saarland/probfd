@@ -1,7 +1,6 @@
 #include "probfd/cli/solvers/acyclic_vi.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "probfd/cli/solvers/mdp_solver_options.h"
 
@@ -26,7 +25,7 @@ using namespace probfd::algorithms::acyclic_vi;
 
 using namespace probfd::cli::solvers;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace {
 class AcyclicVIWithStatistics : public StatisticalMDPAlgorithm {
@@ -107,11 +106,11 @@ std::shared_ptr<TaskSolverFactory> create_acyclic_vi_solver(
 namespace probfd::cli::solvers {
 
 InternalFunctionDefinitionBase&
-add_acyclic_value_iteration_feature(Namespace& nspace)
+add_acyclic_value_iteration_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "acyclic_value_iteration",
-        &create_acyclic_vi_solver);
+    auto& f = insert_function_definition<&create_acyclic_vi_solver>(
+        nspace,
+        "acyclic_value_iteration");
     f.document_title("Acyclic Value Iteration");
     add_base_solver_options_except_algorithm_to_feature(f, 0);
 

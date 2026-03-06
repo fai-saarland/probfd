@@ -1,8 +1,11 @@
 #include "downward/cli/pdbs/subcategory.h"
 
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
 
-using namespace language::plugins;
+#include "language/documentation/topic.h"
+
+using namespace language::parser;
+using namespace language::documentation;
 
 namespace {
 
@@ -19,7 +22,7 @@ public:
 
 namespace downward::cli::pdbs {
 
-DocumentationTopic& add_pdb_heuristic_subcategory(Registry& registry)
+DocumentationTopic& add_pdb_heuristic_subcategory(CompilationContext& registry)
 {
     return registry.insert_documentation_topic<PDBGroupPlugin>();
 }

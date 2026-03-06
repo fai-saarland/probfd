@@ -1,6 +1,6 @@
 #include "probfd/cli/solvers/depth_first_heuristic_search.h"
 
-#include "language/plugins/internal_function_definition.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "probfd/cli/naming_conventions.h"
 
@@ -10,7 +10,8 @@
 #include "probfd/algorithms/depth_first_heuristic_search.h"
 #include "probfd/solvers/mdp_heuristic_search.h"
 
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_enum_declaration.h"
 
 #include <memory>
 #include <string>
@@ -24,7 +25,7 @@ using namespace probfd::solvers;
 using namespace probfd::cli;
 using namespace probfd::cli::solvers;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace {
 template <bool Bisimulation, bool Fret>
@@ -96,523 +97,434 @@ public:
 };
 
 template <bool Bisimulation>
-class DFHSSolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
-          std::shared_ptr<TaskStateSpaceFactory>,
-          std::shared_ptr<TaskHeuristicFactory>,
-          std::string,
-          bool,
-          value_t,
-          bool,
-          utils::Verbosity,
-          value_t,
-          bool,
-          std::shared_ptr<PolicyPickerType<Bisimulation, false>>,
-          bool,
-          BacktrackingUpdateType,
-          bool,
-          bool,
-          bool)> {
+std::shared_ptr<TaskSolverFactory> create_dfhs(
+    std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+    std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+    std::string policy_filename,
+    bool print_fact_names,
+    value_t report_epsilon,
+    bool report_enabled,
+    utils::Verbosity verbosity,
+    value_t convergence_epsilon,
+    bool dual_bounds,
+    std::shared_ptr<PolicyPickerType<Bisimulation, false>> policy,
+    bool forward_updates,
+    BacktrackingUpdateType backward_updates,
+    bool cutoff_tip,
+    bool cutoff_inconsistent,
+    bool labeling)
+{
+    return make_shared_from_arg_tuples<MDPSolver>(
+        make_shared_from_arg_tuples<DFHSSolver<Bisimulation, false>>(
+            "dfhs",
+            forward_updates,
+            backward_updates,
+            cutoff_tip,
+            cutoff_inconsistent,
+            labeling,
+            convergence_epsilon,
+            dual_bounds,
+            std::move(policy)),
+        std::move(task_state_space_factory),
+        std::move(heuristic_factory),
+        std::move(policy_filename),
+        print_fact_names,
+        report_epsilon,
+        report_enabled,
+        verbosity);
+}
+
+template <bool Bisimulation>
+std::shared_ptr<TaskSolverFactory> create_ilao(
+    std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+    std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+    std::string policy_filename,
+    bool print_fact_names,
+    value_t report_epsilon,
+    bool report_enabled,
+    utils::Verbosity verbosity,
+    value_t convergence_epsilon,
+    bool dual_bounds,
+    std::shared_ptr<PolicyPickerType<Bisimulation, false>> policy)
+{
+    return make_shared_from_arg_tuples<MDPSolver>(
+        make_shared_from_arg_tuples<DFHSSolver<Bisimulation, false>>(
+            "ilao",
+            false,
+            BacktrackingUpdateType::SINGLE,
+            true,
+            false,
+            false,
+            convergence_epsilon,
+            dual_bounds,
+            std::move(policy)),
+        std::move(task_state_space_factory),
+        std::move(heuristic_factory),
+        std::move(policy_filename),
+        print_fact_names,
+        report_epsilon,
+        report_enabled,
+        verbosity);
+}
+
+template <bool Bisimulation>
+std::shared_ptr<TaskSolverFactory> create_lilao(
+    std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+    std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+    std::string policy_filename,
+    bool print_fact_names,
+    value_t report_epsilon,
+    bool report_enabled,
+    utils::Verbosity verbosity,
+    value_t convergence_epsilon,
+    bool dual_bounds,
+    std::shared_ptr<PolicyPickerType<Bisimulation, false>> policy)
+{
+    return make_shared_from_arg_tuples<MDPSolver>(
+        make_shared_from_arg_tuples<DFHSSolver<Bisimulation, false>>(
+            "lilao",
+            false,
+            BacktrackingUpdateType::SINGLE,
+            true,
+            false,
+            true,
+            convergence_epsilon,
+            dual_bounds,
+            std::move(policy)),
+        std::move(task_state_space_factory),
+        std::move(heuristic_factory),
+        std::move(policy_filename),
+        print_fact_names,
+        report_epsilon,
+        report_enabled,
+        verbosity);
+}
+
+template <bool Bisimulation>
+std::shared_ptr<TaskSolverFactory> create_hdp(
+    std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+    std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+    std::string policy_filename,
+    bool print_fact_names,
+    value_t report_epsilon,
+    bool report_enabled,
+    utils::Verbosity verbosity,
+    value_t convergence_epsilon,
+    bool dual_bounds,
+    std::shared_ptr<PolicyPickerType<Bisimulation, false>> policy)
+{
+    return make_shared_from_arg_tuples<MDPSolver>(
+        make_shared_from_arg_tuples<DFHSSolver<Bisimulation, false>>(
+            "hdp",
+            true,
+            BacktrackingUpdateType::ON_DEMAND,
+            false,
+            true,
+            false,
+            convergence_epsilon,
+            dual_bounds,
+            std::move(policy)),
+        std::move(task_state_space_factory),
+        std::move(heuristic_factory),
+        std::move(policy_filename),
+        print_fact_names,
+        report_epsilon,
+        report_enabled,
+        verbosity);
+}
+
+template <bool Bisimulation>
+std::shared_ptr<TaskSolverFactory> create_dfhs_fret(
+    std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+    std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+    std::string policy_filename,
+    bool print_fact_names,
+    value_t report_epsilon,
+    bool report_enabled,
+    utils::Verbosity verbosity,
+    bool fret_on_policy,
+    value_t convergence_epsilon,
+    bool dual_bounds,
+    std::shared_ptr<PolicyPickerType<Bisimulation, true>> policy,
+    bool forward_updates,
+    BacktrackingUpdateType backward_updates,
+    bool cutoff_tip,
+    bool cutoff_inconsistent,
+    bool labeling)
+{
+    return make_shared_from_arg_tuples<MDPSolver>(
+        make_shared_from_arg_tuples<DFHSSolver<Bisimulation, true>>(
+            "dfhs",
+            forward_updates,
+            backward_updates,
+            cutoff_tip,
+            cutoff_inconsistent,
+            labeling,
+            fret_on_policy,
+            convergence_epsilon,
+            dual_bounds,
+            std::move(policy)),
+        std::move(task_state_space_factory),
+        std::move(heuristic_factory),
+        std::move(policy_filename),
+        print_fact_names,
+        report_epsilon,
+        report_enabled,
+        verbosity);
+}
+
+template <bool Bisimulation>
+std::shared_ptr<TaskSolverFactory> create_ilao_fret(
+    std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+    std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+    std::string policy_filename,
+    bool print_fact_names,
+    value_t report_epsilon,
+    bool report_enabled,
+    utils::Verbosity verbosity,
+    bool fret_on_policy,
+    value_t convergence_epsilon,
+    bool dual_bounds,
+    std::shared_ptr<PolicyPickerType<Bisimulation, true>> policy)
+{
+    return make_shared_from_arg_tuples<MDPSolver>(
+        make_shared_from_arg_tuples<DFHSSolver<Bisimulation, true>>(
+            "ilao",
+            false,
+            BacktrackingUpdateType::SINGLE,
+            true,
+            false,
+            false,
+            fret_on_policy,
+            convergence_epsilon,
+            dual_bounds,
+            std::move(policy)),
+        std::move(task_state_space_factory),
+        std::move(heuristic_factory),
+        std::move(policy_filename),
+        print_fact_names,
+        report_epsilon,
+        report_enabled,
+        verbosity);
+}
+
+template <bool Bisimulation>
+std::shared_ptr<TaskSolverFactory> create_lilao_fret(
+    std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+    std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+    std::string policy_filename,
+    bool print_fact_names,
+    value_t report_epsilon,
+    bool report_enabled,
+    utils::Verbosity verbosity,
+    bool fret_on_policy,
+    value_t convergence_epsilon,
+    bool dual_bounds,
+    std::shared_ptr<PolicyPickerType<Bisimulation, true>> policy)
+{
+    return make_shared_from_arg_tuples<MDPSolver>(
+        make_shared_from_arg_tuples<DFHSSolver<Bisimulation, true>>(
+            "lilao",
+            false,
+            BacktrackingUpdateType::SINGLE,
+            true,
+            false,
+            true,
+            fret_on_policy,
+            convergence_epsilon,
+            dual_bounds,
+            std::move(policy)),
+        std::move(task_state_space_factory),
+        std::move(heuristic_factory),
+        std::move(policy_filename),
+        print_fact_names,
+        report_epsilon,
+        report_enabled,
+        verbosity);
+}
+
+template <bool Bisimulation>
+std::shared_ptr<TaskSolverFactory> create_hdp_fret(
+    std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+    std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+    std::string policy_filename,
+    bool print_fact_names,
+    value_t report_epsilon,
+    bool report_enabled,
+    utils::Verbosity verbosity,
+    bool fret_on_policy,
+    value_t convergence_epsilon,
+    bool dual_bounds,
+    std::shared_ptr<PolicyPickerType<Bisimulation, true>> policy)
+{
+    return make_shared_from_arg_tuples<MDPSolver>(
+        make_shared_from_arg_tuples<DFHSSolver<Bisimulation, true>>(
+            "hdp",
+            true,
+            BacktrackingUpdateType::ON_DEMAND,
+            false,
+            true,
+            false,
+            fret_on_policy,
+            convergence_epsilon,
+            dual_bounds,
+            std::move(policy)),
+        std::move(task_state_space_factory),
+        std::move(heuristic_factory),
+        std::move(policy_filename),
+        print_fact_names,
+        report_epsilon,
+        report_enabled,
+        verbosity);
+}
+
+template <bool Bisimulation>
+class AddDFHSSolverFeatures {
 public:
-    DFHSSolverFeature()
-        : DFHSSolverFeature::InternalFunctionDefinition(
-              add_wrapper_algo_suffix<Bisimulation, false>("dfhs"),
-              &DFHSSolverFeature::func)
+    static void operator()(NamespaceLevelDeclarationList& nspace)
     {
-        this->document_title("Depth-first heuristic search family");
+        auto& f = insert_function_definition<create_dfhs<Bisimulation>>(
+            nspace,
+            add_wrapper_algo_suffix<Bisimulation, false>("dfhs"));
+
+        f.document_title("Depth-first heuristic search family");
 
         const auto n =
-            add_base_solver_options_except_algorithm_to_feature(*this, 0);
+            add_base_solver_options_except_algorithm_to_feature(f, 0);
         const auto n2 =
-            add_mdp_hs_options_to_feature<Bisimulation, false>(*this, n);
+            add_mdp_hs_options_to_feature<Bisimulation, false>(f, n);
 
-        this->make_required_argument(n + n2, "fwup");
-        this->make_required_argument(n + n2 + 1, "bwup");
-        this->make_required_argument(n + n2 + 2, "cutoff_tip");
-        this->make_required_argument(n + n2 + 3, "cutoff_inconsistent");
-        this->make_required_argument(n + n2 + 4, "labeling");
-    }
-
-protected:
-    static std::shared_ptr<TaskSolverFactory> func(
-        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-        std::string policy_filename,
-        bool print_fact_names,
-        value_t report_epsilon,
-        bool report_enabled,
-        utils::Verbosity verbosity,
-        value_t convergence_epsilon,
-        bool dual_bounds,
-        std::shared_ptr<PolicyPickerType<Bisimulation, false>> policy,
-        bool forward_updates,
-        BacktrackingUpdateType backward_updates,
-        bool cutoff_tip,
-        bool cutoff_inconsistent,
-        bool labeling)
-    {
-        return make_shared_from_arg_tuples<MDPSolver>(
-            make_shared_from_arg_tuples<DFHSSolver<Bisimulation, false>>(
-                "dfhs",
-                forward_updates,
-                backward_updates,
-                cutoff_tip,
-                cutoff_inconsistent,
-                labeling,
-                convergence_epsilon,
-                dual_bounds,
-                std::move(policy)),
-            std::move(task_state_space_factory),
-            std::move(heuristic_factory),
-            std::move(policy_filename),
-            print_fact_names,
-            report_epsilon,
-            report_enabled,
-            verbosity);
+        f.make_required_argument(n + n2, "fwup");
+        f.make_required_argument(n + n2 + 1, "bwup");
+        f.make_required_argument(n + n2 + 2, "cutoff_tip");
+        f.make_required_argument(n + n2 + 3, "cutoff_inconsistent");
+        f.make_required_argument(n + n2 + 4, "labeling");
     }
 };
 
 template <bool Bisimulation>
-class ILAOSolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
-          std::shared_ptr<TaskStateSpaceFactory>,
-          std::shared_ptr<TaskHeuristicFactory>,
-          std::string,
-          bool,
-          value_t,
-          bool,
-          utils::Verbosity,
-          value_t,
-          bool,
-          std::shared_ptr<PolicyPickerType<Bisimulation, false>>)> {
+class AddILAOSolverFeatures {
 public:
-    ILAOSolverFeature()
-        : ILAOSolverFeature::InternalFunctionDefinition(
-              add_wrapper_algo_suffix<Bisimulation, false>("ilao"),
-              &ILAOSolverFeature::func)
+    static void operator()(NamespaceLevelDeclarationList& nspace)
     {
-        this->document_title("iLAO* variant of depth-first heuristic search");
+        auto& f = insert_function_definition<create_ilao<Bisimulation>>(
+            nspace,
+            add_wrapper_algo_suffix<Bisimulation, false>("ilao"));
+
+        f.document_title("iLAO* variant of depth-first heuristic search");
 
         const auto n =
-            add_base_solver_options_except_algorithm_to_feature(*this, 0);
+            add_base_solver_options_except_algorithm_to_feature(f, 0);
 
-        add_mdp_hs_options_to_feature<Bisimulation, false>(*this, n);
-    }
-
-    static std::shared_ptr<TaskSolverFactory> func(
-        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-        std::string policy_filename,
-        bool print_fact_names,
-        value_t report_epsilon,
-        bool report_enabled,
-        utils::Verbosity verbosity,
-        value_t convergence_epsilon,
-        bool dual_bounds,
-        std::shared_ptr<PolicyPickerType<Bisimulation, false>> policy)
-    {
-        return make_shared_from_arg_tuples<MDPSolver>(
-            make_shared_from_arg_tuples<DFHSSolver<Bisimulation, false>>(
-                "ilao",
-                false,
-                BacktrackingUpdateType::SINGLE,
-                true,
-                false,
-                false,
-                convergence_epsilon,
-                dual_bounds,
-                std::move(policy)),
-            std::move(task_state_space_factory),
-            std::move(heuristic_factory),
-            std::move(policy_filename),
-            print_fact_names,
-            report_epsilon,
-            report_enabled,
-            verbosity);
+        add_mdp_hs_options_to_feature<Bisimulation, false>(f, n);
     }
 };
 
 template <bool Bisimulation>
-class LILAOSolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
-          std::shared_ptr<TaskStateSpaceFactory>,
-          std::shared_ptr<TaskHeuristicFactory>,
-          std::string,
-          bool,
-          value_t,
-          bool,
-          utils::Verbosity,
-          value_t,
-          bool,
-          std::shared_ptr<PolicyPickerType<Bisimulation, false>>)> {
+class AddLILAOSolverFeatures {
 public:
-    LILAOSolverFeature()
-        : LILAOSolverFeature::InternalFunctionDefinition(
-              add_wrapper_algo_suffix<Bisimulation, false>("lilao"),
-              &LILAOSolverFeature::func)
+    static void operator()(NamespaceLevelDeclarationList& nspace)
     {
-        this->document_title("Labelled variant of iLAO*");
+        auto& f = insert_function_definition<create_ilao<Bisimulation>>(
+            nspace,
+            add_wrapper_algo_suffix<Bisimulation, false>("lilao"));
+
+        f.document_title("Labelled variant of iLAO*");
 
         const auto n =
-            add_base_solver_options_except_algorithm_to_feature(*this, 0);
-        add_mdp_hs_options_to_feature<Bisimulation, false>(*this, n);
-    }
-
-    static std::shared_ptr<TaskSolverFactory> func(
-        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-        std::string policy_filename,
-        bool print_fact_names,
-        value_t report_epsilon,
-        bool report_enabled,
-        utils::Verbosity verbosity,
-        value_t convergence_epsilon,
-        bool dual_bounds,
-        std::shared_ptr<PolicyPickerType<Bisimulation, false>> policy)
-    {
-        return make_shared_from_arg_tuples<MDPSolver>(
-            make_shared_from_arg_tuples<DFHSSolver<Bisimulation, false>>(
-                "lilao",
-                false,
-                BacktrackingUpdateType::SINGLE,
-                true,
-                false,
-                true,
-                convergence_epsilon,
-                dual_bounds,
-                std::move(policy)),
-            std::move(task_state_space_factory),
-            std::move(heuristic_factory),
-            std::move(policy_filename),
-            print_fact_names,
-            report_epsilon,
-            report_enabled,
-            verbosity);
+            add_base_solver_options_except_algorithm_to_feature(f, 0);
+        add_mdp_hs_options_to_feature<Bisimulation, false>(f, n);
     }
 };
 
 template <bool Bisimulation>
-class HDPSolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
-          std::shared_ptr<TaskStateSpaceFactory>,
-          std::shared_ptr<TaskHeuristicFactory>,
-          std::string,
-          bool,
-          value_t,
-          bool,
-          utils::Verbosity,
-          value_t,
-          bool,
-          std::shared_ptr<PolicyPickerType<Bisimulation, false>>)> {
+class AddHDPSolverFeatures {
 public:
-    HDPSolverFeature()
-        : HDPSolverFeature::InternalFunctionDefinition(
-              add_wrapper_algo_suffix<Bisimulation, false>("hdp"),
-              &HDPSolverFeature::func)
+    static void operator()(NamespaceLevelDeclarationList& nspace)
     {
-        this->document_title("HDP variant of depth-first heuristic search");
+        auto& f = insert_function_definition<create_ilao<Bisimulation>>(
+            nspace,
+            add_wrapper_algo_suffix<Bisimulation, false>("hdp"));
+
+        f.document_title("HDP variant of depth-first heuristic search");
 
         const auto n =
-            add_base_solver_options_except_algorithm_to_feature(*this, 0);
-        add_mdp_hs_options_to_feature<Bisimulation, false>(*this, n);
-    }
-
-    static std::shared_ptr<TaskSolverFactory> func(
-        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-        std::string policy_filename,
-        bool print_fact_names,
-        value_t report_epsilon,
-        bool report_enabled,
-        utils::Verbosity verbosity,
-        value_t convergence_epsilon,
-        bool dual_bounds,
-        std::shared_ptr<PolicyPickerType<Bisimulation, false>> policy)
-    {
-        return make_shared_from_arg_tuples<MDPSolver>(
-            make_shared_from_arg_tuples<DFHSSolver<Bisimulation, false>>(
-                "hdp",
-                true,
-                BacktrackingUpdateType::ON_DEMAND,
-                false,
-                true,
-                false,
-                convergence_epsilon,
-                dual_bounds,
-                std::move(policy)),
-            std::move(task_state_space_factory),
-            std::move(heuristic_factory),
-            std::move(policy_filename),
-            print_fact_names,
-            report_epsilon,
-            report_enabled,
-            verbosity);
+            add_base_solver_options_except_algorithm_to_feature(f, 0);
+        add_mdp_hs_options_to_feature<Bisimulation, false>(f, n);
     }
 };
 
 template <bool Bisimulation>
-class DFHSFretSolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
-          std::shared_ptr<TaskStateSpaceFactory>,
-          std::shared_ptr<TaskHeuristicFactory>,
-          std::string,
-          bool,
-          value_t,
-          bool,
-          utils::Verbosity,
-          bool,
-          value_t,
-          bool,
-          std::shared_ptr<PolicyPickerType<Bisimulation, true>>,
-          bool,
-          BacktrackingUpdateType,
-          bool,
-          bool,
-          bool)> {
+class AddDFHSFretSolverFeatures {
 public:
-    DFHSFretSolverFeature()
-        : DFHSFretSolverFeature::InternalFunctionDefinition(
-              add_wrapper_algo_suffix<Bisimulation, true>("dfhs"),
-              &DFHSFretSolverFeature::func)
+    static void operator()(NamespaceLevelDeclarationList& nspace)
     {
-        this->document_title("Depth-first heuristic search family");
+        auto& f = insert_function_definition<create_dfhs_fret<Bisimulation>>(
+            nspace,
+            add_wrapper_algo_suffix<Bisimulation, true>("dfhs"));
+
+        f.document_title("Depth-first heuristic search family");
 
         const auto n =
-            add_base_solver_options_except_algorithm_to_feature(*this, 0);
-        const auto n2 =
-            add_mdp_hs_options_to_feature<Bisimulation, true>(*this, n);
+            add_base_solver_options_except_algorithm_to_feature(f, 0);
+        const auto n2 = add_mdp_hs_options_to_feature<Bisimulation, true>(f, n);
 
-        this->make_required_argument(n + n2, "fwup");
-        this->make_required_argument(n + n2 + 1, "bwup");
-        this->make_required_argument(n + n2 + 2, "cutoff_tip");
-        this->make_required_argument(n + n2 + 3, "cutoff_inconsistent");
-        this->make_required_argument(n + n2 + 4, "labeling");
-    }
-
-protected:
-    static std::shared_ptr<TaskSolverFactory> func(
-        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-        std::string policy_filename,
-        bool print_fact_names,
-        value_t report_epsilon,
-        bool report_enabled,
-        utils::Verbosity verbosity,
-        bool fret_on_policy,
-        value_t convergence_epsilon,
-        bool dual_bounds,
-        std::shared_ptr<PolicyPickerType<Bisimulation, true>> policy,
-        bool forward_updates,
-        BacktrackingUpdateType backward_updates,
-        bool cutoff_tip,
-        bool cutoff_inconsistent,
-        bool labeling)
-    {
-        return make_shared_from_arg_tuples<MDPSolver>(
-            make_shared_from_arg_tuples<DFHSSolver<Bisimulation, true>>(
-                "dfhs",
-                forward_updates,
-                backward_updates,
-                cutoff_tip,
-                cutoff_inconsistent,
-                labeling,
-                fret_on_policy,
-                convergence_epsilon,
-                dual_bounds,
-                std::move(policy)),
-            std::move(task_state_space_factory),
-            std::move(heuristic_factory),
-            std::move(policy_filename),
-            print_fact_names,
-            report_epsilon,
-            report_enabled,
-            verbosity);
+        f.make_required_argument(n + n2, "fwup");
+        f.make_required_argument(n + n2 + 1, "bwup");
+        f.make_required_argument(n + n2 + 2, "cutoff_tip");
+        f.make_required_argument(n + n2 + 3, "cutoff_inconsistent");
+        f.make_required_argument(n + n2 + 4, "labeling");
     }
 };
 
 template <bool Bisimulation>
-class ILAOFretSolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
-          std::shared_ptr<TaskStateSpaceFactory>,
-          std::shared_ptr<TaskHeuristicFactory>,
-          std::string,
-          bool,
-          value_t,
-          bool,
-          utils::Verbosity,
-          bool,
-          value_t,
-          bool,
-          std::shared_ptr<PolicyPickerType<Bisimulation, true>>)> {
+class AddILAOFretSolverFeatures {
 public:
-    ILAOFretSolverFeature()
-        : ILAOFretSolverFeature::InternalFunctionDefinition(
-              add_wrapper_algo_suffix<Bisimulation, true>("ilao"),
-              &ILAOFretSolverFeature::func)
+    static void operator()(NamespaceLevelDeclarationList& nspace)
     {
-        this->document_title("iLAO* variant of depth-first heuristic search");
+        auto& f = insert_function_definition<create_ilao_fret<Bisimulation>>(
+            nspace,
+            add_wrapper_algo_suffix<Bisimulation, true>("ilao"));
+
+        f.document_title("iLAO* variant of depth-first heuristic search");
 
         const auto n =
-            add_base_solver_options_except_algorithm_to_feature(*this, 0);
-        add_mdp_hs_options_to_feature<Bisimulation, true>(*this, n);
-    }
-
-    static std::shared_ptr<TaskSolverFactory> func(
-        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-        std::string policy_filename,
-        bool print_fact_names,
-        value_t report_epsilon,
-        bool report_enabled,
-        utils::Verbosity verbosity,
-        bool fret_on_policy,
-        value_t convergence_epsilon,
-        bool dual_bounds,
-        std::shared_ptr<PolicyPickerType<Bisimulation, true>> policy)
-    {
-        return make_shared_from_arg_tuples<MDPSolver>(
-            make_shared_from_arg_tuples<DFHSSolver<Bisimulation, true>>(
-                "ilao",
-                false,
-                BacktrackingUpdateType::SINGLE,
-                true,
-                false,
-                false,
-                fret_on_policy,
-                convergence_epsilon,
-                dual_bounds,
-                std::move(policy)),
-            std::move(task_state_space_factory),
-            std::move(heuristic_factory),
-            std::move(policy_filename),
-            print_fact_names,
-            report_epsilon,
-            report_enabled,
-            verbosity);
+            add_base_solver_options_except_algorithm_to_feature(f, 0);
+        add_mdp_hs_options_to_feature<Bisimulation, true>(f, n);
     }
 };
 
 template <bool Bisimulation>
-class LILAOFretSolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
-          std::shared_ptr<TaskStateSpaceFactory>,
-          std::shared_ptr<TaskHeuristicFactory>,
-          std::string,
-          bool,
-          value_t,
-          bool,
-          utils::Verbosity,
-          bool,
-          value_t,
-          bool,
-          std::shared_ptr<PolicyPickerType<Bisimulation, true>>)> {
+class AddLILAOFretSolverFeatures {
 public:
-    LILAOFretSolverFeature()
-        : LILAOFretSolverFeature::InternalFunctionDefinition(
-              add_wrapper_algo_suffix<Bisimulation, true>("lilao"),
-              &LILAOFretSolverFeature::func)
+    static void operator()(NamespaceLevelDeclarationList& nspace)
     {
-        this->document_title("Labelled variant of iLAO*");
+        auto& f = insert_function_definition<create_lilao_fret<Bisimulation>>(
+            nspace,
+            add_wrapper_algo_suffix<Bisimulation, true>("lilao"));
+
+        f.document_title("Labelled variant of iLAO*");
 
         const auto n =
-            add_base_solver_options_except_algorithm_to_feature(*this, 0);
-        add_mdp_hs_options_to_feature<Bisimulation, true>(*this, n);
-    }
-
-    static std::shared_ptr<TaskSolverFactory> func(
-        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-        std::string policy_filename,
-        bool print_fact_names,
-        value_t report_epsilon,
-        bool report_enabled,
-        utils::Verbosity verbosity,
-        bool fret_on_policy,
-        value_t convergence_epsilon,
-        bool dual_bounds,
-        std::shared_ptr<PolicyPickerType<Bisimulation, true>> policy)
-    {
-        return make_shared_from_arg_tuples<MDPSolver>(
-            make_shared_from_arg_tuples<DFHSSolver<Bisimulation, true>>(
-                "lilao",
-                false,
-                BacktrackingUpdateType::SINGLE,
-                true,
-                false,
-                true,
-                fret_on_policy,
-                convergence_epsilon,
-                dual_bounds,
-                std::move(policy)),
-            std::move(task_state_space_factory),
-            std::move(heuristic_factory),
-            std::move(policy_filename),
-            print_fact_names,
-            report_epsilon,
-            report_enabled,
-            verbosity);
+            add_base_solver_options_except_algorithm_to_feature(f, 0);
+        add_mdp_hs_options_to_feature<Bisimulation, true>(f, n);
     }
 };
 
 template <bool Bisimulation>
-class HDPFretSolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
-          std::shared_ptr<TaskStateSpaceFactory>,
-          std::shared_ptr<TaskHeuristicFactory>,
-          std::string,
-          bool,
-          value_t,
-          bool,
-          utils::Verbosity,
-          bool,
-          value_t,
-          bool,
-          std::shared_ptr<PolicyPickerType<Bisimulation, true>>)> {
+class AddHDPFretSolverFeatures {
 public:
-    HDPFretSolverFeature()
-        : HDPFretSolverFeature::InternalFunctionDefinition(
-              add_wrapper_algo_suffix<Bisimulation, true>("hdp"),
-              &HDPFretSolverFeature::func)
+    static void operator()(NamespaceLevelDeclarationList& nspace)
     {
-        this->document_title("HDP variant of depth-first heuristic search");
+        auto& f = insert_function_definition<create_hdp_fret<Bisimulation>>(
+            nspace,
+            add_wrapper_algo_suffix<Bisimulation, true>("hdp"));
+
+        f.document_title("HDP variant of depth-first heuristic search");
 
         const auto n =
-            add_base_solver_options_except_algorithm_to_feature(*this, 0);
-        add_mdp_hs_options_to_feature<Bisimulation, true>(*this, n);
-    }
-
-    static std::shared_ptr<TaskSolverFactory> func(
-        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-        std::string policy_filename,
-        bool print_fact_names,
-        value_t report_epsilon,
-        bool report_enabled,
-        utils::Verbosity verbosity,
-        bool fret_on_policy,
-        value_t convergence_epsilon,
-        bool dual_bounds,
-        std::shared_ptr<PolicyPickerType<Bisimulation, true>> policy)
-    {
-        return make_shared_from_arg_tuples<MDPSolver>(
-            make_shared_from_arg_tuples<DFHSSolver<Bisimulation, true>>(
-                "hdp",
-                true,
-                BacktrackingUpdateType::ON_DEMAND,
-                false,
-                true,
-                false,
-                fret_on_policy,
-                convergence_epsilon,
-                dual_bounds,
-                std::move(policy)),
-            std::move(task_state_space_factory),
-            std::move(heuristic_factory),
-            std::move(policy_filename),
-            print_fact_names,
-            report_epsilon,
-            report_enabled,
-            verbosity);
+            add_base_solver_options_except_algorithm_to_feature(f, 0);
+        add_mdp_hs_options_to_feature<Bisimulation, true>(f, n);
     }
 };
 
@@ -620,9 +532,12 @@ public:
 
 namespace probfd::cli::solvers {
 
-void add_depth_first_heuristic_search_features(Namespace& nspace)
+void add_depth_first_heuristic_search_features(
+    NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_enum_declaration<BacktrackingUpdateType>(
+    insert_enum_declaration<BacktrackingUpdateType>(
+        nspace,
+        "BacktrackingUpdateType",
         {{"disabled",
           "No update is performed when backtracking from a state during the "
           "dfs "
@@ -640,15 +555,15 @@ void add_depth_first_heuristic_search_features(Namespace& nspace)
           "the "
           "dfs exploration."}});
 
-    nspace.insert_function_definitions<DFHSSolverFeature>();
-    nspace.insert_function_definitions<ILAOSolverFeature>();
-    nspace.insert_function_definitions<LILAOSolverFeature>();
-    nspace.insert_function_definitions<HDPSolverFeature>();
+    insert_function_definitions<AddDFHSSolverFeatures>(nspace);
+    insert_function_definitions<AddILAOSolverFeatures>(nspace);
+    insert_function_definitions<AddLILAOSolverFeatures>(nspace);
+    insert_function_definitions<AddHDPSolverFeatures>(nspace);
 
-    nspace.insert_function_definitions<DFHSFretSolverFeature>();
-    nspace.insert_function_definitions<ILAOFretSolverFeature>();
-    nspace.insert_function_definitions<LILAOFretSolverFeature>();
-    nspace.insert_function_definitions<HDPFretSolverFeature>();
+    insert_function_definitions<AddDFHSFretSolverFeatures>(nspace);
+    insert_function_definitions<AddILAOFretSolverFeatures>(nspace);
+    insert_function_definitions<AddLILAOFretSolverFeatures>(nspace);
+    insert_function_definitions<AddHDPFretSolverFeatures>(nspace);
 }
 
 } // namespace probfd::cli::solvers

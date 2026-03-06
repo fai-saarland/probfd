@@ -1,7 +1,6 @@
 #include "probfd/cli/pdbs/pattern_collection_generator_systematic.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/utils/logging_options.h"
 
@@ -12,23 +11,22 @@
 using namespace downward;
 using namespace probfd::pdbs;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::utils::add_log_options_to_feature;
 
 namespace probfd::cli::pdbs {
 
 InternalFunctionDefinitionBase&
-add_pattern_collection_generator_systematic_feature(Namespace& nspace)
+add_pattern_collection_generator_systematic_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "psystematic",
-        &construct_shared<
-            PatternCollectionGenerator,
-            PatternCollectionGeneratorSystematic,
-            int,
-            bool,
-            utils::Verbosity>);
+    auto& f = insert_function_definition<&construct_shared<
+        PatternCollectionGenerator,
+        PatternCollectionGeneratorSystematic,
+        int,
+        bool,
+        utils::Verbosity>>(nspace, "psystematic");
 
     f.document_title("Systematically generated patterns");
     f.document_synopsis(

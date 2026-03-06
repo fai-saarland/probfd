@@ -1,7 +1,7 @@
 #include "downward/cli/landmarks/landmark_factory_merged_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/landmarks/landmark_factory_options.h"
 
@@ -13,22 +13,21 @@ using namespace std;
 using namespace downward::landmarks;
 using namespace downward::utils;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::landmarks::add_landmark_factory_options_to_feature;
 
 namespace downward::cli::landmarks {
 
 InternalFunctionDefinitionBase&
-add_landmark_factory_merged_feature(Namespace& nspace)
+add_landmark_factory_merged_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "lm_merged",
-        &language::plugins::construct_shared<
-            LandmarkFactory,
-            LandmarkFactoryMerged,
-            std::vector<std::shared_ptr<LandmarkFactory>>,
-            downward::utils::Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        LandmarkFactory,
+        LandmarkFactoryMerged,
+        std::vector<std::shared_ptr<LandmarkFactory>>,
+        Verbosity>>(nspace, "lm_merged");
+
     f.document_title("Merged Landmarks");
     f.document_synopsis(
         "Merges the landmarks and orderings from the parameter landmarks");

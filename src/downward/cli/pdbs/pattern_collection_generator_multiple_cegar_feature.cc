@@ -1,10 +1,10 @@
 #include "downward/cli/pdbs/pattern_collection_generator_multiple_cegar_feature.h"
+
 #include "downward/cli/pdbs/cegar_options.h"
 #include "downward/cli/pdbs/pattern_collection_generator_multiple_options.h"
 #include "downward/cli/pdbs/utils.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/pdbs/pattern_collection_generator_multiple_cegar.h"
 
@@ -15,28 +15,27 @@ using namespace downward::utils;
 using namespace downward::pdbs;
 
 using namespace downward::cli::pdbs;
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace downward::cli::pdbs {
 
 InternalFunctionDefinitionBase&
-add_pattern_collection_generator_multiple_cegar_feature(Namespace& nspace)
+add_pattern_collection_generator_multiple_cegar_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "multiple_cegar",
-        &language::plugins::construct_shared<
-            PatternCollectionGenerator,
-            PatternCollectionGeneratorMultipleCegar,
-            bool,
-            int,
-            int,
-            FSeconds,
-            FSeconds,
-            FSeconds,
-            double,
-            bool,
-            std::shared_ptr<RandomNumberGenerator>,
-            Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        PatternCollectionGenerator,
+        PatternCollectionGeneratorMultipleCegar,
+        bool,
+        int,
+        int,
+        FSeconds,
+        FSeconds,
+        FSeconds,
+        double,
+        bool,
+        std::shared_ptr<RandomNumberGenerator>,
+        Verbosity>>(nspace, "multiple_cegar");
 
     f.document_title("Multiple CEGAR");
     f.document_synopsis(

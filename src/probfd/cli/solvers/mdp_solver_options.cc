@@ -1,4 +1,4 @@
-#include "language/plugins/internal_function_definition.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/utils/logging_options.h"
 
@@ -6,7 +6,7 @@
 
 using namespace probfd;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::utils::add_log_options_to_feature;
 

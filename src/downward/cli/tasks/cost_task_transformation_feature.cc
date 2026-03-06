@@ -1,7 +1,6 @@
 #include "downward/cli/tasks/cost_task_transformation_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/operator_cost_options.h"
 
@@ -16,7 +15,7 @@ using namespace std;
 using namespace downward;
 using namespace downward::tasks;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::add_cost_type_options_to_feature;
 
@@ -50,14 +49,13 @@ public:
 namespace downward::cli::tasks {
 
 InternalFunctionDefinitionBase&
-add_cost_task_transformation_features(Namespace& nspace)
+add_cost_task_transformation_features(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "adapt_costs",
-        &language::plugins::construct_shared<
-            TaskTransformation,
-            CostAdaptedTaskTransformation,
-            OperatorCost>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskTransformation,
+        CostAdaptedTaskTransformation,
+        OperatorCost>>(nspace, "adapt_costs");
+
     f.document_title("Cost-adapted task");
     f.document_synopsis("A cost-adapting transformation of the root task.");
 

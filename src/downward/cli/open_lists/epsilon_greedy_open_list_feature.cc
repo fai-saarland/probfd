@@ -1,7 +1,7 @@
 #include "downward/cli/open_lists/epsilon_greedy_open_list_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/open_lists/open_list_options.h"
 
@@ -11,13 +11,13 @@
 
 #include "downward/utils/markup.h"
 
-#include <downward/task_dependent_factory.h>
+#include "downward/task_dependent_factory.h"
 
 using namespace std;
 using namespace downward::utils;
 using namespace downward::epsilon_greedy_open_list;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::add_open_list_options_to_feature;
 
@@ -26,19 +26,17 @@ using downward::cli::utils::add_rng_options_to_feature;
 namespace {
 
 template <typename T>
-InternalFunctionDefinitionBase&
-add_epsilon_greedy_open_list_to_namespace(Namespace& nspace, std::string name)
+InternalFunctionDefinitionBase& add_epsilon_greedy_open_list_to_namespace(
+    NamespaceLevelDeclarationList& nspace,
+    std::string name)
 {
-    auto& f = nspace.insert_function_definition(
-        std::move(name),
-        &language::plugins::construct_shared<
-            downward::TaskDependentFactory<downward::OpenList<T>>,
-            EpsilonGreedyOpenListFactory<T>,
-            std::shared_ptr<
-                downward::TaskDependentFactory<downward::Evaluator>>,
-            double,
-            std::shared_ptr<RandomNumberGenerator>,
-            bool>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        downward::TaskDependentFactory<downward::OpenList<T>>,
+        EpsilonGreedyOpenListFactory<T>,
+        std::shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>,
+        double,
+        std::shared_ptr<RandomNumberGenerator>,
+        bool>>(nspace, std::move(name));
 
     if constexpr (std::same_as<T, downward::StateOpenListEntry>) {
         f.document_title("Epsilon-greedy state open list");
@@ -82,7 +80,8 @@ add_epsilon_greedy_open_list_to_namespace(Namespace& nspace, std::string name)
 
 namespace downward::cli::open_lists {
 
-void add_epsilon_greedy_open_list_features(Namespace& nspace)
+void add_epsilon_greedy_open_list_features(
+    NamespaceLevelDeclarationList& nspace)
 {
     add_epsilon_greedy_open_list_to_namespace<StateOpenListEntry>(
         nspace,

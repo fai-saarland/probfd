@@ -1,16 +1,16 @@
 #ifndef PROBFD_CLI_HEURISTICS_DETERMINIZATION_COST_HEURISTIC_H
 #define PROBFD_CLI_HEURISTICS_DETERMINIZATION_COST_HEURISTIC_H
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-class Namespace;
-} // namespace language::plugins
+class NamespaceLevelDeclarationList;
+} // namespace language::parser
 
 namespace probfd::cli::heuristics {
 
-language::plugins::InternalFunctionDefinitionBase&
+language::parser::InternalFunctionDefinitionBase&
 add_determinization_cost_heuristic_feature(
-    language::plugins::Namespace& nspace);
+    language::parser::NamespaceLevelDeclarationList& nspace);
 
 }
 

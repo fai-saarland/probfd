@@ -4,8 +4,8 @@
 #include "downward/cli/pdbs/random_pattern_options.h"
 #include "downward/cli/pdbs/utils.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -16,25 +16,23 @@ using namespace downward::utils;
 using namespace downward::pdbs;
 
 using namespace downward::cli::pdbs;
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::utils::add_rng_options_to_feature;
 
 namespace downward::cli::pdbs {
 
 InternalFunctionDefinitionBase&
-add_pattern_generator_random_feature(Namespace& nspace)
+add_pattern_generator_random_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "random_pattern",
-        &language::plugins::construct_shared<
-            PatternGenerator,
-            PatternGeneratorRandom,
-            int,
-            FSeconds,
-            bool,
-            std::shared_ptr<RandomNumberGenerator>,
-            Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        PatternGenerator,
+        PatternGeneratorRandom,
+        int,
+        FSeconds,
+        bool,
+        std::shared_ptr<RandomNumberGenerator>,
+        Verbosity>>(nspace, "random_pattern");
 
     f.document_title("Random Pattern");
     f.document_synopsis(

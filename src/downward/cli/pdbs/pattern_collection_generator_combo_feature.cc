@@ -1,7 +1,6 @@
 #include "downward/cli/pdbs/pattern_collection_generator_combo_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/pdbs/pattern_generator_options.h"
 
@@ -11,22 +10,20 @@ using namespace std;
 using namespace downward::utils;
 using namespace downward::pdbs;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::pdbs::add_generator_options_to_feature;
 
 namespace downward::cli::pdbs {
 
-InternalFunctionDefinitionBase&
-add_pattern_collection_generator_combo_feature(Namespace& nspace)
+InternalFunctionDefinitionBase& add_pattern_collection_generator_combo_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "combo",
-        &language::plugins::construct_shared<
-            PatternCollectionGenerator,
-            PatternCollectionGeneratorCombo,
-            int,
-            Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        PatternCollectionGenerator,
+        PatternCollectionGeneratorCombo,
+        int,
+        Verbosity>>(nspace, "combo");
     f.make_optional_argument_with_default(
         0,
         "max_states",

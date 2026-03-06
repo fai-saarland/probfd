@@ -1,11 +1,9 @@
 #include "downward/cli/pdbs/pattern_collection_generator_hillclimbing_feature.h"
 
-#include "downward/cli/pdbs/canonical_pdbs_heuristic_options.h"
 #include "downward/cli/pdbs/pattern_collection_generator_hillclimbing_options.h"
 #include "downward/cli/pdbs/pattern_generator_options.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/heuristics/heuristic_options.h"
 
@@ -19,7 +17,7 @@ using namespace downward::utils;
 using namespace downward::pdbs;
 
 using namespace downward::cli::pdbs;
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::pdbs::add_generator_options_to_feature;
 
@@ -61,20 +59,19 @@ std::string paper_references()
 namespace downward::cli::pdbs {
 
 InternalFunctionDefinitionBase&
-add_pattern_collection_generator_hillclimbing_feature(Namespace& nspace)
+add_pattern_collection_generator_hillclimbing_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "hillclimbing",
-        &language::plugins::construct_shared<
-            PatternCollectionGenerator,
-            PatternCollectionGeneratorHillclimbing,
-            int,
-            int,
-            int,
-            int,
-            FSeconds,
-            std::shared_ptr<RandomNumberGenerator>,
-            Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        PatternCollectionGenerator,
+        PatternCollectionGeneratorHillclimbing,
+        int,
+        int,
+        int,
+        int,
+        FSeconds,
+        std::shared_ptr<RandomNumberGenerator>,
+        Verbosity>>(nspace, "hillclimbing");
 
     f.document_title("Hill climbing");
     f.document_synopsis(

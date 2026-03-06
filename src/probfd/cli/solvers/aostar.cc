@@ -1,7 +1,6 @@
 #include "probfd/cli/solvers/aostar.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "probfd/cli/naming_conventions.h"
 
@@ -25,7 +24,7 @@ using namespace probfd::algorithms::ao_search::ao_star;
 using namespace probfd::cli;
 using namespace probfd::cli::solvers;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace {
 template <bool Bisimulation>
@@ -55,77 +54,66 @@ public:
 };
 
 template <bool Bisimulation>
-class AOStarSolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
-          std::shared_ptr<TaskStateSpaceFactory>,
-          std::shared_ptr<TaskHeuristicFactory>,
-          Verbosity,
-          std::string,
-          bool,
-          value_t,
-          bool,
-          value_t,
-          bool,
-          std::shared_ptr<PolicyPickerType<Bisimulation, false>>,
-          std::shared_ptr<SuccessorSampler<ActionType<Bisimulation, false>>>)> {
-    using Sampler = SuccessorSampler<ActionType<Bisimulation, false>>;
+std::shared_ptr<TaskSolverFactory> create_aostar(
+    std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+    std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+    Verbosity verbosity,
+    std::string policy_filename,
+    bool print_fact_names,
+    value_t report_epsilon,
+    bool report_enabled,
+    value_t convergence_epsilon,
+    bool dual_bounds,
+    std::shared_ptr<PolicyPickerType<Bisimulation, false>> policy_picker,
+    std::shared_ptr<SuccessorSampler<ActionType<Bisimulation, false>>>
+        successor_sampler)
+{
+    return make_shared<MDPSolver>(
+        make_shared_from_arg_tuples<AOStarSolver<Bisimulation>>(
+            std::move(successor_sampler),
+            convergence_epsilon,
+            dual_bounds,
+            std::move(policy_picker)),
+        std::move(task_state_space_factory),
+        std::move(heuristic_factory),
+        std::move(policy_filename),
+        print_fact_names,
+        report_epsilon,
+        report_enabled,
+        verbosity);
+}
 
+template <bool Bisimulation>
+class AddAOStarSolverFeatures {
 public:
-    AOStarSolverFeature()
-        : AOStarSolverFeature::InternalFunctionDefinition(
-              add_wrapper_algo_suffix<Bisimulation, false>("aostar"),
-              &AOStarSolverFeature::func)
+    static void operator()(NamespaceLevelDeclarationList& nspace)
     {
-        this->document_title("AO* algorithm");
+        auto& f = insert_function_definition<create_aostar<Bisimulation>>(
+            nspace,
+            add_wrapper_algo_suffix<Bisimulation, false>("aostar"));
+
+        f.document_title("AO* algorithm");
 
         const auto n =
-            add_base_solver_options_except_algorithm_to_feature(*this, 0);
+            add_base_solver_options_except_algorithm_to_feature(f, 0);
         const auto n2 =
-            add_mdp_hs_options_to_feature<Bisimulation, false>(*this, n);
+            add_mdp_hs_options_to_feature<Bisimulation, false>(f, n);
 
-        this->make_required_argument(
+        f.make_required_argument(
             n + n2,
             "successor_sampler",
             add_mdp_type_to_option<Bisimulation, false>(
                 "arbitrary_successor_sampler()"));
     }
-
-protected:
-    static std::shared_ptr<TaskSolverFactory> func(
-        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-        Verbosity verbosity,
-        std::string policy_filename,
-        bool print_fact_names,
-        value_t report_epsilon,
-        bool report_enabled,
-        value_t convergence_epsilon,
-        bool dual_bounds,
-        std::shared_ptr<PolicyPickerType<Bisimulation, false>> policy_picker,
-        std::shared_ptr<Sampler> successor_sampler)
-    {
-        return make_shared<MDPSolver>(
-            make_shared_from_arg_tuples<AOStarSolver<Bisimulation>>(
-                std::move(successor_sampler),
-                convergence_epsilon,
-                dual_bounds,
-                std::move(policy_picker)),
-            std::move(task_state_space_factory),
-            std::move(heuristic_factory),
-            std::move(policy_filename),
-            print_fact_names,
-            report_epsilon,
-            report_enabled,
-            verbosity);
-    }
 };
+
 } // namespace
 
 namespace probfd::cli::solvers {
 
-void add_aostar_solver_features(Namespace& nspace)
+void add_aostar_solver_features(NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_function_definitions<AOStarSolverFeature>();
+    insert_function_definitions<AddAOStarSolverFeatures>(nspace);
 }
 
 } // namespace probfd::cli::solvers

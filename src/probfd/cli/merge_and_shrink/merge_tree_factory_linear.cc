@@ -1,7 +1,6 @@
 #include "probfd/cli/merge_and_shrink/merge_tree_factory_linear.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "probfd/cli/merge_and_shrink/merge_tree_factory_options.h"
 
@@ -14,7 +13,7 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace language::plugins;
+using namespace language::parser;
 using namespace downward;
 using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
@@ -22,16 +21,14 @@ using namespace probfd::cli::merge_and_shrink;
 namespace probfd::cli::merge_and_shrink {
 
 InternalFunctionDefinitionBase&
-add_merge_tree_factory_linear_feature(Namespace& nspace)
+add_merge_tree_factory_linear_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "plinear",
-        &language::plugins::construct_shared<
-            MergeTreeFactory,
-            MergeTreeFactoryLinear,
-            std::shared_ptr<utils::RandomNumberGenerator>,
-            UpdateOption,
-            variable_order_finder::VariableOrderType>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        MergeTreeFactory,
+        MergeTreeFactoryLinear,
+        std::shared_ptr<utils::RandomNumberGenerator>,
+        UpdateOption,
+        variable_order_finder::VariableOrderType>>(nspace, "plinear");
 
     f.document_title("Linear merge trees");
     f.document_synopsis(

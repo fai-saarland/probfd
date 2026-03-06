@@ -1,16 +1,17 @@
 #include "downward/cli/tasks/task_transformation_category.h"
 
-#include "language/plugins/registry.h"
-
 #include "downward/task_transformation.h"
 
-using namespace language::plugins;
+#include "language/ast/internal_type_declaration.h"
+
+using namespace language::parser;
 
 namespace downward::cli::tasks {
 
-void add_task_transformation_category(Namespace& nspace)
+void add_task_transformation_category(NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_shared_type_declaration<TaskTransformation>(
+    insert_shared_type_declaration<TaskTransformation>(
+        nspace,
         "TaskTransformation",
         "");
 }

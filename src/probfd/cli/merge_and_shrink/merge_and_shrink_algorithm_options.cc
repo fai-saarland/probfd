@@ -4,13 +4,10 @@
 
 #include "downward/utils/math.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/options.h"
-
-#include <string>
+#include "language/ast/internal_function_definition.h"
 
 using namespace std;
-using namespace language::plugins;
+using namespace language::parser;
 using namespace downward;
 using namespace probfd::merge_and_shrink;
 

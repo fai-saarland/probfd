@@ -1,33 +1,25 @@
 #include "downward/cli/mutexes/from_file_mutex_factory_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/mutexes/from_file_mutex_factory.h"
-
-#include <filesystem>
 
 using namespace std;
 
 using namespace downward;
 using namespace downward::cli;
-using namespace language::plugins;
-
-namespace {
-
-} // namespace
+using namespace language::parser;
 
 namespace downward::cli::mutexes {
 
 InternalFunctionDefinitionBase&
-add_from_file_mutex_factory_feature(Namespace& nspace)
+add_from_file_mutex_factory_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "mutexes_from_file",
-        &language::plugins::construct_shared<
-            TaskDependentFactory<MutexInformation>,
-            FromFileMutexFactory,
-            std::string>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskDependentFactory<MutexInformation>,
+        FromFileMutexFactory,
+        std::string>>(nspace, "mutexes_from_file");
+
     f.document_title("Mutexes from a mutex file");
     f.document_synopsis("Produces pre-computed mutexes as read from a file.");
 

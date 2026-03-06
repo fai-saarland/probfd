@@ -2,8 +2,7 @@
 
 #include "downward/cli/pruning/pruning_method_options.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/pruning/limited_pruning.h"
 
@@ -14,21 +13,21 @@ using namespace downward::limited_pruning;
 using namespace downward::utils;
 
 using namespace downward::cli;
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace downward::cli::pruning {
 
-InternalFunctionDefinitionBase& add_limited_pruning_feature(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_limited_pruning_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "limited_pruning",
-        &language::plugins::construct_shared<
-            downward::PruningMethod,
-            LimitedPruning,
-            std::shared_ptr<downward::PruningMethod>,
-            double,
-            int,
-            Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        PruningMethod,
+        LimitedPruning,
+        std::shared_ptr<PruningMethod>,
+        double,
+        int,
+        Verbosity>>(nspace, "limited_pruning");
+
     f.document_title("Limited pruning");
     f.document_synopsis(
         "Limited pruning applies another pruning method and switches it "

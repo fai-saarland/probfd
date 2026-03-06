@@ -1,11 +1,11 @@
 #include "downward/cli/potentials/subcategory.h"
 
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
 
 namespace {
 
 class PotentialHeuristicsGroupPlugin
-    : public language::plugins::DocumentationTopic {
+    : public language::documentation::DocumentationTopic {
 public:
     PotentialHeuristicsGroupPlugin()
         : DocumentationTopic("heuristics_potentials")
@@ -18,8 +18,9 @@ public:
 
 namespace downward::cli::potentials {
 
-language::plugins::DocumentationTopic&
-add_potential_heuristics_subcategory(language::plugins::Registry& registry)
+language::documentation::DocumentationTopic&
+add_potential_heuristics_subcategory(
+    language::parser::CompilationContext& registry)
 {
     return registry
         .insert_documentation_topic<PotentialHeuristicsGroupPlugin>();

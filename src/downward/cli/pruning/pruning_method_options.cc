@@ -2,14 +2,14 @@
 
 #include "downward/cli/utils/logging_options.h"
 
-#include "language/plugins/internal_function_definition.h"
+#include "language/ast/internal_function_definition.h"
 
 using namespace std;
 
 namespace downward::cli {
 
 std::size_t add_pruning_options_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     std::size_t start_index)
 {
     feature.document_note(

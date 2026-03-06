@@ -7,7 +7,7 @@ create_library(
     DEPENDS
         probfd_core
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -21,7 +21,7 @@ create_library(
         probfd_core
         core_probabilistic_tasks
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -33,7 +33,7 @@ create_library(
         probfd/cli/task_state_space_factory_category
     DEPENDS
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -47,7 +47,7 @@ create_library(
         task_state_space_factory_category
         probfd_core
     language
-        plugins
+    language
         logging_options
     TARGET
         probfd
@@ -62,7 +62,7 @@ create_library(
     DEPENDS
         probfd_core
     language
-        plugins
+    language
         task_state_space_factory_category
         logging_options
     TARGET
@@ -78,7 +78,7 @@ create_library(
         mdp_heuristic_search_base
         mdp_solver_options
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -91,7 +91,7 @@ create_library(
     DEPENDS
         mdp_solver_options
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -105,7 +105,7 @@ create_library(
         mdp_heuristic_search_base_options
         probfd_core
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -119,7 +119,7 @@ create_library(
         probfd_core
         mdp_solver_options
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -133,7 +133,7 @@ create_library(
         mdp_heuristic_search_base_options
         probfd_core
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -147,7 +147,7 @@ create_library(
         mdp_heuristic_search_base_options
         probfd_core
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -160,7 +160,7 @@ create_library(
     DEPENDS
         mdp_heuristic_search_base_options
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -175,7 +175,7 @@ create_library(
         lp_solver_options
         lp_solver
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -190,7 +190,7 @@ create_library(
         lp_solver_options
         mdp_solver_options
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -203,7 +203,7 @@ create_library(
     DEPENDS
         mdp_solver_options
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -217,7 +217,7 @@ create_library(
         mdp_heuristic_search_base_options
         probfd_core
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -230,7 +230,7 @@ create_library(
     DEPENDS
         mdp_heuristic_search_base_options
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -243,7 +243,7 @@ create_library(
     DEPENDS
         mdp_heuristic_search_base_options
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -256,7 +256,7 @@ create_library(
     DEPENDS
         mdp_solver_options
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -268,7 +268,7 @@ create_library(
     DEPENDS
         task_dependent_heuristic
     language
-        plugins
+    language
         logging_options
 )
 
@@ -280,7 +280,7 @@ create_library(
     DEPENDS
         mdp_solver_options
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -302,7 +302,7 @@ create_library(
     DEPENDS
         padbs_pattern_generators
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -317,7 +317,7 @@ create_library(
         papdbs_pattern_generators_plugin
         papdbs_classical_generator
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -331,7 +331,7 @@ create_library(
         papdbs_systematic_generator
         papdbs_pattern_generators_plugin
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -346,7 +346,7 @@ create_library(
         papdbs_hillclimbing_generator
         papdbs_pattern_generators_plugin
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -365,7 +365,7 @@ create_library(
         papdbs_cegar
         papdbs_pattern_generators_plugin
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -380,7 +380,7 @@ create_library(
         papdbs_disjoint_cegar_generator
         papdbs_pattern_generators_plugin
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -395,7 +395,7 @@ create_library(
         papdbs_multiple_cegar_generator
         papdbs_pattern_generators_plugin
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -414,7 +414,7 @@ create_library(
         pa_cartesian_abstractions
         mutexes_factory_category
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -429,7 +429,7 @@ create_library(
         task_dependent_heuristic_options
         probability_aware_cartesian_abstraction_heuristic
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -443,7 +443,7 @@ create_library(
         evaluator_category
         probfd_core
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -457,7 +457,7 @@ create_library(
         evaluator_category
         deadend_pruning_heuristic
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -471,7 +471,7 @@ create_library(
         evaluator_category
         determinization_heuristic
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -484,7 +484,7 @@ create_library(
     DEPENDS
         gzocp_pdb_heuristic
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -497,7 +497,7 @@ create_library(
     DEPENDS
         probability_aware_pdb_heuristic
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -510,7 +510,7 @@ create_library(
     DEPENDS
         scp_pdb_heuristic
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -523,7 +523,7 @@ create_library(
     DEPENDS
         ucp_pdb_heuristic
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -537,7 +537,7 @@ create_library(
     DEPENDS
         occupation_measure_heuristic
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -559,7 +559,7 @@ create_library(
     DEPENDS
         pa_merge_and_shrink
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -572,7 +572,7 @@ create_library(
     DEPENDS
         pa_merge_and_shrink
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -585,7 +585,7 @@ create_library(
     DEPENDS
         pa_merge_and_shrink
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -600,7 +600,7 @@ create_library(
         pmerge_strategy_factory_options
         pa_merge_and_shrink
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -615,7 +615,7 @@ create_library(
         pmerge_strategy_factory_options
         pa_merge_and_shrink
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -630,7 +630,7 @@ create_library(
         pmerge_strategy_factory_options
         pa_merge_and_shrink
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -643,7 +643,7 @@ create_library(
     DEPENDS
         pa_merge_and_shrink
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -656,7 +656,7 @@ create_library(
     DEPENDS
         pa_merge_and_shrink
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -669,7 +669,7 @@ create_library(
     DEPENDS
         pa_merge_and_shrink
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -683,7 +683,7 @@ create_library(
         pmerge_scoring_function_category
         pa_merge_and_shrink
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -697,7 +697,7 @@ create_library(
         pmerge_scoring_function_category
         pa_merge_and_shrink
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -711,7 +711,7 @@ create_library(
         pmerge_scoring_function_category
         pa_merge_and_shrink
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -725,7 +725,7 @@ create_library(
         pmerge_scoring_function_category
         pa_merge_and_shrink
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -739,7 +739,7 @@ create_library(
         pmerge_scoring_function_category
         pa_merge_and_shrink
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -752,7 +752,7 @@ create_library(
     DEPENDS
         pa_merge_and_shrink
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -765,7 +765,7 @@ create_library(
     DEPENDS
         pa_merge_and_shrink
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -780,7 +780,7 @@ create_library(
         pmerge_tree_factory_options
         pa_merge_and_shrink
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -793,7 +793,7 @@ create_library(
     DEPENDS
         pa_merge_and_shrink
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -807,7 +807,7 @@ create_library(
         pa_merge_and_shrink
         pshrink_strategy_category
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -822,7 +822,7 @@ create_library(
         pshrink_strategy_category
         pshrink_strategy_bucket_based_options
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -837,7 +837,7 @@ create_library(
         pshrink_strategy_category
         pshrink_strategy_bucket_based_options
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -851,7 +851,7 @@ create_library(
         pa_merge_and_shrink
         pshrink_strategy_category
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -865,7 +865,7 @@ create_library(
         pa_merge_and_shrink
         pshrink_strategy_category
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -878,7 +878,7 @@ create_library(
     DEPENDS
         pa_merge_and_shrink
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -892,7 +892,7 @@ create_library(
         pa_merge_and_shrink
         prune_strategy_category
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -906,7 +906,7 @@ create_library(
         pa_merge_and_shrink
         prune_strategy_category
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -920,7 +920,7 @@ create_library(
         pa_merge_and_shrink
         prune_strategy_category
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -945,7 +945,7 @@ create_library(
     DEPENDS
         mdp_heuristic_search_base
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -959,7 +959,7 @@ create_library(
         mdp_heuristic_search_base
         rng_options
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -972,7 +972,7 @@ create_library(
     DEPENDS
         mdp_heuristic_search_base
     language
-        plugins
+    language
     TARGET
         probfd
 )
@@ -985,7 +985,7 @@ create_library(
     DEPENDS
         mdp_heuristic_search_base
     language
-        plugins
+    language
     TARGET
         probfd
 )

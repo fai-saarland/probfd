@@ -1,35 +1,33 @@
 #include "downward/cli/merge_and_shrink/merge_tree_factory_linear_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
-
 #include "downward/cli/merge_and_shrink/merge_tree_options.h"
 
 #include "downward/merge_and_shrink/merge_tree_factory_linear.h"
 
 #include "downward/utils/markup.h"
 
+#include "language/ast/internal_enum_declaration.h"
+#include "language/ast/internal_function_definition.h"
+
 using namespace std;
 using namespace downward::utils;
 using namespace downward::merge_and_shrink;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::merge_and_shrink::add_merge_tree_options_to_feature;
 
 namespace {
 
-InternalFunctionDefinitionBase&
-add_merge_strategy_factory_linear_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_merge_strategy_factory_linear_to_namespace(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "linear",
-        &language::plugins::construct_shared<
-            MergeTreeFactory,
-            MergeTreeFactoryLinear,
-            downward::variable_order_finder::VariableOrderType,
-            std::shared_ptr<RandomNumberGenerator>,
-            UpdateOption>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        MergeTreeFactory,
+        MergeTreeFactoryLinear,
+        downward::variable_order_finder::VariableOrderType,
+        std::shared_ptr<RandomNumberGenerator>,
+        UpdateOption>>(nspace, "linear");
 
     f.document_title("Linear merge trees");
     f.document_synopsis(
@@ -61,10 +59,12 @@ add_merge_strategy_factory_linear_to_namespace(Namespace& nspace)
 
 namespace downward::cli::merge_and_shrink {
 
-void add_merge_tree_factory_linear_feature(Namespace& nspace)
+void add_merge_tree_factory_linear_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_enum_declaration<
-        downward::variable_order_finder::VariableOrderType>(
+    insert_enum_declaration<variable_order_finder::VariableOrderType>(
+        nspace,
+        "VariableOrderType",
         {{"cg_goal_level",
           "variables are prioritized first if they have an arc to a previously "
           "added variable, second if their goal value is defined "

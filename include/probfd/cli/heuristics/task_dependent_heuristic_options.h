@@ -3,14 +3,14 @@
 
 #include <cstddef>
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-} // namespace language::plugins
+} // namespace language::parser
 
 namespace probfd::cli::heuristics {
 
 extern std::size_t add_task_dependent_heuristic_options_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 
 } // namespace probfd::cli::heuristics

@@ -1,23 +1,22 @@
 #include "downward/cli/tasks/identity_task_transformation_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/transformations/identity_transformation.h"
 
 using namespace std;
 using namespace downward;
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace downward::cli::tasks {
 
 InternalFunctionDefinitionBase&
-add_identity_task_transformation_features(Namespace& nspace)
+add_identity_task_transformation_features(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "no_transform",
-        &language::plugins::
-            construct_shared<TaskTransformation, IdentityTaskTransformation>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskTransformation,
+        IdentityTaskTransformation>>(nspace, "no_transform");
+
     f.document_title("Identity task transformation");
     f.document_synopsis("Applies no transformation to the task.");
 

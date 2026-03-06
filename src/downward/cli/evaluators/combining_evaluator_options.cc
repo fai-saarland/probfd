@@ -1,12 +1,12 @@
 #include "downward/cli/evaluators/combining_evaluator_options.h"
 
-#include "language/plugins/internal_function_definition.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/evaluators/evaluator_options.h"
 
 using namespace std;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace downward::cli::combining_evaluator {
 

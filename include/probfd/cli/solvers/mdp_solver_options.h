@@ -3,19 +3,19 @@
 
 #include <cstddef>
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-} // namespace language::plugins
+} // namespace language::parser
 
 /// This namespace contains the solver plugins for various search algorithms.
 namespace probfd::cli::solvers {
 
 extern std::size_t add_base_solver_options_except_algorithm_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 
 extern std::size_t add_base_solver_options_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 
 } // namespace probfd::cli::solvers

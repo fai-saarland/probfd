@@ -1,7 +1,6 @@
 #include "downward/cli/operator_counting/state_equation_constraints_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/utils/logging_options.h"
 
@@ -14,21 +13,20 @@ using namespace std;
 using namespace downward::utils;
 using namespace downward::operator_counting;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::utils::add_log_options_to_feature;
 
 namespace downward::cli::operator_counting {
 
 InternalFunctionDefinitionBase&
-add_state_equation_constraints_feature(Namespace& nspace)
+add_state_equation_constraints_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "state_equation_constraints",
-        &language::plugins::construct_shared<
-            ConstraintGenerator,
-            StateEquationConstraints,
-            downward::utils::Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        ConstraintGenerator,
+        StateEquationConstraints,
+        Verbosity>>(nspace, "state_equation_constraints");
+
     f.document_title("State equation constraints");
     f.document_synopsis(
         "For each fact, a permanent constraint is added that considers the "

@@ -3,17 +3,17 @@
 
 #include <cstddef>
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-} // namespace language::plugins
+} // namespace language::parser
 
 namespace downward::cli::pdbs {
 
-extern void add_cegar_implementation_notes_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature);
+extern void
+add_cegar_implementation_notes_to_feature(language::parser::InternalFunctionDefinitionBase& feature);
 
 extern std::size_t add_cegar_wildcard_option_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 
 } // namespace downward::cli::pdbs

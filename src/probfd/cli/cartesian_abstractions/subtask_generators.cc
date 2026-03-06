@@ -1,17 +1,18 @@
 #include "probfd/cli/cartesian_abstractions/subtask_generators.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
-
 #include "downward/cli/utils/rng_options.h"
 
 #include "probfd/cartesian_abstractions/subtask_generators.h"
+
+#include "language/ast/internal_enum_declaration.h"
+#include "language/ast/internal_function_definition.h"
+#include "language/ast/internal_type_declaration.h"
 
 using namespace downward;
 using namespace utils;
 
 using namespace downward::cli;
-using namespace language::plugins;
+using namespace language::parser;
 
 using namespace probfd::cartesian_abstractions;
 
@@ -20,12 +21,13 @@ using downward::cli::utils::add_rng_options_to_feature;
 namespace {
 
 InternalFunctionDefinitionBase&
-add_task_duplicator_to_namespace(Namespace& nspace)
+add_task_duplicator_to_namespace(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "pcegar_original",
-        &language::plugins::
-            construct_shared<SubtaskGenerator, TaskDuplicator, int>);
+    auto& f = insert_function_definition<
+        &language::parser::
+            construct_shared<SubtaskGenerator, TaskDuplicator, int>>(
+        nspace,
+        "pcegar_original");
 
     f.make_optional_argument_with_default(
         0,
@@ -37,15 +39,13 @@ add_task_duplicator_to_namespace(Namespace& nspace)
 }
 
 InternalFunctionDefinitionBase&
-add_goal_decomposition_to_namespace(Namespace& nspace)
+add_goal_decomposition_to_namespace(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "pcegar_goals",
-        &language::plugins::construct_shared<
-            SubtaskGenerator,
-            GoalDecomposition,
-            FactOrder,
-            std::shared_ptr<RandomNumberGenerator>>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        SubtaskGenerator,
+        GoalDecomposition,
+        FactOrder,
+        std::shared_ptr<RandomNumberGenerator>>>(nspace, "pcegar_goals");
 
     f.make_optional_argument_with_default(
         0,
@@ -58,17 +58,15 @@ add_goal_decomposition_to_namespace(Namespace& nspace)
 }
 
 InternalFunctionDefinitionBase&
-add_landmark_decomposition_to_namespace(Namespace& nspace)
+add_landmark_decomposition_to_namespace(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "pcegar_landmarks",
-        &language::plugins::construct_shared<
-            SubtaskGenerator,
-            LandmarkDecomposition,
-            std::shared_ptr<TaskDependentFactory<MutexInformation>>,
-            FactOrder,
-            bool,
-            std::shared_ptr<RandomNumberGenerator>>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        SubtaskGenerator,
+        LandmarkDecomposition,
+        std::shared_ptr<TaskDependentFactory<MutexInformation>>,
+        FactOrder,
+        bool,
+        std::shared_ptr<RandomNumberGenerator>>>(nspace, "pcegar_landmarks");
 
     f.make_optional_argument_with_default(
         0,
@@ -97,16 +95,19 @@ add_landmark_decomposition_to_namespace(Namespace& nspace)
 
 namespace probfd::cli::cartesian_abstractions {
 
-void add_subtask_generator_category(Namespace& nspace)
+void add_subtask_generator_category(NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_shared_type_declaration<SubtaskGenerator>(
+    insert_shared_type_declaration<SubtaskGenerator>(
+        nspace,
         "PSubtaskGenerator",
         "Subtask generator (used by the CEGAR heuristic).");
 }
 
-void add_subtask_generator_features(Namespace& nspace)
+void add_subtask_generator_features(NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_enum_declaration<FactOrder>(
+    insert_enum_declaration<FactOrder>(
+        nspace,
+        "FactOrder",
         {{"original", "according to their (internal) variable index"},
          {"random", "according to a random permutation"},
          {"hadd_up", "according to their h^add value, lowest first"},

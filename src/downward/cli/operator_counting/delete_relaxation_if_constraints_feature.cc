@@ -1,7 +1,7 @@
 #include "downward/cli/operator_counting/delete_relaxation_if_constraints_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/operator_counting/delete_relaxation_if_constraints.h"
 
@@ -11,20 +11,18 @@ using namespace std;
 using namespace downward::utils;
 using namespace downward::operator_counting;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace downward::cli::operator_counting {
 
-InternalFunctionDefinitionBase&
-add_delete_relaxation_if_constraints_feature(Namespace& nspace)
+InternalFunctionDefinitionBase& add_delete_relaxation_if_constraints_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "delete_relaxation_if_constraints",
-        &language::plugins::construct_shared<
-            ConstraintGenerator,
-            DeleteRelaxationIFConstraints,
-            bool,
-            bool>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        ConstraintGenerator,
+        DeleteRelaxationIFConstraints,
+        bool,
+        bool>>(nspace, "delete_relaxation_if_constraints");
 
     f.document_title("Delete relaxation constraints");
     f.document_synopsis(

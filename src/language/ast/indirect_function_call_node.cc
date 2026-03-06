@@ -3,8 +3,9 @@
 #include "language/typed_ast/convert_node.h"
 #include "language/typed_ast/decorated_function_call_node.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/types.h"
+#include "language/ast/internal_function_definition.h"
+
+#include "language/typed_ast/types.h"
 
 #include "language/context.h"
 
@@ -14,19 +15,21 @@ using namespace std;
 
 namespace language::parser {
 
-static std::unique_ptr<DecoratedASTNode> decorate_and_convert(
-    const ASTNode& node,
-    const plugins::Type& target_type,
+static std::unique_ptr<typed_ast::DecoratedExpressionNode> decorate_and_convert(
+    const ExpressionNode& node,
+    const typed_ast::Type& target_type,
     Context& context,
-    VariableEnvironment& env,
-    plugins::TypeRegistry& type_registry)
+    typed_ast::GlobalEnvironment& env,
+    typed_ast::LocalEnvironment& local_env,
+    typed_ast::TypeRegistry& type_registry)
 {
-    auto [ast_node, type] = node.static_analysis(context, env, type_registry);
+    auto [ast_node, type] =
+        node.static_analysis(context, env, local_env, type_registry);
 
     if (*type != target_type) {
         TraceBlock block(context, "Adding casting node");
         if (type->can_convert_into(target_type)) {
-            return std::make_unique<ConvertNode>(
+            return std::make_unique<typed_ast::ConvertNode>(
                 move(ast_node),
                 *type,
                 target_type);
@@ -41,32 +44,32 @@ static std::unique_ptr<DecoratedASTNode> decorate_and_convert(
 }
 
 IndirectFunctionCallNode::IndirectFunctionCallNode(
-    std::unique_ptr<ASTNode> callee,
-    vector<std::unique_ptr<ASTNode>>&& positional_arguments,
-    const string& unparsed_config)
+    std::unique_ptr<ExpressionNode> callee,
+    vector<std::unique_ptr<ExpressionNode>>&& positional_arguments)
     : callee(std::move(callee))
     , positional_arguments(move(positional_arguments))
-    , unparsed_config(unparsed_config)
 {
 }
 
 TypedDecoratedAstNodePtr IndirectFunctionCallNode::static_analysis(
     Context& context,
-    VariableEnvironment& env,
-    plugins::TypeRegistry& type_registry) const
+    typed_ast::GlobalEnvironment& env,
+    typed_ast::LocalEnvironment& local_env,
+    typed_ast::TypeRegistry& type_registry) const
 {
     TraceBlock block(context, "Checking Call");
 
     auto [dast_node, type] =
-        callee->static_analysis(context, env, type_registry);
+        callee->static_analysis(context, env, local_env, type_registry);
+
     if (!type->is_function_type()) {
         context.error("Callee does not have function type.");
     }
 
-    const auto& ftype = *static_cast<const plugins::FunctionType*>(type);
+    const auto& ftype = *static_cast<const typed_ast::FunctionType*>(type);
     const auto& argument_types = ftype.get_argument_types();
 
-    vector<FunctionArgument> arguments;
+    vector<typed_ast::FunctionArgument> arguments;
     arguments.reserve(argument_types.size());
 
     if (positional_arguments.size() != argument_types.size()) {
@@ -85,17 +88,21 @@ TypedDecoratedAstNodePtr IndirectFunctionCallNode::static_analysis(
         const auto& arg = positional_arguments[i];
         const auto& arg_type = argument_types[i];
 
-        std::unique_ptr<DecoratedASTNode> decorated_arg =
-            decorate_and_convert(*arg, *arg_type, context, env, type_registry);
+        auto decorated_arg = decorate_and_convert(
+            *arg,
+            *arg_type,
+            context,
+            env,
+            local_env,
+            type_registry);
 
         arguments.emplace_back(move(decorated_arg), false);
     }
 
     return {
-        std::make_unique<DecoratedFunctionCallNode>(
+        std::make_unique<typed_ast::DecoratedFunctionCallNode>(
             std::move(dast_node),
-            move(arguments),
-            unparsed_config),
+            move(arguments)),
         &ftype.get_return_type()};
 }
 

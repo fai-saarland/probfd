@@ -1,6 +1,6 @@
 #include "downward/cli/merge_and_shrink/merge_tree_options.h"
 
-#include "language/plugins/internal_function_definition.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -11,7 +11,7 @@ using namespace downward::cli::utils;
 namespace downward::cli::merge_and_shrink {
 
 std::size_t add_merge_tree_options_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     std::size_t start_index)
 {
     const auto n = add_rng_options_to_feature(feature, start_index);

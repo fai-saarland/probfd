@@ -9,19 +9,20 @@
 
 namespace language::parser {
 
-class UnaryNode : public ASTNode {
-    std::unique_ptr<ASTNode> nested_expr;
+class UnaryNode : public ExpressionNode {
+    std::unique_ptr<ExpressionNode> nested_expr;
     TokenType token_type;
 
 public:
     UnaryNode(
-        std::unique_ptr<ASTNode> nested_expr,
+        std::unique_ptr<ExpressionNode> nested_expr,
         const TokenType& token_type);
 
     TypedDecoratedAstNodePtr static_analysis(
         Context& context,
-        VariableEnvironment& env,
-        plugins::TypeRegistry& type_registry) const override;
+        typed_ast::GlobalEnvironment& env,
+        typed_ast::LocalEnvironment& local_env,
+        typed_ast::TypeRegistry& type_registry) const override;
 };
 
 } // namespace language::parser

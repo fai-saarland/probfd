@@ -8,7 +8,7 @@
 
 using namespace std;
 
-namespace language::parser {
+namespace language::typed_ast {
 
 IntLiteralNode::IntLiteralNode(int value)
     : value(value)
@@ -19,12 +19,6 @@ std::any IntLiteralNode::construct(ConstructContext& context) const
 {
     TraceBlock block(context, "Constructing int value from '{}'", value);
     return value;
-}
-
-void IntLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
-{
-    std::print(out, "{}", std::string(indent, ' '));
-    std::print(out, "{}", value);
 }
 
 } // namespace language::parser

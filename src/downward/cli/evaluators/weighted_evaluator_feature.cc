@@ -1,7 +1,7 @@
 #include "downward/cli/evaluators/weighted_evaluator_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/evaluators/evaluator_options.h"
 
@@ -16,7 +16,7 @@ using namespace downward;
 using namespace downward::utils;
 using namespace downward::weighted_evaluator;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::add_evaluator_options_to_feature;
 
@@ -57,17 +57,16 @@ public:
 namespace downward::cli::evaluators {
 
 InternalFunctionDefinitionBase&
-add_weighted_evaluator_feature(Namespace& nspace)
+add_weighted_evaluator_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "weight",
-        &language::plugins::construct_shared<
-            TaskDependentFactory<Evaluator>,
-            WeightedEvaluatorFactory,
-            std::string,
-            Verbosity,
-            shared_ptr<TaskDependentFactory<Evaluator>>,
-            int>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskDependentFactory<Evaluator>,
+        WeightedEvaluatorFactory,
+        std::string,
+        Verbosity,
+        shared_ptr<TaskDependentFactory<Evaluator>>,
+        int>>(nspace, "weight");
+
     f.document_title("Weighted evaluator");
     f.document_synopsis(
         "Multiplies the value of the evaluator with the given weight.");

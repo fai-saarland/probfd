@@ -1,15 +1,15 @@
 #ifndef DOWNWARD_HEURISTICS_FF_HEURISTIC_FEATURE_H
 #define DOWNWARD_HEURISTICS_FF_HEURISTIC_FEATURE_H
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-class Namespace;
-} // namespace language::plugins
+class NamespaceLevelDeclarationList;
+} // namespace language::parser
 
 namespace downward::cli::heuristics {
 
-language::plugins::InternalFunctionDefinitionBase&
-add_ff_heuristic_features(language::plugins::Namespace& nspace);
+language::parser::InternalFunctionDefinitionBase&
+add_ff_heuristic_features(language::parser::NamespaceLevelDeclarationList& nspace);
 
 }
 

@@ -1,7 +1,6 @@
 #include "probfd/cli/heuristics/probability_aware_pdb_heuristic.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "probfd/cli/heuristics/task_dependent_heuristic_options.h"
 
@@ -14,20 +13,19 @@ using namespace probfd::heuristics;
 
 using namespace probfd::cli::heuristics;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace probfd::cli::heuristics {
 
-InternalFunctionDefinitionBase& add_pdb_heuristic_feature(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_pdb_heuristic_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "ppdbs",
-        &language::plugins::construct_shared<
-            TaskHeuristicFactory,
-            ProbabilityAwarePDBHeuristicFactory,
-            std::shared_ptr<PatternCollectionGenerator>,
-            utils::FSeconds,
-            utils::Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskHeuristicFactory,
+        ProbabilityAwarePDBHeuristicFactory,
+        std::shared_ptr<PatternCollectionGenerator>,
+        utils::FSeconds,
+        utils::Verbosity>>(nspace, "ppdbs");
 
     f.document_title("Probability-aware Pattern database heuristic");
     f.document_synopsis(

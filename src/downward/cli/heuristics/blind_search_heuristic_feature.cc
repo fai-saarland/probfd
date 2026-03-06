@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/blind_search_heuristic_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/heuristics/heuristic_options.h"
 
@@ -17,23 +17,24 @@ using namespace downward;
 using namespace downward::utils;
 using namespace downward::blind_search_heuristic;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::add_heuristic_options_to_feature;
 
 namespace {
+
 class BlindSearchHeuristicFactory : public TaskDependentFactory<Evaluator> {
     std::shared_ptr<TaskTransformation> transformation;
     bool cache_estimates;
     std::string description;
-    utils::Verbosity verbosity;
+    Verbosity verbosity;
 
 public:
     BlindSearchHeuristicFactory(
         shared_ptr<TaskTransformation> transformation,
         bool cache_estimates,
         string description,
-        utils::Verbosity verbosity)
+        Verbosity verbosity)
         : transformation(std::move(transformation))
         , cache_estimates(cache_estimates)
         , description(std::move(description))
@@ -57,17 +58,16 @@ public:
 
 namespace downward::cli::heuristics {
 
-InternalFunctionDefinitionBase& add_blind_heuristic_feature(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_blind_heuristic_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "blind",
-        &language::plugins::construct_shared<
-            TaskDependentFactory<Evaluator>,
-            BlindSearchHeuristicFactory,
-            shared_ptr<TaskTransformation>,
-            bool,
-            string,
-            Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskDependentFactory<Evaluator>,
+        BlindSearchHeuristicFactory,
+        shared_ptr<TaskTransformation>,
+        bool,
+        string,
+        Verbosity>>(nspace, "blind");
 
     f.document_title("Blind heuristic");
     f.document_synopsis(

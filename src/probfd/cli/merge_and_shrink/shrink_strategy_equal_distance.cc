@@ -1,34 +1,32 @@
 #include "probfd/cli/merge_and_shrink/shrink_strategy_equal_distance.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
-
 #include "probfd/cli/merge_and_shrink/shrink_strategy_bucket_based_options.h"
 
 #include "probfd/merge_and_shrink/shrink_strategy_equal_distance.h"
 
 #include "probfd/merge_and_shrink/transition_system.h"
 
-#include "downward/utils/logging.h"
+#include "language/ast/internal_enum_declaration.h"
+#include "language/ast/internal_function_definition.h"
 
 using namespace std;
 using namespace downward;
-using namespace language::plugins;
+using namespace language::parser;
 using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
 
 namespace {
 
-InternalFunctionDefinitionBase&
-add_shrink_strategy_equal_distance_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_shrink_strategy_equal_distance_to_namespace(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "shrink_equal_distance",
-        &language::plugins::construct_shared<
-            ShrinkStrategy,
-            ShrinkStrategyEqualDistance,
-            std::shared_ptr<utils::RandomNumberGenerator>,
-            ShrinkStrategyEqualDistance::Priority>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        ShrinkStrategy,
+        ShrinkStrategyEqualDistance,
+        std::shared_ptr<utils::RandomNumberGenerator>,
+        ShrinkStrategyEqualDistance::Priority>>(
+        nspace,
+        "shrink_equal_distance");
 
     f.document_title("distance-preserving shrink strategy");
 
@@ -53,9 +51,12 @@ add_shrink_strategy_equal_distance_to_namespace(Namespace& nspace)
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_shrink_strategy_equal_distance_feature(Namespace& nspace)
+void add_shrink_strategy_equal_distance_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_enum_declaration<ShrinkStrategyEqualDistance::Priority>(
+    insert_enum_declaration<ShrinkStrategyEqualDistance::Priority>(
+        nspace,
+        "Priority",
         {{"high", "prefer shrinking states with high value"},
          {"low", "prefer shrinking states with low value"}});
 

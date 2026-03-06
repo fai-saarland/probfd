@@ -6,12 +6,12 @@
 #ifndef PROBFD_REGISTER_DEFINITIONS_H
 #define PROBFD_REGISTER_DEFINITIONS_H
 
-namespace language::plugins {
-class Registry;
+namespace language::parser {
+class CompilationContext;
 }
 
 namespace probfd {
-void register_definitions(language::plugins::Registry& registry);
+void register_definitions(language::parser::CompilationContext& ccontext);
 }
 
 #endif

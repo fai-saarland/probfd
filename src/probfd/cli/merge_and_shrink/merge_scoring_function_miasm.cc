@@ -1,7 +1,7 @@
 #include "probfd/cli/merge_and_shrink/merge_scoring_function_miasm.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "probfd/merge_and_shrink/merge_scoring_function_miasm.h"
 
@@ -14,7 +14,7 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace language::plugins;
+using namespace language::parser;
 using namespace downward;
 using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
@@ -46,11 +46,11 @@ shared_ptr<MergeScoringFunction> create_merge_scoring_function_miasm(
 namespace probfd::cli::merge_and_shrink {
 
 InternalFunctionDefinitionBase&
-add_merge_scoring_function_miasm_feature(Namespace& nspace)
+add_merge_scoring_function_miasm_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "psf_miasm",
-        create_merge_scoring_function_miasm);
+    auto& f = insert_function_definition<create_merge_scoring_function_miasm>(
+        nspace,
+        "psf_miasm");
 
     f.document_title("MIASM");
     f.document_synopsis(

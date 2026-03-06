@@ -1,18 +1,19 @@
 #include "probfd/cli/cartesian_abstractions/flaw_generator_category.h"
 
-#include "language/plugins/registry.h"
-
 #include "probfd/cartesian_abstractions/flaw_generator.h"
 
-using namespace language::plugins;
+#include "language/ast/internal_type_declaration.h"
+
+using namespace language::parser;
 
 using namespace probfd::cartesian_abstractions;
 
 namespace probfd::cli::cartesian_abstractions {
 
-void add_flaw_generator_category(Namespace& nspace)
+void add_flaw_generator_category(NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_shared_type_declaration<FlawGeneratorFactory>(
+    insert_shared_type_declaration<FlawGeneratorFactory>(
+        nspace,
         "FlawGeneratorFactory",
         "Factory for flaw generation algorithms used in the "
         "cartesian abstraction "

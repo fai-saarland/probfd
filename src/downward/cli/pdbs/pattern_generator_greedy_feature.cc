@@ -2,8 +2,7 @@
 
 #include "downward/cli/pdbs/pattern_generator_options.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/pdbs/pattern_generator_greedy.h"
 
@@ -12,20 +11,19 @@ using namespace downward::utils;
 using namespace downward::pdbs;
 
 using namespace downward::cli::pdbs;
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace downward::cli::pdbs {
 
 InternalFunctionDefinitionBase&
-add_pattern_generator_greedy_feature(Namespace& nspace)
+add_pattern_generator_greedy_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "greedy",
-        &language::plugins::construct_shared<
-            PatternGenerator,
-            PatternGeneratorGreedy,
-            int,
-            Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        PatternGenerator,
+        PatternGeneratorGreedy,
+        int,
+        Verbosity>>(nspace, "greedy");
+
     f.make_optional_argument_with_default(
         0,
         "max_states",

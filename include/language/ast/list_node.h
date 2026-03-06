@@ -8,16 +8,17 @@
 
 namespace language::parser {
 
-class ListNode : public ASTNode {
-    std::vector<std::unique_ptr<ASTNode>> elements;
+class ListNode : public ExpressionNode {
+    std::vector<std::unique_ptr<ExpressionNode>> elements;
 
 public:
-    explicit ListNode(std::vector<std::unique_ptr<ASTNode>>&& elements);
+    explicit ListNode(std::vector<std::unique_ptr<ExpressionNode>>&& elements);
 
     TypedDecoratedAstNodePtr static_analysis(
         Context& context,
-        VariableEnvironment& env,
-        plugins::TypeRegistry& type_registry) const override;
+        typed_ast::GlobalEnvironment& env,
+        typed_ast::LocalEnvironment& local_env,
+        typed_ast::TypeRegistry& type_registry) const override;
 };
 
 } // namespace language::parser

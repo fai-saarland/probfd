@@ -2,27 +2,22 @@
 
 #include "language/typed_ast/construct_context.h"
 
-#include "language/plugins/types.h"
+#include "language/typed_ast/types.h"
 
 #include "language/context.h"
 
 using namespace std;
 
-namespace language::parser {
+namespace language::typed_ast {
 
 ConvertNode::ConvertNode(
-    std::unique_ptr<DecoratedASTNode> value,
-    const plugins::Type& from_type,
-    const plugins::Type& to_type)
+    std::unique_ptr<DecoratedExpressionNode> value,
+    const Type& from_type,
+    const Type& to_type)
     : value(move(value))
     , from_type(from_type)
     , to_type(to_type)
 {
-}
-
-void ConvertNode::remove_variable_usages()
-{
-    value->remove_variable_usages();
 }
 
 std::any ConvertNode::construct(ConstructContext& context) const
@@ -43,18 +38,10 @@ std::any ConvertNode::construct(ConstructContext& context) const
             "Converting constructed value from '{}' to '{}'",
             from_type.name(),
             to_type.name());
-        return plugins::convert(constructed_value, from_type, to_type, context);
+        return convert(constructed_value, from_type, to_type, context);
     }();
 
     return converted_value;
-}
-
-void ConvertNode::print(
-    std::ostream& out,
-    std::size_t indent,
-    bool print_default_args) const
-{
-    value->print(out, indent, print_default_args);
 }
 
 } // namespace language::parser

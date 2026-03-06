@@ -1,16 +1,16 @@
 #ifndef PROBFD_CLI_MERGE_AND_SHRINK_MERGE_SELECTOR_SCORE_BASED_FILTERING_H
 #define PROBFD_CLI_MERGE_AND_SHRINK_MERGE_SELECTOR_SCORE_BASED_FILTERING_H
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-class Namespace;
-} // namespace language::plugins
+class NamespaceLevelDeclarationList;
+} // namespace language::parser
 
 namespace probfd::cli::merge_and_shrink {
 
-language::plugins::InternalFunctionDefinitionBase&
+language::parser::InternalFunctionDefinitionBase&
 add_merge_selector_score_based_filtering_feature(
-    language::plugins::Namespace& nspace);
+    language::parser::NamespaceLevelDeclarationList& nspace);
 
 }
 

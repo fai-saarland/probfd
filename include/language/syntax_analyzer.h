@@ -6,14 +6,14 @@
 
 namespace language::parser {
 class TokenStream;
-class ASTNode;
+class ExpressionNode;
 } // namespace language::parser
 
 namespace language::parser {
 
-extern std::unique_ptr<ASTNode> parse(TokenStream& tokens);
+extern std::unique_ptr<ExpressionNode> parse(TokenStream& tokens);
 
-extern std::unique_ptr<ASTNode>
+extern std::unique_ptr<ExpressionNode>
 tokenize_and_parse(const std::string& expression);
 
 } // namespace language::parser

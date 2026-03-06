@@ -1,15 +1,15 @@
 #ifndef DOWNWARD_CLI_SEARCH_ALGORITHMS_ITERATED_SEARCH_FEATURE_H
 #define DOWNWARD_CLI_SEARCH_ALGORITHMS_ITERATED_SEARCH_FEATURE_H
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-class Namespace;
-} // namespace language::plugins
+class NamespaceLevelDeclarationList;
+} // namespace language::parser
 
 namespace downward::cli::search_algorithms {
 
-language::plugins::InternalFunctionDefinitionBase&
-add_iterated_search_feature(language::plugins::Namespace& nspace);
+language::parser::InternalFunctionDefinitionBase&
+add_iterated_search_feature(language::parser::NamespaceLevelDeclarationList& nspace);
 
 }
 

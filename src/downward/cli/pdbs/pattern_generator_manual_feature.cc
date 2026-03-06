@@ -2,8 +2,7 @@
 
 #include "downward/cli/pdbs/pattern_generator_options.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/pdbs/pattern_generator_manual.h"
 
@@ -12,20 +11,19 @@ using namespace downward::utils;
 using namespace downward::pdbs;
 
 using namespace downward::cli::pdbs;
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace downward::cli::pdbs {
 
 InternalFunctionDefinitionBase&
-add_pattern_generator_manual_feature(Namespace& nspace)
+add_pattern_generator_manual_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "manual_pattern",
-        &language::plugins::construct_shared<
-            PatternGenerator,
-            PatternGeneratorManual,
-            std::vector<int>,
-            Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        PatternGenerator,
+        PatternGeneratorManual,
+        std::vector<int>,
+        Verbosity>>(nspace, "manual_pattern");
+
     f.make_required_argument(
         0,
         "pattern",

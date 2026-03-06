@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/merge_and_shrink_heuristic_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/merge_and_shrink/merge_and_shrink_algorithm_options.h"
 
@@ -18,7 +18,7 @@ using namespace std;
 using namespace downward;
 using namespace downward::utils;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::add_heuristic_options_to_feature;
 
@@ -34,7 +34,7 @@ class MergeAndShrinkHeuristicFactory : public TaskDependentFactory<Evaluator> {
     std::shared_ptr<TaskTransformation> transformation;
     bool cache_estimates;
     std::string description;
-    utils::Verbosity verbosity;
+    Verbosity verbosity;
     shared_ptr<MergeStrategyFactory> merge_strategy;
     shared_ptr<ShrinkStrategy> shrink_strategy;
     shared_ptr<LabelReduction> label_reduction;
@@ -43,14 +43,14 @@ class MergeAndShrinkHeuristicFactory : public TaskDependentFactory<Evaluator> {
     int max_states;
     int max_states_before_merge;
     int threshold_before_merge;
-    utils::FSeconds main_loop_max_time;
+    FSeconds main_loop_max_time;
 
 public:
     MergeAndShrinkHeuristicFactory(
         shared_ptr<TaskTransformation> transformation,
         bool cache_estimates,
         string description,
-        utils::Verbosity verbosity,
+        Verbosity verbosity,
         shared_ptr<MergeStrategyFactory> merge_strategy,
         shared_ptr<ShrinkStrategy> shrink_strategy,
         shared_ptr<LabelReduction> label_reduction,
@@ -59,7 +59,7 @@ public:
         int max_states,
         int max_states_before_merge,
         int threshold_before_merge,
-        utils::FSeconds main_loop_max_time)
+        FSeconds main_loop_max_time)
         : transformation(std::move(transformation))
         , cache_estimates(cache_estimates)
         , description(std::move(description))
@@ -165,12 +165,12 @@ create_merge_and_shrink_heuristic_no_lr(
         main_loop_max_time);
 }
 
-InternalFunctionDefinitionBase&
-add_merge_and_shrink_heuristic_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_merge_and_shrink_heuristic_to_namespace(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "merge_and_shrink",
-        create_merge_and_shrink_heuristic);
+    auto& f = insert_function_definition<create_merge_and_shrink_heuristic>(
+        nspace,
+        "merge_and_shrink");
 
     f.document_title("Merge-and-shrink heuristic");
     f.document_synopsis(
@@ -359,11 +359,13 @@ add_merge_and_shrink_heuristic_to_namespace(Namespace& nspace)
 }
 
 InternalFunctionDefinitionBase&
-add_merge_and_shrink_heuristic_no_lr_to_namespace(Namespace& nspace)
+add_merge_and_shrink_heuristic_no_lr_to_namespace(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "merge_and_shrink_no_lr",
-        create_merge_and_shrink_heuristic_no_lr);
+    auto& f =
+        insert_function_definition<create_merge_and_shrink_heuristic_no_lr>(
+            nspace,
+            "merge_and_shrink_no_lr");
 
     f.document_title("Merge-and-shrink heuristic");
     f.document_synopsis(
@@ -548,7 +550,8 @@ add_merge_and_shrink_heuristic_no_lr_to_namespace(Namespace& nspace)
 
 namespace downward::cli::heuristics {
 
-void add_merge_and_shrink_heuristic_feature(Namespace& nspace)
+void add_merge_and_shrink_heuristic_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
     add_merge_and_shrink_heuristic_to_namespace(nspace);
     add_merge_and_shrink_heuristic_no_lr_to_namespace(nspace);

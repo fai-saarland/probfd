@@ -1,20 +1,20 @@
 #include "downward/cli/search_algorithms/search_algorithm_factory_category.h"
 
-#include "language/plugins/registry.h"
-
 #include "downward/search_algorithm.h"
 #include "downward/task_dependent_factory_fwd.h"
 
-using namespace language::plugins;
+#include "language/ast/internal_type_declaration.h"
+
+using namespace language::parser;
 
 namespace downward::cli::search_algorithms {
 
-void add_search_algorithm_factory_category(Namespace& nspace)
+void add_search_algorithm_factory_category(NamespaceLevelDeclarationList& nspace)
 {
-    nspace
-        .insert_shared_type_declaration<TaskDependentFactory<SearchAlgorithm>>(
-            "SearchAlgorithmFactory",
-            "");
+    insert_shared_type_declaration<TaskDependentFactory<SearchAlgorithm>>(
+        nspace,
+        "SearchAlgorithmFactory",
+        "");
 }
 
 } // namespace downward::cli::search_algorithms

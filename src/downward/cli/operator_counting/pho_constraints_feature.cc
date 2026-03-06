@@ -1,7 +1,7 @@
 #include "downward/cli/operator_counting/pho_constraints_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/operator_counting/pho_constraints.h"
 
@@ -12,18 +12,20 @@ using namespace downward::pdbs;
 using namespace downward::utils;
 using namespace downward::operator_counting;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace downward::cli::operator_counting {
 
-InternalFunctionDefinitionBase& add_pho_constraints_feature(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_pho_constraints_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "pho_constraints",
-        &language::plugins::construct_shared<
-            ConstraintGenerator,
-            PhOConstraints,
-            std::shared_ptr<PatternCollectionGenerator>>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        ConstraintGenerator,
+        PhOConstraints,
+        std::shared_ptr<PatternCollectionGenerator>>>(
+        nspace,
+        "pho_constraints");
+
     f.document_title("Posthoc optimization constraints");
     f.document_synopsis(
         "The generator will compute a PDB for each pattern and add the"

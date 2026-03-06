@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/additive_heuristic_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/heuristics/heuristic_options.h"
 
@@ -15,7 +15,7 @@ using namespace downward::utils;
 using namespace downward::additive_heuristic;
 
 using namespace downward;
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::add_heuristic_options_to_feature;
 
@@ -24,14 +24,14 @@ class AdditiveHeuristicFactory : public TaskDependentFactory<Evaluator> {
     std::shared_ptr<TaskTransformation> transformation;
     bool cache_estimates;
     std::string description;
-    utils::Verbosity verbosity;
+    Verbosity verbosity;
 
 public:
     AdditiveHeuristicFactory(
         shared_ptr<TaskTransformation> transformation,
         bool cache_estimates,
         string description,
-        utils::Verbosity verbosity)
+        Verbosity verbosity)
         : transformation(std::move(transformation))
         , cache_estimates(cache_estimates)
         , description(std::move(description))
@@ -56,17 +56,15 @@ public:
 namespace downward::cli::heuristics {
 
 InternalFunctionDefinitionBase&
-add_additive_heuristic_feature(Namespace& nspace)
+add_additive_heuristic_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "add",
-        &language::plugins::construct_shared<
-            TaskDependentFactory<Evaluator>,
-            AdditiveHeuristicFactory,
-            shared_ptr<TaskTransformation>,
-            bool,
-            string,
-            Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskDependentFactory<Evaluator>,
+        AdditiveHeuristicFactory,
+        shared_ptr<TaskTransformation>,
+        bool,
+        string,
+        Verbosity>>(nspace, "add");
 
     f.document_title("Additive heuristic");
 

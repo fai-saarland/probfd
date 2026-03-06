@@ -1,7 +1,6 @@
 #include "downward/cli/pdbs/pattern_collection_generator_genetic_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/pdbs/pattern_generator_options.h"
 
@@ -18,7 +17,7 @@ using namespace downward::pdbs;
 
 using namespace downward::cli::pdbs;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::pdbs::add_generator_options_to_feature;
 
@@ -27,20 +26,20 @@ using downward::cli::utils::add_rng_options_to_feature;
 namespace downward::cli::pdbs {
 
 InternalFunctionDefinitionBase&
-add_pattern_collection_generator_genetic_feature(Namespace& nspace)
+add_pattern_collection_generator_genetic_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "genetic",
-        &language::plugins::construct_shared<
-            PatternCollectionGenerator,
-            PatternCollectionGeneratorGenetic,
-            int,
-            int,
-            int,
-            double,
-            bool,
-            std::shared_ptr<RandomNumberGenerator>,
-            Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        PatternCollectionGenerator,
+        PatternCollectionGeneratorGenetic,
+        int,
+        int,
+        int,
+        double,
+        bool,
+        std::shared_ptr<RandomNumberGenerator>,
+        Verbosity>>(nspace, "genetic");
+
     f.document_title("Genetic Algorithm Patterns");
     f.document_synopsis(
         "The following paper describes the automated creation of pattern "

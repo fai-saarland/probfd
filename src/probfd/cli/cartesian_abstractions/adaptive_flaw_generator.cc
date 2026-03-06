@@ -1,51 +1,27 @@
 #include "probfd/cli/cartesian_abstractions/adaptive_flaw_generator.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "probfd/cartesian_abstractions/adaptive_flaw_generator.h"
 
 using namespace downward;
 using namespace utils;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using namespace probfd::cartesian_abstractions;
-
-namespace {
-
-InternalFunctionDefinitionBase&
-add_adaptive_flaw_generator_astar_to_namespace(Namespace& nspace)
-{
-    auto& f = nspace.insert_function_definition(
-        "flaws_adaptive",
-        &language::plugins::construct_shared<
-            FlawGeneratorFactory,
-            AdaptiveFlawGeneratorFactory,
-            std::vector<std::shared_ptr<FlawGeneratorFactory>>>);
-
-    f.make_optional_argument_with_default(
-        0,
-        "generators",
-        "[flaws_astar(), flaws_ilao()]",
-        "The linear hierarchy of flaw generators.");
-
-    return f;
-}
-
-} // namespace
 
 namespace probfd::cli::cartesian_abstractions {
 
 InternalFunctionDefinitionBase&
-add_adaptive_flaw_generator_feature(Namespace& nspace)
+add_adaptive_flaw_generator_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "flaws_adaptive",
-        &language::plugins::construct_shared<
-            FlawGeneratorFactory,
-            AdaptiveFlawGeneratorFactory,
-            std::vector<std::shared_ptr<FlawGeneratorFactory>>>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        FlawGeneratorFactory,
+        AdaptiveFlawGeneratorFactory,
+        std::vector<std::shared_ptr<FlawGeneratorFactory>>>>(
+        nspace,
+        "flaws_adaptive");
 
     f.make_optional_argument_with_default(
         0,

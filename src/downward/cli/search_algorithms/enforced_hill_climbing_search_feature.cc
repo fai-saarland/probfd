@@ -1,9 +1,6 @@
 #include "downward/cli/search_algorithms/enforced_hill_climbing_search_feature.h"
 #include "downward/cli/search_algorithms/search_algorithm_options.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
-
 #include "downward/search_algorithms/enforced_hill_climbing_search.h"
 
 #include "downward/utils/logging.h"
@@ -11,12 +8,15 @@
 #include "downward/evaluator.h"
 #include "downward/task_dependent_factory.h"
 
+#include "language/ast/internal_enum_declaration.h"
+#include "language/ast/internal_function_definition.h"
+
 using namespace std;
 using namespace downward;
 using namespace downward::utils;
 using namespace downward::enforced_hill_climbing_search;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::add_search_algorithm_options_to_feature;
 
@@ -28,9 +28,9 @@ class EnforcedHillClimbingSearchFactory
     vector<shared_ptr<TaskDependentFactory<Evaluator>>> preferred_factories;
     OperatorCost cost_type;
     int bound;
-    utils::FSeconds max_time;
+    FSeconds max_time;
     std::string description;
-    utils::Verbosity verbosity;
+    Verbosity verbosity;
 
 public:
     explicit EnforcedHillClimbingSearchFactory(
@@ -39,9 +39,9 @@ public:
         vector<shared_ptr<TaskDependentFactory<Evaluator>>> preferred_factories,
         OperatorCost cost_type,
         int bound,
-        utils::FSeconds max_time,
+        FSeconds max_time,
         std::string description,
-        utils::Verbosity verbosity)
+        Verbosity verbosity)
         : h_factory(std::move(h_factory))
         , preferred_usage(preferred_usage)
         , preferred_factories(std::move(preferred_factories))
@@ -75,22 +75,20 @@ public:
     }
 };
 
-InternalFunctionDefinitionBase&
-add_eager_hill_climbing_search_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_eager_hill_climbing_search_to_namespace(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "ehc",
-        &language::plugins::construct_shared<
-            TaskDependentFactory<SearchAlgorithm>,
-            EnforcedHillClimbingSearchFactory,
-            shared_ptr<TaskDependentFactory<Evaluator>>,
-            PreferredUsage,
-            vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
-            OperatorCost,
-            int,
-            FSeconds,
-            std::string,
-            Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskDependentFactory<SearchAlgorithm>,
+        EnforcedHillClimbingSearchFactory,
+        shared_ptr<TaskDependentFactory<Evaluator>>,
+        PreferredUsage,
+        vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
+        OperatorCost,
+        int,
+        FSeconds,
+        std::string,
+        Verbosity>>(nspace, "ehc");
 
     f.document_title("Lazy enforced hill-climbing");
     f.document_synopsis("");
@@ -115,9 +113,12 @@ add_eager_hill_climbing_search_to_namespace(Namespace& nspace)
 
 namespace downward::cli::search_algorithms {
 
-void add_enforce_hill_climbing_search_feature(Namespace& nspace)
+void add_enforce_hill_climbing_search_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_enum_declaration<PreferredUsage>(
+    insert_enum_declaration<PreferredUsage>(
+        nspace,
+        "PreferredUsage",
         {{"prune_by_preferred",
           "prune successors achieved by non-preferred operators"},
          {"rank_preferred_first",

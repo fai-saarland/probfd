@@ -1,14 +1,14 @@
 #ifndef PROBFD_CLI_PDBS_MAX_ORTHOGONAL_FINDER_FACTORY_H
 #define PROBFD_CLI_PDBS_MAX_ORTHOGONAL_FINDER_FACTORY_H
 
-namespace language::plugins {
-class Namespace;
+namespace language::parser {
+class NamespaceLevelDeclarationList;
 }
 
 namespace probfd::cli::pdbs {
 
 void add_max_orthogonal_finder_factory_feature(
-    language::plugins::Namespace& nspace);
+    language::parser::NamespaceLevelDeclarationList& nspace);
 
 }
 

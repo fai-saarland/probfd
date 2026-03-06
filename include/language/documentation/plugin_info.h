@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace language::plugins {
+namespace language::documentation {
 
 struct PropertyInfo {
     std::string property;
@@ -31,6 +31,7 @@ struct LanguageSupportInfo {
         const std::string& feature,
         const std::string& description);
 };
-} // namespace language::plugins
+
+} // namespace language::documentation
 
 #endif

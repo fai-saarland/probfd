@@ -1,7 +1,6 @@
 #include "downward/cli/merge_and_shrink/merge_scoring_function_goal_relevance_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/merge_and_shrink/merge_scoring_function_goal_relevance.h"
 
@@ -9,18 +8,18 @@ using namespace std;
 using namespace downward::merge_and_shrink;
 using namespace downward::utils;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace downward::cli::merge_and_shrink {
 
 InternalFunctionDefinitionBase&
-add_merge_scoring_function_goal_relevance_feature(Namespace& nspace)
+add_merge_scoring_function_goal_relevance_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "goal_relevance",
-        &language::plugins::construct_shared<
-            MergeScoringFunction,
-            MergeScoringFunctionGoalRelevance>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        MergeScoringFunction,
+        MergeScoringFunctionGoalRelevance>>(nspace, "goal_relevance");
+
     f.document_title("Goal relevance scoring");
     f.document_synopsis(
         "This scoring function assigns a merge candidate a value of 0 iff "

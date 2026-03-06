@@ -4,14 +4,14 @@
 
 #include <cstddef>
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
 }
 
 namespace probfd::cli::merge_and_shrink {
 
 extern std::size_t add_merge_tree_factory_options_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 
 }

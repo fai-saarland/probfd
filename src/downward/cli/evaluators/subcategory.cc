@@ -1,9 +1,12 @@
 #include "downward/cli/evaluators/subcategory.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
-using namespace language::plugins;
+#include "language/documentation/topic.h"
+
+using namespace language::parser;
+using namespace language::documentation;
 
 namespace {
 class EvaluatorGroupPlugin : public DocumentationTopic {
@@ -18,7 +21,7 @@ public:
 
 namespace downward::cli::evaluators {
 
-DocumentationTopic& add_evaluator_subcategory(Registry& registry)
+DocumentationTopic& add_evaluator_subcategory(CompilationContext& registry)
 {
     return registry.insert_documentation_topic<EvaluatorGroupPlugin>();
 }

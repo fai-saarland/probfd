@@ -4,14 +4,14 @@
 #include <cstddef>
 #include <string>
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-} // namespace language::plugins
+} // namespace language::parser
 
 namespace downward::cli {
 
 extern std::size_t add_heuristic_options_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     const std::string& description,
     std::size_t start_index);
 

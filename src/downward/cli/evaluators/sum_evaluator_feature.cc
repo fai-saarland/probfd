@@ -1,7 +1,7 @@
 #include "downward/cli/evaluators/sum_evaluator_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/evaluators/combining_evaluator_options.h"
 
@@ -16,7 +16,7 @@ using namespace downward;
 using namespace downward::utils;
 using namespace downward::sum_evaluator;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::combining_evaluator::
     add_combining_evaluator_options_to_feature;
@@ -61,16 +61,16 @@ public:
 
 namespace downward::cli::evaluators {
 
-InternalFunctionDefinitionBase& add_sum_evaluator_feature(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_sum_evaluator_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "sum",
-        &language::plugins::construct_shared<
-            TaskDependentFactory<Evaluator>,
-            SumEvaluatorFactory,
-            std::string,
-            Verbosity,
-            vector<shared_ptr<TaskDependentFactory<Evaluator>>>>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskDependentFactory<Evaluator>,
+        SumEvaluatorFactory,
+        std::string,
+        Verbosity,
+        vector<shared_ptr<TaskDependentFactory<Evaluator>>>>>(nspace, "sum");
+
     f.document_title("Sum evaluator");
     f.document_synopsis("Calculates the sum of the sub-evaluators.");
 

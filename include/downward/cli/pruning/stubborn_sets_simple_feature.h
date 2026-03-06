@@ -1,15 +1,15 @@
 #ifndef DOWNWARD_CLI_PRUNING_STUBBORN_SETS_SIMPLE_FEATURE_H
 #define DOWNWARD_CLI_PRUNING_STUBBORN_SETS_SIMPLE_FEATURE_H
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-class Namespace;
-} // namespace language::plugins
+class NamespaceLevelDeclarationList;
+}
 
 namespace downward::cli::pruning {
 
-language::plugins::InternalFunctionDefinitionBase&
-add_stubborn_sets_simple_feature(language::plugins::Namespace& nspace);
+language::parser::InternalFunctionDefinitionBase&
+add_stubborn_sets_simple_feature(language::parser::NamespaceLevelDeclarationList& nspace);
 
 }
 

@@ -1,8 +1,5 @@
 #include "probfd/cli/merge_and_shrink/merge_strategy_factory_sccs.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
-
 #include "probfd/merge_and_shrink/merge_strategy_factory_sccs.h"
 
 #include "probfd/merge_and_shrink/merge_selector.h"
@@ -15,8 +12,11 @@
 
 #include "probfd/cli/merge_and_shrink/merge_strategy_factory_options.h"
 
+#include "language/ast/internal_enum_declaration.h"
+#include "language/ast/internal_function_definition.h"
+
 using namespace std;
-using namespace language::plugins;
+using namespace language::parser;
 using namespace downward;
 using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
@@ -24,16 +24,14 @@ using namespace probfd::cli::merge_and_shrink;
 namespace {
 
 InternalFunctionDefinitionBase&
-add_merge_strategy_sccs_tree_to_namespace(Namespace& nspace)
+add_merge_strategy_sccs_tree_to_namespace(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "pmerge_sccs_tree",
-        &language::plugins::construct_shared<
-            MergeStrategyFactory,
-            MergeStrategyFactorySCCsTree,
-            utils::Verbosity,
-            OrderOfSCCs,
-            std::shared_ptr<MergeTreeFactory>>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        MergeStrategyFactory,
+        MergeStrategyFactorySCCsTree,
+        utils::Verbosity,
+        OrderOfSCCs,
+        std::shared_ptr<MergeTreeFactory>>>(nspace, "pmerge_sccs_tree");
 
     f.document_title("Merge strategy SSCs");
     f.document_synopsis(
@@ -76,17 +74,15 @@ add_merge_strategy_sccs_tree_to_namespace(Namespace& nspace)
     return f;
 }
 
-InternalFunctionDefinitionBase&
-add_merge_strategy_sccs_selector_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_merge_strategy_sccs_selector_to_namespace(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "pmerge_sccs_selector",
-        &language::plugins::construct_shared<
-            MergeStrategyFactory,
-            MergeStrategyFactorySCCsSelector,
-            utils::Verbosity,
-            OrderOfSCCs,
-            std::shared_ptr<MergeSelector>>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        MergeStrategyFactory,
+        MergeStrategyFactorySCCsSelector,
+        utils::Verbosity,
+        OrderOfSCCs,
+        std::shared_ptr<MergeSelector>>>(nspace, "pmerge_sccs_selector");
 
     f.document_title("Merge strategy SSCs");
     f.document_synopsis(
@@ -133,9 +129,12 @@ add_merge_strategy_sccs_selector_to_namespace(Namespace& nspace)
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_merge_strategy_factory_sccs_feature(Namespace& nspace)
+void add_merge_strategy_factory_sccs_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_enum_declaration<OrderOfSCCs>(
+    insert_enum_declaration<OrderOfSCCs>(
+        nspace,
+        "OrderOfSCCs",
         {{"topological",
           "according to the topological ordering of the directed graph "
           "where each obtained SCC is a 'supervertex'"},

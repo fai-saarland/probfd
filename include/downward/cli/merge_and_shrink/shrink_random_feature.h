@@ -1,15 +1,15 @@
 #ifndef DOWNWARD_CLI_MERGE_AND_SHRINK_SHRINK_RANDOM_FEATURE_H
 #define DOWNWARD_CLI_MERGE_AND_SHRINK_SHRINK_RANDOM_FEATURE_H
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-class Namespace;
-} // namespace language::plugins
+class NamespaceLevelDeclarationList;
+} // namespace language::parser
 
 namespace downward::cli::merge_and_shrink {
 
-language::plugins::InternalFunctionDefinitionBase&
-add_shrink_random_feature(language::plugins::Namespace& nspace);
+language::parser::InternalFunctionDefinitionBase&
+add_shrink_random_feature(language::parser::NamespaceLevelDeclarationList& nspace);
 
 }
 

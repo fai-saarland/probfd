@@ -1,15 +1,15 @@
 #ifndef PROBFD_CLI_CARTESIAN_ABSTRACTIONS_POLICY_BASED_FLAW_GENERATOR_H
 #define PROBFD_CLI_CARTESIAN_ABSTRACTIONS_POLICY_BASED_FLAW_GENERATOR_H
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-class Namespace;
-} // namespace language::plugins
+class NamespaceLevelDeclarationList;
+} // namespace language::parser
 
 namespace probfd::cli::cartesian_abstractions {
 
-language::plugins::InternalFunctionDefinitionBase&
-add_policy_based_flaw_generator_feature(language::plugins::Namespace& nspace);
+language::parser::InternalFunctionDefinitionBase&
+add_policy_based_flaw_generator_feature(language::parser::NamespaceLevelDeclarationList& nspace);
 
 }
 

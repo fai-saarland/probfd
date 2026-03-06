@@ -1,7 +1,6 @@
 #include "probfd/cli/pdbs/cegar/pucs_flaw_finder.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "probfd/pdbs/cegar/pucs_flaw_finder.h"
 
@@ -10,15 +9,17 @@ using namespace utils;
 
 using namespace probfd::pdbs::cegar;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace probfd::cli::pdbs::cegar {
 
-InternalFunctionDefinitionBase& add_pucs_flaw_finder_feature(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_pucs_flaw_finder_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "pucs_flaw_finder",
-        &construct_shared<FlawFindingStrategy, PUCSFlawFinder, int>);
+    auto& f = insert_function_definition<
+        &construct_shared<FlawFindingStrategy, PUCSFlawFinder, int>>(
+        nspace,
+        "pucs_flaw_finder");
     f.make_optional_argument_with_default(
         0,
         "max_search_states",

@@ -1,7 +1,6 @@
 #include "probfd/cli/heuristics/additive_cartesian_heuristic.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "probfd/cli/heuristics/task_dependent_heuristic_options.h"
 
@@ -14,26 +13,24 @@ using namespace probfd::heuristics;
 
 using namespace probfd::cli::heuristics;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace probfd::cli::heuristics {
 
 InternalFunctionDefinitionBase&
-add_additive_cartesian_heuristic_feature(Namespace& nspace)
+add_additive_cartesian_heuristic_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "pcegar",
-        &language::plugins::construct_shared<
-            TaskHeuristicFactory,
-            AdditiveCartesianHeuristicFactory,
-            std::vector<std::shared_ptr<SubtaskGenerator>>,
-            std::shared_ptr<FlawGeneratorFactory>,
-            std::shared_ptr<SplitSelectorFactory>,
-            int,
-            int,
-            utils::FSeconds,
-            bool,
-            utils::Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskHeuristicFactory,
+        AdditiveCartesianHeuristicFactory,
+        std::vector<std::shared_ptr<SubtaskGenerator>>,
+        std::shared_ptr<FlawGeneratorFactory>,
+        std::shared_ptr<SplitSelectorFactory>,
+        int,
+        int,
+        utils::FSeconds,
+        bool,
+        utils::Verbosity>>(nspace, "pcegar");
 
     f.document_title("Additive Cartesian CEGAR heuristic");
 

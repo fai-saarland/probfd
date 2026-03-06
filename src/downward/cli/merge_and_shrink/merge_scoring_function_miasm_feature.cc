@@ -1,19 +1,18 @@
 #include "downward/cli/merge_and_shrink/merge_scoring_function_miasm_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/merge_and_shrink/merge_and_shrink_algorithm_options.h"
 
 #include "downward/merge_and_shrink/merge_scoring_function_miasm.h"
 
-#include "downward/utils/logging.h"
 #include "downward/utils/markup.h"
 
 using namespace std;
 
 using namespace downward::utils;
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::merge_and_shrink::
     add_transition_system_size_limit_options_to_feature;
@@ -49,11 +48,12 @@ shared_ptr<MergeScoringFunction> create_merge_scoring_function_miasm(
 namespace downward::cli::merge_and_shrink {
 
 InternalFunctionDefinitionBase&
-add_merge_scoring_function_miasm_feature(Namespace& nspace)
+add_merge_scoring_function_miasm_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "sf_miasm",
-        &create_merge_scoring_function_miasm);
+    auto& f = insert_function_definition<&create_merge_scoring_function_miasm>(
+        nspace,
+        "sf_miasm");
+
     f.document_title("MIASM");
     f.document_synopsis(
         "This scoring function favors merging transition systems such that "

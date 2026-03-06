@@ -3,47 +3,47 @@
 
 #include <cstddef>
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-} // namespace language::plugins
+} // namespace language::parser
 
 namespace probfd::cli::solvers {
 
 template <bool Bisimulation, bool Fret>
 std::size_t add_mdp_hs_base_options_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 
 template <bool Bisimulation, bool Fret>
 std::size_t add_mdp_hs_options_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 
 // Explicit instantion declarations
 extern template std::size_t add_mdp_hs_base_options_to_feature<true, true>(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 extern template std::size_t add_mdp_hs_base_options_to_feature<true, false>(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 extern template std::size_t add_mdp_hs_base_options_to_feature<false, true>(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 extern template std::size_t add_mdp_hs_base_options_to_feature<false, false>(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 
 extern template std::size_t add_mdp_hs_options_to_feature<true, true>(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 extern template std::size_t add_mdp_hs_options_to_feature<true, false>(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 extern template std::size_t add_mdp_hs_options_to_feature<false, true>(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 extern template std::size_t add_mdp_hs_options_to_feature<false, false>(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 
 } // namespace probfd::cli::solvers

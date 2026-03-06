@@ -5,10 +5,11 @@
 #include "downward/utils/logging.h"
 
 #include "downward/cli/utils/rng_options.h"
-#include "language/plugins/internal_function_definition.h"
+
+#include "language/ast/internal_function_definition.h"
 
 using namespace std;
-using namespace language::plugins;
+using namespace language::parser;
 using namespace probfd::merge_and_shrink;
 
 namespace probfd::cli::merge_and_shrink {

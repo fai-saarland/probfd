@@ -1,32 +1,29 @@
 #include "downward/cli/operator_counting/delete_relaxation_rr_constraints_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
-
 #include "downward/operator_counting/delete_relaxation_rr_constraints.h"
 
-#include "downward/lp/lp_solver.h"
-
 #include "downward/utils/markup.h"
+
+#include "language/ast/internal_enum_declaration.h"
+#include "language/ast/internal_function_definition.h"
 
 using namespace std;
 using namespace downward::utils;
 using namespace downward::operator_counting;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace {
 
 InternalFunctionDefinitionBase&
-add_delete_relaxation_rr_constraints_to_namespace(Namespace& nspace)
+add_delete_relaxation_rr_constraints_to_namespace(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "delete_relaxation_rr_constraints",
-        &language::plugins::construct_shared<
-            ConstraintGenerator,
-            DeleteRelaxationRRConstraints,
-            AcyclicityType,
-            bool>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        ConstraintGenerator,
+        DeleteRelaxationRRConstraints,
+        AcyclicityType,
+        bool>>(nspace, "delete_relaxation_rr_constraints");
 
     f.document_title("Delete relaxation constraints from Rankooh and Rintanen");
     f.document_synopsis(
@@ -94,9 +91,12 @@ add_delete_relaxation_rr_constraints_to_namespace(Namespace& nspace)
 
 namespace downward::cli::operator_counting {
 
-void add_delete_relaxation_rr_constraints_feature(Namespace& nspace)
+void add_delete_relaxation_rr_constraints_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_enum_declaration<AcyclicityType>(
+    insert_enum_declaration<AcyclicityType>(
+        nspace,
+        "AcyclicityType",
         {{"time_labels",
           "introduces MIP variables that encode the time at which each fact is "
           "reached. Acyclicity is enforced with constraints that ensure that "

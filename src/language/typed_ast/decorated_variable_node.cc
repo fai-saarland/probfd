@@ -1,54 +1,32 @@
 #include "language/typed_ast/decorated_variable_node.h"
 
 #include "language/typed_ast/construct_context.h"
-#include "language/typed_ast/variable_declaration.h"
-
-#include "language/plugins/types.h"
+#include "language/typed_ast/variable_environment.h"
 
 #include "language/context.h"
 
-#include <cassert>
 #include <print>
 
 using namespace std;
 
-namespace language::parser {
+namespace language::typed_ast {
 
-VariableNode::VariableNode(VariableDeclaration& declaration)
-    : declaration(&declaration)
+VariableNode::VariableNode(StackValue& value)
+    : value(&value)
 {
-}
-
-void VariableNode::remove_variable_usages()
-{
-    const auto it = std::ranges::find(declaration->usages, this);
-    assert(it != declaration->usages.end());
-    declaration->usages.erase(it);
+    value.add_user(this);
 }
 
 std::any VariableNode::construct(ConstructContext& context) const
 {
+    const std::size_t stack_index = value->get_index();
+
     TraceBlock block(
         context,
-        "Looking up variable '{}'",
-        declaration->variable_name);
+        "Looking up variable at stack index '{}'",
+        stack_index);
 
-    if (!context.has_variable(declaration->variable_name)) {
-        context.error(
-            "Variable '{}' is not defined.",
-            declaration->variable_name);
-    }
-
-    return context.get_variable(declaration->variable_name);
+    return context.get_variable(stack_index);
 }
 
-void VariableNode::print(std::ostream& out, std::size_t indent, bool) const
-{
-    std::print(
-        out,
-        "{:>{}}",
-        declaration->variable_name,
-        indent + declaration->variable_name.size());
-}
-
-} // namespace language::parser
+} // namespace language::typed_ast

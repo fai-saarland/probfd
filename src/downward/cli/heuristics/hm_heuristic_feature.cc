@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/hm_heuristic_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/heuristics/heuristic_options.h"
 
@@ -17,7 +17,7 @@ using namespace downward;
 using namespace downward::hm_heuristic;
 using namespace downward::utils;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::add_heuristic_options_to_feature;
 
@@ -26,7 +26,7 @@ class HMHeuristicFactory : public TaskDependentFactory<Evaluator> {
     std::shared_ptr<TaskTransformation> transformation;
     bool cache_estimates;
     std::string description;
-    utils::Verbosity verbosity;
+    Verbosity verbosity;
     int m;
 
 public:
@@ -34,7 +34,7 @@ public:
         shared_ptr<TaskTransformation> transformation,
         bool cache_estimates,
         string description,
-        utils::Verbosity verbosity,
+        Verbosity verbosity,
         int m)
         : transformation(std::move(transformation))
         , cache_estimates(cache_estimates)
@@ -62,18 +62,17 @@ public:
 
 namespace downward::cli::heuristics {
 
-InternalFunctionDefinitionBase& add_hm_heuristic_features(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_hm_heuristic_features(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "hm",
-        &language::plugins::construct_shared<
-            TaskDependentFactory<Evaluator>,
-            HMHeuristicFactory,
-            shared_ptr<TaskTransformation>,
-            bool,
-            string,
-            Verbosity,
-            int>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskDependentFactory<Evaluator>,
+        HMHeuristicFactory,
+        shared_ptr<TaskTransformation>,
+        bool,
+        string,
+        Verbosity,
+        int>>(nspace, "hm");
 
     f.document_title("h^m heuristic");
 

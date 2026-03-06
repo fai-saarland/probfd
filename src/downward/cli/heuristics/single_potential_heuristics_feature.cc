@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/single_potential_heuristics_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/potentials/potential_options.h"
 
@@ -22,7 +22,7 @@ using namespace downward;
 using namespace downward::potentials;
 
 using namespace downward::cli::potentials;
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace {
 enum class OptimizeFor {
@@ -139,12 +139,13 @@ create_all_states_potential_heuristic(
 
 namespace downward::cli::heuristics {
 
-InternalFunctionDefinitionBase&
-add_initial_state_potential_heuristic_feature(Namespace& nspace)
+InternalFunctionDefinitionBase& add_initial_state_potential_heuristic_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "initial_state_potential",
-        create_initial_state_potential_heuristic);
+    auto& f =
+        insert_function_definition<create_initial_state_potential_heuristic>(
+            nspace,
+            "initial_state_potential");
 
     f.document_title("Potential heuristic optimized for initial state");
     f.document_synopsis(get_admissible_potentials_reference());
@@ -157,12 +158,12 @@ add_initial_state_potential_heuristic_feature(Namespace& nspace)
     return f;
 }
 
-InternalFunctionDefinitionBase&
-add_all_states_potential_heuristic_feature(Namespace& nspace)
+InternalFunctionDefinitionBase& add_all_states_potential_heuristic_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "all_states_potential",
-        create_all_states_potential_heuristic);
+    auto& f = insert_function_definition<create_all_states_potential_heuristic>(
+        nspace,
+        "all_states_potential");
 
     f.document_title("Potential heuristic optimized for all states");
     f.document_synopsis(get_admissible_potentials_reference());

@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/landmark_sum_heuristic_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/landmarks/landmark_heuristic_options.h"
 
@@ -17,16 +17,17 @@ using namespace downward;
 using namespace downward::landmarks;
 using namespace downward::utils;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::landmarks::add_landmark_heuristic_options_to_feature;
 
 namespace {
+
 class LandmarkSumHeuristicFactory : public TaskDependentFactory<Evaluator> {
     std::shared_ptr<TaskTransformation> transformation;
     bool cache_estimates;
     std::string description;
-    utils::Verbosity verbosity;
+    Verbosity verbosity;
     shared_ptr<LandmarkFactory> landmark_factory;
     bool pref;
     bool prog_goal;
@@ -38,7 +39,7 @@ public:
         shared_ptr<TaskTransformation> transformation,
         bool cache_estimates,
         string description,
-        utils::Verbosity verbosity,
+        Verbosity verbosity,
         shared_ptr<LandmarkFactory> landmark_factory,
         bool pref,
         bool prog_goal,
@@ -78,22 +79,20 @@ public:
 namespace downward::cli::heuristics {
 
 InternalFunctionDefinitionBase&
-add_landmark_sum_heuristic_feature(Namespace& nspace)
+add_landmark_sum_heuristic_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "landmark_sum",
-        &language::plugins::construct_shared<
-            TaskDependentFactory<Evaluator>,
-            LandmarkSumHeuristicFactory,
-            shared_ptr<TaskTransformation>,
-            bool,
-            string,
-            Verbosity,
-            shared_ptr<LandmarkFactory>,
-            bool,
-            bool,
-            bool,
-            bool>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskDependentFactory<Evaluator>,
+        LandmarkSumHeuristicFactory,
+        shared_ptr<TaskTransformation>,
+        bool,
+        string,
+        Verbosity,
+        shared_ptr<LandmarkFactory>,
+        bool,
+        bool,
+        bool,
+        bool>>(nspace, "landmark_sum");
 
     f.document_title("Landmark sum heuristic");
     f.document_synopsis(

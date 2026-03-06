@@ -1,11 +1,11 @@
 #include "probfd/cli/heuristics/scp_heuristic.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
-
 #include "downward/cli/utils/rng_options.h"
 
 #include "probfd/heuristics/scp_heuristic.h"
+
+#include "language/ast/internal_enum_declaration.h"
+#include "language/ast/internal_function_definition.h"
 
 using namespace downward;
 using namespace utils;
@@ -16,23 +16,22 @@ using namespace probfd::heuristics;
 
 using namespace probfd::cli::heuristics;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::utils::add_rng_options_to_feature;
 
 namespace {
 
 InternalFunctionDefinitionBase&
-add_saturated_cost_partitioning_heuristic_to_namespace(Namespace& nspace)
+add_saturated_cost_partitioning_heuristic_to_namespace(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "scp_heuristic",
-        &language::plugins::construct_shared<
-            TaskHeuristicFactory,
-            SCPHeuristicFactory,
-            std::shared_ptr<PatternCollectionGenerator>,
-            SCPHeuristicFactory::OrderingStrategy,
-            std::shared_ptr<RandomNumberGenerator>>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskHeuristicFactory,
+        SCPHeuristicFactory,
+        std::shared_ptr<PatternCollectionGenerator>,
+        SCPHeuristicFactory::OrderingStrategy,
+        std::shared_ptr<RandomNumberGenerator>>>(nspace, "scp_heuristic");
 
     f.document_title("Saturated Cost Partitioning Heuristic");
     f.document_synopsis(
@@ -73,9 +72,11 @@ add_saturated_cost_partitioning_heuristic_to_namespace(Namespace& nspace)
 
 namespace probfd::cli::heuristics {
 
-void add_scp_heuristic_feature(Namespace& nspace)
+void add_scp_heuristic_feature(NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_enum_declaration<SCPHeuristicFactory::OrderingStrategy>(
+    insert_enum_declaration<SCPHeuristicFactory::OrderingStrategy>(
+        nspace,
+        "OrderingStrategy",
         {{"random", "the order is random"},
          {"size_asc", "orders the PDBs by increasing size"},
          {"size_desc", "orders the PDBs by decreasing size"},

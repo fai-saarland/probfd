@@ -1,7 +1,6 @@
 #include "downward/cli/operator_counting/lm_cut_constraints_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/operator_counting/lm_cut_constraints.h"
 
@@ -11,17 +10,17 @@ using namespace std;
 using namespace downward::utils;
 using namespace downward::operator_counting;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace downward::cli::operator_counting {
 
 InternalFunctionDefinitionBase&
-add_lm_cut_constraints_feature(Namespace& nspace)
+add_lm_cut_constraints_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "lmcut_constraints",
-        &language::plugins::
-            construct_shared<ConstraintGenerator, LMCutConstraints>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        ConstraintGenerator,
+        LMCutConstraints>>(nspace, "lmcut_constraints");
+
     f.document_title("LM-cut landmark constraints");
     f.document_synopsis(
         "Computes a set of landmarks in each state using the LM-cut "

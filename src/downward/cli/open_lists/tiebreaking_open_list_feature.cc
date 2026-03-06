@@ -1,7 +1,7 @@
 #include "downward/cli/open_lists/tiebreaking_open_list_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/open_lists/open_list_options.h"
 
@@ -11,25 +11,24 @@ using namespace std;
 using namespace downward::utils;
 using namespace downward::tiebreaking_open_list;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::add_open_list_options_to_feature;
 
 namespace {
 
 template <typename T>
-InternalFunctionDefinitionBase&
-add_tiebreaking_open_list_to_namespace(Namespace& nspace, std::string name)
+InternalFunctionDefinitionBase& add_tiebreaking_open_list_to_namespace(
+    NamespaceLevelDeclarationList& nspace,
+    std::string name)
 {
-    auto& f = nspace.insert_function_definition(
-        std::move(name),
-        &language::plugins::construct_shared<
-            downward::TaskDependentFactory<downward::OpenList<T>>,
-            TieBreakingOpenListFactory<T>,
-            std::vector<std::shared_ptr<
-                downward::TaskDependentFactory<downward::Evaluator>>>,
-            bool,
-            bool>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        downward::TaskDependentFactory<downward::OpenList<T>>,
+        TieBreakingOpenListFactory<T>,
+        std::vector<std::shared_ptr<
+            downward::TaskDependentFactory<downward::Evaluator>>>,
+        bool,
+        bool>>(nspace, std::move(name));
 
     if constexpr (std::same_as<T, downward::StateOpenListEntry>) {
         f.document_title("Tie-breaking state open list");
@@ -55,7 +54,7 @@ add_tiebreaking_open_list_to_namespace(Namespace& nspace, std::string name)
 
 namespace downward::cli::open_lists {
 
-void add_tiebreaking_open_list_features(Namespace& nspace)
+void add_tiebreaking_open_list_features(NamespaceLevelDeclarationList& nspace)
 {
     add_tiebreaking_open_list_to_namespace<StateOpenListEntry>(
         nspace,

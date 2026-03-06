@@ -3,6 +3,8 @@
 
 #include "language/ast/expression_node.h"
 
+#include "declaration.h"
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -13,8 +15,7 @@ class TypeNode;
 
 namespace language::parser {
 
-struct TypedParameter {
-    std::string parameter_name;
+struct TypedParameter : Declaration {
     std::unique_ptr<TypeNode> type_node;
 
     TypedParameter(
@@ -27,19 +28,20 @@ struct TypedParameter {
     ~TypedParameter();
 };
 
-class LambdaNode : public ASTNode {
+class LambdaNode : public ExpressionNode {
     std::vector<TypedParameter> parameters;
-    std::unique_ptr<ASTNode> nested_value;
+    std::unique_ptr<ExpressionNode> nested_value;
 
 public:
     LambdaNode(
         std::vector<TypedParameter> parameters,
-        std::unique_ptr<ASTNode> nested_value);
+        std::unique_ptr<ExpressionNode> nested_value);
 
     TypedDecoratedAstNodePtr static_analysis(
         Context& context,
-        VariableEnvironment& env,
-        plugins::TypeRegistry& registry) const override;
+        typed_ast::GlobalEnvironment& env,
+        typed_ast::LocalEnvironment& local_env,
+        typed_ast::TypeRegistry& registry) const override;
 };
 
 } // namespace language::parser

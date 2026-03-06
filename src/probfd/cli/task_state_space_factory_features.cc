@@ -1,7 +1,6 @@
 #include "probfd/cli/task_state_space_factory_features.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "probfd/caching_task_state_space.h"
 #include "probfd/task_state_space.h"
@@ -15,7 +14,7 @@ using namespace probfd;
 using namespace downward;
 using namespace downward::utils;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace {
 class DefaultTaskStateSpaceFactory : public TaskStateSpaceFactory {
@@ -81,15 +80,16 @@ public:
 };
 
 InternalFunctionDefinitionBase&
-add_default_task_state_space_factory_to_namespace(Namespace& nspace)
+add_default_task_state_space_factory_to_namespace(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "default_state_space",
-        &construct_shared<
-            TaskStateSpaceFactory,
-            DefaultTaskStateSpaceFactory,
-            std::vector<
-                std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>>);
+    auto& f = insert_function_definition<&construct_shared<
+        TaskStateSpaceFactory,
+        DefaultTaskStateSpaceFactory,
+        std::vector<
+            std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>>>(
+        nspace,
+        "default_state_space");
 
     f.document_synopsis("Default task state space implementation.");
     f.make_optional_argument_with_default(
@@ -104,15 +104,16 @@ add_default_task_state_space_factory_to_namespace(Namespace& nspace)
 }
 
 InternalFunctionDefinitionBase&
-add_caching_task_state_space_factory_to_namespace(Namespace& nspace)
+add_caching_task_state_space_factory_to_namespace(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "caching_state_space",
-        &construct_shared<
-            TaskStateSpaceFactory,
-            CachingTaskStateSpaceFactory,
-            std::vector<
-                std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>>);
+    auto& f = insert_function_definition<&construct_shared<
+        TaskStateSpaceFactory,
+        CachingTaskStateSpaceFactory,
+        std::vector<
+            std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>>>(
+        nspace,
+        "caching_state_space");
 
     f.document_synopsis(
         "Task state space implementation with transition cache.");
@@ -131,7 +132,8 @@ add_caching_task_state_space_factory_to_namespace(Namespace& nspace)
 
 namespace probfd::cli {
 
-void add_task_state_space_factory_features(Namespace& nspace)
+void add_task_state_space_factory_features(
+    NamespaceLevelDeclarationList& nspace)
 {
     add_default_task_state_space_factory_to_namespace(nspace);
     add_caching_task_state_space_factory_to_namespace(nspace);

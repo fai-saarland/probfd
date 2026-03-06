@@ -5,32 +5,31 @@
 #include "downward/utils/markup.h"
 #include "downward/utils/rng.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
-
 #include "downward/cli/utils/rng_options.h"
+
+#include "language/ast/internal_enum_declaration.h"
+#include "language/ast/internal_function_definition.h"
+#include "language/ast/internal_type_declaration.h"
 
 using namespace std;
 using namespace downward;
-using namespace language::plugins;
+using namespace language::parser;
 
 using namespace probfd::merge_and_shrink;
 
 namespace {
 
 InternalFunctionDefinitionBase&
-add_exact_label_reduction_to_namespace(Namespace& nspace)
+add_exact_label_reduction_to_namespace(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "pexact",
-        &language::plugins::construct_shared<
-            LabelReduction,
-            LabelReduction,
-            bool,
-            bool,
-            LabelReductionMethod,
-            LabelReductionSystemOrder,
-            std::shared_ptr<utils::RandomNumberGenerator>>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        LabelReduction,
+        LabelReduction,
+        bool,
+        bool,
+        LabelReductionMethod,
+        LabelReductionSystemOrder,
+        std::shared_ptr<utils::RandomNumberGenerator>>>(nspace, "pexact");
 
     f.document_title("Exact generalized label reduction");
     f.document_synopsis(
@@ -89,17 +88,20 @@ add_exact_label_reduction_to_namespace(Namespace& nspace)
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_label_reduction_category(Namespace& nspace)
+void add_label_reduction_category(NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_shared_type_declaration<LabelReduction>(
+    insert_shared_type_declaration<LabelReduction>(
+        nspace,
         "PLabelReduction",
         "This page describes the current single 'option' for "
         "label reduction.");
 }
 
-void add_label_reduction_features(Namespace& nspace)
+void add_label_reduction_features(NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_enum_declaration<LabelReductionMethod>(
+    insert_enum_declaration<LabelReductionMethod>(
+        nspace,
+        "LabelReductionMethod",
         {{"two_transition_systems",
           "compute the 'combinable relation' only for the two transition "
           "systems being merged next"},
@@ -110,7 +112,9 @@ void add_label_reduction_features(Namespace& nspace)
           "keep computing the 'combinable relation' for labels iteratively "
           "for all transition systems until no more labels can be reduced"}});
 
-    nspace.insert_enum_declaration<LabelReductionSystemOrder>(
+    insert_enum_declaration<LabelReductionSystemOrder>(
+        nspace,
+        "LabelReductionSystemOrder",
         {{"regular",
           "transition systems are considered in the order given in the planner "
           "input if atomic and in the order of their creation if composite."},

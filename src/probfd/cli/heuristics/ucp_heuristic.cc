@@ -1,9 +1,6 @@
 #include "probfd/cli/heuristics/ucp_heuristic.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
-
-#include "probfd/cli/heuristics/task_dependent_heuristic_options.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "probfd/heuristics/ucp_heuristic.h"
 
@@ -16,18 +13,17 @@ using namespace probfd::heuristics;
 
 using namespace probfd::cli::heuristics;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace probfd::cli::heuristics {
 
-InternalFunctionDefinitionBase& add_ucp_heuristic_feature(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_ucp_heuristic_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "ucp_heuristic",
-        &language::plugins::construct_shared<
-            TaskHeuristicFactory,
-            UCPHeuristicFactory,
-            std::shared_ptr<PatternCollectionGenerator>>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskHeuristicFactory,
+        UCPHeuristicFactory,
+        std::shared_ptr<PatternCollectionGenerator>>>(nspace, "ucp_heuristic");
 
     f.document_title("Uniform Cost Partitioning Heuristic");
     f.document_synopsis(

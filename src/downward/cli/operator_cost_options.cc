@@ -1,14 +1,12 @@
 #include "downward/cli/operator_cost_options.h"
 
-#include "language/plugins/internal_function_definition.h"
-
-#include "downward/operator_cost.h"
+#include "language/ast/internal_function_definition.h"
 
 using namespace std;
 
 namespace downward::cli {
 
-using namespace language::plugins;
+using namespace language::parser;
 
 std::size_t add_cost_type_options_to_feature(
     InternalFunctionDefinitionBase& feature,

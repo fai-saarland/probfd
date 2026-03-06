@@ -13,10 +13,10 @@ class TypeLiteralNode : public TypeNode {
 public:
     explicit TypeLiteralNode(const Token& value);
 
-    const plugins::Type& get_type(
+    const typed_ast::Type& get_type(
         Context& context,
-        const VariableEnvironment& environment,
-        plugins::TypeRegistry& type_registry) const override;
+        const typed_ast::GlobalEnvironment& environment,
+        typed_ast::TypeRegistry& type_registry) const override;
 };
 
 } // namespace language::parser

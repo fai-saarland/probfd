@@ -83,9 +83,9 @@ static auto parse_block(
     return parsing_function(tokens, context, std::forward<Args>(args)...);
 }
 
-static std::unique_ptr<ASTNode>
+static std::unique_ptr<ExpressionNode>
 parse_node(TokenStream& tokens, SyntaxAnalyzerContext&);
-static std::unique_ptr<ASTNode> parse_node_in_block(
+static std::unique_ptr<ExpressionNode> parse_node_in_block(
     const std::string& block_name,
     TokenStream& tokens,
     SyntaxAnalyzerContext&);
@@ -197,8 +197,8 @@ parse_sequence_in_block(
 
 static void parse_argument(
     TokenStream& tokens,
-    vector<std::unique_ptr<ASTNode>>& positional_arguments,
-    unordered_map<string, std::unique_ptr<ASTNode>>& keyword_arguments,
+    vector<std::unique_ptr<ExpressionNode>>& positional_arguments,
+    unordered_map<string, std::unique_ptr<ExpressionNode>>& keyword_arguments,
     SyntaxAnalyzerContext& context)
 {
     if (tokens.has_tokens(2) &&
@@ -225,19 +225,17 @@ static void parse_argument(
 static LetNodeDefinition
 parse_let_definition(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
-    LetNodeDefinition p;
-
-    p.expression =
+    auto expression =
         parse_node_in_block("Parsing variable definition", tokens, context);
 
     tokens.pop(context, TokenType::AS);
 
-    p.identifier = tokens.pop(context, TokenType::IDENTIFIER).content;
+    std::string identifier = tokens.pop(context, TokenType::IDENTIFIER).content;
 
-    return p;
+    return LetNodeDefinition{std::move(identifier), std::move(expression)};
 }
 
-static std::unique_ptr<ASTNode>
+static std::unique_ptr<ExpressionNode>
 parse_let(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
     TraceBlock block(context, "Parsing Let");
@@ -252,7 +250,7 @@ parse_let(TokenStream& tokens, SyntaxAnalyzerContext& context)
             parse_let_definition);
     tokens.pop(context, TokenType::IN);
 
-    std::unique_ptr<ASTNode> nested_value = parse_node_in_block(
+    std::unique_ptr<ExpressionNode> nested_value = parse_node_in_block(
         "Parsing nested expression of let",
         tokens,
         context);
@@ -295,7 +293,7 @@ parse_typed_parameter(TokenStream& tokens, SyntaxAnalyzerContext& context)
     return TypedParameter(std::move(var_name), std::move(type_node));
 }
 
-static std::unique_ptr<ASTNode>
+static std::unique_ptr<ExpressionNode>
 parse_lambda(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
     TraceBlock block(context, "Parsing Lambda");
@@ -311,24 +309,24 @@ parse_lambda(TokenStream& tokens, SyntaxAnalyzerContext& context)
     tokens.pop(context, TokenType::CLOSING_PARENTHESIS);
     tokens.pop(context, TokenType::COLON);
 
-    std::unique_ptr<ASTNode> nested_value =
+    std::unique_ptr<ExpressionNode> nested_value =
         parse_node_in_block("Parsing lambda body", tokens, context);
 
     return std::make_unique<LambdaNode>(move(params), move(nested_value));
 }
 
-static std::unique_ptr<ASTNode> parse_function(
+static std::unique_ptr<ExpressionNode> parse_function(
     TokenStream& tokens,
     SyntaxAnalyzerContext& context,
-    std::unique_ptr<ASTNode> callee)
+    std::unique_ptr<ExpressionNode> callee)
 {
     TraceBlock block(context, "Parsing function call");
 
     const int initial_token_stream_index = tokens.get_position();
     tokens.pop(context, TokenType::OPENING_PARENTHESIS);
 
-    vector<std::unique_ptr<ASTNode>> positional_arguments;
-    unordered_map<string, std::unique_ptr<ASTNode>> keyword_arguments;
+    vector<std::unique_ptr<ExpressionNode>> positional_arguments;
+    unordered_map<string, std::unique_ptr<ExpressionNode>> keyword_arguments;
     {
         auto callback = [&](TokenStream& t, SyntaxAnalyzerContext& c) {
             parse_argument(t, positional_arguments, keyword_arguments, c);
@@ -343,15 +341,11 @@ static std::unique_ptr<ASTNode> parse_function(
     }
     tokens.pop(context, TokenType::CLOSING_PARENTHESIS);
 
-    string unparsed_config =
-        tokens.str(initial_token_stream_index, tokens.get_position());
-
     if (const auto* n = dynamic_cast<const IdentifierNode*>(callee.get())) {
         return std::make_unique<DirectFunctionCallNode>(
             n->get_name(),
             move(positional_arguments),
-            move(keyword_arguments),
-            unparsed_config);
+            move(keyword_arguments));
     } else {
         if (!keyword_arguments.empty()) {
             context.error("Keyword arguments not allowed here.");
@@ -359,8 +353,7 @@ static std::unique_ptr<ASTNode> parse_function(
 
         return std::make_unique<IndirectFunctionCallNode>(
             std::move(callee),
-            move(positional_arguments),
-            unparsed_config);
+            move(positional_arguments));
     }
 }
 
@@ -382,12 +375,12 @@ parse_qualified_name(TokenStream& tokens, SyntaxAnalyzerContext& context)
         QualifiedName qualified_name;
         while (tokens.has_tokens(1) &&
                tokens.peek(context).type == TokenType::DOT) {
-            qualified_name.qualification_prefix.push_back(token.content);
+            qualified_name.parts.push_back(token.content);
             tokens.pop(context);
             token = tokens.pop(context, TokenType::IDENTIFIER);
         }
 
-        qualified_name.name = token.content;
+        qualified_name.parts.push_back(token.content);
 
         return qualified_name;
     }
@@ -395,7 +388,7 @@ parse_qualified_name(TokenStream& tokens, SyntaxAnalyzerContext& context)
     context.error("Expected identifier.", token);
 }
 
-static std::unique_ptr<ASTNode>
+static std::unique_ptr<ExpressionNode>
 parse_literal(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
     TraceBlock block(context, "Parsing Literal");
@@ -414,10 +407,10 @@ parse_literal(TokenStream& tokens, SyntaxAnalyzerContext& context)
     return std::make_unique<LiteralNode>(tokens.pop(context));
 }
 
-static std::unique_ptr<ASTNode> parse_non_prefix_op_expression(
+static std::unique_ptr<ExpressionNode> parse_non_prefix_op_expression(
     TokenStream& tokens,
     SyntaxAnalyzerContext& context,
-    std::unique_ptr<ASTNode> lhs)
+    std::unique_ptr<ExpressionNode> lhs)
 {
     TraceBlock block(context, "Parsing Infix or Postfix Expression");
 
@@ -429,7 +422,7 @@ static std::unique_ptr<ASTNode> parse_non_prefix_op_expression(
     return lhs;
 }
 
-static std::unique_ptr<ASTNode> parse_non_prefix_op_expression(
+static std::unique_ptr<ExpressionNode> parse_non_prefix_op_expression(
     TokenStream& tokens,
     SyntaxAnalyzerContext& context)
 {
@@ -439,12 +432,12 @@ static std::unique_ptr<ASTNode> parse_non_prefix_op_expression(
         parse_literal(tokens, context));
 }
 
-static std::unique_ptr<ASTNode>
+static std::unique_ptr<ExpressionNode>
 parse_list(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
     TraceBlock block(context, "Parsing List");
     tokens.pop(context, TokenType::OPENING_BRACKET);
-    vector<std::unique_ptr<ASTNode>> elements = parse_sequence_in_block(
+    vector<std::unique_ptr<ExpressionNode>> elements = parse_sequence_in_block(
         "Parsing list arguments",
         tokens,
         context,
@@ -455,7 +448,7 @@ parse_list(TokenStream& tokens, SyntaxAnalyzerContext& context)
     return std::make_unique<ListNode>(move(elements));
 }
 
-static std::unique_ptr<ASTNode> parse_parenthesized_expression(
+static std::unique_ptr<ExpressionNode> parse_parenthesized_expression(
     TokenStream& tokens,
     SyntaxAnalyzerContext& context)
 {
@@ -466,7 +459,7 @@ static std::unique_ptr<ASTNode> parse_parenthesized_expression(
     return exp;
 }
 
-static std::unique_ptr<ASTNode>
+static std::unique_ptr<ExpressionNode>
 parse_node(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
     TraceBlock block(context, "Identify node type");
@@ -510,7 +503,7 @@ parse_node(TokenStream& tokens, SyntaxAnalyzerContext& context)
     }
 }
 
-static std::unique_ptr<ASTNode> parse_node_in_block(
+static std::unique_ptr<ExpressionNode> parse_node_in_block(
     const std::string& block_name,
     TokenStream& tokens,
     SyntaxAnalyzerContext& context)
@@ -519,12 +512,12 @@ static std::unique_ptr<ASTNode> parse_node_in_block(
     return parse_node(tokens, context);
 }
 
-std::unique_ptr<ASTNode> parse(TokenStream& tokens)
+std::unique_ptr<ExpressionNode> parse(TokenStream& tokens)
 {
     SyntaxAnalyzerContext context(tokens, 10);
     TraceBlock block(context, "Start Syntactical Parsing");
     if (!tokens.has_tokens(1)) { context.error("Input is empty"); }
-    std::unique_ptr<ASTNode> node = parse_node(tokens, context);
+    std::unique_ptr<ExpressionNode> node = parse_node(tokens, context);
     if (tokens.has_tokens(1)) {
         context.error(
             "Syntax analysis terminated with unparsed tokens: " +
@@ -533,7 +526,8 @@ std::unique_ptr<ASTNode> parse(TokenStream& tokens)
     return node;
 }
 
-std::unique_ptr<ASTNode> tokenize_and_parse(const std::string& expression)
+std::unique_ptr<ExpressionNode>
+tokenize_and_parse(const std::string& expression)
 {
     TokenStream tokens = split_tokens(expression);
     return parse(tokens);

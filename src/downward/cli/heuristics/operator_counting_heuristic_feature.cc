@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/operator_counting_heuristic_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/heuristics/heuristic_options.h"
 
@@ -19,7 +19,7 @@ using namespace downward;
 using namespace downward::utils;
 using namespace downward::operator_counting;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::add_heuristic_options_to_feature;
 
@@ -79,20 +79,18 @@ public:
 namespace downward::cli::heuristics {
 
 InternalFunctionDefinitionBase&
-add_operator_counting_heuristic_feature(Namespace& nspace)
+add_operator_counting_heuristic_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "operator_counting",
-        &language::plugins::construct_shared<
-            TaskDependentFactory<Evaluator>,
-            OperatorCountingHeuristicFactory,
-            shared_ptr<TaskTransformation>,
-            bool,
-            string,
-            Verbosity,
-            std::vector<std::shared_ptr<ConstraintGenerator>>,
-            bool,
-            downward::lp::LPSolverType>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskDependentFactory<Evaluator>,
+        OperatorCountingHeuristicFactory,
+        shared_ptr<TaskTransformation>,
+        bool,
+        string,
+        Verbosity,
+        std::vector<std::shared_ptr<ConstraintGenerator>>,
+        bool,
+        downward::lp::LPSolverType>>(nspace, "operator_counting");
 
     f.document_title("Operator-counting heuristic");
     f.document_synopsis(

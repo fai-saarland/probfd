@@ -9,7 +9,7 @@
 
 using namespace std;
 
-namespace language::parser {
+namespace language::typed_ast {
 
 FloatLiteralNode::FloatLiteralNode(double value)
     : value(value)
@@ -20,12 +20,6 @@ std::any FloatLiteralNode::construct(ConstructContext& context) const
 {
     TraceBlock block(context, "Constructing float value from '{}'", value);
     return value;
-}
-
-void FloatLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
-{
-    std::print(out, "{}", std::string(indent, ' '));
-    std::print(out, "{}", value);
 }
 
 } // namespace language::parser

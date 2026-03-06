@@ -1,29 +1,26 @@
 #include "probfd/cli/cartesian_abstractions/policy_based_flaw_generator.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "probfd/cartesian_abstractions/policy_based_flaw_generator.h"
 
 using namespace downward;
 using namespace utils;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using namespace probfd::cartesian_abstractions;
 
 namespace probfd::cli::cartesian_abstractions {
 
 InternalFunctionDefinitionBase&
-add_policy_based_flaw_generator_feature(Namespace& nspace)
+add_policy_based_flaw_generator_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "flaws_ilao",
-        &construct_shared<
-            FlawGeneratorFactory,
-            ILAOFlawGeneratorFactory,
-            probfd::value_t,
-            int>);
+    auto& f = insert_function_definition<&construct_shared<
+        FlawGeneratorFactory,
+        ILAOFlawGeneratorFactory,
+        probfd::value_t,
+        int>>(nspace, "flaws_ilao");
 
     f.make_optional_argument_with_default(
         0,

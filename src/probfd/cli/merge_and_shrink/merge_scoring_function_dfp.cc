@@ -1,7 +1,6 @@
 #include "probfd/cli/merge_and_shrink/merge_scoring_function_dfp.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "probfd/merge_and_shrink/merge_scoring_function_dfp.h"
 
@@ -11,19 +10,18 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace language::plugins;
+using namespace language::parser;
 using namespace downward;
 using namespace probfd::merge_and_shrink;
 
 namespace probfd::cli::merge_and_shrink {
 
 InternalFunctionDefinitionBase&
-add_merge_scoring_function_dfp_feature(Namespace& nspace)
+add_merge_scoring_function_dfp_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "pdfp",
-        &language::plugins::
-            construct_shared<MergeScoringFunction, MergeScoringFunctionDFP>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        MergeScoringFunction,
+        MergeScoringFunctionDFP>>(nspace, "pdfp");
 
     f.document_title("DFP scoring");
     f.document_synopsis(

@@ -1,15 +1,15 @@
 #ifndef DOWNWARD_CLI_PDBS_PATTERN_GENERATOR_MANUAL_FEATURE_H
 #define DOWNWARD_CLI_PDBS_PATTERN_GENERATOR_MANUAL_FEATURE_H
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-class Namespace;
-} // namespace language::plugins
+class NamespaceLevelDeclarationList;
+} // namespace language::parser
 
 namespace downward::cli::pdbs {
 
-language::plugins::InternalFunctionDefinitionBase&
-add_pattern_generator_manual_feature(language::plugins::Namespace& nspace);
+language::parser::InternalFunctionDefinitionBase&
+add_pattern_generator_manual_feature(language::parser::NamespaceLevelDeclarationList& nspace);
 
 }
 

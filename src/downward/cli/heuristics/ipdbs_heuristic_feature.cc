@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/ipdbs_heuristic_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/heuristics/heuristic_options.h"
 
@@ -23,7 +23,7 @@ using namespace downward;
 using namespace downward::utils;
 using namespace downward::pdbs;
 
-using namespace language::plugins;
+using namespace language::parser;
 using namespace downward::cli::pdbs;
 
 using downward::cli::add_heuristic_options_to_feature;
@@ -63,7 +63,7 @@ class IPDBsHeuristicFactory : public TaskDependentFactory<Evaluator> {
     std::shared_ptr<TaskTransformation> transformation;
     bool cache_estimates;
     std::string description;
-    utils::Verbosity verbosity;
+    Verbosity verbosity;
     int pdb_max_size;
     int collection_max_size;
     int num_samples;
@@ -77,7 +77,7 @@ public:
         shared_ptr<TaskTransformation> transformation,
         bool cache_estimates,
         string description,
-        utils::Verbosity verbosity,
+        Verbosity verbosity,
         int pdb_max_size,
         int collection_max_size,
         int num_samples,
@@ -132,24 +132,23 @@ public:
 
 namespace downward::cli::heuristics {
 
-InternalFunctionDefinitionBase& add_ipdbs_heuristic_features(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_ipdbs_heuristic_features(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "ipdb",
-        &language::plugins::construct_shared<
-            TaskDependentFactory<Evaluator>,
-            IPDBsHeuristicFactory,
-            shared_ptr<TaskTransformation>,
-            bool,
-            string,
-            Verbosity,
-            int,
-            int,
-            int,
-            int,
-            FSeconds,
-            std::shared_ptr<RandomNumberGenerator>,
-            FSeconds>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskDependentFactory<Evaluator>,
+        IPDBsHeuristicFactory,
+        shared_ptr<TaskTransformation>,
+        bool,
+        string,
+        Verbosity,
+        int,
+        int,
+        int,
+        int,
+        FSeconds,
+        std::shared_ptr<RandomNumberGenerator>,
+        FSeconds>>(nspace, "ipdb");
 
     f.document_title("iPDB");
     f.document_synopsis(

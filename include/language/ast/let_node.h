@@ -3,30 +3,38 @@
 
 #include "language/ast/expression_node.h"
 
+#include "declaration.h"
+
 #include <memory>
-#include <string>
 #include <vector>
 
 namespace language::parser {
 
-struct LetNodeDefinition {
-    std::string identifier;
-    std::unique_ptr<ASTNode> expression;
+struct LetNodeDefinition : public Declaration {
+    std::unique_ptr<ExpressionNode> expression;
+
+public:
+    LetNodeDefinition(
+        std::string identifier,
+        std::unique_ptr<ExpressionNode> expression);
+
+    const ExpressionNode& get_expression() const;
 };
 
-class LetNode : public ASTNode {
+class LetNode : public ExpressionNode {
     std::vector<LetNodeDefinition> variable_definitions;
-    std::unique_ptr<ASTNode> nested_value;
+    std::unique_ptr<ExpressionNode> nested_value;
 
 public:
     LetNode(
         std::vector<LetNodeDefinition> variable_definitions,
-        std::unique_ptr<ASTNode> nested_value);
+        std::unique_ptr<ExpressionNode> nested_value);
 
     TypedDecoratedAstNodePtr static_analysis(
         Context& context,
-        VariableEnvironment& env,
-        plugins::TypeRegistry& type_registry) const override;
+        typed_ast::GlobalEnvironment& env,
+        typed_ast::LocalEnvironment& local_env,
+        typed_ast::TypeRegistry& type_registry) const override;
 };
 
 } // namespace language::parser

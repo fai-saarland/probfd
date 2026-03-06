@@ -1,50 +1,44 @@
 #ifndef LANGUAGE_DECORATED_ENUM_CONSTANT_H
 #define LANGUAGE_DECORATED_ENUM_CONSTANT_H
 
-#include "language/typed_ast/decorated_ast_node.h"
-
-namespace language::plugins {
-template <typename T>
-class EnumeratorDefinition;
-}
+#include "language/typed_ast/decorated_expression_node.h"
 
 namespace language::parser {
+template <typename T>
+class EnumeratorValue;
+}
+
+namespace language::typed_ast {
 
 template <typename T>
-class DecoratedEnumConstantNode : public DecoratedASTNode {
-    const plugins::EnumeratorDefinition<T>& enumerator_definition;
+class DecoratedEnumConstantNode : public DecoratedExpressionNode {
+    const parser::EnumeratorValue<T>& enumerator_definition;
 
 public:
     explicit DecoratedEnumConstantNode(
-        const plugins::EnumeratorDefinition<T>& enumerator_definition);
+        const parser::EnumeratorValue<T>& enumerator_definition);
 
     std::any construct(ConstructContext& context) const override;
-
-    void print(std::ostream&, std::size_t, bool) const override;
 };
 
 } // namespace language::parser
 
-#include "language/plugins/internal_enum_declaration.h"
+#include "language/ast/internal_enum_declaration.h"
 
-namespace language::parser {
+namespace language::typed_ast {
 
 template <typename T>
 DecoratedEnumConstantNode<T>::DecoratedEnumConstantNode(
-    const plugins::EnumeratorDefinition<T>& enumerator_definition)
+    const parser::EnumeratorValue<T>& enumerator_definition)
     : enumerator_definition(enumerator_definition)
 {
+    enumerator_definition.add_user(this);
 }
 
 template <typename T>
 std::any DecoratedEnumConstantNode<T>::construct(ConstructContext&) const
 {
-    return std::any(enumerator_definition.get_value());
-}
-
-template <typename T>
-void DecoratedEnumConstantNode<T>::print(std::ostream&, std::size_t, bool) const
-{
+    return enumerator_definition.get_value();
 }
 
 } // namespace language::parser

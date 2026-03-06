@@ -1,8 +1,8 @@
 #include "downward/cli/pdbs/pattern_collection_generator_systematic_feature.h"
 #include "downward/cli/pdbs/pattern_generator_options.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/pdbs/pattern_collection_generator_systematic.h"
 
@@ -14,21 +14,21 @@ using namespace downward::utils;
 using namespace downward::pdbs;
 
 using namespace downward::cli::pdbs;
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace downward::cli::pdbs {
 
 InternalFunctionDefinitionBase&
-add_pattern_collection_generator_systematic_feature(Namespace& nspace)
+add_pattern_collection_generator_systematic_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "systematic",
-        &language::plugins::construct_shared<
-            PatternCollectionGenerator,
-            PatternCollectionGeneratorSystematic,
-            int,
-            bool,
-            Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        PatternCollectionGenerator,
+        PatternCollectionGeneratorSystematic,
+        int,
+        bool,
+        Verbosity>>(nspace, "systematic");
+
     f.document_title("Systematically generated patterns");
     f.document_synopsis(
         "Generates all (interesting) patterns with up to pattern_max_size "

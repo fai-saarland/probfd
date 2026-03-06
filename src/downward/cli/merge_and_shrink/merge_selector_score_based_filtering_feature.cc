@@ -1,7 +1,7 @@
 #include "downward/cli/merge_and_shrink/merge_selector_score_based_filtering_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/merge_and_shrink/merge_selector_score_based_filtering.h"
 
@@ -9,19 +9,21 @@ using namespace std;
 using namespace downward::utils;
 using namespace downward::merge_and_shrink;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace downward::cli::merge_and_shrink {
 
 InternalFunctionDefinitionBase&
-add_merge_selector_score_based_filtering_feature(Namespace& nspace)
+add_merge_selector_score_based_filtering_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "score_based_filtering",
-        &language::plugins::construct_shared<
-            MergeSelector,
-            MergeSelectorScoreBasedFiltering,
-            std::vector<std::shared_ptr<MergeScoringFunction>>>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        MergeSelector,
+        MergeSelectorScoreBasedFiltering,
+        std::vector<std::shared_ptr<MergeScoringFunction>>>>(
+        nspace,
+        "score_based_filtering");
+
     f.document_title("Score based filtering merge selector");
     f.document_synopsis(
         "This merge selector has a list of scoring "

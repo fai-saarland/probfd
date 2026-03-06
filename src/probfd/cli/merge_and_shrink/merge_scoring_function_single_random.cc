@@ -1,30 +1,28 @@
 #include "probfd/cli/merge_and_shrink/merge_scoring_function_single_random.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/utils/rng_options.h"
 
 #include "probfd/merge_and_shrink/merge_scoring_function_single_random.h"
 
-#include "downward/utils/logging.h"
-
 using namespace std;
-using namespace language::plugins;
+using namespace language::parser;
 using namespace downward;
 using namespace probfd::merge_and_shrink;
 
 namespace probfd::cli::merge_and_shrink {
 
 InternalFunctionDefinitionBase&
-add_merge_scoring_function_single_random_feature(Namespace& nspace)
+add_merge_scoring_function_single_random_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "psingle_random",
-        &language::plugins::construct_shared<
-            MergeScoringFunction,
-            MergeScoringFunctionSingleRandom,
-            std::shared_ptr<utils::RandomNumberGenerator>>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        MergeScoringFunction,
+        MergeScoringFunctionSingleRandom,
+        std::shared_ptr<utils::RandomNumberGenerator>>>(
+        nspace,
+        "psingle_random");
 
     f.document_title("Single random");
     f.document_synopsis(

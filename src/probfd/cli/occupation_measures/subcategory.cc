@@ -1,7 +1,7 @@
 #include "probfd/cli/occupation_measures/subcategory.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/utils/logging_options.h"
 
@@ -31,7 +31,7 @@ using namespace probfd::heuristics;
 using namespace probfd::pdbs;
 using namespace probfd::occupation_measures;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::utils::add_log_options_to_feature;
 
@@ -79,9 +79,10 @@ std::shared_ptr<TaskHeuristicFactory> create_pho_heuristic(
         std::make_shared<PHOGeneratorFactory>(std::move(generator)));
 }
 
-InternalFunctionDefinitionBase& add_hroc_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_hroc_to_namespace(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition("hroc", create_hroc);
+    auto& f = insert_function_definition<create_hroc>(nspace, "hroc");
     f.document_title("Regrouped operator-counting heuristic");
     f.document_synopsis(
         "For details, see" +
@@ -107,9 +108,10 @@ InternalFunctionDefinitionBase& add_hroc_to_namespace(Namespace& nspace)
     return f;
 }
 
-InternalFunctionDefinitionBase& add_hpom_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_hpom_to_namespace(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition("hpom", create_hpom);
+    auto& f = insert_function_definition<create_hpom>(nspace, "hpom");
 
     f.document_title("Projection Occupation Measure Heuristic");
 
@@ -138,12 +140,12 @@ InternalFunctionDefinitionBase& add_hpom_to_namespace(Namespace& nspace)
     return f;
 }
 
-InternalFunctionDefinitionBase&
-add_higher_order_hpom_heuristic_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_higher_order_hpom_heuristic_to_namespace(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "ho_hpom",
-        create_higher_order_hpom_heuristic);
+    auto& f = insert_function_definition<create_higher_order_hpom_heuristic>(
+        nspace,
+        "ho_hpom");
     f.document_title("Higher-Order Projection Occupation Measure Heuristic");
     f.document_synopsis(
         "The projection occupation measure heuristic with general "
@@ -177,9 +179,10 @@ add_higher_order_hpom_heuristic_to_namespace(Namespace& nspace)
     return f;
 }
 
-InternalFunctionDefinitionBase& add_hpho_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_hpho_to_namespace(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition("hpho", create_pho_heuristic);
+    auto& f = insert_function_definition<create_pho_heuristic>(nspace, "hpho");
     f.document_title("Post-hoc Optimization Heuristic");
 
     f.document_language_support("conditional effects", "not supported");
@@ -204,7 +207,8 @@ InternalFunctionDefinitionBase& add_hpho_to_namespace(Namespace& nspace)
 
 namespace probfd::cli::occupation_measures {
 
-void add_occupation_measure_heuristics_features(Namespace& nspace)
+void add_occupation_measure_heuristics_features(
+    NamespaceLevelDeclarationList& nspace)
 {
     add_hroc_to_namespace(nspace);
     add_hpom_to_namespace(nspace);

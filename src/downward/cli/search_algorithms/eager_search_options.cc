@@ -10,7 +10,7 @@ using downward::cli::add_search_pruning_options_to_feature;
 namespace downward::cli::eager_search {
 
 std::size_t add_eager_search_options_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     const string& description,
     std::size_t start_index)
 {

@@ -13,10 +13,10 @@ class TypeIdentifierNode : public TypeNode {
 public:
     explicit TypeIdentifierNode(QualifiedName name);
 
-    const plugins::Type& get_type(
+    const typed_ast::Type& get_type(
         Context& context,
-        const VariableEnvironment& environment,
-        plugins::TypeRegistry& type_registry) const override;
+        const typed_ast::GlobalEnvironment& environment,
+        typed_ast::TypeRegistry& type_registry) const override;
 };
 
 } // namespace language::parser

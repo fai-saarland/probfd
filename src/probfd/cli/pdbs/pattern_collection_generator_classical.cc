@@ -1,7 +1,6 @@
 #include "probfd/cli/pdbs/pattern_collection_generator_classical.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "probfd/cli/pdbs/pattern_collection_generator_options.h"
 
@@ -13,21 +12,20 @@ using namespace utils;
 using namespace probfd::pdbs;
 using namespace probfd::cli::pdbs;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace probfd::cli::pdbs {
 
 InternalFunctionDefinitionBase&
-add_pattern_collection_generator_classical_feature(Namespace& nspace)
+add_pattern_collection_generator_classical_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "classical_generator",
-        &construct_shared<
-            PatternCollectionGenerator,
-            PatternCollectionGeneratorClassical,
-            std::shared_ptr<downward::pdbs::PatternCollectionGenerator>,
-            std::shared_ptr<SubCollectionFinderFactory>,
-            Verbosity>);
+    auto& f = insert_function_definition<&construct_shared<
+        PatternCollectionGenerator,
+        PatternCollectionGeneratorClassical,
+        std::shared_ptr<downward::pdbs::PatternCollectionGenerator>,
+        std::shared_ptr<SubCollectionFinderFactory>,
+        Verbosity>>(nspace, "classical_generator");
 
     f.document_title("Classical Pattern Generation Adapter");
     f.document_synopsis(

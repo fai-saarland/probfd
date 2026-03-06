@@ -1,15 +1,15 @@
 #ifndef PROBFD_CLI_PDBS_CEGAR_SAMPLING_FLAW_FINDER_H
 #define PROBFD_CLI_PDBS_CEGAR_SAMPLING_FLAW_FINDER_H
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-class Namespace;
-} // namespace language::plugins
+class NamespaceLevelDeclarationList;
+} // namespace language::parser
 
 namespace probfd::cli::pdbs::cegar {
 
-language::plugins::InternalFunctionDefinitionBase&
-add_sampling_flaw_finder_feature(language::plugins::Namespace& nspace);
+language::parser::InternalFunctionDefinitionBase&
+add_sampling_flaw_finder_feature(language::parser::NamespaceLevelDeclarationList& nspace);
 
 }
 

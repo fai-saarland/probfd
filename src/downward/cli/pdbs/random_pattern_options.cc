@@ -1,13 +1,13 @@
 #include "downward/cli/pdbs/random_pattern_options.h"
 
-#include "language/plugins/internal_function_definition.h"
+#include "language/ast/internal_function_definition.h"
 
 using namespace std;
 
 namespace downward::cli::pdbs {
 
 void add_random_pattern_implementation_notes_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature)
+    language::parser::InternalFunctionDefinitionBase& feature)
 {
     feature.document_note(
         "Short description of the random pattern algorithm",
@@ -35,7 +35,7 @@ void add_random_pattern_implementation_notes_to_feature(
 }
 
 std::size_t add_random_pattern_bidirectional_option_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     std::size_t start_index)
 {
     feature.make_optional_argument_with_default(

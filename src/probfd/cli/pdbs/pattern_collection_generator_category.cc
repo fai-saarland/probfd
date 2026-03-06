@@ -1,18 +1,20 @@
 #include "probfd/cli/pdbs/pattern_collection_generator_category.h"
 
-#include "language/plugins/registry.h"
+#include "language/ast/internal_type_declaration.h"
 
 #include "probfd/pdbs/pattern_collection_generator.h"
 
 using namespace probfd::pdbs;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace probfd::cli::pdbs {
 
-void add_pattern_collection_generator_category(Namespace& nspace)
+void add_pattern_collection_generator_category(
+    NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_shared_type_declaration<PatternCollectionGenerator>(
+    insert_shared_type_declaration<PatternCollectionGenerator>(
+        nspace,
         "PPDBPatternCollectionGenerator",
         "Factory for pattern collections and/or "
         "corresponding probability-aware "

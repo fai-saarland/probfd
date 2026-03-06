@@ -1,27 +1,21 @@
 #ifndef LANGUAGE_DECORATED_VARIABLE_NODE_H
 #define LANGUAGE_DECORATED_VARIABLE_NODE_H
 
-#include "language/typed_ast/decorated_ast_node.h"
+#include "language/typed_ast/decorated_expression_node.h"
 
-namespace language::parser {
-struct VariableDeclaration;
+namespace language::typed_ast {
+class StackValue;
 }
 
-namespace language::parser {
+namespace language::typed_ast {
 
-class VariableNode : public DecoratedASTNode {
-    friend VariableDeclaration;
-
-    VariableDeclaration* declaration;
+class VariableNode : public DecoratedExpressionNode {
+    StackValue* value;
 
 public:
-    explicit VariableNode(VariableDeclaration& declaration);
-
-    void remove_variable_usages() override;
+    explicit VariableNode(StackValue& value);
 
     std::any construct(ConstructContext& context) const override;
-    void print(std::ostream& out, std::size_t indent, bool print_default_args)
-        const override;
 };
 
 } // namespace language::parser

@@ -4,12 +4,11 @@
 
 #include "language/ast/let_node.h"
 
-#include "language/typed_ast/decorated_ast_node.h"
-#include "language/typed_ast/variable_declaration.h"
+#include "language/typed_ast/decorated_expression_node.h"
 
 #include "language/syntax_analyzer.h"
 
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
 
 #include "probfd/tasks/root_task.h"
 
@@ -29,6 +28,7 @@
 #include "downward/utils/logging.h"
 #include "downward/utils/strings.h"
 #include "downward/utils/system.h"
+#include "language/context.h"
 #include "probfd/json/json.h"
 #include "probfd/utils/guards.h"
 
@@ -44,9 +44,11 @@
 #include <argparse/argparse.hpp>
 
 using namespace std;
+
 using namespace downward::utils;
+
 using namespace language::parser;
-using namespace language::plugins;
+using namespace language::typed_ast;
 
 using downward::utils::ExitCode;
 
@@ -56,8 +58,8 @@ template <std::ranges::input_range R>
     requires std::convertible_to<
         std::ranges::range_value_t<R>,
         std::pair<std::string, std::string>>
-static std::unique_ptr<ASTNode>
-construct_let(std::unique_ptr<ASTNode> parsed, R&& predefinitions)
+static std::unique_ptr<ExpressionNode>
+construct_let(std::unique_ptr<ExpressionNode> parsed, R&& predefinitions)
 {
     if (std::ranges::empty(predefinitions)) return parsed;
 
@@ -72,15 +74,15 @@ construct_let(std::unique_ptr<ASTNode> parsed, R&& predefinitions)
         std::move(parsed));
 }
 
-static std::unique_ptr<ASTNode> insert_definitions(
-    std::unique_ptr<ASTNode> parsed,
+static std::unique_ptr<ExpressionNode> insert_definitions(
+    std::unique_ptr<ExpressionNode> parsed,
     const std::string& definitions_file)
 {
     std::ifstream fs(definitions_file);
     try {
         auto defs = json::read<std::map<std::string, std::string>>(fs);
         parsed = construct_let(std::move(parsed), defs);
-    } catch (std::invalid_argument& e) {
+    } catch (const std::invalid_argument& e) {
         throw InputError(
             "Could not read definitions from {}:\n{}",
             definitions_file,
@@ -91,13 +93,11 @@ static std::unique_ptr<ASTNode> insert_definitions(
 }
 
 static shared_ptr<TaskSolverFactory>
-construct_solver(const DecoratedASTNode& decorated)
+construct_solver(const DecoratedExpressionNode& decorated)
 {
-    std::cout << "Constructing solver from feature expression:\n";
-    decorated.print(std::cout, 4, false);
-    std::println(std::cout);
+    std::println(std::cout, "Constructing solver...");
 
-    std::any constructed = decorated.construct();
+    std::any constructed = construct(decorated);
 
     try {
         return std::any_cast<shared_ptr<TaskSolverFactory>>(constructed);
@@ -114,7 +114,7 @@ static auto construct_solver(argparse::ArgumentParser& parser)
     register_event_handlers();
 
     // Parse search string
-    std::unique_ptr<ASTNode> parsed =
+    std::unique_ptr<ExpressionNode> parsed =
         tokenize_and_parse(parser.get("algorithm"));
 
     // Insert user-defined pre-definitions, if given
@@ -123,23 +123,12 @@ static auto construct_solver(argparse::ArgumentParser& parser)
     }
 
     // Register internal pre-definitions
-    Registry registry;
+    CompilationContext registry;
     register_definitions(registry);
 
     // Type check
-    const std::unique_ptr<DecoratedASTNode> decorated =
-        parsed->static_analysis(registry);
-
-    // Remove unused definitions if enabled
-    if (parser.get<bool>("--ignore-unused-definitions")) {
-        if (const auto defs = decorated->prune_unused_definitions();
-            !defs.empty()) {
-            std::println(
-                std::cout,
-                "Removed unused declarations from feature expression: {}",
-                defs | views::transform(&VariableDeclaration::variable_name));
-        }
-    }
+    const std::unique_ptr<DecoratedExpressionNode> decorated =
+        static_analysis(*parsed, registry);
 
     // Construct solver factory.
     const auto solver_factory = construct_solver(*decorated);

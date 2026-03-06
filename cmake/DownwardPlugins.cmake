@@ -4,7 +4,7 @@ create_library(
     SOURCES
         downward/cli/tasks/task_transformation_category
     DEPENDS
-        plugins
+    language
         core_sources
     TARGET
         probfd
@@ -16,7 +16,7 @@ create_library(
     SOURCES
         downward/cli/mutexes/mutex_factory_category
     DEPENDS
-        plugins
+    language
         core_sources
     TARGET
         probfd
@@ -28,7 +28,7 @@ create_library(
     SOURCES
         downward/cli/mutexes/from_file_mutex_factory_feature
     DEPENDS
-        plugins
+    language
         from_file_mutex_factory
     TARGET
         probfd
@@ -40,7 +40,7 @@ create_library(
     SOURCES
         downward/cli/evaluators/evaluator_category
     DEPENDS
-        plugins
+    language
         core_sources
     TARGET
         probfd
@@ -52,7 +52,7 @@ create_library(
     SOURCES
         downward/cli/evaluators/evaluator_options
     DEPENDS
-        plugins
+    language
         logging_options
         utils
 )
@@ -63,7 +63,7 @@ create_library(
     SOURCES
         downward/cli/heuristics/heuristic_options
     DEPENDS
-        plugins
+    language
         evaluator_options
         utils
 )
@@ -74,7 +74,7 @@ create_library(
     SOURCES
         downward/cli/open_lists/open_list_factory_category
     DEPENDS
-        plugins
+    language
         core_sources
     TARGET
         probfd
@@ -86,7 +86,7 @@ create_library(
     SOURCES
         downward/cli/open_lists/open_list_options
     DEPENDS
-        plugins
+    language
 )
 
 create_library(
@@ -95,7 +95,7 @@ create_library(
     SOURCES
         downward/cli/operator_cost_category
     DEPENDS
-        plugins
+    language
         core_sources
     TARGET
         probfd
@@ -107,7 +107,7 @@ create_library(
     SOURCES
         downward/cli/operator_cost_options
     DEPENDS
-        plugins
+    language
         core_sources
         operator_cost_category
 )
@@ -118,7 +118,7 @@ create_library(
     SOURCES
         downward/cli/pruning/pruning_method_category
     DEPENDS
-        plugins
+    language
         core_sources
     TARGET
         probfd
@@ -130,7 +130,7 @@ create_library(
     SOURCES
         downward/cli/pruning/pruning_method_options
     DEPENDS
-        plugins
+    language
         utils
         logging_options
 )
@@ -141,7 +141,7 @@ create_library(
     SOURCES
         downward/cli/search_algorithms/search_algorithm_factory_category
     DEPENDS
-        plugins
+    language
         core_sources
     TARGET
         probfd
@@ -153,7 +153,7 @@ create_library(
     SOURCES
         downward/cli/search_algorithms/search_algorithm_options
     DEPENDS
-        plugins
+    language
         operator_cost_options
         logging_options
         rng_options
@@ -167,7 +167,7 @@ create_library(
     SOURCES
         downward/cli/open_lists/alternation_open_list_feature
     DEPENDS
-        plugins
+    language
     TARGET
         probfd
 )
@@ -178,7 +178,7 @@ create_library(
     SOURCES
         downward/cli/open_lists/best_first_open_list_feature
     DEPENDS
-        plugins
+    language
         open_list_options
         utils
     TARGET
@@ -191,7 +191,7 @@ create_library(
     SOURCES
         downward/cli/open_lists/epsilon_greedy_open_list_feature
     DEPENDS
-        plugins
+    language
         open_list_options
         rng_options
         utils
@@ -205,7 +205,7 @@ create_library(
     SOURCES
         downward/cli/open_lists/pareto_open_list_feature
     DEPENDS
-        plugins
+    language
         open_list_options
         rng_options
         utils
@@ -219,7 +219,7 @@ create_library(
     SOURCES
         downward/cli/open_lists/tiebreaking_open_list_feature
     DEPENDS
-        plugins
+    language
         open_list_options
         utils
     TARGET
@@ -232,7 +232,7 @@ create_library(
     SOURCES
         downward/cli/open_lists/type_based_open_list_feature
     DEPENDS
-        plugins
+    language
         open_list_options
         rng_options
         utils
@@ -246,7 +246,7 @@ create_library(
     SOURCES
         downward/cli/evaluators/subcategory
     DEPENDS
-        plugins
+    language
     TARGET
         probfd
 )
@@ -257,7 +257,7 @@ create_library(
     SOURCES
         downward/cli/evaluators/combining_evaluator_options
     DEPENDS
-        plugins
+    language
         evaluator_options
         utils
         core_sources
@@ -269,7 +269,7 @@ create_library(
     SOURCES
         downward/cli/evaluators/const_evaluator_feature
     DEPENDS
-        plugins
+    language
         evaluator_options
         const_evaluator
         utils
@@ -283,7 +283,7 @@ create_library(
     SOURCES
         downward/cli/evaluators/g_evaluator_feature
     DEPENDS
-        plugins
+    language
         evaluator_options
         g_evaluator
         utils
@@ -297,7 +297,7 @@ create_library(
     SOURCES
         downward/cli/evaluators/max_evaluator_feature
     DEPENDS
-        plugins
+    language
         combining_evaluator_options
         max_evaluator
         utils
@@ -311,7 +311,7 @@ create_library(
     SOURCES
         downward/cli/evaluators/pref_evaluator_feature
     DEPENDS
-        plugins
+    language
         evaluator_options
         pref_evaluator
         utils
@@ -325,7 +325,7 @@ create_library(
     SOURCES
         downward/cli/evaluators/sum_evaluator_feature
     DEPENDS
-        plugins
+    language
         combining_evaluator_options
         sum_evaluator
         utils
@@ -339,7 +339,7 @@ create_library(
     SOURCES
         downward/cli/evaluators/weighted_evaluator_feature
     DEPENDS
-        plugins
+    language
         evaluator_options
         weighted_evaluator
         utils
@@ -353,7 +353,7 @@ create_library(
     SOURCES
         downward/cli/pruning/null_pruning_method_feature
     DEPENDS
-        plugins
+    language
         pruning_method_options
         null_pruning_method
         utils
@@ -367,7 +367,7 @@ create_library(
     SOURCES
         downward/cli/pruning/limited_pruning_feature
     DEPENDS
-        plugins
+    language
         pruning_method_options
         limited_pruning
         utils
@@ -381,7 +381,7 @@ create_library(
     SOURCES
         downward/cli/pruning/stubborn_sets_atom_centric_feature
     DEPENDS
-        plugins
+    language
         pruning_method_options
         stubborn_sets_atom_centric
         utils
@@ -395,7 +395,7 @@ create_library(
     SOURCES
         downward/cli/pruning/stubborn_sets_simple_feature
     DEPENDS
-        plugins
+    language
         pruning_method_options
         stubborn_sets_simple
         utils
@@ -409,7 +409,7 @@ create_library(
     SOURCES
         downward/cli/pruning/stubborn_sets_ec_feature
     DEPENDS
-        plugins
+    language
         pruning_method_options
         stubborn_sets_ec
         utils
@@ -423,7 +423,7 @@ create_library(
     SOURCES
         downward/cli/search_algorithms/eager_search_options
     DEPENDS
-        plugins
+    language
         search_algorithm_options
         open_list_options
         utils
@@ -435,7 +435,7 @@ create_library(
     SOURCES
         downward/cli/search_algorithms/astar_feature
     DEPENDS
-        plugins
+    language
         eager_search_options
         eager_search
         search_common
@@ -449,7 +449,7 @@ create_library(
     SOURCES
         downward/cli/search_algorithms/eager_feature
     DEPENDS
-        plugins
+    language
         eager_search_options
         eager_search
         search_common
@@ -463,7 +463,7 @@ create_library(
     SOURCES
         downward/cli/search_algorithms/eager_greedy_feature
     DEPENDS
-        plugins
+    language
         eager_search_options
         eager_search
         search_common
@@ -477,7 +477,7 @@ create_library(
     SOURCES
         downward/cli/search_algorithms/eager_wastar_feature
     DEPENDS
-        plugins
+    language
         eager_search_options
         eager_search
         search_common
@@ -491,7 +491,7 @@ create_library(
     SOURCES
         downward/cli/search_algorithms/lazy_feature
     DEPENDS
-        plugins
+    language
         search_algorithm_options
         lazy_search
         search_common
@@ -505,7 +505,7 @@ create_library(
     SOURCES
         downward/cli/search_algorithms/lazy_greedy_feature
     DEPENDS
-        plugins
+    language
         search_algorithm_options
         lazy_search
         search_common
@@ -519,7 +519,7 @@ create_library(
     SOURCES
         downward/cli/search_algorithms/lazy_wastar_feature
     DEPENDS
-        plugins
+    language
         search_algorithm_options
         lazy_search
         search_common
@@ -533,7 +533,7 @@ create_library(
     SOURCES
         downward/cli/search_algorithms/enforced_hill_climbing_search_feature
     DEPENDS
-        plugins
+    language
         search_algorithm_options
         enforced_hill_climbing_search
         utils
@@ -547,7 +547,7 @@ create_library(
     SOURCES
         downward/cli/search_algorithms/iterated_search_feature
     DEPENDS
-        plugins
+    language
         search_algorithm_options
         iterated_search
         utils
@@ -561,7 +561,7 @@ create_library(
     SOURCES
         downward/cli/lp/lp_solver_enum
     DEPENDS
-        plugins
+    language
         lp_solver
 )
 
@@ -571,7 +571,7 @@ create_library(
     SOURCES
         downward/cli/lp/lp_solver_options
     DEPENDS
-        plugins
+    language
         lp_solver_enum
 )
 
@@ -581,7 +581,7 @@ create_library(
     SOURCES
         downward/cli/heuristics/additive_heuristic_feature
     DEPENDS
-        plugins
+    language
         heuristic_options
         additive_heuristic
     TARGET
@@ -594,7 +594,7 @@ create_library(
     SOURCES
         downward/cli/heuristics/blind_search_heuristic_feature
     DEPENDS
-        plugins
+    language
         heuristic_options
         blind_search_heuristic
         utils
@@ -608,7 +608,7 @@ create_library(
     SOURCES
         downward/cli/heuristics/cea_heuristic_feature
     DEPENDS
-        plugins
+    language
         heuristic_options
         context_enhanced_additive_heuristic
         utils
@@ -622,7 +622,7 @@ create_library(
     SOURCES
         downward/cli/heuristics/cg_heuristic_feature
     DEPENDS
-        plugins
+    language
         heuristic_options
         cg_heuristic
         utils
@@ -636,7 +636,7 @@ create_library(
     SOURCES
         downward/cli/heuristics/ff_heuristic_feature
     DEPENDS
-        plugins
+    language
         heuristic_options
         ff_heuristic
         utils
@@ -650,7 +650,7 @@ create_library(
     SOURCES
         downward/cli/heuristics/goal_count_heuristic_feature
     DEPENDS
-        plugins
+    language
         heuristic_options
         goal_count_heuristic
         utils
@@ -664,7 +664,7 @@ create_library(
     SOURCES
         downward/cli/heuristics/hm_heuristic_feature
     DEPENDS
-        plugins
+    language
         heuristic_options
         hm_heuristic
         utils
@@ -678,7 +678,7 @@ create_library(
     SOURCES
         downward/cli/heuristics/lm_cut_heuristic_feature
     DEPENDS
-        plugins
+    language
         heuristic_options
         landmark_cut_heuristic
         utils
@@ -692,7 +692,7 @@ create_library(
     SOURCES
         downward/cli/heuristics/max_heuristic_feature
     DEPENDS
-        plugins
+    language
         heuristic_options
         max_heuristic
         utils
@@ -706,7 +706,7 @@ create_library(
     SOURCES
         downward/cli/tasks/cost_task_transformation_feature
     DEPENDS
-        plugins
+    language
         operator_cost_options
         core_sources
         core_tasks
@@ -720,7 +720,7 @@ create_library(
     SOURCES
         downward/cli/tasks/identity_task_transformation_feature
     DEPENDS
-        plugins
+    language
         core_sources
     TARGET
         probfd
@@ -732,7 +732,7 @@ create_library(
     SOURCES
         downward/cli/operator_counting/constraint_generator_category
     DEPENDS
-        plugins
+    language
         operator_counting
     TARGET
         probfd
@@ -744,7 +744,7 @@ create_library(
     SOURCES
         downward/cli/operator_counting/delete_relaxation_if_constraints_feature
     DEPENDS
-        plugins
+    language
         operator_counting
         lp_solver
         utils
@@ -758,7 +758,7 @@ create_library(
     SOURCES
         downward/cli/operator_counting/delete_relaxation_rr_constraints_feature
     DEPENDS
-        plugins
+    language
         operator_counting
         lp_solver
         utils
@@ -772,7 +772,7 @@ create_library(
     SOURCES
         downward/cli/operator_counting/lm_cut_constraints_feature
     DEPENDS
-        plugins
+    language
         operator_counting
         utils
     TARGET
@@ -785,7 +785,7 @@ create_library(
     SOURCES
         downward/cli/heuristics/operator_counting_heuristic_feature
     DEPENDS
-        plugins
+    language
         heuristic_options
         lp_solver_options
         operator_counting
@@ -800,7 +800,7 @@ create_library(
     SOURCES
         downward/cli/operator_counting/pho_constraints_feature
     DEPENDS
-        plugins
+    language
         operator_counting
         utils
     TARGET
@@ -813,7 +813,7 @@ create_library(
     SOURCES
         downward/cli/operator_counting/state_equation_constraints_feature
     DEPENDS
-        plugins
+    language
         logging_options
         operator_counting
         utils
@@ -827,7 +827,7 @@ create_library(
     SOURCES
     downward/cli/utils/verbosity_enum
     DEPENDS
-        plugins
+    language
         utils
     TARGET
         probfd
@@ -839,7 +839,7 @@ create_library(
     SOURCES
         downward/cli/utils/logging_options
     DEPENDS
-        plugins
+    language
         utils
         verbosity_enum
 )
@@ -850,7 +850,7 @@ create_library(
     SOURCES
         downward/cli/utils/rng_options
     DEPENDS
-        plugins
+    language
 )
 
 create_library(
@@ -859,7 +859,7 @@ create_library(
     SOURCES
         downward/cli/potentials/subcategory
     DEPENDS
-        plugins
+    language
     TARGET
         probfd
 )
@@ -870,7 +870,7 @@ create_library(
     SOURCES
         downward/cli/potentials/potential_options
     DEPENDS
-        plugins
+    language
         heuristic_options
         lp_solver_options
         utils
@@ -882,7 +882,7 @@ create_library(
     SOURCES
         downward/cli/heuristics/diverse_potential_heuristics_feature
     DEPENDS
-        plugins
+    language
         potential_options
         rng_options
         potentials
@@ -897,7 +897,7 @@ create_library(
     SOURCES
         downward/cli/heuristics/sample_based_potential_heuristics_feature
     DEPENDS
-        plugins
+    language
         potential_options
         rng_options
         potentials
@@ -912,7 +912,7 @@ create_library(
     SOURCES
         downward/cli/heuristics/single_potential_heuristics_feature
     DEPENDS
-        plugins
+    language
         potential_options
         potentials
         utils
@@ -926,7 +926,7 @@ create_library(
     SOURCES
         downward/cli/cartesian_abstractions/subtask_generators_category
     DEPENDS
-        plugins
+    language
         cartesian_abstractions
     TARGET
         probfd
@@ -938,7 +938,7 @@ create_library(
     SOURCES
         downward/cli/cartesian_abstractions/subtask_generators_feature
     DEPENDS
-        plugins
+    language
         rng_options
         cartesian_abstractions
         additive_heuristic
@@ -957,7 +957,7 @@ create_library(
     SOURCES
         downward/cli/heuristics/additive_cartesian_heuristic_feature
     DEPENDS
-        plugins
+    language
         heuristic_options
         rng_options
         cartesian_abstractions
@@ -972,7 +972,7 @@ create_library(
     SOURCES
         downward/cli/landmarks/landmark_heuristic_options
     DEPENDS
-        plugins
+    language
         heuristic_options
         landmarks
         utils
@@ -984,7 +984,7 @@ create_library(
     SOURCES
         downward/cli/heuristics/landmark_cost_partitioning_heuristic_feature
     DEPENDS
-        plugins
+    language
         landmark_heuristic_options
         lp_solver_options
         landmarks
@@ -999,7 +999,7 @@ create_library(
     SOURCES
         downward/cli/heuristics/landmark_sum_heuristic_feature
     DEPENDS
-        plugins
+    language
         landmark_heuristic_options
         landmarks
         utils
@@ -1013,7 +1013,7 @@ create_library(
     SOURCES
         downward/cli/landmarks/landmark_factory_category
     DEPENDS
-        plugins
+    language
         logging_options
         landmarks
     TARGET
@@ -1026,7 +1026,7 @@ create_library(
     SOURCES
         downward/cli/landmarks/landmark_factory_options
     DEPENDS
-        plugins
+    language
         logging_options
         landmark_factory_category
 )
@@ -1037,7 +1037,7 @@ create_library(
     SOURCES
         downward/cli/landmarks/landmark_factory_h_m_feature
     DEPENDS
-        plugins
+    language
         landmark_factory_options
         landmarks
         mutexes_factory_category
@@ -1052,7 +1052,7 @@ create_library(
     SOURCES
         downward/cli/landmarks/landmark_factory_merged_feature
     DEPENDS
-        plugins
+    language
         landmark_factory_options
         landmarks
         utils
@@ -1066,7 +1066,7 @@ create_library(
     SOURCES
         downward/cli/landmarks/landmark_factory_reasonable_orders_hps_feature
     DEPENDS
-        plugins
+    language
         landmark_factory_options
         landmarks
         mutexes_factory_category
@@ -1081,7 +1081,7 @@ create_library(
     SOURCES
         downward/cli/landmarks/landmark_factory_rpg_exhaust_feature
     DEPENDS
-        plugins
+    language
         landmark_factory_options
         landmarks
     TARGET
@@ -1094,7 +1094,7 @@ create_library(
     SOURCES
         downward/cli/landmarks/landmark_factory_rpg_sasp_feature
     DEPENDS
-        plugins
+    language
         landmark_factory_options
         landmarks
     TARGET
@@ -1107,7 +1107,7 @@ create_library(
     SOURCES
         downward/cli/landmarks/landmark_factory_zhu_givan_feature
     DEPENDS
-        plugins
+    language
         landmark_factory_options
         landmarks
     TARGET
@@ -1120,7 +1120,7 @@ create_library(
     SOURCES
         downward/cli/merge_and_shrink/label_reduction_feature
     DEPENDS
-        plugins
+    language
         rng_options
         mas_heuristic
         utils
@@ -1134,7 +1134,7 @@ create_library(
     SOURCES
         downward/cli/merge_and_shrink/merge_and_shrink_algorithm_options
     DEPENDS
-        plugins
+    language
         mas_heuristic
         utils
 )
@@ -1145,7 +1145,7 @@ create_library(
     SOURCES
         downward/cli/heuristics/merge_and_shrink_heuristic_feature
     DEPENDS
-        plugins
+    language
         merge_and_shrink_algorithm_options
         heuristic_options
         mas_heuristic
@@ -1160,7 +1160,7 @@ create_library(
     SOURCES
         downward/cli/merge_and_shrink/merge_scoring_function_category
     DEPENDS
-        plugins
+    language
         mas_heuristic
     TARGET
         probfd
@@ -1172,7 +1172,7 @@ create_library(
     SOURCES
         downward/cli/merge_and_shrink/merge_scoring_function_dfp_feature
     DEPENDS
-        plugins
+    language
         mas_heuristic
         utils
     TARGET
@@ -1185,7 +1185,7 @@ create_library(
     SOURCES
         downward/cli/merge_and_shrink/merge_scoring_function_goal_relevance_feature
     DEPENDS
-        plugins
+    language
         mas_heuristic
     TARGET
         probfd
@@ -1197,7 +1197,7 @@ create_library(
     SOURCES
         downward/cli/merge_and_shrink/merge_scoring_function_miasm_feature
     DEPENDS
-        plugins
+    language
         merge_and_shrink_algorithm_options
         mas_heuristic
         utils
@@ -1211,7 +1211,7 @@ create_library(
     SOURCES
         downward/cli/merge_and_shrink/merge_scoring_function_single_random_feature
     DEPENDS
-        plugins
+    language
         rng_options
         mas_heuristic
         utils
@@ -1225,7 +1225,7 @@ create_library(
     SOURCES
         downward/cli/merge_and_shrink/merge_scoring_function_total_order_feature
     DEPENDS
-        plugins
+    language
         rng_options
         mas_heuristic
         utils
@@ -1239,7 +1239,7 @@ create_library(
     SOURCES
         downward/cli/merge_and_shrink/merge_selector_category
     DEPENDS
-        plugins
+    language
         mas_heuristic
     TARGET
         probfd
@@ -1251,7 +1251,7 @@ create_library(
     SOURCES
         downward/cli/merge_and_shrink/merge_selector_score_based_filtering_feature
     DEPENDS
-        plugins
+    language
         mas_heuristic
     TARGET
         probfd
@@ -1263,7 +1263,7 @@ create_library(
     SOURCES
         downward/cli/merge_and_shrink/merge_strategy_factory_category
     DEPENDS
-        plugins
+    language
         mas_heuristic
     TARGET
         probfd
@@ -1275,7 +1275,7 @@ create_library(
     SOURCES
         downward/cli/merge_and_shrink/merge_strategy_factory_precomputed_feature
     DEPENDS
-        plugins
+    language
         merge_strategy_options
         mas_heuristic
     TARGET
@@ -1288,7 +1288,7 @@ create_library(
     SOURCES
         downward/cli/merge_and_shrink/merge_strategy_factory_sccs_feature
     DEPENDS
-        plugins
+    language
         merge_strategy_options
         mas_heuristic
         utils
@@ -1302,7 +1302,7 @@ create_library(
     SOURCES
         downward/cli/merge_and_shrink/merge_strategy_factory_stateless_feature
     DEPENDS
-        plugins
+    language
         merge_strategy_options
         mas_heuristic
     TARGET
@@ -1315,7 +1315,7 @@ create_library(
     SOURCES
         downward/cli/merge_and_shrink/merge_strategy_options
     DEPENDS
-        plugins
+    language
         logging_options
     TARGET
         probfd
@@ -1327,7 +1327,7 @@ create_library(
     SOURCES
         downward/cli/merge_and_shrink/merge_tree_factory_category
     DEPENDS
-        plugins
+    language
         mas_heuristic
     TARGET
         probfd
@@ -1339,7 +1339,7 @@ create_library(
     SOURCES
         downward/cli/merge_and_shrink/merge_tree_factory_linear_feature
     DEPENDS
-        plugins
+    language
         merge_tree_options
         mas_heuristic
         utils
@@ -1353,7 +1353,7 @@ create_library(
     SOURCES
         downward/cli/merge_and_shrink/merge_tree_options
     DEPENDS
-        plugins
+    language
         rng_options
 )
 
@@ -1363,7 +1363,7 @@ create_library(
     SOURCES
         downward/cli/merge_and_shrink/shrink_bisimulation_feature
     DEPENDS
-        plugins
+    language
         mas_heuristic
         utils
     TARGET
@@ -1376,7 +1376,7 @@ create_library(
     SOURCES
         downward/cli/merge_and_shrink/shrink_bucket_based_options
     DEPENDS
-        plugins
+    language
         rng_options
 )
 
@@ -1386,7 +1386,7 @@ create_library(
     SOURCES
         downward/cli/merge_and_shrink/shrink_fh_feature
     DEPENDS
-        plugins
+    language
         shrink_bucket_based_options
         mas_heuristic
         utils
@@ -1400,7 +1400,7 @@ create_library(
     SOURCES
         downward/cli/merge_and_shrink/shrink_random_feature
     DEPENDS
-        plugins
+    language
         shrink_bucket_based_options
         mas_heuristic
     TARGET
@@ -1413,7 +1413,7 @@ create_library(
     SOURCES
         downward/cli/merge_and_shrink/shrink_strategy_category
     DEPENDS
-        plugins
+    language
         mas_heuristic
     TARGET
         probfd
@@ -1425,7 +1425,7 @@ create_library(
     SOURCES
         downward/cli/heuristics/canonical_pdbs_heuristic_feature
     DEPENDS
-        plugins
+    language
         heuristic_options
         canonical_pdbs_heuristic_options
         pdbs
@@ -1439,7 +1439,7 @@ create_library(
     SOURCES
         downward/cli/heuristics/ipdbs_heuristic_feature
     DEPENDS
-        plugins
+    language
         heuristic_options
         canonical_pdbs_heuristic_options
         pdbs
@@ -1456,7 +1456,7 @@ create_library(
     SOURCES
         downward/cli/pdbs/canonical_pdbs_heuristic_options
     DEPENDS
-        plugins
+    language
         pdbs
 )
 
@@ -1466,7 +1466,7 @@ create_library(
     SOURCES
         downward/cli/pdbs/cegar_options
     DEPENDS
-        plugins
+    language
 )
 
 create_library(
@@ -1475,7 +1475,7 @@ create_library(
     SOURCES
         downward/cli/pdbs/pattern_collection_generator_combo_feature
     DEPENDS
-        plugins
+    language
         pattern_generator_options
         pdbs
     TARGET
@@ -1488,7 +1488,7 @@ create_library(
     SOURCES
         downward/cli/pdbs/pattern_collection_generator_disjoint_cegar_feature
     DEPENDS
-        plugins
+    language
         rng_options
         cegar_options
         pattern_generator_options
@@ -1504,7 +1504,7 @@ create_library(
     SOURCES
         downward/cli/pdbs/pattern_collection_generator_genetic_feature
     DEPENDS
-        plugins
+    language
         rng_options
         pattern_generator_options
         pdbs
@@ -1519,7 +1519,7 @@ create_library(
     SOURCES
         downward/cli/pdbs/pattern_collection_generator_hillclimbing_feature
     DEPENDS
-        plugins
+    language
         pattern_collection_generator_hillclimbing_options
         canonical_pdbs_heuristic_options
         pattern_generator_options
@@ -1536,7 +1536,7 @@ create_library(
     SOURCES
         downward/cli/pdbs/pattern_collection_generator_hillclimbing_options
     DEPENDS
-        plugins
+    language
         rng_options
 )
 
@@ -1546,7 +1546,7 @@ create_library(
     SOURCES
         downward/cli/pdbs/pattern_collection_generator_manual_feature
     DEPENDS
-        plugins
+    language
         pattern_generator_options
         pdbs
     TARGET
@@ -1559,7 +1559,7 @@ create_library(
     SOURCES
         downward/cli/pdbs/pattern_collection_generator_multiple_cegar_feature
     DEPENDS
-        plugins
+    language
         cegar_options
         pattern_collection_generator_multiple_options
         pdb_utils
@@ -1575,7 +1575,7 @@ create_library(
     SOURCES
         downward/cli/pdbs/pattern_collection_generator_multiple_options
     DEPENDS
-        plugins
+    language
         pattern_collection_generator_multiple_options
         pattern_generator_options
         rng_options
@@ -1588,7 +1588,7 @@ create_library(
     SOURCES
         downward/cli/pdbs/pattern_collection_generator_multiple_random_feature
     DEPENDS
-        plugins
+    language
         pattern_collection_generator_multiple_options
         random_pattern_options
         pdb_utils
@@ -1603,7 +1603,7 @@ create_library(
     SOURCES
         downward/cli/pdbs/pattern_collection_generator_systematic_feature
     DEPENDS
-        plugins
+    language
         pattern_generator_options
         pdbs
         utils
@@ -1619,7 +1619,7 @@ create_library(
     SOURCES
         downward/cli/pdbs/pattern_generator_category
     DEPENDS
-        plugins
+    language
         pdbs
     TARGET
         probfd
@@ -1631,7 +1631,7 @@ create_library(
     SOURCES
         downward/cli/pdbs/pattern_collection_generator_category
     DEPENDS
-        plugins
+    language
         pdbs
     TARGET
         probfd
@@ -1643,7 +1643,7 @@ create_library(
     SOURCES
         downward/cli/pdbs/pattern_generator_cegar_feature
     DEPENDS
-        plugins
+    language
         cegar_options
         pattern_generator_options
         pdb_utils
@@ -1660,7 +1660,7 @@ create_library(
     SOURCES
         downward/cli/pdbs/pattern_generator_greedy_feature
     DEPENDS
-        plugins
+    language
         pattern_generator_options
         pdbs
     TARGET
@@ -1673,7 +1673,7 @@ create_library(
     SOURCES
         downward/cli/pdbs/pattern_generator_manual_feature
     DEPENDS
-        plugins
+    language
         pattern_generator_options
         pdbs
     TARGET
@@ -1686,7 +1686,7 @@ create_library(
     SOURCES
         downward/cli/pdbs/pattern_generator_options
     DEPENDS
-        plugins
+    language
         logging_options
 )
 
@@ -1696,7 +1696,7 @@ create_library(
     SOURCES
         downward/cli/pdbs/pattern_generator_random_feature
     DEPENDS
-        plugins
+    language
         pattern_generator_options
         random_pattern_options
         pdb_utils
@@ -1712,7 +1712,7 @@ create_library(
     SOURCES
         downward/cli/heuristics/pdb_heuristic_feature
     DEPENDS
-        plugins
+    language
         heuristic_options
         pdbs
     TARGET
@@ -1725,7 +1725,7 @@ create_library(
     SOURCES
         downward/cli/pdbs/random_pattern_options
     DEPENDS
-        plugins
+    language
 )
 
 create_library(
@@ -1734,7 +1734,7 @@ create_library(
     SOURCES
         downward/cli/pdbs/subcategory
     DEPENDS
-        plugins
+    language
     TARGET
         probfd
 )
@@ -1756,7 +1756,7 @@ create_library(
     SOURCES
         downward/cli/heuristics/zero_one_pdbs_heuristic_feature
     DEPENDS
-        plugins
+    language
         heuristic_options
         pdbs
     TARGET

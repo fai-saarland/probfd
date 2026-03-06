@@ -1,7 +1,7 @@
 #include "downward/cli/merge_and_shrink/merge_strategy_factory_precomputed_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/merge_and_shrink/merge_strategy_options.h"
 
@@ -11,22 +11,21 @@ using namespace std;
 using namespace downward::utils;
 using namespace downward::merge_and_shrink;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::merge_and_shrink::add_merge_strategy_options_to_feature;
 
 namespace downward::cli::merge_and_shrink {
 
-InternalFunctionDefinitionBase&
-add_merge_strategy_factory_precomputed_feature(Namespace& nspace)
+InternalFunctionDefinitionBase& add_merge_strategy_factory_precomputed_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "merge_precomputed",
-        &language::plugins::construct_shared<
-            MergeStrategyFactory,
-            MergeStrategyFactoryPrecomputed,
-            std::shared_ptr<MergeTreeFactory>,
-            downward::utils::Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        MergeStrategyFactory,
+        MergeStrategyFactoryPrecomputed,
+        std::shared_ptr<MergeTreeFactory>,
+        Verbosity>>(nspace, "merge_precomputed");
+
     f.document_title("Precomputed merge strategy");
     f.document_synopsis(
         "This merge strategy has a precomputed merge tree. Note that this "

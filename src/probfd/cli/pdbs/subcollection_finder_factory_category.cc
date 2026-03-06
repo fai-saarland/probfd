@@ -1,18 +1,19 @@
 #include "probfd/cli/pdbs/subcollection_finder_factory_category.h"
 
-#include "language/plugins/registry.h"
+#include "language/ast/internal_type_declaration.h"
 
 #include "probfd/pdbs/subcollection_finder_factory.h"
 
 using namespace probfd::pdbs;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace probfd::cli::pdbs {
 
-void add_subcollection_finder_factory_category(Namespace& nspace)
+void add_subcollection_finder_factory_category(NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_shared_type_declaration<SubCollectionFinderFactory>(
+    insert_shared_type_declaration<SubCollectionFinderFactory>(
+        nspace,
         "SubCollectionFinderFactory",
         "");
 }

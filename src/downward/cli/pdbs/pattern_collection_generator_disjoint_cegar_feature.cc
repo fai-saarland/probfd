@@ -1,7 +1,6 @@
 #include "downward/cli/pdbs/pattern_collection_generator_disjoint_cegar_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -17,7 +16,7 @@ using namespace downward::pdbs;
 
 using namespace downward::cli::pdbs;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::pdbs::add_generator_options_to_feature;
 
@@ -26,19 +25,19 @@ using downward::cli::utils::add_rng_options_to_feature;
 namespace downward::cli::pdbs {
 
 InternalFunctionDefinitionBase&
-add_pattern_collection_generator_disjoint_cegar_feature(Namespace& nspace)
+add_pattern_collection_generator_disjoint_cegar_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "disjoint_cegar",
-        &language::plugins::construct_shared<
-            PatternCollectionGenerator,
-            PatternCollectionGeneratorDisjointCegar,
-            int,
-            int,
-            FSeconds,
-            bool,
-            std::shared_ptr<RandomNumberGenerator>,
-            Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        PatternCollectionGenerator,
+        PatternCollectionGeneratorDisjointCegar,
+        int,
+        int,
+        FSeconds,
+        bool,
+        std::shared_ptr<RandomNumberGenerator>,
+        Verbosity>>(nspace, "disjoint_cegar");
+
     f.document_title("Disjoint CEGAR");
     f.document_synopsis(
         "This pattern collection generator uses the CEGAR algorithm to "

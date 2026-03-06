@@ -1,7 +1,6 @@
 #include "probfd/cli/pdbs/pattern_collection_generator_hillclimbing.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -15,30 +14,29 @@ using namespace utils;
 using namespace probfd::cli::pdbs;
 using namespace probfd::pdbs;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::utils::add_rng_options_to_feature;
 
 namespace probfd::cli::pdbs {
 
 InternalFunctionDefinitionBase&
-add_pattern_collection_generator_hillclimbing_feature(Namespace& nspace)
+add_pattern_collection_generator_hillclimbing_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "hillclimbing_probabilistic",
-        &construct_shared<
-            PatternCollectionGenerator,
-            PatternCollectionGeneratorHillclimbing,
-            std::shared_ptr<PatternCollectionGenerator>,
-            std::shared_ptr<SubCollectionFinderFactory>,
-            int,
-            int,
-            int,
-            int,
-            FSeconds,
-            int,
-            std::shared_ptr<RandomNumberGenerator>,
-            Verbosity>);
+    auto& f = insert_function_definition<&construct_shared<
+        PatternCollectionGenerator,
+        PatternCollectionGeneratorHillclimbing,
+        std::shared_ptr<PatternCollectionGenerator>,
+        std::shared_ptr<SubCollectionFinderFactory>,
+        int,
+        int,
+        int,
+        int,
+        FSeconds,
+        int,
+        std::shared_ptr<RandomNumberGenerator>,
+        Verbosity>>(nspace, "hillclimbing_probabilistic");
 
     f.make_optional_argument_with_default(
         0,

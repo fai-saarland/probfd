@@ -1,31 +1,27 @@
 #ifndef LANGUAGE_DECORATED_ABSTRACT_SYNTAX_TREE_H
 #define LANGUAGE_DECORATED_ABSTRACT_SYNTAX_TREE_H
 
-#include "language/typed_ast/decorated_ast_node.h"
+#include "language/typed_ast/decorated_expression_node.h"
 
-namespace language::plugins {
+namespace language::typed_ast {
 class Type;
 }
 
-namespace language::parser {
+namespace language::typed_ast {
 
-class ConvertNode : public DecoratedASTNode {
-    std::unique_ptr<DecoratedASTNode> value;
-    const plugins::Type& from_type;
-    const plugins::Type& to_type;
+class ConvertNode : public DecoratedExpressionNode {
+    std::unique_ptr<DecoratedExpressionNode> value;
+    const Type& from_type;
+    const Type& to_type;
 
 public:
     ConvertNode(
-        std::unique_ptr<DecoratedASTNode> value,
-        const plugins::Type& from_type,
-        const plugins::Type& to_type);
-
-    void remove_variable_usages() override;
+        std::unique_ptr<DecoratedExpressionNode> value,
+        const Type& from_type,
+        const Type& to_type);
 
     std::any construct(ConstructContext& context) const override;
-    void print(std::ostream& out, std::size_t indent, bool print_default_args)
-        const override;
 };
 
-} // namespace language::parser
+} // namespace language::typed_ast
 #endif

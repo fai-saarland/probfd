@@ -1,8 +1,7 @@
 #include "downward/cli/search_algorithms/eager_feature.h"
 #include "downward/cli/search_algorithms/eager_search_options.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/search_algorithms/eager_search.h"
 #include "downward/search_algorithms/search_common.h"
@@ -15,7 +14,7 @@ using namespace downward;
 using namespace downward::eager_search;
 
 using namespace downward::cli::eager_search;
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace {
 class EagerSearchFactory : public TaskDependentFactory<SearchAlgorithm> {
@@ -134,9 +133,10 @@ create_eager_search_no_f_evaluator(
         verbosity);
 }
 
-InternalFunctionDefinitionBase& add_eager_search_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_eager_search_to_namespace(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition("eager", create_eager_search);
+    auto& f = insert_function_definition<create_eager_search>(nspace, "eager");
 
     f.document_title("Eager best-first search");
     f.document_synopsis("");
@@ -158,12 +158,12 @@ InternalFunctionDefinitionBase& add_eager_search_to_namespace(Namespace& nspace)
     return f;
 }
 
-InternalFunctionDefinitionBase&
-add_eager_search_no_f_evaluator_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_eager_search_no_f_evaluator_to_namespace(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "eager_no_f_evaluator",
-        create_eager_search_no_f_evaluator);
+    auto& f = insert_function_definition<create_eager_search_no_f_evaluator>(
+        nspace,
+        "eager_no_f_evaluator");
 
     f.document_title("Eager best-first search");
     f.document_synopsis("");
@@ -188,7 +188,7 @@ add_eager_search_no_f_evaluator_to_namespace(Namespace& nspace)
 
 namespace downward::cli::search_algorithms {
 
-void add_eager_feature(Namespace& nspace)
+void add_eager_feature(NamespaceLevelDeclarationList& nspace)
 {
     add_eager_search_to_namespace(nspace);
     add_eager_search_no_f_evaluator_to_namespace(nspace);

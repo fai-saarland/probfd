@@ -9,21 +9,20 @@
 
 namespace language::parser {
 
-class IndirectFunctionCallNode : public ASTNode {
-    std::unique_ptr<ASTNode> callee;
-    std::vector<std::unique_ptr<ASTNode>> positional_arguments;
-    std::string unparsed_config;
+class IndirectFunctionCallNode : public ExpressionNode {
+    std::unique_ptr<ExpressionNode> callee;
+    std::vector<std::unique_ptr<ExpressionNode>> positional_arguments;
 
 public:
     IndirectFunctionCallNode(
-        std::unique_ptr<ASTNode> callee,
-        std::vector<std::unique_ptr<ASTNode>>&& positional_arguments,
-        const std::string& unparsed_config);
+        std::unique_ptr<ExpressionNode> callee,
+        std::vector<std::unique_ptr<ExpressionNode>>&& positional_arguments);
 
     TypedDecoratedAstNodePtr static_analysis(
         Context& context,
-        VariableEnvironment& env,
-        plugins::TypeRegistry& type_registry) const override;
+        typed_ast::GlobalEnvironment& env,
+        typed_ast::LocalEnvironment& local_env,
+        typed_ast::TypeRegistry& type_registry) const override;
 };
 
 } // namespace language::parser

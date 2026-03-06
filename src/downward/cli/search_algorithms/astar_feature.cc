@@ -1,8 +1,7 @@
 #include "downward/cli/search_algorithms/astar_feature.h"
 #include "downward/cli/search_algorithms/eager_search_options.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/search_algorithms/eager_search.h"
 #include "downward/search_algorithms/search_common.h"
@@ -15,7 +14,7 @@ using namespace downward;
 using namespace downward::eager_search;
 
 using namespace downward::cli::eager_search;
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace {
 class AStarFactory : public TaskDependentFactory<SearchAlgorithm> {
@@ -121,9 +120,10 @@ create_astar_no_lazy_evaluator(
         verbosity);
 }
 
-InternalFunctionDefinitionBase& add_astar_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_astar_to_namespace(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition("astar", create_astar);
+    auto& f = insert_function_definition<create_astar>(nspace, "astar");
 
     f.document_title("A* search (eager)");
     f.document_synopsis(
@@ -156,11 +156,11 @@ InternalFunctionDefinitionBase& add_astar_to_namespace(Namespace& nspace)
 }
 
 InternalFunctionDefinitionBase&
-add_astar_no_lazy_evaluator_to_namespace(Namespace& nspace)
+add_astar_no_lazy_evaluator_to_namespace(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "astar_no_lazy_eval",
-        create_astar_no_lazy_evaluator);
+    auto& f = insert_function_definition<create_astar_no_lazy_evaluator>(
+        nspace,
+        "astar_no_lazy_eval");
 
     f.document_title("A* search (eager)");
     f.document_synopsis(
@@ -188,7 +188,7 @@ add_astar_no_lazy_evaluator_to_namespace(Namespace& nspace)
 
 namespace downward::cli::search_algorithms {
 
-void add_astar_feature(Namespace& nspace)
+void add_astar_feature(NamespaceLevelDeclarationList& nspace)
 {
     add_astar_to_namespace(nspace);
     add_astar_no_lazy_evaluator_to_namespace(nspace);

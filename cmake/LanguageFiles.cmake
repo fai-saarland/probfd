@@ -1,44 +1,37 @@
 create_library(
-    NAME plugins
-    HELP "Plugin definition"
-    SOURCES
-    language/documentation/plugin_info
-    language/documentation/topic
-    language/plugins/any
-    language/plugins/demangle
-    language/plugins/doc_printer
-    language/plugins/internal_enum_declaration
-    language/plugins/internal_function_definition
-    language/plugins/internal_type_declaration
-    language/plugins/options
-    language/plugins/registry
-    language/plugins/registry_types
-    language/plugins/type_registry
-    language/plugins/types
-)
-
-create_library(
     NAME language
     HELP "CLI language"
     SOURCES
     language/ast/abstract_syntax_tree
+    language/ast/compilation_context
+    language/ast/declaration
     language/ast/direct_function_call_node
+    language/ast/function_declaration
     language/ast/expression_node
     language/ast/identifier_node
     language/ast/indirect_function_call_node
+    language/ast/internal_enum_declaration
+    language/ast/internal_function_definition
+    language/ast/internal_type_declaration
     language/ast/lambda_node
     language/ast/let_node
     language/ast/list_node
     language/ast/literal_node
+    language/ast/namespace_declaration
     language/ast/qualified_name
     language/ast/type_identifier_node
     language/ast/type_literal_node
     language/ast/type_node
     language/ast/unary_expression_node
+    language/documentation/doc_printer
+    language/documentation/txt2tags_printer
+    language/documentation/plain_printer
+    language/documentation/plugin_info
+    language/documentation/topic
     language/typed_ast/construct_context
     language/typed_ast/convert_node
-    language/typed_ast/decorated_ast_node
     language/typed_ast/decorated_bool_literal_node
+    language/typed_ast/decorated_expression_node
     language/typed_ast/decorated_feature_literal_node
     language/typed_ast/decorated_float_literal_node
     language/typed_ast/decorated_function_call_node
@@ -49,8 +42,12 @@ create_library(
     language/typed_ast/decorated_string_literal_node
     language/typed_ast/decorated_unary_expression_node
     language/typed_ast/decorated_variable_node
-    language/typed_ast/variable_declaration
+    language/typed_ast/local_value_definition
+    language/typed_ast/type_registry
+    language/typed_ast/types
     language/typed_ast/variable_environment
+    language/typed_ast/value
+    language/utils/demangle
     language/context
     language/lexical_analyzer
     language/syntax_analyzer

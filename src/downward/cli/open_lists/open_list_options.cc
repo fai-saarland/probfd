@@ -1,13 +1,13 @@
 #include "downward/cli/open_lists/open_list_options.h"
 
-#include "language/plugins/internal_function_definition.h"
+#include "language/ast/internal_function_definition.h"
 
 using namespace std;
 
 namespace downward::cli {
 
 void add_open_list_options_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     std::size_t start_index)
 {
     feature.make_optional_argument_with_default(

@@ -1,7 +1,7 @@
 #include "downward/cli/pdbs/pattern_collection_generator_multiple_options.h"
 #include "downward/cli/pdbs/pattern_generator_options.h"
 
-#include "language/plugins/internal_function_definition.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -12,7 +12,7 @@ using downward::cli::utils::add_rng_options_to_feature;
 namespace downward::cli::pdbs {
 
 void add_multiple_algorithm_implementation_notes_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature)
+    language::parser::InternalFunctionDefinitionBase& feature)
 {
     feature.document_note(
         "Short description of the 'multiple algorithm framework'",
@@ -50,7 +50,7 @@ void add_multiple_algorithm_implementation_notes_to_feature(
 }
 
 std::size_t add_multiple_options_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     std::size_t start_index)
 {
     feature.make_optional_argument_with_default(

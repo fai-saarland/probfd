@@ -1,15 +1,15 @@
 #ifndef DOWNWARD_EVALUATORS_SUM_EVALUATOR_FEATURE_H
 #define DOWNWARD_EVALUATORS_SUM_EVALUATOR_FEATURE_H
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-class Namespace;
-} // namespace language::plugins
+class NamespaceLevelDeclarationList;
+} // namespace language::parser
 
 namespace downward::cli::evaluators {
 
-language::plugins::InternalFunctionDefinitionBase&
-add_sum_evaluator_feature(language::plugins::Namespace& nspace);
+language::parser::InternalFunctionDefinitionBase&
+add_sum_evaluator_feature(language::parser::NamespaceLevelDeclarationList& nspace);
 
 }
 

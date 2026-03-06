@@ -1,32 +1,31 @@
 #include "downward/cli/merge_and_shrink/shrink_bisimulation_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/merge_and_shrink/shrink_bisimulation.h"
 
-#include "downward/utils/logging.h"
 #include "downward/utils/markup.h"
+#include "language/ast/internal_enum_declaration.h"
 
 using namespace std;
 
 using namespace downward::utils;
-using namespace language::plugins;
+using namespace language::parser;
 
 using namespace downward::merge_and_shrink;
 
 namespace {
 
-InternalFunctionDefinitionBase&
-add_shrink_strategy_bisimulation_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase& add_shrink_strategy_bisimulation_to_namespace(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "shrink_bisimulation",
-        &language::plugins::construct_shared<
-            ShrinkStrategy,
-            ShrinkBisimulation,
-            bool,
-            AtLimit>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        ShrinkStrategy,
+        ShrinkBisimulation,
+        bool,
+        AtLimit>>(nspace, "shrink_bisimulation");
+
     f.document_title("Bismulation based shrink strategy");
     f.document_synopsis(
         "This shrink strategy implements the algorithm described in"
@@ -89,9 +88,11 @@ add_shrink_strategy_bisimulation_to_namespace(Namespace& nspace)
 
 namespace downward::cli::merge_and_shrink {
 
-void add_shrink_bisimulation_feature(Namespace& nspace)
+void add_shrink_bisimulation_feature(NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_enum_declaration<AtLimit>(
+    insert_enum_declaration<AtLimit>(
+        nspace,
+        "AtLimit",
         {{"return", "stop without refining the equivalence class further"},
          {"use_up",
           "continue refining the equivalence class until "

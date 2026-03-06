@@ -1,15 +1,15 @@
 #ifndef DOWNWARD_HEURISTICS_LANDMARK_CUT_HEURISTIC_FEATURE_H
 #define DOWNWARD_HEURISTICS_LANDMARK_CUT_HEURISTIC_FEATURE_H
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-class Namespace;
-} // namespace language::plugins
+class NamespaceLevelDeclarationList;
+}
 
 namespace downward::cli::heuristics {
 
-language::plugins::InternalFunctionDefinitionBase&
-add_landmark_cut_heuristic_feature(language::plugins::Namespace& nspace);
+language::parser::InternalFunctionDefinitionBase&
+add_landmark_cut_heuristic_feature(language::parser::NamespaceLevelDeclarationList& nspace);
 
 }
 

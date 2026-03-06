@@ -1,7 +1,7 @@
 #include "downward/cli/evaluators/g_evaluator_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/evaluators/evaluator_options.h"
 
@@ -17,7 +17,7 @@ using namespace downward::utils;
 using namespace downward::g_evaluator;
 
 using namespace downward::cli;
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace {
 
@@ -42,15 +42,15 @@ public:
 
 namespace downward::cli::evaluators {
 
-InternalFunctionDefinitionBase& add_g_evaluator_feature(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_g_evaluator_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "g",
-        &language::plugins::construct_shared<
-            TaskDependentFactory<Evaluator>,
-            GEvaluatorFactory,
-            std::string,
-            Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskDependentFactory<Evaluator>,
+        GEvaluatorFactory,
+        std::string,
+        Verbosity>>(nspace, "g");
+
     f.document_title("g-value evaluator");
     f.document_synopsis("Returns the g-value (path cost) of the search node.");
 

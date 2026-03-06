@@ -1,20 +1,20 @@
 #ifndef DOWNWARD_HEURISTICS_SINGLE_POTENTIAL_HEURISTICS_FEATURE_H
 #define DOWNWARD_HEURISTICS_SINGLE_POTENTIAL_HEURISTICS_FEATURE_H
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-class Namespace;
-} // namespace language::plugins
+class NamespaceLevelDeclarationList;
+} // namespace language::parser
 
 namespace downward::cli::heuristics {
 
-language::plugins::InternalFunctionDefinitionBase&
+language::parser::InternalFunctionDefinitionBase&
 add_initial_state_potential_heuristic_feature(
-    language::plugins::Namespace& nspace);
+    language::parser::NamespaceLevelDeclarationList& nspace);
 
-language::plugins::InternalFunctionDefinitionBase&
+language::parser::InternalFunctionDefinitionBase&
 add_all_states_potential_heuristic_feature(
-    language::plugins::Namespace& nspace);
+    language::parser::NamespaceLevelDeclarationList& nspace);
 
 } // namespace downward::cli::heuristics
 

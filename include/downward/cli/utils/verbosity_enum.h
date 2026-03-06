@@ -1,13 +1,13 @@
 #ifndef DOWNWARD_CLI_UTILS_VERBOSITY_ENUM_H
 #define DOWNWARD_CLI_UTILS_VERBOSITY_ENUM_H
 
-namespace language::plugins {
-class Namespace;
+namespace language::parser {
+class NamespaceLevelDeclarationList;
 }
 
 namespace downward::cli::utils {
 
-void add_verbosity_enum(language::plugins::Namespace& nspace);
+void add_verbosity_enum(language::parser::NamespaceLevelDeclarationList& nspace);
 
 }
 

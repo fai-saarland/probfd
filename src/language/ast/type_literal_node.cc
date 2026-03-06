@@ -1,6 +1,6 @@
 #include "language/ast/type_literal_node.h"
 
-#include "language/plugins/type_registry.h"
+#include "language/typed_ast/type_registry.h"
 
 #include "language/context.h"
 
@@ -13,10 +13,10 @@ TypeLiteralNode::TypeLiteralNode(const Token& value)
 {
 }
 
-const plugins::Type& TypeLiteralNode::get_type(
+const typed_ast::Type& TypeLiteralNode::get_type(
     Context& context,
-    const VariableEnvironment&,
-    plugins::TypeRegistry& type_registry) const
+    const typed_ast::GlobalEnvironment&,
+    typed_ast::TypeRegistry& type_registry) const
 {
     switch (value.type) {
     case TokenType::TYPE_BOOL: return type_registry.get_type<bool>();

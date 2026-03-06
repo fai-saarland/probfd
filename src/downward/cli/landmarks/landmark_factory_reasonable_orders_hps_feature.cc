@@ -1,7 +1,7 @@
 #include "downward/cli/landmarks/landmark_factory_reasonable_orders_hps_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/landmarks/landmark_factory_options.h"
 
@@ -17,23 +17,23 @@ using namespace downward;
 using namespace downward::landmarks;
 using namespace downward::utils;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::landmarks::add_landmark_factory_options_to_feature;
 
 namespace downward::cli::landmarks {
 
 InternalFunctionDefinitionBase&
-add_landmark_factory_reasonable_orders_hps_feature(Namespace& nspace)
+add_landmark_factory_reasonable_orders_hps_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "lm_reasonable_orders_hps",
-        &language::plugins::construct_shared<
-            LandmarkFactory,
-            LandmarkFactoryReasonableOrdersHPS,
-            std::shared_ptr<LandmarkFactory>,
-            std::shared_ptr<TaskDependentFactory<MutexInformation>>,
-            utils::Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        LandmarkFactory,
+        LandmarkFactoryReasonableOrdersHPS,
+        std::shared_ptr<LandmarkFactory>,
+        std::shared_ptr<TaskDependentFactory<MutexInformation>>,
+        Verbosity>>(nspace, "lm_reasonable_orders_hps");
+
     f.document_title("HPS Orders");
     f.document_synopsis(
         "Adds reasonable orders described in the following paper" +

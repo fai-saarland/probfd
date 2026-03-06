@@ -1,6 +1,6 @@
 #include "downward/cli/pdbs/canonical_pdbs_heuristic_options.h"
 
-#include "language/plugins/internal_function_definition.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/pdbs/canonical_pdbs_heuristic.h"
 
@@ -10,7 +10,7 @@ using namespace downward::pdbs;
 namespace downward::cli::pdbs {
 
 std::size_t add_canonical_pdbs_options_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     std::size_t start_index)
 {
     feature.make_optional_argument_with_default(

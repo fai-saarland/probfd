@@ -9,12 +9,13 @@
 #include "language/typed_ast/decorated_int_literal_node.h"
 #include "language/typed_ast/decorated_string_literal_node.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
-#include "language/plugins/types.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
+#include "language/typed_ast/types.h"
 
 #include "language/critical_error.h"
 
+#include <cassert>
 #include <charconv>
 #include <vector>
 
@@ -29,18 +30,19 @@ LiteralNode::LiteralNode(const Token& value)
 
 TypedDecoratedAstNodePtr LiteralNode::static_analysis(
     Context& context,
-    VariableEnvironment& env,
-    plugins::TypeRegistry& type_registry) const
+    typed_ast::GlobalEnvironment& env,
+    typed_ast::LocalEnvironment&,
+    typed_ast::TypeRegistry& type_registry) const
 {
     switch (value.type) {
     case TokenType::TRUE: {
         return {
-            std::make_unique<BoolLiteralNode>(true),
+            std::make_unique<typed_ast::BoolLiteralNode>(true),
             &type_registry.get_type<bool>()};
     }
     case TokenType::FALSE: {
         return {
-            std::make_unique<BoolLiteralNode>(false),
+            std::make_unique<typed_ast::BoolLiteralNode>(false),
             &type_registry.get_type<bool>()};
     }
     case TokenType::STRING: {
@@ -75,7 +77,7 @@ TypedDecoratedAstNodePtr LiteralNode::static_analysis(
         }
 
         return {
-            std::make_unique<StringLiteralNode>(std::move(result)),
+            std::make_unique<typed_ast::StringLiteralNode>(std::move(result)),
             &type_registry.get_type<string>()};
     }
     case TokenType::INTEGER: {
@@ -97,32 +99,43 @@ TypedDecoratedAstNodePtr LiteralNode::static_analysis(
         default:
             if (data == last) {
                 return {
-                    std::make_unique<IntLiteralNode>(x),
+                    std::make_unique<typed_ast::IntLiteralNode>(x),
                     &type_registry.get_type<int>()};
             }
 
-            const auto& n = env.get_registry().get_global_name_space();
             const auto operator_fname = std::format(
                 "__operator_int_{}__",
                 std::string_view{data, last});
 
-            if (!n.has_function(operator_fname)) {
+            const auto result =
+                env.get_global_namespace().get_variable_declaration(
+                    operator_fname);
+
+            if (std::holds_alternative<std::monostate>(result)) {
                 context.error(
                     "User-defined int literal function '{}' not found.",
                     operator_fname);
             }
 
-            const auto& feature = n.get_function_definition(operator_fname);
+            const auto& function_decls = std::get<2>(result);
 
-            std::vector<FunctionArgument> arguments;
-            arguments.emplace_back(std::make_unique<IntLiteralNode>(x), false);
+            if (function_decls->size() > 1) {
+                throw CriticalError(
+                    "Overload resolution currently not supported.");
+            }
+
+            const auto& [type, function_decl] = (*function_decls)[0];
+
+            std::vector<typed_ast::FunctionArgument> arguments;
+            arguments.emplace_back(
+                std::make_unique<typed_ast::IntLiteralNode>(x),
+                false);
 
             return {
-                std::make_unique<DecoratedFunctionCallNode>(
-                    std::make_unique<FeatureLiteralNode>(feature),
-                    std::move(arguments),
-                    ""),
-                &feature.get_type(type_registry).get_return_type()};
+                std::make_unique<typed_ast::DecoratedFunctionCallNode>(
+                    function_decl->create_load_node(),
+                    std::move(arguments)),
+                &type->get_return_type()};
         }
     }
     case TokenType::FLOAT: {
@@ -142,33 +155,42 @@ TypedDecoratedAstNodePtr LiteralNode::static_analysis(
         default:
             if (data == last) {
                 return {
-                    std::make_unique<FloatLiteralNode>(x),
+                    std::make_unique<typed_ast::FloatLiteralNode>(x),
                     &type_registry.get_type<double>()};
             }
 
-            const auto& n = env.get_registry().get_global_name_space();
             const auto operator_fname =
                 std::format("__operator_float_{}__", string_view{data, last});
 
-            if (!n.has_function(operator_fname)) {
+            const auto result =
+                env.get_global_namespace().get_variable_declaration(
+                    operator_fname);
+
+            if (std::holds_alternative<std::monostate>(result)) {
                 context.error(
-                    "User-defined float literal function '{}' not found.",
+                    "User-defined int literal function '{}' not found.",
                     operator_fname);
             }
 
-            const auto& feature = n.get_function_definition(operator_fname);
+            const auto& function_decls = std::get<2>(result);
 
-            std::vector<FunctionArgument> arguments;
+            if (function_decls->size() > 1) {
+                throw CriticalError(
+                    "Overload resolution currently not supported.");
+            }
+
+            const auto& [type, function_decl] = (*function_decls)[0];
+
+            std::vector<typed_ast::FunctionArgument> arguments;
             arguments.emplace_back(
-                std::make_unique<FloatLiteralNode>(x),
+                std::make_unique<typed_ast::FloatLiteralNode>(x),
                 false);
 
             return {
-                std::make_unique<DecoratedFunctionCallNode>(
-                    std::make_unique<FeatureLiteralNode>(feature),
-                    std::move(arguments),
-                    ""),
-                &feature.get_type(type_registry).get_return_type()};
+                std::make_unique<typed_ast::DecoratedFunctionCallNode>(
+                    function_decl->create_load_node(),
+                    std::move(arguments)),
+                &type->get_return_type()};
         }
     }
     default:

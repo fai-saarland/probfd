@@ -2,7 +2,7 @@
 
 #include "downward/cli/utils/logging_options.h"
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::utils::add_log_options_to_feature;
 

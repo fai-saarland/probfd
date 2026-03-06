@@ -1,15 +1,16 @@
 #ifndef PROBFD_CLI_PDBS_FULLY_ADDITIVE_FINDER_FACTORY_H
 #define PROBFD_CLI_PDBS_FULLY_ADDITIVE_FINDER_FACTORY_H
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-class Namespace;
-} // namespace language::plugins
+class NamespaceLevelDeclarationList;
+} // namespace language::parser
 
 namespace probfd::cli::pdbs {
 
-language::plugins::InternalFunctionDefinitionBase&
-add_fully_additive_finder_factory_feature(language::plugins::Namespace& nspace);
+language::parser::InternalFunctionDefinitionBase&
+add_fully_additive_finder_factory_feature(
+    language::parser::NamespaceLevelDeclarationList& nspace);
 
 }
 

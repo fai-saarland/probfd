@@ -2,27 +2,23 @@
 
 using namespace std;
 
-namespace language::parser {
+namespace language::typed_ast {
 
-void ConstructContext::set_variable(const string& name, const std::any& value)
+void ConstructContext::push_variable(const std::any& value)
 {
-    variables[name] = value;
+    local_variables.emplace_back(value);
 }
 
-void ConstructContext::remove_variable(const string& name)
+void ConstructContext::pop_variables(std::size_t num_variables)
 {
-    variables.erase(name);
+    local_variables.erase(
+        std::prev(local_variables.end(), num_variables),
+        local_variables.end());
 }
 
-bool ConstructContext::has_variable(const string& name) const
+std::any ConstructContext::get_variable(std::size_t index) const
 {
-    return variables.contains(name);
+    return local_variables[index];
 }
 
-std::any ConstructContext::get_variable(const string& name) const
-{
-    std::any variable = variables.at(name);
-    return variable;
-}
-
-} // namespace language::parser
+} // namespace language::typed_ast

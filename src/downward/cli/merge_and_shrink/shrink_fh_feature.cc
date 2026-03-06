@@ -1,36 +1,33 @@
 #include "downward/cli/merge_and_shrink/shrink_fh_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
-
 #include "downward/cli/merge_and_shrink/shrink_bucket_based_options.h"
 
 #include "downward/merge_and_shrink/shrink_fh.h"
 
-#include "downward/utils/logging.h"
 #include "downward/utils/markup.h"
+
+#include "language/ast/internal_enum_declaration.h"
+#include "language/ast/internal_function_definition.h"
 
 using namespace std;
 using namespace downward::utils;
 using namespace downward::merge_and_shrink;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::merge_and_shrink::add_shrink_bucket_options_to_feature;
 
 namespace {
 
 InternalFunctionDefinitionBase&
-add_shrink_strategy_fh_to_namespace(Namespace& nspace)
+add_shrink_strategy_fh_to_namespace(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "shrink_fh",
-        &language::plugins::construct_shared<
-            ShrinkStrategy,
-            ShrinkFH,
-            ShrinkFH::HighLow,
-            ShrinkFH::HighLow,
-            std::shared_ptr<RandomNumberGenerator>>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        ShrinkStrategy,
+        ShrinkFH,
+        ShrinkFH::HighLow,
+        ShrinkFH::HighLow,
+        std::shared_ptr<RandomNumberGenerator>>>(nspace, "shrink_fh");
 
     f.document_title("f-preserving shrink strategy");
     f.document_synopsis(
@@ -98,9 +95,11 @@ add_shrink_strategy_fh_to_namespace(Namespace& nspace)
 
 namespace downward::cli::merge_and_shrink {
 
-void add_shrink_fh_feature(Namespace& nspace)
+void add_shrink_fh_feature(NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_enum_declaration<ShrinkFH::HighLow>(
+    insert_enum_declaration<ShrinkFH::HighLow>(
+        nspace,
+        "HighLow",
         {{"high", "prefer shrinking states with high value"},
          {"low", "prefer shrinking states with low value"}});
 

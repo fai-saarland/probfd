@@ -1,15 +1,15 @@
 #ifndef PROBFD_CLI_HEURISTICS_CONSTANT_HEURISTIC_H
 #define PROBFD_CLI_HEURISTICS_CONSTANT_HEURISTIC_H
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-class Namespace;
-} // namespace language::plugins
+class NamespaceLevelDeclarationList;
+} // namespace language::parser
 
 namespace probfd::cli::heuristics {
 
-language::plugins::InternalFunctionDefinitionBase&
-add_blind_heuristic_factory_feature(language::plugins::Namespace& nspace);
+language::parser::InternalFunctionDefinitionBase&
+add_blind_heuristic_factory_feature(language::parser::NamespaceLevelDeclarationList& nspace);
 
 }
 

@@ -1,7 +1,7 @@
 #include "downward/cli/open_lists/alternation_open_list_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/open_lists/alternation_open_list.h"
 
@@ -9,22 +9,21 @@ using namespace std;
 using namespace downward::utils;
 using namespace downward::alternation_open_list;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace {
 
 template <typename T>
-InternalFunctionDefinitionBase&
-add_alternation_open_list_to_namespace(Namespace& nspace, std::string name)
+InternalFunctionDefinitionBase& add_alternation_open_list_to_namespace(
+    NamespaceLevelDeclarationList& nspace,
+    std::string name)
 {
-    auto& f = nspace.insert_function_definition(
-        std::move(name),
-        &language::plugins::construct_shared<
-            downward::TaskDependentFactory<downward::OpenList<T>>,
-            AlternationOpenListFactory<T>,
-            std::vector<shared_ptr<
-                downward::TaskDependentFactory<downward::OpenList<T>>>>,
-            int>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        downward::TaskDependentFactory<downward::OpenList<T>>,
+        AlternationOpenListFactory<T>,
+        std::vector<
+            shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>>,
+        int>>(nspace, std::move(name));
 
     if constexpr (std::same_as<T, downward::StateOpenListEntry>) {
         f.document_title("Alternation state open list");
@@ -52,7 +51,7 @@ add_alternation_open_list_to_namespace(Namespace& nspace, std::string name)
 
 namespace downward::cli::open_lists {
 
-void add_alternation_open_list_features(Namespace& nspace)
+void add_alternation_open_list_features(NamespaceLevelDeclarationList& nspace)
 {
     add_alternation_open_list_to_namespace<StateOpenListEntry>(
         nspace,

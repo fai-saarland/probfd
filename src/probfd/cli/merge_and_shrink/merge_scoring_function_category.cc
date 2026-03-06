@@ -1,17 +1,18 @@
 #include "probfd/cli/merge_and_shrink/merge_scoring_function_category.h"
 
-#include "language/plugins/registry.h"
+#include "language/ast/internal_type_declaration.h"
 
 #include "probfd/merge_and_shrink/merge_scoring_function.h"
 
-using namespace language::plugins;
+using namespace language::parser;
 using namespace probfd::merge_and_shrink;
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_merge_scoring_function_category(Namespace& nspace)
+void add_merge_scoring_function_category(NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_shared_type_declaration<MergeScoringFunction>(
+    insert_shared_type_declaration<MergeScoringFunction>(
+        nspace,
         "PMergeScoringFunction",
         "This page describes various merge scoring functions. A scoring "
         "function, "

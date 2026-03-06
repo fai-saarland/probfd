@@ -6,7 +6,7 @@
 
 namespace language::parser {
 
-class IdentifierNode : public ASTNode {
+class IdentifierNode : public ExpressionNode {
     QualifiedName qualified_name;
 
 public:
@@ -14,8 +14,9 @@ public:
 
     TypedDecoratedAstNodePtr static_analysis(
         Context& context,
-        VariableEnvironment& env,
-        plugins::TypeRegistry& type_registry) const override;
+        typed_ast::GlobalEnvironment& env,
+        typed_ast::LocalEnvironment& local_env,
+        typed_ast::TypeRegistry& type_registry) const override;
 
     const QualifiedName& get_name() const;
 };

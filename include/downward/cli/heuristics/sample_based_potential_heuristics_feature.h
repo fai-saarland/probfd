@@ -1,20 +1,16 @@
 #ifndef DOWNWARD_HEURISTICS_SAMPLE_BASED_POTENTIAL_HEURISTICS_FEATURE_H
 #define DOWNWARD_HEURISTICS_SAMPLE_BASED_POTENTIAL_HEURISTICS_FEATURE_H
 
-namespace language::plugins {
-class Registry;
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-class Namespace;
-} // namespace language::plugins
+class NamespaceLevelDeclarationList;
+} // namespace language::parser
 
 namespace downward::cli::heuristics {
 
-void add_sample_based_potential_heuristics_feature(
-    language::plugins::Registry& registry);
-
-language::plugins::InternalFunctionDefinitionBase&
+language::parser::InternalFunctionDefinitionBase&
 add_sample_based_potential_heuristics_feature(
-    language::plugins::Namespace& nspace);
+    language::parser::NamespaceLevelDeclarationList& nspace);
 
 } // namespace downward::cli::heuristics
 

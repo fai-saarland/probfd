@@ -1,13 +1,13 @@
 #ifndef PROBFD_CLI_MERGE_AND_SHRINK_MERGE_SELECTOR_CATEGORY_H
 #define PROBFD_CLI_MERGE_AND_SHRINK_MERGE_SELECTOR_CATEGORY_H
 
-namespace language::plugins {
-class Namespace;
+namespace language::parser {
+class NamespaceLevelDeclarationList;
 }
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_merge_selector_category(language::plugins::Namespace& nspace);
+void add_merge_selector_category(language::parser::NamespaceLevelDeclarationList& nspace);
 
 }
 

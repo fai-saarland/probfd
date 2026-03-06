@@ -1,15 +1,15 @@
 #ifndef DOWNWARD_CLI_SEARCH_ALGORITHMS_LAZY_FEATURE_H
 #define DOWNWARD_CLI_SEARCH_ALGORITHMS_LAZY_FEATURE_H
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-class Namespace;
-} // namespace language::plugins
+class NamespaceLevelDeclarationList;
+}
 
 namespace downward::cli::search_algorithms {
 
-language::plugins::InternalFunctionDefinitionBase&
-add_lazy_feature(language::plugins::Namespace& nspace);
+language::parser::InternalFunctionDefinitionBase&
+add_lazy_feature(language::parser::NamespaceLevelDeclarationList& nspace);
 
 }
 

@@ -1,15 +1,18 @@
 #ifndef DOWNWARD_CLI_PDBS_SUBCATEGORY_H
 #define DOWNWARD_CLI_PDBS_SUBCATEGORY_H
 
-namespace language::plugins {
+namespace language::parser {
+class CompilationContext;
+} // namespace language::parser
+
+namespace language::documentation {
 class DocumentationTopic;
-class Registry;
-} // namespace language::plugins
+} // namespace language::parser
 
 namespace downward::cli::pdbs {
 
-language::plugins::DocumentationTopic&
-add_pdb_heuristic_subcategory(language::plugins::Registry& registry);
+language::documentation::DocumentationTopic&
+add_pdb_heuristic_subcategory(language::parser::CompilationContext& registry);
 
 }
 

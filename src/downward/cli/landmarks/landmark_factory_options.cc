@@ -1,6 +1,6 @@
 #include "downward/cli/landmarks/landmark_factory_options.h"
 
-#include "language/plugins/internal_function_definition.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/utils/logging_options.h"
 
@@ -10,7 +10,7 @@ using namespace std;
 using namespace downward::landmarks;
 using namespace downward::utils;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::utils::add_log_options_to_feature;
 

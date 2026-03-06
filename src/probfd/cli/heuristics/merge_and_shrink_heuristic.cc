@@ -1,7 +1,7 @@
 #include "probfd/cli/heuristics/merge_and_shrink_heuristic.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "probfd/cli/heuristics/task_dependent_heuristic_options.h"
 
@@ -17,15 +17,13 @@
 
 #include "probfd/task_heuristic_factory.h"
 
-#include "downward/utils/logging.h"
-
 using namespace std;
 using namespace downward;
 using namespace probfd;
 using namespace probfd::heuristics;
 using namespace probfd::merge_and_shrink;
 
-using namespace language::plugins;
+using namespace language::parser;
 using namespace probfd::cli::heuristics;
 using namespace probfd::cli::merge_and_shrink;
 
@@ -223,11 +221,11 @@ shared_ptr<TaskHeuristicFactory> create_merge_and_shrink_no_lr(
 }
 
 InternalFunctionDefinitionBase&
-add_merge_and_shrink_with_lr_to_namespace(Namespace& nspace)
+add_merge_and_shrink_with_lr_to_namespace(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "pa_merge_and_shrink",
-        &create_merge_and_shrink_with_lr);
+    auto& f = insert_function_definition<&create_merge_and_shrink_with_lr>(
+        nspace,
+        "pa_merge_and_shrink");
 
     f.document_title("Merge-and-shrink heuristic");
     f.document_synopsis("TODO add a description");
@@ -281,11 +279,12 @@ add_merge_and_shrink_with_lr_to_namespace(Namespace& nspace)
 }
 
 InternalFunctionDefinitionBase&
-add_merge_and_shrink_no_lr_to_namespace(Namespace& nspace)
+add_merge_and_shrink_no_lr_to_namespace(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "pa_merge_and_shrink_no_lr",
-        &create_merge_and_shrink_no_lr);
+    auto& f = insert_function_definition<&create_merge_and_shrink_no_lr>(
+        nspace,
+        "pa_merge_and_shrink_no_lr");
+
     f.document_title("Merge-and-shrink heuristic");
     f.document_synopsis("TODO add a description");
 
@@ -332,7 +331,8 @@ add_merge_and_shrink_no_lr_to_namespace(Namespace& nspace)
 
 namespace probfd::cli::heuristics {
 
-void add_merge_and_shrink_heuristic_feature(Namespace& nspace)
+void add_merge_and_shrink_heuristic_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
     add_merge_and_shrink_with_lr_to_namespace(nspace);
     add_merge_and_shrink_no_lr_to_namespace(nspace);

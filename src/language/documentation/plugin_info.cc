@@ -2,7 +2,7 @@
 
 using namespace std;
 
-namespace language::plugins {
+namespace language::documentation {
 
 PropertyInfo::PropertyInfo(const string& property, const string& description)
     : property(property)
@@ -27,4 +27,5 @@ LanguageSupportInfo::LanguageSupportInfo(
     , description(description)
 {
 }
-} // namespace language::plugins
+
+} // namespace language::documentation

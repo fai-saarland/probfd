@@ -1,20 +1,17 @@
 #include "language/ast/direct_function_call_node.h"
 
-#include "language/typed_ast/variable_environment.h"
-
-#include "language/syntax_analyzer.h"
-
 #include "language/typed_ast/convert_node.h"
 #include "language/typed_ast/decorated_feature_literal_node.h"
 #include "language/typed_ast/decorated_function_call_node.h"
-#include "language/typed_ast/decorated_variable_node.h"
-#include "language/typed_ast/variable_declaration.h"
+#include "language/typed_ast/variable_environment.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
-#include "language/plugins/types.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
+
+#include "language/typed_ast/types.h"
 
 #include "language/context.h"
+#include "language/syntax_analyzer.h"
 
 #include <unordered_map>
 #include <vector>
@@ -23,19 +20,21 @@ using namespace std;
 
 namespace language::parser {
 
-static std::unique_ptr<DecoratedASTNode> decorate_and_convert(
-    const ASTNode& node,
-    const plugins::Type& target_type,
+static std::unique_ptr<typed_ast::DecoratedExpressionNode> decorate_and_convert(
+    const ExpressionNode& node,
+    const typed_ast::Type& target_type,
     Context& context,
-    VariableEnvironment& env,
-    plugins::TypeRegistry& type_registry)
+    typed_ast::GlobalEnvironment& env,
+    typed_ast::LocalEnvironment& local_env,
+    typed_ast::TypeRegistry& type_registry)
 {
-    auto [ast_node, type] = node.static_analysis(context, env, type_registry);
+    auto [ast_node, type] =
+        node.static_analysis(context, env, local_env, type_registry);
 
     if (*type != target_type) {
         TraceBlock block(context, "Adding casting node");
         if (type->can_convert_into(target_type)) {
-            return std::make_unique<ConvertNode>(
+            return std::make_unique<typed_ast::ConvertNode>(
                 move(ast_node),
                 *type,
                 target_type);
@@ -46,194 +45,235 @@ static std::unique_ptr<DecoratedASTNode> decorate_and_convert(
             type->name(),
             target_type.name());
     }
+
     return std::move(ast_node);
 }
 
 DirectFunctionCallNode::DirectFunctionCallNode(
     QualifiedName callee,
-    vector<std::unique_ptr<ASTNode>>&& positional_arguments,
-    unordered_map<string, std::unique_ptr<ASTNode>>&& keyword_arguments,
-    const string& unparsed_config)
+    vector<std::unique_ptr<ExpressionNode>>&& positional_arguments,
+    unordered_map<string, std::unique_ptr<ExpressionNode>>&& keyword_arguments)
     : callee(std::move(callee))
     , positional_arguments(move(positional_arguments))
     , keyword_arguments(move(keyword_arguments))
-    , unparsed_config(unparsed_config)
 {
 }
 
 TypedDecoratedAstNodePtr DirectFunctionCallNode::static_analysis(
     Context& context,
-    VariableEnvironment& env,
-    plugins::TypeRegistry& type_registry) const
+    typed_ast::GlobalEnvironment& env,
+    typed_ast::LocalEnvironment& local_env,
+    typed_ast::TypeRegistry& type_registry) const
 {
     TraceBlock block(context, "Checking Call");
 
     TraceBlock nblock(context, "Checking Callee Identifier: {}", callee);
 
-    const auto& [qualification, name] = callee;
+    auto decls_vnt = env.get_variable_declaration(local_env, callee, context);
 
-    std::unique_ptr<DecoratedASTNode> callee_node;
-    const plugins::FunctionType* callee_type;
-    std::vector<plugins::ArgumentInfo> argument_infos;
+    return std::visit(
+        utils::overload{
+            [&, this](typed_ast::TypedValue tdecl) {
+                return this->construct_indirect_call(
+                    context,
+                    env,
+                    local_env,
+                    type_registry,
+                    tdecl);
+            },
+            [&,
+             this](const std::vector<typed_ast::TypedFunctionValue>*& tdecl) {
+                return this->construct_call(
+                    context,
+                    env,
+                    local_env,
+                    type_registry,
+                    *tdecl);
+            },
+        },
+        decls_vnt);
+}
 
-    if (qualification.empty()) {
-        if (const auto* tdecl = env.get_variable_declaration(name)) {
-            auto n = std::make_unique<VariableNode>(*tdecl->declaration);
-            callee_node.reset(tdecl->declaration->usages.emplace_back(n.get()));
+TypedDecoratedAstNodePtr DirectFunctionCallNode::construct_indirect_call(
+    Context& context,
+    typed_ast::GlobalEnvironment& env,
+    typed_ast::LocalEnvironment& local_env,
+    typed_ast::TypeRegistry& type_registry,
+    const typed_ast::TypedValue& tdecl) const
+{
+    const auto& [type, decl] = tdecl;
 
-            if (!tdecl->type->is_function_type()) {
-                context.error(
-                    "Variable '{}' does not have function type",
-                    callee);
-            }
+    if (!type->is_function_type()) {
+        context.error("Variable '{}' does not have function type", callee);
+    }
 
-            callee_type =
-                static_cast<const plugins::FunctionType*>(tdecl->type);
-        } else {
-            goto namespace_lookup;
-        }
-    } else {
-    namespace_lookup:
-        const auto& n = env.get_registry().get_namespace(qualification);
-        if (n.has_function(name)) {
-            const auto& f = n.get_function_definition(name);
-            callee_node = std::make_unique<FeatureLiteralNode>(f);
-            callee_type = &f.get_type(type_registry);
-            argument_infos = f.get_arguments();
-        } else {
-            context.error("Undefined variable '{}'", callee);
-        }
+    const auto* callee_type = static_cast<const typed_ast::FunctionType*>(type);
+
+    if (!keyword_arguments.empty()) {
+        context.error("Keyword arguments not allowed here");
     }
 
     const auto& argument_types = callee_type->get_argument_types();
 
-    vector<FunctionArgument> arguments;
+    if (positional_arguments.size() != argument_types.size()) {
+        context.error(
+            "Expected {} arguments, {} were given",
+            argument_types.size(),
+            positional_arguments.size());
+    }
+
+    vector<typed_ast::FunctionArgument> arguments;
     arguments.reserve(argument_types.size());
 
-    if (!argument_infos.empty()) {
-        // Check keyword arguments exist
-        for (const auto& keyword : keyword_arguments | std::views::keys) {
-            for (const auto& arg_info : argument_infos) {
-                if (arg_info.key == keyword) { goto next; }
-            }
+    for (std::size_t i = 0; i < positional_arguments.size(); ++i) {
+        TraceBlock nnblock(
+            context,
+            "Checking the positional argument at index {}",
+            i);
 
-            context.error("Unknown keyword argument {}", keyword);
+        const auto& arg = positional_arguments[i];
+        const auto& arg_type = argument_types[i];
 
-        next:;
-        }
-
-        for (std::size_t i = 0; i < positional_arguments.size(); ++i) {
-            TraceBlock nnblock(
+        std::unique_ptr<typed_ast::DecoratedExpressionNode> decorated_arg =
+            decorate_and_convert(
+                *arg,
+                *arg_type,
                 context,
-                "Checking the positional argument at index {}",
-                i);
+                env,
+                local_env,
+                type_registry);
 
-            const auto& arg_info = argument_infos[i];
-            const auto& arg_type = argument_types[i];
-            const auto& pos_arg = *positional_arguments[i];
+        arguments.emplace_back(move(decorated_arg), false);
+    }
 
-            if (keyword_arguments.contains(arg_info.key)) {
-                context.error(
-                    "The argument '{}' is defined by the positional argument "
-                    "at index {} and by a keyword argument.",
-                    arg_info.key,
-                    i);
-            }
+    std::unique_ptr<typed_ast::DecoratedExpressionNode> callee_node =
+        decl->create_load_node();
 
-            std::unique_ptr<DecoratedASTNode> decorated_arg =
-                decorate_and_convert(
-                    pos_arg,
-                    *arg_type,
-                    context,
-                    env,
-                    type_registry);
+    return {
+        std::make_unique<typed_ast::DecoratedFunctionCallNode>(
+            std::move(callee_node),
+            move(arguments)),
+        &callee_type->get_return_type()};
+}
 
-            arguments.emplace_back(move(decorated_arg), false);
+TypedDecoratedAstNodePtr DirectFunctionCallNode::construct_call(
+    Context& context,
+    typed_ast::GlobalEnvironment& env,
+    typed_ast::LocalEnvironment& local_env,
+    typed_ast::TypeRegistry& type_registry,
+    const std::vector<typed_ast::TypedFunctionValue>& function_declarations)
+    const
+{
+    // Callee symbol denotes one or multiple function overloads
+    if (function_declarations.size() > 1) {
+        context.error(
+            "Symbol '{}' refers to multiple function overloads."
+            "Overload resolution is currently not supported.",
+            callee);
+    }
+
+    const auto& [ftype, fdecl] = function_declarations.front();
+    const auto& argument_types = ftype->get_argument_types();
+
+    const std::vector<ArgumentInfo>& argument_infos = fdecl->get_arguments();
+
+    // Check keyword arguments exist
+    for (const auto& keyword : keyword_arguments | std::views::keys) {
+        for (const auto& arg_info : argument_infos) {
+            if (arg_info.key == keyword) { goto next; }
         }
 
-        for (std::size_t i = positional_arguments.size();
-             i < argument_infos.size();
-             ++i) {
-            TraceBlock nnblock(
-                context,
-                "Checking the positional argument at index {}",
-                i);
-            const auto& arg_info = argument_infos[i];
-            const auto& arg_type = argument_types[i];
+        context.error("Unknown keyword argument {}", keyword);
 
-            if (auto it = keyword_arguments.find(arg_info.key);
-                it != keyword_arguments.end()) {
-                const auto& keyword_arg = it->second;
+    next:;
+    }
 
-                std::unique_ptr<DecoratedASTNode> decorated_arg =
-                    decorate_and_convert(
-                        *keyword_arg,
-                        *arg_type,
-                        context,
-                        env,
-                        type_registry);
+    vector<typed_ast::FunctionArgument> arguments;
+    arguments.reserve(argument_types.size());
 
-                arguments.emplace_back(move(decorated_arg), false);
-            } else if (arg_info.has_default()) {
-                std::unique_ptr<ASTNode> default_arg = [&] {
-                    TraceBlock nnnblock(context, "Parsing default value");
-                    return tokenize_and_parse(arg_info.default_value);
-                }();
+    for (std::size_t i = 0; i < positional_arguments.size(); ++i) {
+        TraceBlock nnblock(
+            context,
+            "Checking the positional argument at index {}",
+            i);
 
-                std::unique_ptr<DecoratedASTNode> decorated_arg =
-                    decorate_and_convert(
-                        *default_arg,
-                        *arg_type,
-                        context,
-                        env,
-                        type_registry);
+        const auto& arg_info = argument_infos[i];
+        const auto& arg_type = argument_types[i];
+        const auto& pos_arg = *positional_arguments[i];
 
-                arguments.emplace_back(move(decorated_arg), true);
-            } else {
-                context.error(
-                    "Missing argument '{}' is mandatory.",
-                    arg_info.key);
-            }
-        }
-    } else {
-        if (!keyword_arguments.empty()) {
-            context.error("Keyword arguments not allowed here");
-        }
-
-        if (positional_arguments.size() != argument_types.size()) {
+        if (keyword_arguments.contains(arg_info.key)) {
             context.error(
-                "Expected {} arguments, {} were given",
-                argument_types.size(),
-                positional_arguments.size());
+                "The argument '{}' is defined by the positional "
+                "argument "
+                "at index {} and by a keyword argument.",
+                arg_info.key,
+                i);
         }
 
-        for (std::size_t i = 0; i < positional_arguments.size(); ++i) {
-            TraceBlock nnblock(
+        std::unique_ptr<typed_ast::DecoratedExpressionNode> decorated_arg =
+            decorate_and_convert(
+                pos_arg,
+                *arg_type,
                 context,
-                "Checking the positional argument at index {}",
-                i);
+                env,
+                local_env,
+                type_registry);
 
-            const auto& arg = positional_arguments[i];
-            const auto& arg_type = argument_types[i];
+        arguments.emplace_back(move(decorated_arg), false);
+    }
 
-            std::unique_ptr<DecoratedASTNode> decorated_arg =
+    for (std::size_t i = positional_arguments.size(); i < argument_infos.size();
+         ++i) {
+        TraceBlock nnblock(
+            context,
+            "Checking the positional argument at index {}",
+            i);
+        const auto& arg_info = argument_infos[i];
+        const auto& arg_type = argument_types[i];
+
+        if (auto it = keyword_arguments.find(arg_info.key);
+            it != keyword_arguments.end()) {
+            const auto& keyword_arg = it->second;
+
+            std::unique_ptr<typed_ast::DecoratedExpressionNode> decorated_arg =
                 decorate_and_convert(
-                    *arg,
+                    *keyword_arg,
                     *arg_type,
                     context,
                     env,
+                    local_env,
                     type_registry);
 
             arguments.emplace_back(move(decorated_arg), false);
+        } else if (arg_info.has_default()) {
+            std::unique_ptr<ExpressionNode> default_arg = [&] {
+                TraceBlock nnnblock(context, "Parsing default value");
+                return tokenize_and_parse(arg_info.default_value);
+            }();
+
+            std::unique_ptr<typed_ast::DecoratedExpressionNode> decorated_arg =
+                decorate_and_convert(
+                    *default_arg,
+                    *arg_type,
+                    context,
+                    env,
+                    local_env,
+                    type_registry);
+
+            arguments.emplace_back(move(decorated_arg), true);
+        } else {
+            context.error("Missing argument '{}' is mandatory.", arg_info.key);
         }
     }
 
+    std::unique_ptr<typed_ast::DecoratedExpressionNode> callee_node =
+        fdecl->create_load_node();
+
     return {
-        std::make_unique<DecoratedFunctionCallNode>(
+        std::make_unique<typed_ast::DecoratedFunctionCallNode>(
             std::move(callee_node),
-            move(arguments),
-            unparsed_config),
-        &callee_type->get_return_type()};
+            move(arguments)),
+        &ftype->get_return_type()};
 }
 
 } // namespace language::parser

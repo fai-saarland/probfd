@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/cg_heuristic_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/heuristics/heuristic_options.h"
 
@@ -17,7 +17,7 @@ using namespace downward;
 using namespace downward::cg_heuristic;
 using namespace downward::utils;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::add_heuristic_options_to_feature;
 
@@ -26,7 +26,7 @@ class CGHeuristicFactory : public TaskDependentFactory<Evaluator> {
     std::shared_ptr<TaskTransformation> transformation;
     bool cache_estimates;
     std::string description;
-    utils::Verbosity verbosity;
+    Verbosity verbosity;
     int max_cache_size;
 
 public:
@@ -34,7 +34,7 @@ public:
         shared_ptr<TaskTransformation> transformation,
         bool cache_estimates,
         string description,
-        utils::Verbosity verbosity,
+        Verbosity verbosity,
         int max_cache_size)
         : transformation(std::move(transformation))
         , cache_estimates(cache_estimates)
@@ -64,18 +64,17 @@ public:
 
 namespace downward::cli::heuristics {
 
-InternalFunctionDefinitionBase& add_cg_heuristic_feature(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_cg_heuristic_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "cg",
-        &language::plugins::construct_shared<
-            TaskDependentFactory<Evaluator>,
-            CGHeuristicFactory,
-            shared_ptr<TaskTransformation>,
-            bool,
-            string,
-            Verbosity,
-            int>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskDependentFactory<Evaluator>,
+        CGHeuristicFactory,
+        shared_ptr<TaskTransformation>,
+        bool,
+        string,
+        Verbosity,
+        int>>(nspace, "cg");
 
     f.document_title("Causal graph heuristic");
 

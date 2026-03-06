@@ -3,21 +3,21 @@
 
 #include <cstddef>
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-class Namespace;
-} // namespace language::plugins
+class NamespaceLevelDeclarationList;
+} // namespace language::parser
 
 namespace downward::cli::utils {
 
-extern void add_rng_type(language::plugins::Namespace& nspace);
+extern void add_rng_type(language::parser::NamespaceLevelDeclarationList& nspace);
 
-extern void add_default_rng_function(language::plugins::Namespace& nspace);
-extern void add_seeded_rng_function(language::plugins::Namespace& nspace);
+extern void add_default_rng_function(language::parser::NamespaceLevelDeclarationList& nspace);
+extern void add_seeded_rng_function(language::parser::NamespaceLevelDeclarationList& nspace);
 
 // Add random_seed option to feature.
 extern std::size_t add_rng_options_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     std::size_t start_index);
 
 } // namespace downward::cli::utils

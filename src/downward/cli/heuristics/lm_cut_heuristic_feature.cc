@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/lm_cut_heuristic_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/heuristics/heuristic_options.h"
 
@@ -17,7 +17,7 @@ using namespace downward;
 using namespace downward::lm_cut_heuristic;
 using namespace downward::utils;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::add_heuristic_options_to_feature;
 
@@ -26,14 +26,14 @@ class LMCutHeuristicFactory : public TaskDependentFactory<Evaluator> {
     std::shared_ptr<TaskTransformation> transformation;
     bool cache_estimates;
     std::string description;
-    utils::Verbosity verbosity;
+    Verbosity verbosity;
 
 public:
     LMCutHeuristicFactory(
         shared_ptr<TaskTransformation> transformation,
         bool cache_estimates,
         string description,
-        utils::Verbosity verbosity)
+        Verbosity verbosity)
         : transformation(std::move(transformation))
         , cache_estimates(cache_estimates)
         , description(std::move(description))
@@ -58,17 +58,15 @@ public:
 namespace downward::cli::heuristics {
 
 InternalFunctionDefinitionBase&
-add_landmark_cut_heuristic_feature(Namespace& nspace)
+add_landmark_cut_heuristic_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "lmcut",
-        &language::plugins::construct_shared<
-            TaskDependentFactory<Evaluator>,
-            LMCutHeuristicFactory,
-            shared_ptr<TaskTransformation>,
-            bool,
-            string,
-            Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskDependentFactory<Evaluator>,
+        LMCutHeuristicFactory,
+        shared_ptr<TaskTransformation>,
+        bool,
+        string,
+        Verbosity>>(nspace, "lmcut");
 
     f.document_title("Landmark-cut heuristic");
 

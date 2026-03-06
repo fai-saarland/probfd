@@ -1,7 +1,8 @@
 #include "downward/cli/heuristics/additive_cartesian_heuristic_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_enum_declaration.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/heuristics/heuristic_options.h"
 
@@ -23,7 +24,7 @@ using namespace downward::cartesian_abstractions;
 using namespace downward::utils;
 
 using namespace downward::cli;
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::utils::add_rng_options_to_feature;
 
@@ -99,9 +100,12 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_additive_cartesian_heuristic_categories(Namespace& nspace)
+void add_additive_cartesian_heuristic_categories(
+    NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_enum_declaration<PickSplit>(
+    insert_enum_declaration<PickSplit>(
+        nspace,
+        "PickSplit",
         {{"random", "select a random variable (among all eligible variables)"},
          {"min_unwanted",
           "select an eligible variable which has the least unwanted values "
@@ -128,24 +132,22 @@ void add_additive_cartesian_heuristic_categories(Namespace& nspace)
 }
 
 InternalFunctionDefinitionBase&
-add_additive_cartesian_heuristic_feature(Namespace& nspace)
+add_additive_cartesian_heuristic_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "cegar",
-        &language::plugins::construct_shared<
-            TaskDependentFactory<Evaluator>,
-            AdditiveCartesianHeuristicFactory,
-            shared_ptr<TaskTransformation>,
-            bool,
-            string,
-            Verbosity,
-            std::vector<std::shared_ptr<SubtaskGenerator>>,
-            int,
-            int,
-            FSeconds,
-            PickSplit,
-            bool,
-            std::shared_ptr<RandomNumberGenerator>>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskDependentFactory<Evaluator>,
+        AdditiveCartesianHeuristicFactory,
+        shared_ptr<TaskTransformation>,
+        bool,
+        string,
+        Verbosity,
+        std::vector<std::shared_ptr<SubtaskGenerator>>,
+        int,
+        int,
+        FSeconds,
+        PickSplit,
+        bool,
+        std::shared_ptr<RandomNumberGenerator>>>(nspace, "cegar");
 
     f.document_title("Additive CEGAR heuristic");
     f.document_synopsis(

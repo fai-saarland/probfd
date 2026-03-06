@@ -5,11 +5,7 @@
 #include "downward/cli/utils/logging_options.h"
 #include "downward/cli/utils/rng_options.h"
 
-#include "language/plugins/internal_function_definition.h"
-
-#include "downward/utils/logging.h"
-
-#include "downward/operator_cost.h"
+#include "language/ast/internal_function_definition.h"
 
 using namespace std;
 
@@ -22,7 +18,7 @@ namespace downward::cli {
    classes.
    TODO: Figure out where it belongs and move it there. */
 std::size_t add_search_pruning_options_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     std::size_t start_index)
 {
     feature.make_optional_argument_with_default(
@@ -38,7 +34,7 @@ std::size_t add_search_pruning_options_to_feature(
 }
 
 std::size_t add_search_algorithm_options_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature,
+    language::parser::InternalFunctionDefinitionBase& feature,
     const string& description,
     std::size_t start_index)
 {
@@ -75,9 +71,7 @@ std::size_t add_search_algorithm_options_to_feature(
 /* Method doesn't belong here because it's only useful for certain derived
    classes.
    TODO: Figure out where it belongs and move it there. */
-std::size_t add_successors_order_options_to_feature(
-    language::plugins::InternalFunctionDefinitionBase& feature,
-    std::size_t start_index)
+std::size_t add_successors_order_options_to_feature(language::parser::InternalFunctionDefinitionBase& feature, std::size_t start_index)
 {
     feature.document_note(
         "Successor ordering",

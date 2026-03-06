@@ -1,10 +1,10 @@
 #include "downward/cli/pdbs/pattern_collection_generator_multiple_random_feature.h"
+
 #include "downward/cli/pdbs/pattern_collection_generator_multiple_options.h"
 #include "downward/cli/pdbs/random_pattern_options.h"
 #include "downward/cli/pdbs/utils.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/pdbs/pattern_collection_generator_multiple_random.h"
 
@@ -13,28 +13,27 @@ using namespace downward::utils;
 using namespace downward::pdbs;
 
 using namespace downward::cli::pdbs;
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace downward::cli::pdbs {
 
 InternalFunctionDefinitionBase&
-add_pattern_collection_generator_multiple_random_feature(Namespace& nspace)
+add_pattern_collection_generator_multiple_random_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "random_patterns",
-        &language::plugins::construct_shared<
-            PatternCollectionGenerator,
-            PatternCollectionGeneratorMultipleRandom,
-            bool,
-            int,
-            int,
-            FSeconds,
-            FSeconds,
-            FSeconds,
-            double,
-            bool,
-            std::shared_ptr<RandomNumberGenerator>,
-            Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        PatternCollectionGenerator,
+        PatternCollectionGeneratorMultipleRandom,
+        bool,
+        int,
+        int,
+        FSeconds,
+        FSeconds,
+        FSeconds,
+        double,
+        bool,
+        std::shared_ptr<RandomNumberGenerator>,
+        Verbosity>>(nspace, "random_patterns");
 
     f.document_title("Multiple Random Patterns");
     f.document_synopsis(

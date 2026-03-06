@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/sample_based_potential_heuristics_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/potentials/potential_options.h"
 #include "downward/cli/utils/rng_options.h"
@@ -28,7 +28,7 @@ using namespace downward::utils;
 using namespace downward::potentials;
 
 using namespace downward::cli::potentials;
-using namespace language::plugins;
+using namespace language::parser;
 using namespace downward::cli::utils;
 
 namespace {
@@ -36,7 +36,7 @@ class PotentialMaxHeuristicFactory : public TaskDependentFactory<Evaluator> {
     std::shared_ptr<TaskTransformation> transformation;
     bool cache_estimates;
     std::string description;
-    utils::Verbosity verbosity;
+    Verbosity verbosity;
     int num_samples;
     int num_heuristics;
     double max_potential;
@@ -48,7 +48,7 @@ public:
         shared_ptr<TaskTransformation> transformation,
         bool cache_estimates,
         string description,
-        utils::Verbosity verbosity,
+        Verbosity verbosity,
         int num_samples,
         int num_heuristics,
         double max_potential,
@@ -118,23 +118,23 @@ public:
 
 namespace downward::cli::heuristics {
 
-InternalFunctionDefinitionBase&
-add_sample_based_potential_heuristics_feature(Namespace& nspace)
+InternalFunctionDefinitionBase& add_sample_based_potential_heuristics_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "sample_based_potentials",
-        &language::plugins::construct_shared<
-            TaskDependentFactory<Evaluator>,
-            PotentialMaxHeuristicFactory,
-            shared_ptr<TaskTransformation>,
-            bool,
-            string,
-            Verbosity,
-            int,
-            int,
-            double,
-            lp::LPSolverType,
-            std::shared_ptr<RandomNumberGenerator>>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskDependentFactory<Evaluator>,
+        PotentialMaxHeuristicFactory,
+        shared_ptr<TaskTransformation>,
+        bool,
+        string,
+        Verbosity,
+        int,
+        int,
+        double,
+        lp::LPSolverType,
+        std::shared_ptr<RandomNumberGenerator>>>(
+        nspace,
+        "sample_based_potentials");
 
     f.document_title("Sample-based potential heuristics");
     f.document_synopsis(

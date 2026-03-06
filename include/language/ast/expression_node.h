@@ -7,36 +7,38 @@ namespace language {
 class Context;
 }
 
-namespace language::plugins {
-class Registry;
+namespace language::parser {
+class CompilationContext;
+} // namespace language::parser
+
+namespace language::typed_ast {
+class LocalEnvironment;
+class GlobalEnvironment;
+class DecoratedExpressionNode;
 class Type;
 class TypeRegistry;
-} // namespace language::plugins
-
-namespace language::parser {
-class VariableEnvironment;
-class DecoratedASTNode;
-} // namespace language::parser
+} // namespace language::typed_ast
 
 namespace language::parser {
 
 struct TypedDecoratedAstNodePtr {
-    std::unique_ptr<DecoratedASTNode> ast_node;
-    const plugins::Type* type;
+    std::unique_ptr<typed_ast::DecoratedExpressionNode> ast_node;
+    const typed_ast::Type* type;
 };
 
-class ASTNode {
+class ExpressionNode {
 public:
-    virtual ~ASTNode() = default;
-
-    std::unique_ptr<DecoratedASTNode>
-    static_analysis(const plugins::Registry& registry) const;
+    virtual ~ExpressionNode() = default;
 
     virtual TypedDecoratedAstNodePtr static_analysis(
         Context& context,
-        VariableEnvironment& env,
-        plugins::TypeRegistry& registry) const = 0;
+        typed_ast::GlobalEnvironment& env,
+        typed_ast::LocalEnvironment& local_env,
+        typed_ast::TypeRegistry& registry) const = 0;
 };
+
+std::unique_ptr<typed_ast::DecoratedExpressionNode>
+static_analysis(const ExpressionNode& node, CompilationContext& registry);
 
 } // namespace language::parser
 

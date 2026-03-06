@@ -1,7 +1,7 @@
 #include "downward/cli/evaluators/const_evaluator_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/evaluators/evaluator_options.h"
 
@@ -16,7 +16,7 @@ using namespace downward;
 using namespace downward::utils;
 using namespace downward::const_evaluator;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::add_evaluator_options_to_feature;
 
@@ -50,16 +50,16 @@ public:
 
 namespace downward::cli::evaluators {
 
-InternalFunctionDefinitionBase& add_const_evaluator_feature(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_const_evaluator_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "const",
-        &language::plugins::construct_shared<
-            TaskDependentFactory<Evaluator>,
-            ConstEvaluatorFactory,
-            std::string,
-            Verbosity,
-            int>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskDependentFactory<Evaluator>,
+        ConstEvaluatorFactory,
+        std::string,
+        Verbosity,
+        int>>(nspace, "const");
+
     f.document_title("Constant evaluator");
     f.document_synopsis("Returns a constant value.");
 

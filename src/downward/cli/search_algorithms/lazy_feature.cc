@@ -1,8 +1,7 @@
 #include "downward/cli/search_algorithms/lazy_feature.h"
 #include "downward/cli/search_algorithms/search_algorithm_options.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/search_algorithms/lazy_search.h"
 #include "downward/search_algorithms/search_common.h"
@@ -13,7 +12,7 @@
 using namespace std;
 using namespace downward;
 using namespace downward::lazy_search;
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::add_search_algorithm_options_to_feature;
 using downward::cli::add_successors_order_options_to_feature;
@@ -88,24 +87,23 @@ public:
 
 namespace downward::cli::search_algorithms {
 
-InternalFunctionDefinitionBase& add_lazy_feature(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_lazy_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "lazy",
-        &language::plugins::construct_shared<
-            TaskDependentFactory<SearchAlgorithm>,
-            LazySearchFactory,
-            OperatorCost,
-            int,
-            utils::FSeconds,
-            std::string,
-            utils::Verbosity,
-            shared_ptr<TaskDependentFactory<EdgeOpenList>>,
-            bool,
-            vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
-            bool,
-            bool,
-            std::shared_ptr<utils::RandomNumberGenerator>>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskDependentFactory<SearchAlgorithm>,
+        LazySearchFactory,
+        OperatorCost,
+        int,
+        utils::FSeconds,
+        std::string,
+        utils::Verbosity,
+        shared_ptr<TaskDependentFactory<EdgeOpenList>>,
+        bool,
+        vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
+        bool,
+        bool,
+        std::shared_ptr<utils::RandomNumberGenerator>>>(nspace, "lazy");
 
     f.document_title("Lazy best-first search");
     f.document_synopsis("");

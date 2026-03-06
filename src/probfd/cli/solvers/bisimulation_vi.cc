@@ -1,7 +1,6 @@
 #include "probfd/cli/solvers/bisimulation_vi.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "probfd/solver_interface.h"
 
@@ -39,7 +38,7 @@ using namespace downward;
 using namespace probfd;
 using namespace probfd::bisimulation;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace {
 void print_bisimulation_stats(
@@ -232,67 +231,61 @@ public:
     }
 };
 
-class BisimulationVISolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
-          value_t)> {
-public:
-    BisimulationVISolverFeature()
-        : InternalFunctionDefinition(
-              "bisimulation_vi",
-              &BisimulationVISolverFeature::func)
-    {
-        document_title("Bisimulation Value Iteration");
+std::shared_ptr<TaskSolverFactory>
+create_bisimulation_vi(value_t convergence_epsilon)
+{
+    return std::make_shared<BisimulationIterationFactory>(
+        convergence_epsilon,
+        false);
+}
 
-        make_optional_argument_with_default(
-            0,
-            "convergence_epsilon",
-            "10e-4",
-            "The tolerance for convergence checks.");
-    }
+std::shared_ptr<TaskSolverFactory>
+create_bisimulation_ii(value_t convergence_epsilon)
+{
+    return std::make_shared<BisimulationIterationFactory>(
+        convergence_epsilon,
+        true);
+}
 
-protected:
-    static std::shared_ptr<TaskSolverFactory> func(value_t convergence_epsilon)
-    {
-        return std::make_shared<BisimulationIterationFactory>(
-            convergence_epsilon,
-            false);
-    }
-};
+void add_bisimulation_value_iteration(NamespaceLevelDeclarationList& nspace)
+{
+    auto& f = insert_function_definition<create_bisimulation_vi>(
+        nspace,
+        "bisimulation_vi");
 
-class BisimulationIISolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
-          value_t)> {
-public:
-    BisimulationIISolverFeature()
-        : InternalFunctionDefinition(
-              "bisimulation_ii",
-              &BisimulationIISolverFeature::func)
-    {
-        document_title("Bisimulation Interval Iteration");
+    f.document_title("Bisimulation Value Iteration");
 
-        make_optional_argument_with_default(
-            0,
-            "convergence_epsilon",
-            "10e-4",
-            "The tolerance for convergence checks.");
-    }
+    f.make_optional_argument_with_default(
+        0,
+        "convergence_epsilon",
+        "10e-4",
+        "The tolerance for convergence checks.");
+}
 
-protected:
-    static std::shared_ptr<TaskSolverFactory> func(value_t convergence_epsilon)
-    {
-        return std::make_shared<BisimulationIterationFactory>(
-            convergence_epsilon,
-            true);
-    }
-};
+void add_bisimulation_interval_iteration(NamespaceLevelDeclarationList& nspace)
+{
+    auto& f = insert_function_definition<create_bisimulation_ii>(
+        nspace,
+        "bisimulation_ii");
+
+    f.document_title("Bisimulation Interval Iteration");
+
+    f.make_optional_argument_with_default(
+        0,
+        "convergence_epsilon",
+        "10e-4",
+        "The tolerance for convergence checks.");
+}
+
 } // namespace
 
 namespace probfd::cli::solvers {
 
-void add_bisimulation_value_iteration_features(Namespace& nspace)
+void add_bisimulation_value_iteration_features(
+    NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_function_definition<BisimulationVISolverFeature>();
-    nspace.insert_function_definition<BisimulationIISolverFeature>();
+    add_bisimulation_value_iteration(nspace);
+    add_bisimulation_interval_iteration(nspace);
 }
 
 } // namespace probfd::cli::solvers

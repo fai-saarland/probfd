@@ -1,7 +1,6 @@
 #include "downward/cli/merge_and_shrink/merge_strategy_factory_stateless_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/merge_and_shrink/merge_strategy_options.h"
 
@@ -11,22 +10,21 @@ using namespace std;
 using namespace downward::merge_and_shrink;
 using namespace downward::utils;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::merge_and_shrink::add_merge_strategy_options_to_feature;
 
 namespace downward::cli::merge_and_shrink {
 
-InternalFunctionDefinitionBase&
-add_merge_strategy_factory_stateless_feature(Namespace& nspace)
+InternalFunctionDefinitionBase& add_merge_strategy_factory_stateless_feature(
+    NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "merge_stateless",
-        &language::plugins::construct_shared<
-            MergeStrategyFactory,
-            MergeStrategyFactoryStateless,
-            std::shared_ptr<MergeSelector>,
-            Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        MergeStrategyFactory,
+        MergeStrategyFactoryStateless,
+        std::shared_ptr<MergeSelector>,
+        Verbosity>>(nspace, "merge_stateless");
+
     f.document_title("Stateless merge strategy");
     f.document_synopsis(
         "This merge strategy has a merge selector, which computes the next "

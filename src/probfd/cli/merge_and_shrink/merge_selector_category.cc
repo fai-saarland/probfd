@@ -1,17 +1,18 @@
 #include "probfd/cli/merge_and_shrink/merge_selector_category.h"
 
-#include "language/plugins/registry.h"
+#include "language/ast/internal_type_declaration.h"
 
 #include "probfd/merge_and_shrink/merge_selector.h"
 
-using namespace language::plugins;
+using namespace language::parser;
 using namespace probfd::merge_and_shrink;
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_merge_selector_category(Namespace& nspace)
+void add_merge_selector_category(NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_shared_type_declaration<MergeSelector>(
+    insert_shared_type_declaration<MergeSelector>(
+        nspace,
         "PMergeSelector",
         "This page describes the available merge selectors. They are used "
         "to "

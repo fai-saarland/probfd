@@ -1,15 +1,15 @@
 #ifndef DOWNWARD_CLI_MUTEXES_FROM_FILE_MUTEX_FACTORY_FEATURE_H
 #define DOWNWARD_CLI_MUTEXES_FROM_FILE_MUTEX_FACTORY_FEATURE_H
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-class Namespace;
-} // namespace language::plugins
+class NamespaceLevelDeclarationList;
+} // namespace language::parser
 
 namespace downward::cli::mutexes {
 
-language::plugins::InternalFunctionDefinitionBase&
-add_from_file_mutex_factory_feature(language::plugins::Namespace& nspace);
+language::parser::InternalFunctionDefinitionBase&
+add_from_file_mutex_factory_feature(language::parser::NamespaceLevelDeclarationList& nspace);
 
 }
 

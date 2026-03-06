@@ -1,7 +1,6 @@
 #include "probfd/cli/merge_and_shrink/shrink_strategy_random.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "probfd/merge_and_shrink/shrink_strategy_random.h"
 
@@ -12,21 +11,21 @@
 
 using namespace std;
 using namespace downward;
-using namespace language::plugins;
+using namespace language::parser;
 using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
 
 namespace probfd::cli::merge_and_shrink {
 
 InternalFunctionDefinitionBase&
-add_shrink_strategy_random_feature(Namespace& nspace)
+add_shrink_strategy_random_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "pshrink_random",
-        &language::plugins::construct_shared<
-            ShrinkStrategy,
-            ShrinkStrategyRandom,
-            std::shared_ptr<utils::RandomNumberGenerator>>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        ShrinkStrategy,
+        ShrinkStrategyRandom,
+        std::shared_ptr<utils::RandomNumberGenerator>>>(
+        nspace,
+        "pshrink_random");
 
     f.document_title("Random Shrink Strategy");
     f.document_synopsis(

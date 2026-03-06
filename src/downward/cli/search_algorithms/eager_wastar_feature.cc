@@ -1,8 +1,8 @@
 #include "downward/cli/search_algorithms/eager_wastar_feature.h"
 #include "downward/cli/search_algorithms/eager_search_options.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/search_algorithms/eager_search.h"
 #include "downward/search_algorithms/search_common.h"
@@ -15,7 +15,7 @@ using namespace downward;
 using namespace downward::eager_search;
 
 using namespace downward::cli::eager_search;
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace {
 class EagerWAstarSearchFactory : public TaskDependentFactory<SearchAlgorithm> {
@@ -102,24 +102,23 @@ public:
 
 namespace downward::cli::search_algorithms {
 
-InternalFunctionDefinitionBase& add_eager_wastar_feature(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_eager_wastar_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "eager_wastar",
-        &language::plugins::construct_shared<
-            TaskDependentFactory<SearchAlgorithm>,
-            EagerWAstarSearchFactory,
-            std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
-            std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
-            bool,
-            int,
-            int,
-            std::shared_ptr<PruningMethod>,
-            OperatorCost,
-            int,
-            utils::FSeconds,
-            std::string,
-            utils::Verbosity>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskDependentFactory<SearchAlgorithm>,
+        EagerWAstarSearchFactory,
+        std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
+        std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
+        bool,
+        int,
+        int,
+        std::shared_ptr<PruningMethod>,
+        OperatorCost,
+        int,
+        utils::FSeconds,
+        std::string,
+        utils::Verbosity>>(nspace, "eager_wastar");
 
     f.document_title("Eager weighted A* search");
     f.document_synopsis("");

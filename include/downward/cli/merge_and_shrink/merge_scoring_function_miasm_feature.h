@@ -1,15 +1,15 @@
 #ifndef DOWNWARD_CLI_MERGE_AND_SHRINK_MERGE_SCORING_FUNCTION_MIASM_FEATURE_H
 #define DOWNWARD_CLI_MERGE_AND_SHRINK_MERGE_SCORING_FUNCTION_MIASM_FEATURE_H
 
-namespace language::plugins {
+namespace language::parser {
 class InternalFunctionDefinitionBase;
-class Namespace;
-} // namespace language::plugins
+class NamespaceLevelDeclarationList;
+} // namespace language::parser
 
 namespace downward::cli::merge_and_shrink {
 
-language::plugins::InternalFunctionDefinitionBase&
-add_merge_scoring_function_miasm_feature(language::plugins::Namespace& nspace);
+language::parser::InternalFunctionDefinitionBase&
+add_merge_scoring_function_miasm_feature(language::parser::NamespaceLevelDeclarationList& nspace);
 
 }
 

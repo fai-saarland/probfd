@@ -1,6 +1,6 @@
 #include "downward/cli/merge_and_shrink/merge_and_shrink_algorithm_options.h"
 
-#include "language/plugins/internal_function_definition.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/merge_and_shrink/types.h"
 
@@ -10,7 +10,7 @@
 using namespace std;
 using namespace downward::merge_and_shrink;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace downward::cli::merge_and_shrink {
 

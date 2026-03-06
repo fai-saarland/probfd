@@ -1,7 +1,7 @@
 #include "downward/cli/evaluators/max_evaluator_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/cli/evaluators/combining_evaluator_options.h"
 
@@ -18,7 +18,7 @@ using namespace downward::utils;
 using namespace downward::max_evaluator;
 
 using namespace downward::cli;
-using namespace language::plugins;
+using namespace language::parser;
 
 using downward::cli::combining_evaluator ::
     add_combining_evaluator_options_to_feature;
@@ -63,16 +63,16 @@ public:
 
 namespace downward::cli::evaluators {
 
-InternalFunctionDefinitionBase& add_max_evaluator_feature(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_max_evaluator_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "max",
-        &language::plugins::construct_shared<
-            TaskDependentFactory<Evaluator>,
-            MaxEvaluatorFactory,
-            std::string,
-            Verbosity,
-            vector<shared_ptr<TaskDependentFactory<Evaluator>>>>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        TaskDependentFactory<Evaluator>,
+        MaxEvaluatorFactory,
+        std::string,
+        Verbosity,
+        vector<shared_ptr<TaskDependentFactory<Evaluator>>>>>(nspace, "max");
+
     f.document_title("Max evaluator");
     f.document_synopsis("Calculates the maximum of the sub-evaluators.");
     add_combining_evaluator_options_to_feature(f, "max", 0);

@@ -1,7 +1,7 @@
 #include "downward/cli/merge_and_shrink/merge_scoring_function_dfp_feature.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/compilation_context.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "downward/merge_and_shrink/merge_scoring_function_dfp.h"
 
@@ -11,17 +11,17 @@ using namespace std;
 using namespace downward::merge_and_shrink;
 using namespace downward::utils;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace downward::cli::merge_and_shrink {
 
 InternalFunctionDefinitionBase&
-add_merge_scoring_function_dfp_feature(Namespace& nspace)
+add_merge_scoring_function_dfp_feature(NamespaceLevelDeclarationList& nspace)
 {
-    auto& f = nspace.insert_function_definition(
-        "dfp",
-        &language::plugins::
-            construct_shared<MergeScoringFunction, MergeScoringFunctionDFP>);
+    auto& f = insert_function_definition<&language::parser::construct_shared<
+        MergeScoringFunction,
+        MergeScoringFunctionDFP>>(nspace, "dfp");
+
     f.document_title("DFP scoring");
     f.document_synopsis(
         "This scoring function computes the 'DFP' score as descrdibed in "

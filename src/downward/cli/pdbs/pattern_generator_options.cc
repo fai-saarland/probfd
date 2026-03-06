@@ -2,11 +2,11 @@
 
 #include "downward/cli/utils/logging_options.h"
 
-#include "language/plugins/internal_function_definition.h"
+#include "language/ast/internal_function_definition.h"
 
 using namespace std;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace downward::cli::pdbs {
 

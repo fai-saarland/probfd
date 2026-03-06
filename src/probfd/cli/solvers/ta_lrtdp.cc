@@ -1,7 +1,7 @@
 #include "probfd/cli/solvers/ta_lrtdp.h"
 
-#include "language/plugins/internal_function_definition.h"
-#include "language/plugins/registry.h"
+#include "language/ast/internal_enum_declaration.h"
+#include "language/ast/internal_function_definition.h"
 
 #include "probfd/cli/naming_conventions.h"
 
@@ -26,7 +26,7 @@ using namespace probfd::algorithms::trap_aware_lrtdp;
 using namespace probfd::cli;
 using namespace probfd::cli::solvers;
 
-using namespace language::plugins;
+using namespace language::parser;
 
 namespace {
 using QSuccessorSampler =
@@ -67,100 +67,83 @@ public:
     }
 };
 
-class TrapAwareLRTDPSolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
-          std::shared_ptr<TaskStateSpaceFactory>,
-          std::shared_ptr<TaskHeuristicFactory>,
-          Verbosity,
-          std::string,
-          bool,
-          value_t,
-          bool,
-          value_t,
-          bool,
-          std::shared_ptr<PolicyPickerType<false, true>>,
-          std::shared_ptr<QSuccessorSampler>,
-          TrialTerminationCondition,
-          bool)> {
-public:
-    TrapAwareLRTDPSolverFeature()
-        : InternalFunctionDefinition(
-              "talrtdp",
-              &TrapAwareLRTDPSolverFeature::func)
-    {
-        document_title("Trap-aware LRTDP");
-        document_synopsis(
-            "Supports all MDP types (even non-SSPs) without FRET loop.");
+std::shared_ptr<TaskSolverFactory> create_talrtdp(
+    std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+    std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+    Verbosity verbosity,
+    std::string policy_filename,
+    bool print_fact_names,
+    value_t report_epsilon,
+    bool report_enabled,
+    value_t convergence_epsilon,
+    bool dual_bounds,
+    std::shared_ptr<PolicyPickerType<false, true>> policy_picker,
+    std::shared_ptr<QSuccessorSampler> successor_sampler,
+    TrialTerminationCondition terminate_trial,
+    bool reexpand_traps)
+{
+    return make_shared_from_arg_tuples<MDPSolver>(
+        make_shared_from_arg_tuples<TrapAwareLRTDPSolver>(
+            std::move(successor_sampler),
+            terminate_trial,
+            reexpand_traps,
+            convergence_epsilon,
+            dual_bounds,
+            std::move(policy_picker)),
+        std::move(task_state_space_factory),
+        std::move(heuristic_factory),
+        std::move(policy_filename),
+        print_fact_names,
+        report_epsilon,
+        report_enabled,
+        verbosity);
+}
 
-        make_optional_argument_with_default(
-            0,
-            "successor_sampler",
-            add_mdp_type_to_option<false, true>("random_successor_sampler()"),
-            "Successor bias for the trials.");
+void add_talrtdp_solver(NamespaceLevelDeclarationList& nspace)
+{
+    auto& f = insert_function_definition<create_talrtdp>(nspace, "talrtdp");
 
-        make_optional_argument_with_default(
-            1,
-            "terminate_trial",
-            "consistent",
-            "The trial termination condition.");
+    f.document_title("Trap-aware LRTDP");
+    f.document_synopsis(
+        "Supports all MDP types (even non-SSPs) without FRET loop.");
 
-        make_optional_argument_with_default(
-            2,
-            "reexpand_traps",
-            "true",
-            "Immediately re-expand the collapsed trap state.");
+    f.make_optional_argument_with_default(
+        0,
+        "successor_sampler",
+        add_mdp_type_to_option<false, true>("random_successor_sampler()"),
+        "Successor bias for the trials.");
 
-        const auto n =
-            add_mdp_hs_base_options_to_feature<false, true>(*this, 3);
-        add_base_solver_options_except_algorithm_to_feature(*this, n + 3);
-    }
+    f.make_optional_argument_with_default(
+        1,
+        "terminate_trial",
+        "consistent",
+        "The trial termination condition.");
 
-protected:
-    static std::shared_ptr<TaskSolverFactory> func(
-        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-        Verbosity verbosity,
-        std::string policy_filename,
-        bool print_fact_names,
-        value_t report_epsilon,
-        bool report_enabled,
-        value_t convergence_epsilon,
-        bool dual_bounds,
-        std::shared_ptr<PolicyPickerType<false, true>> policy_picker,
-        std::shared_ptr<QSuccessorSampler> successor_sampler,
-        TrialTerminationCondition terminate_trial,
-        bool reexpand_traps)
-    {
-        return make_shared_from_arg_tuples<MDPSolver>(
-            make_shared_from_arg_tuples<TrapAwareLRTDPSolver>(
-                std::move(successor_sampler),
-                terminate_trial,
-                reexpand_traps,
-                convergence_epsilon,
-                dual_bounds,
-                std::move(policy_picker)),
-            std::move(task_state_space_factory),
-            std::move(heuristic_factory),
-            std::move(policy_filename),
-            print_fact_names,
-            report_epsilon,
-            report_enabled,
-            verbosity);
-    }
-};
+    f.make_optional_argument_with_default(
+        2,
+        "reexpand_traps",
+        "true",
+        "Immediately re-expand the collapsed trap state.");
+
+    const auto n = add_mdp_hs_base_options_to_feature<false, true>(f, 3);
+    add_base_solver_options_except_algorithm_to_feature(f, n + 3);
+}
+
 } // namespace
 
 namespace probfd::cli::solvers {
 
-void add_ta_lrtdp_feature(Namespace& nspace)
+void add_ta_lrtdp_feature(NamespaceLevelDeclarationList& nspace)
 {
-    nspace.insert_enum_declaration<TrialTerminationCondition>(
+    insert_enum_declaration<TrialTerminationCondition>(
+        nspace,
+        "TrialTerminationCondition",
         {{"terminal", "Stop trials at terminal states"},
          {"consistent", "Stop trials at epsilon consistent states"},
          {"inconsistent", "Stop trials at epsilon inconsistent states"},
          {"revisited", "Stop trials upon revisiting a state"}});
 
-    nspace.insert_function_definition<TrapAwareLRTDPSolverFeature>();
+    add_talrtdp_solver(nspace);
 }
 
 } // namespace probfd::cli::solvers
