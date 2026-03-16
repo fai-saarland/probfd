@@ -146,9 +146,7 @@ auto TopologicalValueIteration<State, Action, UseInterval>::QValueInfo::
 {
     AlgorithmValueType res = conv_part;
 
-    for (auto& [value, prob] : nconv_successors) {
-        res += prob * (*value);
-    }
+    for (auto& [value, prob] : nconv_successors) { res += prob * (*value); }
 
     return res;
 }
@@ -170,9 +168,7 @@ bool TopologicalValueIteration<State, Action, UseInterval>::StackInfo::
     best_action = best_converged;
 
     for (const QValueInfo& info : nconv_qs) {
-        if (set_min(v, info.compute_q_value())) {
-            best_action = info.action;
-        }
+        if (set_min(v, info.compute_q_value())) { best_action = info.action; }
     }
 
     return !update(*value, v, convergence_epsilon).converged;

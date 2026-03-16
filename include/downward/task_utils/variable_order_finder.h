@@ -10,7 +10,7 @@
 namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
-} // namespace utils
+} // namespace downward::utils
 
 namespace downward::variable_order_finder {
 enum VariableOrderType {
@@ -50,6 +50,6 @@ public:
     bool done() const;
     int next();
 };
-} // namespace variable_order_finder
+} // namespace downward::variable_order_finder
 
 #endif

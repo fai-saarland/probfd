@@ -48,6 +48,6 @@ public:
     void dump_options(utils::LogProxy& log) const;
     std::string get_name() const;
 };
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink
 
 #endif

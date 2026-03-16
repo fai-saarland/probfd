@@ -15,6 +15,6 @@ public:
     are_facts_mutex(const FactPair& fact1, const FactPair& fact2) const = 0;
 };
 
-}
+} // namespace downward
 
 #endif

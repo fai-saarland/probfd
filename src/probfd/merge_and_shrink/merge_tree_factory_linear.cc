@@ -22,8 +22,8 @@ MergeTreeFactoryLinear::MergeTreeFactoryLinear(
 {
 }
 
-unique_ptr<MergeTree> MergeTreeFactoryLinear::compute_merge_tree(
-    const SharedProbabilisticTask& task)
+unique_ptr<MergeTree>
+MergeTreeFactoryLinear::compute_merge_tree(const SharedProbabilisticTask& task)
 {
     const auto determinization = tasks::create_determinization_task(task);
 
@@ -67,9 +67,7 @@ unique_ptr<MergeTree> MergeTreeFactoryLinear::compute_merge_tree(
         const vector<int>& vars =
             fts.get_transition_system(ts_index).get_incorporated_variables();
 
-        for (const int var : vars) {
-            var_to_ts_index[var] = ts_index;
-        }
+        for (const int var : vars) { var_to_ts_index[var] = ts_index; }
     }
 
     /*

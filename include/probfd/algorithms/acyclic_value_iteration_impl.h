@@ -164,9 +164,7 @@ Interval AcyclicValueIteration<State, Action>::solve(
         do {
             dfs_stack_.pop();
 
-            if (dfs_stack_.empty()) {
-                return Interval(iinfo.value);
-            }
+            if (dfs_stack_.empty()) { return Interval(iinfo.value); }
 
             timer.throw_if_expired();
 

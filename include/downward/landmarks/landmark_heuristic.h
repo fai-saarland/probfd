@@ -52,7 +52,9 @@ protected:
     virtual int get_heuristic_value(const State& ancestor_state) = 0;
 
     bool operator_is_preferred(
-        const OperatorProxy &op, const State &state, ConstBitsetView &future);
+        const OperatorProxy& op,
+        const State& state,
+        ConstBitsetView& future);
     void compute_landmarks_achieved_by_fact();
     void
     generate_preferred_operators(const State& state, ConstBitsetView& future);
@@ -90,6 +92,6 @@ public:
         const State& state) override;
 };
 
-} // namespace landmarks
+} // namespace downward::landmarks
 
 #endif

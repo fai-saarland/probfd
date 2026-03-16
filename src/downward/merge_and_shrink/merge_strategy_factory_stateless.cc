@@ -31,9 +31,7 @@ string MergeStrategyFactoryStateless::name() const
 
 void MergeStrategyFactoryStateless::dump_strategy_specific_options() const
 {
-    if (log.is_at_least_normal()) {
-        merge_selector->dump_options(log);
-    }
+    if (log.is_at_least_normal()) { merge_selector->dump_options(log); }
 }
 
 bool MergeStrategyFactoryStateless::requires_init_distances() const
@@ -46,4 +44,4 @@ bool MergeStrategyFactoryStateless::requires_goal_distances() const
     return merge_selector->requires_goal_distances();
 }
 
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

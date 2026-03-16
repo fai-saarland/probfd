@@ -68,4 +68,4 @@ bool StubbornSetsActionCentric::enqueue_stubborn_operator(int op_no)
     }
     return false;
 }
-} // namespace stubborn_sets
+} // namespace downward::stubborn_sets

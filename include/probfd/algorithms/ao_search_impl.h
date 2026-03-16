@@ -80,15 +80,11 @@ void AOBase<State, Action, StateInfo>::backpropagate_update_order(
         queue_.pop();
 
         auto& info = this->state_infos_[elem.state_id];
-        if (info.update_order > elem.update_order) {
-            continue;
-        }
+        if (info.update_order > elem.update_order) { continue; }
 
         std::erase_if(info.get_parents(), [this, elem](StateID state_id) {
             auto& pinfo = this->state_infos_[state_id];
-            if (pinfo.is_solved()) {
-                return true;
-            }
+            if (pinfo.is_solved()) { return true; }
 
             if (pinfo.update_order <= elem.update_order) {
                 pinfo.update_order = elem.update_order + 1;
@@ -120,9 +116,7 @@ void AOBase<State, Action, StateInfo>::push_parents_to_queue(StateInfo& info)
         queue_.emplace(pinfo.update_order, parent);
     }
 
-    if (info.is_solved()) {
-        downward::utils::release_vector_memory(parents);
-    }
+    if (info.is_solved()) { downward::utils::release_vector_memory(parents); }
 }
 
 } // namespace probfd::algorithms::ao_search

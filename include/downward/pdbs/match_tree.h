@@ -62,6 +62,6 @@ public:
         const;
     void dump(utils::LogProxy& log) const;
 };
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

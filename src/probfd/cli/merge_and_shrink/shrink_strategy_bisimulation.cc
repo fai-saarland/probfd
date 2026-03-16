@@ -17,7 +17,8 @@ using namespace probfd::merge_and_shrink;
 
 namespace {
 
-InternalFunctionDefinitionBase& add_shrink_strategy_bisimulation_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_shrink_strategy_bisimulation_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "pshrink_bisimulation",

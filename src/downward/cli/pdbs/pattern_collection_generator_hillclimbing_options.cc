@@ -12,8 +12,9 @@ using downward::cli::utils::add_rng_options_to_feature;
 
 namespace downward::cli::pdbs {
 
-std::size_t
-add_hillclimbing_options_to_feature(InternalFunctionDefinitionBase& feature, std::size_t start_index)
+std::size_t add_hillclimbing_options_to_feature(
+    InternalFunctionDefinitionBase& feature,
+    std::size_t start_index)
 {
     feature.document_note(
         "Note",

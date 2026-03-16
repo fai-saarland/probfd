@@ -17,6 +17,6 @@ extern void reserve_extra_memory_padding(int memory_in_mb);
 extern void release_extra_memory_padding();
 extern bool extra_memory_padding_is_reserved();
 extern bool is_out_of_memory();
-}
+} // namespace downward::utils
 
 #endif

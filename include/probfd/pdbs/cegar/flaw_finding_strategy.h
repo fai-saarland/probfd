@@ -15,7 +15,7 @@ namespace downward {
 class GoalFactList;
 class State;
 class OperatorPreconditionsProxy;
-}
+} // namespace downward
 
 namespace downward::utils {
 class CountdownTimer;

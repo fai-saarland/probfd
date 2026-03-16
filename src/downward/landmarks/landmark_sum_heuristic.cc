@@ -91,10 +91,8 @@ int LandmarkSumHeuristic::get_min_cost_of_achievers(
     const unordered_set<int>& achievers) const
 {
     const auto& axioms = get_axioms(transformed_task);
-    const auto& operators =
-        get_operators(transformed_task);
-    const auto& cost_function =
-        get_cost_function(transformed_task);
+    const auto& operators = get_operators(transformed_task);
+    const auto& cost_function = get_cost_function(transformed_task);
 
     int min_cost = numeric_limits<int>::max();
     for (int id : achievers) {
@@ -106,10 +104,8 @@ int LandmarkSumHeuristic::get_min_cost_of_achievers(
 
 void LandmarkSumHeuristic::compute_landmark_costs()
 {
-    const auto& operators =
-        get_operators(transformed_task);
-    const auto& cost_function =
-        get_cost_function(transformed_task);
+    const auto& operators = get_operators(transformed_task);
+    const auto& cost_function = get_cost_function(transformed_task);
 
     /*
       This function runs under the assumption that landmark node IDs go

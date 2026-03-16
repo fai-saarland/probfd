@@ -27,4 +27,4 @@ pair<int, int> MergeStrategyPrecomputed::get_next()
     assert(fts.is_active(next_merge.second));
     return next_merge;
 }
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

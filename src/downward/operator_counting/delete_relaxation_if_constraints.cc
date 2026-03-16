@@ -274,11 +274,7 @@ void DeleteRelaxationIFConstraints::initialize_constraints(
         slice_shared<VariableSpace, ClassicalOperatorSpace>(task);
 
     create_auxiliary_variables(*variables, *operators, lp.get_variables());
-    create_constraints(
-        *variables,
-        *operators,
-        get_goal(task),
-        lp);
+    create_constraints(*variables, *operators, get_goal(task), lp);
 }
 
 bool DeleteRelaxationIFConstraints::update_constraints(

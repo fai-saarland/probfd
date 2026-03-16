@@ -179,9 +179,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::trial(
             break;
         }
 
-        if (stop_at_consistent_ == REVISITED) {
-            state_info.set_on_trial();
-        }
+        if (stop_at_consistent_ == REVISITED) { state_info.set_on_trial(); }
 
         assert(!transition->successor_dist.non_source_successor_dist.empty());
 
@@ -541,9 +539,7 @@ auto TALRTDP<State, Action, UseInterval>::compute_policy(
         std::optional quotient_action = state_info.get_policy();
 
         // Terminal states have no policy decision.
-        if (!quotient_action) {
-            continue;
-        }
+        if (!quotient_action) { continue; }
 
         const Interval quotient_bound = as_interval(state_info.value);
 
@@ -604,9 +600,7 @@ auto TALRTDP<State, Action, UseInterval>::compute_policy(
 
         for (const StateID succ_id :
              successor_dist.non_source_successor_dist.support()) {
-            if (visited.insert(succ_id).second) {
-                queue.push_back(succ_id);
-            }
+            if (visited.insert(succ_id).second) { queue.push_back(succ_id); }
         }
     } while (!queue.empty());
 

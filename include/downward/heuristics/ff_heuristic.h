@@ -49,6 +49,6 @@ public:
         const std::string& description,
         utils::Verbosity verbosity);
 };
-} // namespace ff_heuristic
+} // namespace downward::ff_heuristic
 
 #endif

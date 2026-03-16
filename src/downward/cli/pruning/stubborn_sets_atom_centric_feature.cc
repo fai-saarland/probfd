@@ -19,7 +19,8 @@ using namespace language::plugins;
 
 namespace {
 
-InternalFunctionDefinitionBase& add_stubborn_sets_atomic_centric_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_stubborn_sets_atomic_centric_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "atom_centric_stubborn_sets",

@@ -6,7 +6,7 @@
 namespace downward::pdbs {
 class PatternCollectionGenerator;
 class PatternCollectionInformation;
-} // namespace pdbs
+} // namespace downward::pdbs
 
 namespace probfd {
 template <typename, typename>

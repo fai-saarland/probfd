@@ -16,7 +16,7 @@ namespace downward::utils {
 class CountdownTimer;
 class RandomNumberGenerator;
 class LogProxy;
-} // namespace utils
+} // namespace downward::utils
 
 namespace downward::cartesian_abstractions {
 class CartesianHeuristicFunction;
@@ -71,6 +71,6 @@ public:
     std::vector<CartesianHeuristicFunction>
     generate_heuristic_functions(const SharedAbstractTask& task);
 };
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions
 
 #endif

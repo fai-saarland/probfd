@@ -11,12 +11,13 @@
 
 #include <cmath>
 #include <numeric>
-#include <ranges>
 #include <print>
+#include <ranges>
 
 namespace probfd {
 
-inline void assert_near(value_t value, value_t expected, value_t tolerance) {
+inline void assert_near(value_t value, value_t expected, value_t tolerance)
+{
     if (!is_approx_equal(value, expected, 0.001)) {
         std::println(
             std::cerr,
@@ -53,9 +54,7 @@ void verify(
 
         const auto value = value_table[i];
 
-        if (value == INFINITE_VALUE) {
-            unsolvable_states.push_back(i);
-        }
+        if (value == INFINITE_VALUE) { unsolvable_states.push_back(i); }
 
         variables.emplace_back(
             -inf,
@@ -75,9 +74,7 @@ void verify(
             SuccessorDistribution successor_dist;
             mdp.generate_action_transitions(i, op, successor_dist);
 
-            if (successor_dist.non_source_successor_dist.empty()) {
-                continue;
-            }
+            if (successor_dist.non_source_successor_dist.empty()) { continue; }
 
             auto& constr = constraints.emplace_back(-inf, cost);
 
@@ -99,12 +96,11 @@ void verify(
         constr.insert(num_states, 1.0);
     }
 
-    solver.load_problem(
-        LinearProgram(
-            LPObjectiveSense::MAXIMIZE,
-            std::move(variables),
-            std::move(constraints),
-            inf));
+    solver.load_problem(LinearProgram(
+        LPObjectiveSense::MAXIMIZE,
+        std::move(variables),
+        std::move(constraints),
+        inf));
 
     solver.solve();
 
@@ -139,7 +135,7 @@ void verify(
     solver.set_objective_coefficient(num_states, 1.0);
     solver.solve();
 
-    assert (!solver.has_optimal_solution() && solver.is_unbounded());
+    assert(!solver.has_optimal_solution() && solver.is_unbounded());
 }
 
 } // namespace probfd

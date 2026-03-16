@@ -30,6 +30,7 @@ class Heuristic : public Evaluator {
         {
         }
     };
+
     static_assert(sizeof(HEntry) == 4, "HEntry has unexpected size.");
 
     /*
@@ -113,6 +114,6 @@ public:
     virtual bool is_estimate_cached(const State& state) const override;
     virtual int get_cached_estimate(const State& state) const override;
 };
-}
+} // namespace downward
 
 #endif // HEURISTIC_H

@@ -15,8 +15,7 @@ protected:
     void dump_strategy_specific_options(utils::LogProxy&) const override {}
 
 public:
-    explicit ShrinkRandom(
-        std::shared_ptr<utils::RandomNumberGenerator> rng);
+    explicit ShrinkRandom(std::shared_ptr<utils::RandomNumberGenerator> rng);
 
     virtual bool requires_init_distances() const override { return false; }
 

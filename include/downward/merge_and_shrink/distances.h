@@ -81,6 +81,6 @@ public:
     void dump(utils::LogProxy& log) const;
     void statistics(utils::LogProxy& log) const;
 };
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink
 
 #endif

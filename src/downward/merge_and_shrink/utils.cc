@@ -133,9 +133,7 @@ bool shrink_before_merge_step(
         shrink_threshold_before_merge,
         shrink_strategy,
         log);
-    if (shrunk1) {
-        fts.statistics(index1, log);
-    }
+    if (shrunk1) { fts.statistics(index1, log); }
     bool shrunk2 = shrink_factor(
         fts,
         index2,
@@ -143,9 +141,7 @@ bool shrink_before_merge_step(
         shrink_threshold_before_merge,
         shrink_strategy,
         log);
-    if (shrunk2) {
-        fts.statistics(index2, log);
-    }
+    if (shrunk2) { fts.statistics(index2, log); }
     return shrunk1 || shrunk2;
 }
 
@@ -220,10 +216,8 @@ bool is_goal_relevant(const TransitionSystem& ts)
 {
     int num_states = ts.get_size();
     for (int state = 0; state < num_states; ++state) {
-        if (!ts.is_goal_state(state)) {
-            return true;
-        }
+        if (!ts.is_goal_state(state)) { return true; }
     }
     return false;
 }
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

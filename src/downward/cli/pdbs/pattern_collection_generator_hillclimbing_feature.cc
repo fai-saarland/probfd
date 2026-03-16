@@ -89,5 +89,4 @@ add_pattern_collection_generator_hillclimbing_feature(Namespace& nspace)
     return f;
 }
 
-
 } // namespace downward::cli::pdbs

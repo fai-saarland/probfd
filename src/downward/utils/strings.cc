@@ -15,4 +15,4 @@ string tolower(string s)
     return s;
 }
 
-} // namespace utils
+} // namespace downward::utils

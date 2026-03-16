@@ -58,11 +58,11 @@ public:
         const SharedAbstractTask& transform,
         std::shared_ptr<utils::RandomNumberGenerator> rng,
         utils::Verbosity verbosity);
-    
+
     ~DiversePotentialHeuristics();
 
     // Sample states, then cover them.
     std::vector<std::unique_ptr<PotentialFunction>> find_functions();
 };
-} // namespace potentials
+} // namespace downward::potentials
 #endif

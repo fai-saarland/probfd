@@ -98,8 +98,7 @@ CEGAR::CEGAR(
     utils::LogProxy& log)
     : task_(to_refs(task))
     , axiom_evaluator(
-          g_axiom_evaluators
-              [get_variables(task_), get_axioms(task_)])
+          g_axiom_evaluators[get_variables(task_), get_axioms(task_)])
     , domain_sizes(get_domain_sizes(get_variables(task_)))
     , max_states(max_states)
     , max_non_looping_transitions(max_non_looping_transitions)

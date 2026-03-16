@@ -53,6 +53,6 @@ public:
         OperatorID op_id,
         const State& ancestor_state);
 };
-} // namespace landmarks
+} // namespace downward::landmarks
 
 #endif

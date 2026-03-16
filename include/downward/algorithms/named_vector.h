@@ -113,6 +113,6 @@ public:
         elements.resize(count, value);
     }
 };
-} // namespace named_vector
+} // namespace downward::named_vector
 
 #endif

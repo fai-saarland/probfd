@@ -36,7 +36,7 @@ struct FormatWrapper {
 template <std::ranges::input_range R>
     requires std::formattable<R, char>
 FormatWrapper(R&&) -> FormatWrapper<std::views::all_t<R>>;
-}
+} // namespace
 
 template <std::ranges::input_range R, typename Char>
     requires std::formattable<R, Char>

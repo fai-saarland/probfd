@@ -120,4 +120,4 @@ unique_ptr<TransitionSystem> shrink_before_merge_externally(
         (ts2 ? *ts2 : original_ts2),
         log);
 }
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

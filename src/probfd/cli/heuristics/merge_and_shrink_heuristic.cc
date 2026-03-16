@@ -222,7 +222,8 @@ shared_ptr<TaskHeuristicFactory> create_merge_and_shrink_no_lr(
         verbosity);
 }
 
-InternalFunctionDefinitionBase& add_merge_and_shrink_with_lr_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_merge_and_shrink_with_lr_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "pa_merge_and_shrink",
@@ -260,8 +261,7 @@ InternalFunctionDefinitionBase& add_merge_and_shrink_with_lr_to_namespace(Namesp
         "{{{label_reduction=exact()}}} "
         "Also note the interaction with shrink strategies.");
 
-    const auto n =
-        add_transition_system_size_limit_options_to_feature(f, 4);
+    const auto n = add_transition_system_size_limit_options_to_feature(f, 4);
 
     f.make_optional_argument_with_default(
         n + 4,
@@ -280,7 +280,8 @@ InternalFunctionDefinitionBase& add_merge_and_shrink_with_lr_to_namespace(Namesp
     return f;
 }
 
-InternalFunctionDefinitionBase& add_merge_and_shrink_no_lr_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_merge_and_shrink_no_lr_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "pa_merge_and_shrink_no_lr",

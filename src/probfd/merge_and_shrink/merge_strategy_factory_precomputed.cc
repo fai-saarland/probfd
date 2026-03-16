@@ -44,9 +44,7 @@ string MergeStrategyFactoryPrecomputed::name() const
 
 void MergeStrategyFactoryPrecomputed::dump_strategy_specific_options() const
 {
-    if (log.is_at_least_normal()) {
-        merge_tree_factory->dump_options(log);
-    }
+    if (log.is_at_least_normal()) { merge_tree_factory->dump_options(log); }
 }
 
 } // namespace probfd::merge_and_shrink

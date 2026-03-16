@@ -95,9 +95,11 @@ public:
     array<T>& operator=(array<T>&& other) = default;
 
     auto begin() { return Iterator<false>(data.begin()); }
+
     auto begin() const { return Iterator<true>(data.begin()); }
 
     auto end() { return Iterator<false>(data.end()); }
+
     auto end() const { return Iterator<true>(data.end()); }
 
     auto size() const { return data.size(); }
@@ -415,7 +417,8 @@ class dynamic_cartesian_product_view<OR>::Iterator {
         else if constexpr (detail::
                                dcartesian_product_is_bidirectional<Const, IR>)
             return std::bidirectional_iterator_tag{};
-        else if constexpr (std::ranges::forward_range<detail::maybe_const_t<Const, IR>>)
+        else if constexpr (std::ranges::forward_range<
+                               detail::maybe_const_t<Const, IR>>)
             return std::forward_iterator_tag{};
         else
             return std::input_iterator_tag{};
@@ -559,7 +562,8 @@ public:
     }
 
     friend constexpr auto operator<=>(const Iterator& x, const Iterator& y)
-        requires std::ranges::random_access_range<detail::maybe_const_t<Const, IR>>
+        requires std::ranges::random_access_range<
+            detail::maybe_const_t<Const, IR>>
     {
         return x.M_current <=> y.M_current;
     }
@@ -693,10 +697,8 @@ constexpr bool std::ranges::enable_borrowed_range<downward::views::array<T>> =
 template <
     class T,
     class U,
-    template <class>
-    class TQual,
-    template <class>
-    class UQual>
+    template <class> class TQual,
+    template <class> class UQual>
 struct std::basic_common_reference<
     downward::views::array<T>,
     downward::views::array<U>,

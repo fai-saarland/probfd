@@ -138,7 +138,8 @@ InternalFunctionDefinitionBase& add_hpom_to_namespace(Namespace& nspace)
     return f;
 }
 
-InternalFunctionDefinitionBase& add_higher_order_hpom_heuristic_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_higher_order_hpom_heuristic_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "ho_hpom",

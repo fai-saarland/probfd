@@ -44,4 +44,4 @@ void WeightedEvaluator::get_path_dependent_evaluators(set<Evaluator*>& evals)
     evaluator->get_path_dependent_evaluators(evals);
 }
 
-} // namespace weighted_evaluator
+} // namespace downward::weighted_evaluator

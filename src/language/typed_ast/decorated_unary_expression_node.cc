@@ -27,10 +27,7 @@ DecoratedUnaryExpressionNode<T>::construct(ConstructContext& context) const
     case TokenType::PLUS: return nested_expr->construct(context);
     case TokenType::MINUS:
         return -std::any_cast<T>(nested_expr->construct(context));
-    default:
-        context.error(
-            "Illegal unary expression operator: {}",
-            token_type);
+    default: context.error("Illegal unary expression operator: {}", token_type);
     }
 }
 

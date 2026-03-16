@@ -34,4 +34,4 @@ FactPair DomainAbstraction::get_abstract_fact(const FactPair& fact) const
     return FactPair(fact.var, get_abstract_value(fact));
 }
 
-}
+} // namespace downward

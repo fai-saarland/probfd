@@ -19,11 +19,10 @@ class LogProxy;
   values for evaluators that are used for either of these two things.
 */
 
-
 class SearchProgress {
-    std::unordered_map<const Evaluator *, int> min_values;
+    std::unordered_map<const Evaluator*, int> min_values;
 
-    bool process_evaluator_value(const Evaluator *evaluator, int value);
+    bool process_evaluator_value(const Evaluator* evaluator, int value);
 
 public:
     SearchProgress() = default;
@@ -42,8 +41,8 @@ public:
       has not been evaluated previously, e.g., after evaluating the initial
       state.
     */
-    bool check_progress(const EvaluationContext &eval_context);
+    bool check_progress(const EvaluationContext& eval_context);
 };
-}
+} // namespace downward
 
 #endif

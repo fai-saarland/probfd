@@ -16,8 +16,8 @@
 #include "language/lexical_analyzer.h"
 #include "language/token_stream.h"
 
-#include <array>
 #include <algorithm>
+#include <array>
 #include <functional>
 #include <sstream>
 #include <unordered_set>

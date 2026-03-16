@@ -24,9 +24,7 @@ FFHeuristic::FFHeuristic(
           cache_estimates,
           description,
           verbosity)
-    , relaxed_plan(
-          get_shared_variables(this->transformed_task)->size(),
-          false)
+    , relaxed_plan(get_shared_variables(this->transformed_task)->size(), false)
 {
     if (log.is_at_least_normal()) {
         log << "Initializing FF heuristic..." << endl;
@@ -52,8 +50,7 @@ void FFHeuristic::mark_preferred_operators_and_relaxed_plan(
     const State& state,
     PropID goal_id)
 {
-    const auto& operators =
-        get_operators(this->transformed_task);
+    const auto& operators = get_operators(this->transformed_task);
 
     Proposition* goal = get_proposition(goal_id);
     if (!goal->marked) { // Only consider each subgoal once.

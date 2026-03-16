@@ -64,6 +64,7 @@ public:
     bool is_on_trial() const { return (this->info & MARKED_TRIAL); }
 
     void set_solved() { this->info = (this->info & ~MASK) | SOLVED; }
+
     void set_on_trial() { this->info = this->info | MARKED_TRIAL; }
 
     void clear_trial_flag() { this->info = (this->info & ~MARKED_TRIAL); }

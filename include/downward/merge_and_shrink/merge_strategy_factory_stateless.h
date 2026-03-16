@@ -25,6 +25,6 @@ public:
     bool requires_init_distances() const override;
     bool requires_goal_distances() const override;
 };
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink
 
 #endif

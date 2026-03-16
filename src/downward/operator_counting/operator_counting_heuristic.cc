@@ -31,10 +31,8 @@ OperatorCountingHeuristic::OperatorCountingHeuristic(
     , constraint_generators(constraint_generators)
     , lp_solver(lpsolver)
 {
-    const auto& operators =
-        get_operators(transformed_task);
-    const auto& cost_function =
-        get_cost_function(transformed_task);
+    const auto& operators = get_operators(transformed_task);
+    const auto& cost_function = get_cost_function(transformed_task);
 
     lp_solver.set_mip_gap(0);
     named_vector::NamedVector<lp::LPVariable> variables;

@@ -25,8 +25,7 @@ CartesianHeuristicFunction::CartesianHeuristicFunction(
 
 int CartesianHeuristicFunction::get_value(const State& state) const
 {
-    State subtask_state =
-        state_mapping->convert_ancestor_state(state);
+    State subtask_state = state_mapping->convert_ancestor_state(state);
     int abstract_state_id =
         refinement_hierarchy->get_abstract_state_id(subtask_state);
     assert(utils::in_bounds(abstract_state_id, h_values));

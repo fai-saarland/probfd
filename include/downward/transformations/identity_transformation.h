@@ -21,6 +21,6 @@ public:
     transform(const SharedAbstractTask& original_task) override;
 };
 
-}
+} // namespace downward
 
 #endif // TRANSFORMATIONS_IDENTITY_TRANSFORMATION_H

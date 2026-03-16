@@ -65,4 +65,4 @@ string format_journal_reference(
        << t2t_escape(pages) << ". " << t2t_escape(year) << ".\n\n\n";
     return ss.str();
 }
-} // namespace utils
+} // namespace downward::utils

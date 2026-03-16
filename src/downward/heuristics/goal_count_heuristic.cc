@@ -47,8 +47,7 @@ int GoalCountHeuristic::compute_heuristic(const State& ancestor_state)
     State state = convert_ancestor_state(ancestor_state);
     int unsatisfied_goal_count = 0;
 
-    for (const auto [var, value] :
-         get_goal(transformed_task)) {
+    for (const auto [var, value] : get_goal(transformed_task)) {
         if (state[var] != value) { ++unsatisfied_goal_count; }
     }
     return unsatisfied_goal_count;

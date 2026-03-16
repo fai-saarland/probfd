@@ -23,4 +23,4 @@ EvaluationResult PrefEvaluator::compute_result(EvaluationContext& eval_context)
     return result;
 }
 
-} // namespace pref_evaluator
+} // namespace downward::pref_evaluator

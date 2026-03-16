@@ -86,9 +86,7 @@ class Pruner {
         const Pattern& pattern = patterns[pattern_id];
         assert(!pattern.empty());
         PatternID clique_pattern_id = variable_to_pattern_id[pattern[0]];
-        if (clique_pattern_id == -1) {
-            return false;
-        }
+        if (clique_pattern_id == -1) { return false; }
         int pattern_size = pattern.size();
         for (int i = 1; i < pattern_size; ++i) {
             if (variable_to_pattern_id[pattern[i]] != clique_pattern_id) {
@@ -105,9 +103,7 @@ class Pruner {
           dominated by the current pattern collection.
         */
         for (PatternID pattern_id : pattern_cliques[clique_id]) {
-            if (!dominated_patterns[pattern_id]) {
-                return false;
-            }
+            if (!dominated_patterns[pattern_id]) { return false; }
         }
         return true;
     }
@@ -238,6 +234,6 @@ extern void prune_dominated_cliques(
             << std::endl;
     }
 }
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

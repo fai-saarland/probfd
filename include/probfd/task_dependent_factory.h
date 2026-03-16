@@ -18,6 +18,6 @@ public:
     create_object(const SharedProbabilisticTask& task) = 0;
 };
 
-}
+} // namespace probfd
 
 #endif

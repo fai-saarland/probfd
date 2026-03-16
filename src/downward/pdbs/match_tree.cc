@@ -42,9 +42,7 @@ MatchTree::Node::Node()
 MatchTree::Node::~Node()
 {
     if (successors) {
-        for (int i = 0; i < var_domain_size; ++i) {
-            delete successors[i];
-        }
+        for (int i = 0; i < var_domain_size; ++i) { delete successors[i]; }
         delete[] successors;
     }
     delete star_successor;
@@ -242,8 +240,6 @@ void MatchTree::dump_recursive(Node* node, utils::LogProxy& log) const
 
 void MatchTree::dump(utils::LogProxy& log) const
 {
-    if (log.is_at_least_debug()) {
-        dump_recursive(root, log);
-    }
+    if (log.is_at_least_debug()) { dump_recursive(root, log); }
 }
-} // namespace pdbs
+} // namespace downward::pdbs

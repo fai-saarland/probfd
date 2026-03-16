@@ -119,8 +119,7 @@ EvaluationResult Heuristic::compute_result(EvaluationContext& eval_context)
     }
 
 #ifndef NDEBUG
-    const auto& global_operators =
-        get_operators(original_task);
+    const auto& global_operators = get_operators(original_task);
     if (heuristic != EvaluationResult::INFTY) {
         for (OperatorID op_id : preferred_operators)
             assert(

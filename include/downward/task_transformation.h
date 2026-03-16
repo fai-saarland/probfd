@@ -9,7 +9,7 @@
 namespace downward {
 class State;
 class OperatorID;
-}
+} // namespace downward
 
 namespace downward {
 
@@ -57,6 +57,6 @@ public:
     transform(const SharedAbstractTask& original_task) = 0;
 };
 
-}
+} // namespace downward
 
 #endif // TASK_TRANSFORMATION_H

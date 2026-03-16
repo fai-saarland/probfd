@@ -13,8 +13,8 @@
 #include <algorithm>
 #include <cassert>
 #include <map>
-#include <ranges>
 #include <ostream>
+#include <ranges>
 #include <type_traits>
 #include <unordered_set>
 #include <utility>
@@ -78,8 +78,8 @@ get_postconditions_by_operator_and_outcome(
     return postconditions;
 }
 
-static vector<vector<value_t>> get_probabilities_by_operator_and_outcome(
-    const ProbabilisticOperatorSpace& ops)
+static vector<vector<value_t>>
+get_probabilities_by_operator_and_outcome(const ProbabilisticOperatorSpace& ops)
 {
     vector<vector<value_t>> probabilities;
     probabilities.reserve(ops.size());

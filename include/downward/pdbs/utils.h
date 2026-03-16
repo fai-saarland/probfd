@@ -40,9 +40,8 @@ extern std::vector<int> get_non_goal_variables(
   neighbors. If bidirectional is true, then the causal graph is treated as
   undirected graph and also successors of variables are considered neighbors.
 */
-extern std::vector<std::vector<int>> compute_cg_neighbors(
-    const SharedAbstractTask& task,
-    bool bidirectional);
+extern std::vector<std::vector<int>>
+compute_cg_neighbors(const SharedAbstractTask& task, bool bidirectional);
 
 extern PatternCollectionInformation get_pattern_collection_info(
     const AbstractTaskTuple& task,

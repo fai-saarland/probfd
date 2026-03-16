@@ -103,6 +103,7 @@ class SegmentedVector {
         }
 
         reference operator*() const { return *current_entry; }
+
         pointer operator->() { return current_entry; };
 
         sviterator& operator++()
@@ -228,9 +229,7 @@ public:
     SegmentedVector(std::size_t size, const Entry& entry = Entry())
         : SegmentedVector()
     {
-        while (size > the_size) {
-            push_back(entry);
-        }
+        while (size > the_size) { push_back(entry); }
     }
 
     SegmentedVector(const EntryAllocator& allocator_)
@@ -300,12 +299,8 @@ public:
 
     void resize(size_t new_size, Entry entry = Entry())
     {
-        while (new_size < the_size) {
-            pop_back();
-        }
-        while (new_size > the_size) {
-            push_back(entry);
-        }
+        while (new_size < the_size) { pop_back(); }
+        while (new_size > the_size) { push_back(entry); }
     }
 
     void clear()
@@ -459,12 +454,8 @@ public:
 
     void resize(size_t new_size, const Element* entry)
     {
-        while (new_size < the_size) {
-            pop_back();
-        }
-        while (new_size > the_size) {
-            push_back(entry);
-        }
+        while (new_size < the_size) { pop_back(); }
+        while (new_size > the_size) { push_back(entry); }
     }
 
     void clear()
@@ -482,6 +473,6 @@ public:
         the_size = 0;
     }
 };
-} // namespace segmented_vector
+} // namespace downward::segmented_vector
 
 #endif

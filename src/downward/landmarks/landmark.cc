@@ -7,19 +7,15 @@ bool Landmark::is_true_in_state(const State& state) const
 {
     if (disjunctive) {
         for (const FactPair& fact : facts) {
-            if (state[fact.var] == fact.value) {
-                return true;
-            }
+            if (state[fact.var] == fact.value) { return true; }
         }
         return false;
     } else {
         // conjunctive or simple
         for (const FactPair& fact : facts) {
-            if (state[fact.var] != fact.value) {
-                return false;
-            }
+            if (state[fact.var] != fact.value) { return false; }
         }
         return true;
     }
 }
-} // namespace landmarks
+} // namespace downward::landmarks

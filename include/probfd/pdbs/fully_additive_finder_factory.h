@@ -9,8 +9,8 @@ namespace probfd::pdbs {
 
 class FullyAdditiveFinderFactory : public SubCollectionFinderFactory {
 public:
-    std::unique_ptr<SubCollectionFinder> create_subcollection_finder(
-        const SharedProbabilisticTask& task) override;
+    std::unique_ptr<SubCollectionFinder>
+    create_subcollection_finder(const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::pdbs

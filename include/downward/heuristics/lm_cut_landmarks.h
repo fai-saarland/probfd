@@ -36,6 +36,7 @@ struct RelaxedOperator {
     int unsatisfied_preconditions;
     int h_max_supporter_cost; // h_max_cost of h_max_supporter
     RelaxedProposition* h_max_supporter;
+
     RelaxedOperator(
         std::vector<RelaxedProposition*>&& pre,
         std::vector<RelaxedProposition*>&& eff,
@@ -131,6 +132,6 @@ inline void RelaxedOperator::update_h_max_supporter()
             h_max_supporter = preconditions[i];
     h_max_supporter_cost = h_max_supporter->h_max_cost;
 }
-} // namespace lm_cut_heuristic
+} // namespace downward::lm_cut_heuristic
 
 #endif

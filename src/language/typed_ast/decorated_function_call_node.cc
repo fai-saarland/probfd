@@ -13,7 +13,9 @@ using namespace std;
 
 namespace language::parser {
 
-FunctionArgument::FunctionArgument(std::unique_ptr<DecoratedASTNode> value, bool is_default)
+FunctionArgument::FunctionArgument(
+    std::unique_ptr<DecoratedASTNode> value,
+    bool is_default)
     : value(move(value))
     , is_default(is_default)
 {

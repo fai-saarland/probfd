@@ -111,9 +111,7 @@ auto Distribution<T>::find(this auto&& self, const T& t)
         std::less<>{},
         &ItemProbabilityPair<T>::item);
 
-    if (it == self.end() || it->item == t) {
-        return it;
-    }
+    if (it == self.end() || it->item == t) { return it; }
 
     return self.end();
 }
@@ -157,21 +155,15 @@ value_t Distribution<T>::expectation(RandomVariable&& rv) const
 template <typename T>
 void Distribution<T>::normalize(value_t scale)
 {
-    for (auto& pair : distribution_) {
-        pair.probability *= scale;
-    }
+    for (auto& pair : distribution_) { pair.probability *= scale; }
 }
 
 template <typename T>
 void Distribution<T>::normalize()
 {
-    if (empty()) {
-        return;
-    }
+    if (empty()) { return; }
     value_t sum = 0;
-    for (auto& pair : distribution_) {
-        sum += pair.probability;
-    }
+    for (auto& pair : distribution_) { sum += pair.probability; }
     normalize(1_vt / sum);
 }
 
@@ -188,9 +180,7 @@ auto Distribution<T>::sample(downward::utils::RandomNumberGenerator& rng)
     auto it = distribution_.begin();
     value_t sum = it->probability;
 
-    while (sum <= r) {
-        sum += (++it)->probability;
-    }
+    while (sum <= r) { sum += (++it)->probability; }
 
     return it;
 }

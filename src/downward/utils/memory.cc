@@ -47,4 +47,4 @@ bool is_out_of_memory()
 {
     return has_gone_out_of_memory;
 }
-} // namespace utils
+} // namespace downward::utils

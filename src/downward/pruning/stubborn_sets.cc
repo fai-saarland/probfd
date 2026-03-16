@@ -37,16 +37,14 @@ void StubbornSets::initialize(const SharedAbstractTask& task)
 void StubbornSets::compute_sorted_operators(
     const ClassicalOperatorSpace& operators)
 {
-    sorted_op_preconditions = utils::map_vector<vector<FactPair>>(
-        operators,
-        [](const auto& op) {
+    sorted_op_preconditions =
+        utils::map_vector<vector<FactPair>>(operators, [](const auto& op) {
             return utils::sorted<FactPair>(
                 task_properties::get_fact_pairs(op.get_preconditions()));
         });
 
-    sorted_op_effects = utils::map_vector<vector<FactPair>>(
-        operators,
-        [](const auto& op) {
+    sorted_op_effects =
+        utils::map_vector<vector<FactPair>>(operators, [](const auto& op) {
             return utils::sorted<FactPair>(utils::map_vector<FactPair>(
                 op.get_effects(),
                 [](const auto& eff) { return eff.get_fact(); }));

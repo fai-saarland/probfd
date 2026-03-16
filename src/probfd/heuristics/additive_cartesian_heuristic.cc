@@ -62,17 +62,14 @@ AdditiveCartesianHeuristicFactory::AdditiveCartesianHeuristicFactory(
     , use_general_costs(use_general_costs)
     , log_(get_log_for_verbosity(verbosity))
 {
-    if (max_states < 1) {
-        throw std::domain_error("max_states must be >= 1.");
-    }
+    if (max_states < 1) { throw std::domain_error("max_states must be >= 1."); }
 
     if (max_transitions < 0) {
         throw std::domain_error("max_transitions must be >= 0.");
     }
 }
 
-std::unique_ptr<FDRHeuristic>
-AdditiveCartesianHeuristicFactory::create_object(
+std::unique_ptr<FDRHeuristic> AdditiveCartesianHeuristicFactory::create_object(
     const SharedProbabilisticTask& task)
 {
     if (log_.is_at_least_normal()) {

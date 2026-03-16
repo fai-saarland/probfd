@@ -65,6 +65,7 @@ public:
     explicit EquivalenceRelation(const std::vector<int>& elements);
 
     BlockListConstIter begin() const { return blocks.begin(); }
+
     BlockListConstIter end() const { return blocks.end(); }
 
     /*
@@ -76,6 +77,6 @@ public:
     */
     void refine(const std::vector<int>& block);
 };
-}
+} // namespace downward::equivalence_relation
 
 #endif

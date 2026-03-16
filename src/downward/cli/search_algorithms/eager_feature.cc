@@ -158,7 +158,8 @@ InternalFunctionDefinitionBase& add_eager_search_to_namespace(Namespace& nspace)
     return f;
 }
 
-InternalFunctionDefinitionBase& add_eager_search_no_f_evaluator_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_eager_search_no_f_evaluator_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "eager_no_f_evaluator",

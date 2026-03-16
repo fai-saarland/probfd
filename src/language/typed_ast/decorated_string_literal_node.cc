@@ -17,10 +17,7 @@ StringLiteralNode::StringLiteralNode(const string& value)
 
 std::any StringLiteralNode::construct(ConstructContext& context) const
 {
-    TraceBlock block(
-        context,
-        "Constructing string value from '{}'",
-        value);
+    TraceBlock block(context, "Constructing string value from '{}'", value);
 
     return value;
 }

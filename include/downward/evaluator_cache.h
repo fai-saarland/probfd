@@ -29,6 +29,6 @@ public:
         }
     }
 };
-}
+} // namespace downward
 
 #endif

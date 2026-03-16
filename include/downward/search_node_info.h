@@ -26,6 +26,6 @@ struct SearchNodeInfo {
     {
     }
 };
-}
+} // namespace downward
 
 #endif

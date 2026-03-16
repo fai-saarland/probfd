@@ -27,9 +27,7 @@ class PatternInformation {
     bool information_is_valid() const;
 
 public:
-    PatternInformation(
-        SharedProbabilisticTask task,
-        Pattern pattern);
+    PatternInformation(SharedProbabilisticTask task, Pattern pattern);
 
     void set_pdb(const std::shared_ptr<ProbabilityAwarePatternDatabase>& pdb);
 

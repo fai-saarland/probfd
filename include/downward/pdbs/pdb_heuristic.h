@@ -42,6 +42,6 @@ public:
         const std::string& description,
         utils::Verbosity verbosity);
 };
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

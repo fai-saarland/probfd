@@ -79,6 +79,6 @@ public:
     BitsetView operator[](const State& state);
     ConstBitsetView operator[](const State& state) const;
 };
-}
+} // namespace downward
 
 #endif

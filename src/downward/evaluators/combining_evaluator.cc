@@ -56,4 +56,4 @@ void CombiningEvaluator::get_path_dependent_evaluators(set<Evaluator*>& evals)
         subevaluator->get_path_dependent_evaluators(evals);
 }
 
-} // namespace combining_evaluator
+} // namespace downward::combining_evaluator

@@ -18,6 +18,6 @@ public:
 
     bool supports_conditional_effects() const override;
 };
-} // namespace landmarks
+} // namespace downward::landmarks
 
 #endif

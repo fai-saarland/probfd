@@ -6,8 +6,8 @@
 #include "downward/initial_state_values.h"
 #include "downward/variable_space.h"
 
-#include <string>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace downward {

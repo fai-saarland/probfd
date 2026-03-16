@@ -25,6 +25,6 @@ constexpr bool enable_pass_by_value<T> = true;
 template <>
 inline constexpr bool enable_pass_by_value<downward::OperatorID> = true;
 
-}
+} // namespace probfd
 
 #endif // PROBFD_TYPE_TRAITS_H

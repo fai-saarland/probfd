@@ -294,9 +294,7 @@ void feed(HashState& hash_state, const std::vector<T>& vec)
       the build on MacOS (see msg7812).
     */
     feed(hash_state, static_cast<uint64_t>(vec.size()));
-    for (const T& item : vec) {
-        feed(hash_state, item);
-    }
+    for (const T& item : vec) { feed(hash_state, item); }
 }
 
 template <typename T>
@@ -309,9 +307,7 @@ void feed_iterable(HashState& hash_state, T begin, T end)
       Using uint64_t is wasteful on 32-bit platforms but feeding a size_t breaks
       the build on MacOS (see msg7812).
     */
-    for (auto it = begin; it != end; ++it) {
-        feed(hash_state, *it);
-    }
+    for (auto it = begin; it != end; ++it) { feed(hash_state, *it); }
 }
 
 template <typename... T>
@@ -378,6 +374,6 @@ using HashMap = std::unordered_map<T1, T2, Hash<T1>>;
 
 template <typename T>
 using HashSet = std::unordered_set<T, Hash<T>>;
-} // namespace utils
+} // namespace downward::utils
 
 #endif

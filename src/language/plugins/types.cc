@@ -158,8 +158,7 @@ string InternalType::name() const
 
 size_t InternalType::get_hash() const
 {
-    return hash<type_index>()(typeid(InternalType)) ^
-           hash<type_index>()(type);
+    return hash<type_index>()(typeid(InternalType)) ^ hash<type_index>()(type);
 }
 
 std::type_index InternalType::get_type_index() const
@@ -260,8 +259,7 @@ string EnumType::name() const
 
 size_t EnumType::get_hash() const
 {
-    return hash<type_index>()(typeid(EnumType)) ^
-           hash<type_index>()(type);
+    return hash<type_index>()(typeid(EnumType)) ^ hash<type_index>()(type);
 }
 
 std::any convert(

@@ -14,7 +14,7 @@ namespace downward {
 class AxiomOrOperatorProxy;
 class FactProxy;
 class OperatorProxy;
-}
+} // namespace downward
 
 namespace downward::relaxation_heuristic {
 struct Proposition;
@@ -115,6 +115,7 @@ protected:
     {
         return &propositions[prop_id];
     }
+
     UnaryOperator* get_operator(OpID op_id) { return &unary_operators[op_id]; }
 
     const Proposition* get_proposition(int var, int value) const;
@@ -147,6 +148,6 @@ public:
 
     virtual bool dead_ends_are_reliable() const override;
 };
-} // namespace relaxation_heuristic
+} // namespace downward::relaxation_heuristic
 
 #endif

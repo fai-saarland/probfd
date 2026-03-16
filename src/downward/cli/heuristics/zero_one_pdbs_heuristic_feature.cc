@@ -60,7 +60,8 @@ public:
 
 namespace downward::cli::heuristics {
 
-InternalFunctionDefinitionBase& add_zero_one_pdbs_heuristic_feature(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_zero_one_pdbs_heuristic_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "zopdbs",

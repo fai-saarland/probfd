@@ -12,7 +12,7 @@
 namespace downward::utils {
 class CountdownTimer;
 class LogProxy;
-} // namespace utils
+} // namespace downward::utils
 
 namespace probfd::cartesian_abstractions {
 class CartesianAbstraction;

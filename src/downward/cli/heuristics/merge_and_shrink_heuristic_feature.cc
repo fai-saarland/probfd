@@ -165,7 +165,8 @@ create_merge_and_shrink_heuristic_no_lr(
         main_loop_max_time);
 }
 
-InternalFunctionDefinitionBase& add_merge_and_shrink_heuristic_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_merge_and_shrink_heuristic_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "merge_and_shrink",
@@ -357,7 +358,8 @@ InternalFunctionDefinitionBase& add_merge_and_shrink_heuristic_to_namespace(Name
     return f;
 }
 
-InternalFunctionDefinitionBase& add_merge_and_shrink_heuristic_no_lr_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_merge_and_shrink_heuristic_no_lr_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "merge_and_shrink_no_lr",

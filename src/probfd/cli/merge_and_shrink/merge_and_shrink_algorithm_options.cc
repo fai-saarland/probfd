@@ -4,8 +4,8 @@
 
 #include "downward/utils/math.h"
 
-#include "language/plugins/options.h"
 #include "language/plugins/internal_function_definition.h"
+#include "language/plugins/options.h"
 
 #include <string>
 

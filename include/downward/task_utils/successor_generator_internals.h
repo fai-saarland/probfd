@@ -112,6 +112,6 @@ public:
         const std::vector<int>& state,
         std::vector<OperatorID>& applicable_ops) const override;
 };
-} // namespace successor_generator
+} // namespace downward::successor_generator
 
 #endif

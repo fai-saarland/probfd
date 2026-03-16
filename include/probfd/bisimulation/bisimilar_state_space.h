@@ -5,9 +5,9 @@
 
 #include "probfd/fdr_types.h"
 #include "probfd/mdp.h"
+#include "probfd/probabilistic_task.h"
 #include "probfd/state_id.h"
 #include "probfd/value_type.h"
-#include "probfd/probabilistic_task.h"
 
 #include "downward/algorithms/segmented_vector.h"
 
@@ -23,7 +23,7 @@ class Distances;
 class FactoredTransitionSystem;
 class TransitionSystem;
 struct Factor;
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink
 
 namespace probfd {
 template <typename>

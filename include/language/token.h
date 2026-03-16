@@ -57,8 +57,7 @@ struct formatter<language::parser::TokenType> {
     }
 
     template <typename FormatContext>
-    auto
-    format(const language::parser::TokenType& t, FormatContext& ctx) const
+    auto format(const language::parser::TokenType& t, FormatContext& ctx) const
     {
         return std::format_to(ctx.out(), "{}", token_type_name(t));
     }
@@ -85,8 +84,7 @@ struct formatter<language::parser::Token> {
     }
 
     template <typename FormatContext>
-    auto
-    format(const language::parser::Token& token, FormatContext& ctx) const
+    auto format(const language::parser::Token& token, FormatContext& ctx) const
     {
         if (text) { return std::format_to(ctx.out(), "{}", token.content); }
 

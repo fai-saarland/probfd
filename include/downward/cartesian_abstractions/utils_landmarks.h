@@ -13,12 +13,12 @@
 namespace downward {
 struct FactPair;
 class MutexInformation;
-}
+} // namespace downward
 
 namespace downward::landmarks {
 class LandmarkGraph;
 class LandmarkNode;
-} // namespace landmarks
+} // namespace downward::landmarks
 
 namespace downward::cartesian_abstractions {
 using VarToValues = std::unordered_map<int, std::vector<int>>;
@@ -40,6 +40,6 @@ get_fact_to_landmark_map(
   the first time.
 */
 extern VarToValues get_prev_landmarks(const landmarks::LandmarkNode* node);
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions
 
 #endif

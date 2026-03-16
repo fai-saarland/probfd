@@ -96,6 +96,7 @@ private:
         {
             return Current;
         }
+
         [[nodiscard]]
         constexpr std::ranges::iterator_t<Base>
         base() && noexcept(std::is_nothrow_move_constructible_v<
@@ -461,7 +462,7 @@ struct convert_fn : public std::ranges::range_adaptor_closure<convert_fn<T>> {
     constexpr auto operator()(Rng&& Range) const noexcept(
         noexcept(convert_view<all_t<Rng>, T>(std::forward<Rng>(Range))))
         requires requires {
-            convert_view<all_t<Rng>, T>(static_cast<Rng&&>(Range));
+            convert_view<all_t<Rng>, T>(static_cast<Rng &&>(Range));
         }
     {
         return convert_view<all_t<Rng>, T>(std::forward<Rng>(Range));

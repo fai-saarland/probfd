@@ -35,6 +35,6 @@ public:
         utils::Verbosity verbosity);
 };
 
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

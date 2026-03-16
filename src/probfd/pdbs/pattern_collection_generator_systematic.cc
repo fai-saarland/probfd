@@ -80,9 +80,7 @@ static void compute_eff_pre_neighbors(
     unordered_set<int> candidates;
 
     // Compute neighbors.
-    for (int var : pattern) {
-        candidates.insert_range(cg.get_eff_to_pre(var));
-    }
+    for (int var : pattern) { candidates.insert_range(cg.get_eff_to_pre(var)); }
 
     // Remove elements of pattern.
     for (int var : pattern) { candidates.erase(var); }
@@ -115,9 +113,7 @@ static void compute_connection_points(
     unordered_set<int> candidates;
 
     // Handle rule 1.
-    for (int var : pattern) {
-        candidates.insert_range(cg.get_successors(var));
-    }
+    for (int var : pattern) { candidates.insert_range(cg.get_successors(var)); }
 
     // Handle rules 2 and 3.
     for (int var : pattern) {

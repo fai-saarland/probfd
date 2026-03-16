@@ -19,9 +19,7 @@ int StablePolicyPicker<State, Action, Derived>::pick_index(
 {
     if (stable_policy_) {
         for (unsigned i = 0; i < greedy_transitions.size(); ++i) {
-            if (greedy_transitions[i].action == previous_greedy) {
-                return i;
-            }
+            if (greedy_transitions[i].action == previous_greedy) { return i; }
         }
     }
 

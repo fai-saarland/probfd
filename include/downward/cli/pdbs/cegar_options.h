@@ -9,8 +9,8 @@ class InternalFunctionDefinitionBase;
 
 namespace downward::cli::pdbs {
 
-extern void
-add_cegar_implementation_notes_to_feature(language::plugins::InternalFunctionDefinitionBase& feature);
+extern void add_cegar_implementation_notes_to_feature(
+    language::plugins::InternalFunctionDefinitionBase& feature);
 
 extern std::size_t add_cegar_wildcard_option_to_feature(
     language::plugins::InternalFunctionDefinitionBase& feature,

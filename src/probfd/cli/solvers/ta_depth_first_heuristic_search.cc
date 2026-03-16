@@ -106,7 +106,9 @@ class TrapAwareDFHSSolverFeature
           bool)> {
 public:
     TrapAwareDFHSSolverFeature()
-        : InternalFunctionDefinition("tadfhs", &TrapAwareDFHSSolverFeature::func)
+        : InternalFunctionDefinition(
+              "tadfhs",
+              &TrapAwareDFHSSolverFeature::func)
     {
         document_title("Trap-aware depth-first heuristic search family");
         document_synopsis(
@@ -215,7 +217,9 @@ class TrapAwareILAOSolverFeature
           bool)> {
 public:
     TrapAwareILAOSolverFeature()
-        : InternalFunctionDefinition("tailao", &TrapAwareILAOSolverFeature::func)
+        : InternalFunctionDefinition(
+              "tailao",
+              &TrapAwareILAOSolverFeature::func)
     {
         document_title(
             "iLAO* variant of trap-aware depth-first heuristic search");
@@ -293,7 +297,9 @@ class TrapAwareLILAOSolverFeature
           bool)> {
 public:
     TrapAwareLILAOSolverFeature()
-        : InternalFunctionDefinition("talilao", &TrapAwareLILAOSolverFeature::func)
+        : InternalFunctionDefinition(
+              "talilao",
+              &TrapAwareLILAOSolverFeature::func)
     {
         document_title(
             "Labelled iLAO* variant of trap-aware depth-first "

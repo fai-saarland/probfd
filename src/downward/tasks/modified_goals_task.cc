@@ -4,8 +4,7 @@ using namespace std;
 
 namespace downward::extra_tasks {
 
-ModifiedGoalFacts::ModifiedGoalFacts(
-    vector<FactPair> goals)
+ModifiedGoalFacts::ModifiedGoalFacts(vector<FactPair> goals)
     : goals(std::move(goals))
 {
 }

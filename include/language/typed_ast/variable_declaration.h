@@ -20,7 +20,7 @@ struct VariableDeclaration {
     virtual ~VariableDeclaration() = default;
 
     VariableDeclaration(VariableDeclaration&& other) noexcept = default;
-    
+
     VariableDeclaration&
     operator=(VariableDeclaration&& other) noexcept = default;
 

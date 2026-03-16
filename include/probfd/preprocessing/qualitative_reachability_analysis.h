@@ -44,6 +44,7 @@ namespace internal {
 
 struct StateInfo {
     enum { NEW, ONSTACK, CLOSED };
+
     static constexpr uint32_t UNDEF = std::numeric_limits<uint32_t>::max() >> 3;
 
     unsigned explored : 1 = 0;
@@ -113,7 +114,7 @@ class QualitativeReachabilityAnalysis {
         bool transitions_in_scc : 1 = false;
 
         // Mutable info
-        std::vector<Action> aops;         // Remaining unexpanded operators
+        std::vector<Action> aops;             // Remaining unexpanded operators
         SuccessorDistribution successor_dist; // Currently expanded transition
         // Next state to expand
         Distribution<StateID>::const_iterator successor;

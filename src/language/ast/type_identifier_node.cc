@@ -27,9 +27,7 @@ const plugins::Type& TypeIdentifierNode::get_type(
 {
     const auto* type = environment.get_type(qualified_name.name);
 
-    if (!type) {
-        context.error("Type '{}' has not been defined.");
-    }
+    if (!type) { context.error("Type '{}' has not been defined."); }
 
     return *type;
 }

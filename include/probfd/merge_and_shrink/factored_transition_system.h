@@ -178,6 +178,7 @@ public:
 
     // The following methods are used for iterating over the FTS
     FTSConstIterator begin() const { return FTSConstIterator(*this, false); }
+
     FTSConstIterator end() const { return FTSConstIterator(*this, true); }
 
     void statistics(int index, downward::utils::LogProxy& log) const;

@@ -19,13 +19,15 @@ void print_initial_state_value(Interval value, int spaces)
     if (spaces == 0) {
         std::println(
             std::cout,
-            "Objective value for the initial state lies within the interval [{:.5f}, {:.5f}]",
+            "Objective value for the initial state lies within the interval "
+            "[{:.5f}, {:.5f}]",
             value.lower,
             value.upper);
     } else {
         std::println(
             std::cout,
-            "{:{}}Objective value computed for s0 lies within bound [{:.5f}, {:.5f}]",
+            "{:{}}Objective value computed for s0 lies within bound [{:.5f}, "
+            "{:.5f}]",
             ' ',
             spaces,
             value.lower,

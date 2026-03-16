@@ -13,7 +13,7 @@
 namespace downward::utils {
 class RandomNumberGenerator;
 class LogProxy;
-} // namespace utils
+} // namespace downward::utils
 
 namespace downward::cartesian_abstractions {
 class Abstraction;
@@ -79,6 +79,6 @@ public:
 
     std::unique_ptr<Abstraction> extract_abstraction();
 };
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions
 
 #endif

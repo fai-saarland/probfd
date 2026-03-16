@@ -86,6 +86,6 @@ public:
         const LPConstraint& constraint,
         std::string_view name = "") = 0;
 };
-} // namespace lp
+} // namespace downward::lp
 
 #endif

@@ -17,6 +17,6 @@ public:
     create_object(const SharedAbstractTask& task) = 0;
 };
 
-}
+} // namespace downward
 
 #endif

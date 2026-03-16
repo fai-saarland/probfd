@@ -60,7 +60,7 @@ struct index_of_helper<T, R, List...>
     : std::integral_constant<
           std::size_t,
           1 + index_of_helper<T, List...>::value> {};
-}
+} // namespace detail
 
 template <typename T, typename... List>
     requires requires { detail::index_of_helper<T, List...>::value; }

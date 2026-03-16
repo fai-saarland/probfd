@@ -12,11 +12,12 @@ ProjectionTransformation::ProjectionTransformation(
     bool operator_pruning,
     downward::utils::FSeconds max_time)
     : pdb(get_variables(task), std::move(pattern))
-    , projection(std::make_unique<ProjectionStateSpace>(
-          std::move(task),
-          pdb.ranking_function,
-          operator_pruning,
-          max_time))
+    , projection(
+          std::make_unique<ProjectionStateSpace>(
+              std::move(task),
+              pdb.ranking_function,
+              operator_pruning,
+              max_time))
 {
 }
 

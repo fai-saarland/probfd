@@ -32,6 +32,6 @@ public:
         std::shared_ptr<utils::RandomNumberGenerator> rng,
         utils::Verbosity verbosity);
 };
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

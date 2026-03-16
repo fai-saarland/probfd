@@ -116,13 +116,11 @@ CostSaturation::generate_heuristic_functions(const SharedAbstractTask& task)
     utils::CountdownTimer timer(max_time);
 
     task_properties::verify_no_axioms(get_axioms(task));
-    task_properties::verify_no_conditional_effects(
-        get_operators(task));
+    task_properties::verify_no_conditional_effects(get_operators(task));
 
     reset(to_refs(task));
 
-    State initial_state =
-        get_shared_init(task)->get_initial_state();
+    State initial_state = get_shared_init(task)->get_initial_state();
 
     function<bool()> should_abort = [&]() {
         return num_states >= max_states ||

@@ -10,7 +10,7 @@ class LogProxy;
 namespace probfd::merge_and_shrink {
 class Distances;
 class TransitionSystem;
-}
+} // namespace probfd::merge_and_shrink
 
 namespace probfd::merge_and_shrink {
 

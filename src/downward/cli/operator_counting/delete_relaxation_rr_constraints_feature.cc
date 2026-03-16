@@ -17,7 +17,8 @@ using namespace language::plugins;
 
 namespace {
 
-InternalFunctionDefinitionBase& add_delete_relaxation_rr_constraints_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_delete_relaxation_rr_constraints_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "delete_relaxation_rr_constraints",

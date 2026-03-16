@@ -46,6 +46,6 @@ public:
 
     ~PotentialHeuristic() override;
 };
-} // namespace potentials
+} // namespace downward::potentials
 
 #endif // POTENTIALS_POTENTIAL_HEURISTIC_H

@@ -22,6 +22,6 @@ public:
 };
 
 std::ostream& operator<<(std::ostream& os, const CountdownTimer& cd_timer);
-} // namespace utils
+} // namespace downward::utils
 
 #endif

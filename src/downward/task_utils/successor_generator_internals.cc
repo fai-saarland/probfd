@@ -184,9 +184,7 @@ void GeneratorLeafVector::generate_applicable_ops(
       the container type from list to vector since then, so this might
       no longer apply.
     */
-    for (OperatorID id : applicable_operators) {
-        applicable_ops.push_back(id);
-    }
+    for (OperatorID id : applicable_operators) { applicable_ops.push_back(id); }
 }
 
 GeneratorLeafSingle::GeneratorLeafSingle(OperatorID applicable_operator)
@@ -201,4 +199,4 @@ void GeneratorLeafSingle::generate_applicable_ops(
     applicable_ops.push_back(applicable_operator);
 }
 
-} // namespace successor_generator
+} // namespace downward::successor_generator

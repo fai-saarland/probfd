@@ -126,4 +126,4 @@ int HSPMaxHeuristic::compute_heuristic(const State& ancestor_state)
     return total_cost;
 }
 
-} // namespace max_heuristic
+} // namespace downward::max_heuristic

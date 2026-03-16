@@ -99,11 +99,13 @@ public:
             : buffer_(std::addressof(buffer))
         {
         }
+
         constexpr iterator& operator=(const _CharT& c)
         {
             buffer_->push_back(c);
             return *this;
         }
+
         constexpr iterator& operator=(_CharT&& c)
         {
             buffer_->push_back(c);
@@ -111,8 +113,11 @@ public:
         }
 
         constexpr iterator& operator*() { return *this; }
+
         constexpr iterator& operator++() { return *this; }
+
         constexpr iterator operator++(int) { return *this; }
+
         retarget_buffer* buffer_;
     };
 
@@ -235,6 +240,7 @@ statically_widen(const char* str, const wchar_t* wstr)
     else
         return wstr;
 }
+
 #define STATICALLY_WIDEN(_CharT, str) statically_widen<_CharT>(str, L##str)
 #else // _LIBCPP_HAS_NO_WIDE_CHARACTERS
 
@@ -246,6 +252,7 @@ inline constexpr const _CharT* statically_widen(const char* str)
 {
     return str;
 }
+
 #define STATICALLY_WIDEN(_CharT, str) statically_widen<_CharT>(str)
 #endif // _LIBCPP_HAS_NO_WIDE_CHARACTERS
 
@@ -2369,6 +2376,7 @@ public:
     }
 
     constexpr bool at_end() const noexcept { return first_ == last_; }
+
     constexpr _Iterator position() const noexcept { return first_; }
 
     [[nodiscard]]
@@ -2619,9 +2627,7 @@ private:
 
         switch (GB9c_indic_conjunct_break_state_) {
         case GB9c_indic_conjunct_break_state::Consonant:
-            if (breakk == inCB_property::Extend) {
-                return false;
-            }
+            if (breakk == inCB_property::Extend) { return false; }
             if (breakk == inCB_property::Linker) {
                 GB9c_indic_conjunct_break_state_ =
                     GB9c_indic_conjunct_break_state::Linker;
@@ -2631,12 +2637,8 @@ private:
             return evaluate_none(next_code_point, next_property);
 
         case GB9c_indic_conjunct_break_state::Linker:
-            if (breakk == inCB_property::Extend) {
-                return false;
-            }
-            if (breakk == inCB_property::Linker) {
-                return false;
-            }
+            if (breakk == inCB_property::Extend) { return false; }
+            if (breakk == inCB_property::Linker) { return false; }
             if (breakk == inCB_property::Consonant) {
                 GB9c_indic_conjunct_break_state_ =
                     GB9c_indic_conjunct_break_state::Consonant;
@@ -3857,6 +3859,7 @@ struct range_formatter {
     {
         separator_ = separator;
     }
+
     constexpr void set_brackets(
         std::basic_string_view<_CharT> opening_bracket,
         std::basic_string_view<_CharT> closing_bracket) noexcept
@@ -3869,6 +3872,7 @@ struct range_formatter {
     {
         return underlying_;
     }
+
     constexpr const std::formatter<_Tp, _CharT>& underlying() const noexcept
     {
         return underlying_;
@@ -4189,6 +4193,7 @@ public:
     {
         underlying_.set_separator(separator);
     }
+
     _LIBCPP_HIDE_FROM_ABI constexpr void set_brackets(
         std::basic_string_view<_CharT> opening_bracket,
         std::basic_string_view<_CharT> closing_bracket) noexcept

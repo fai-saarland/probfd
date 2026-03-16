@@ -61,6 +61,6 @@ public:
 
     int get_size() const { return size; }
 };
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

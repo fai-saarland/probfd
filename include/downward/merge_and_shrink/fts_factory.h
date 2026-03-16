@@ -24,7 +24,7 @@ extern FactoredTransitionSystem create_factored_transition_system(
     const AbstractTaskTuple& task,
     bool compute_init_distances,
     bool compute_goal_distances,
-    utils::LogProxy &log);
-}
+    utils::LogProxy& log);
+} // namespace downward::merge_and_shrink
 
 #endif

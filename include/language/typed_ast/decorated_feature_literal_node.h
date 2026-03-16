@@ -13,7 +13,8 @@ class FeatureLiteralNode : public DecoratedASTNode {
     const plugins::InternalFunctionDefinitionBase& feature;
 
 public:
-    explicit FeatureLiteralNode(const plugins::InternalFunctionDefinitionBase& feature);
+    explicit FeatureLiteralNode(
+        const plugins::InternalFunctionDefinitionBase& feature);
 
     void remove_variable_usages() override {}
 

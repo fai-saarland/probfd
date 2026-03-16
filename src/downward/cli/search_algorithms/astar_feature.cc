@@ -155,7 +155,8 @@ InternalFunctionDefinitionBase& add_astar_to_namespace(Namespace& nspace)
     return f;
 }
 
-InternalFunctionDefinitionBase& add_astar_no_lazy_evaluator_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_astar_no_lazy_evaluator_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "astar_no_lazy_eval",

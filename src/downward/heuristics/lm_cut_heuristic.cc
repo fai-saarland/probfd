@@ -26,7 +26,8 @@ LandmarkCutHeuristic::LandmarkCutHeuristic(
           cache_estimates,
           description,
           verbosity)
-    , landmark_generator(std::make_unique<LandmarkCutLandmarks>(transformed_task))
+    , landmark_generator(
+          std::make_unique<LandmarkCutLandmarks>(transformed_task))
 {
     if (log.is_at_least_normal()) {
         log << "Initializing landmark cut heuristic..." << endl;
@@ -63,4 +64,4 @@ int LandmarkCutHeuristic::compute_heuristic(const State& ancestor_state)
     return total_cost;
 }
 
-} // namespace lm_cut_heuristic
+} // namespace downward::lm_cut_heuristic

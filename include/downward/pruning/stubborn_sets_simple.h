@@ -26,14 +26,13 @@ class StubbornSetsSimple : public stubborn_sets::StubbornSetsActionCentric {
 protected:
     void initialize_stubborn_set(const State& state) override;
 
-    void
-    handle_stubborn_operator(const State& state, int op_no) override;
+    void handle_stubborn_operator(const State& state, int op_no) override;
 
 public:
     explicit StubbornSetsSimple(utils::Verbosity verbosity);
 
     void initialize(const SharedAbstractTask& task) override;
 };
-} // namespace stubborn_sets_simple
+} // namespace downward::stubborn_sets_simple
 
 #endif

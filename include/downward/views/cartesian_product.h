@@ -47,7 +47,8 @@ constexpr auto tuple_transform(Fp&& f, Tuple&& tuple)
 namespace detail {
 template <bool Const, typename First, typename... Vs>
 concept cartesian_product_is_random_access =
-    (std::ranges::random_access_range<detail::maybe_const_t<Const, First>> && ... &&
+    (std::ranges::random_access_range<detail::maybe_const_t<Const, First>> &&
+     ... &&
      (std::ranges::random_access_range<detail::maybe_const_t<Const, Vs>> &&
       std::ranges::sized_range<detail::maybe_const_t<Const, Vs>>));
 
@@ -59,7 +60,8 @@ concept cartesian_product_common_arg =
 
 template <bool Const, typename First, typename... Vs>
 concept cartesian_product_is_bidirectional =
-    (std::ranges::bidirectional_range<detail::maybe_const_t<Const, First>> && ... &&
+    (std::ranges::bidirectional_range<detail::maybe_const_t<Const, First>> &&
+     ... &&
      (std::ranges::bidirectional_range<detail::maybe_const_t<Const, Vs>> &&
       cartesian_product_common_arg<detail::maybe_const_t<Const, Vs>>));
 
@@ -71,8 +73,7 @@ concept cartesian_product_is_sized = (std::ranges::sized_range<Vs> && ...);
 
 template <
     bool Const,
-    template <typename>
-    class FirstSent,
+    template <typename> class FirstSent,
     typename First,
     typename... Vs>
 concept cartesian_is_sized_sentinel =

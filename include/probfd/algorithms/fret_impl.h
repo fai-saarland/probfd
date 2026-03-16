@@ -87,9 +87,7 @@ auto FRET<NestedAlgorithm, GreedyGraphGenerator>::compute_policy(
         std::optional quotient_action = base_info.get_policy();
 
         // Terminal states have no policy decision.
-        if (!quotient_action) {
-            continue;
-        }
+        if (!quotient_action) { continue; }
 
         const Interval quotient_bound =
             base_algorithm_.lookup_bounds(quotient_id);
@@ -153,9 +151,7 @@ auto FRET<NestedAlgorithm, GreedyGraphGenerator>::compute_policy(
 
         for (const StateID succ_id :
              successors.non_source_successor_dist.support()) {
-            if (visited.insert(succ_id).second) {
-                queue.push_back(succ_id);
-            }
+            if (visited.insert(succ_id).second) { queue.push_back(succ_id); }
         }
     } while (!queue.empty());
 
@@ -213,9 +209,7 @@ Interval FRET<NestedAlgorithm, GreedyGraphGenerator>::solve(
         const Interval value =
             heuristic_search(quotient, heuristic, state, progress, timer);
 
-        if (find_and_remove_traps(quotient, state, timer)) {
-            return value;
-        }
+        if (find_and_remove_traps(quotient, state, timer)) { return value; }
 
         base_algorithm_.reset_search_state();
     }
@@ -354,9 +348,7 @@ bool FRET<NestedAlgorithm, GreedyGraphGenerator>::find_and_remove_traps(
             sinfo = &state_infos[state_id];
 
             sinfo->lowlink = std::min(sinfo->lowlink, last_lowlink);
-            if (can_reach_child_scc) {
-                einfo->is_leaf = false;
-            }
+            if (can_reach_child_scc) { einfo->is_leaf = false; }
 
             einfo->successors.pop_back();
         } while (einfo->successors.empty());
@@ -376,9 +368,7 @@ bool FRET<NestedAlgorithm, GreedyGraphGenerator>::push(
 {
     const auto& state_info = base_algorithm_.state_infos_[state_id];
 
-    if (state_info.is_goal_or_terminal()) {
-        return false;
-    }
+    if (state_info.is_goal_or_terminal()) { return false; }
 
     GreedyGraphGenerator greedy_graph;
     std::vector<QAction> aops;
@@ -388,9 +378,7 @@ bool FRET<NestedAlgorithm, GreedyGraphGenerator>::push(
         ++unexpanded;
     }
 
-    if (succs.empty()) {
-        return false;
-    }
+    if (succs.empty()) { return false; }
 
     info.open(stack.size());
     stack.emplace_back(state_id, std::move(aops));
@@ -434,9 +422,7 @@ bool ValueGraph<NestedAlgorithm>::get_successors(
 
         for (const StateID sid :
              transition.successor_dist.non_source_successor_dist.support()) {
-            if (ids_.insert(sid).second) {
-                successors.push_back(sid);
-            }
+            if (ids_.insert(sid).second) { successors.push_back(sid); }
         }
     }
 

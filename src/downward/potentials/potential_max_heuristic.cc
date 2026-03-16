@@ -79,4 +79,4 @@ int PotentialMaxHeuristic::compute_heuristic(const State& ancestor_state)
     }
     return value;
 }
-} // namespace potentials
+} // namespace downward::potentials

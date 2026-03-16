@@ -52,6 +52,6 @@ public:
     void set_count_evaluation(bool count_eval);
 };
 
-}
+} // namespace downward
 
 #endif

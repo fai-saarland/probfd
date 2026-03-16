@@ -14,6 +14,6 @@ using PatternID = int;
    in the literature. A pattern clique is an additive set of patterns,
    represented by their IDs (indices) in a pattern collection. */
 using PatternClique = std::vector<PatternID>;
-}
+} // namespace downward::pdbs
 
 #endif

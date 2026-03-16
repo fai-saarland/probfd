@@ -16,10 +16,7 @@ PatternInformation::PatternInformation(
     , pattern(std::move(pattern))
     , pdb(nullptr)
 {
-    validate_and_normalize_pattern(
-        get_variables(task),
-        this->pattern,
-        log);
+    validate_and_normalize_pattern(get_variables(task), this->pattern, log);
 }
 
 bool PatternInformation::information_is_valid() const

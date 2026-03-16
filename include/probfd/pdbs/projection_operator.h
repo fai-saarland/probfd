@@ -74,7 +74,8 @@ class ProjectionOperatorToString {
     const ProbabilisticOperatorSpace& operators_;
 
 public:
-    explicit ProjectionOperatorToString(const ProbabilisticOperatorSpace& operators);
+    explicit ProjectionOperatorToString(
+        const ProbabilisticOperatorSpace& operators);
     std::string operator()(const ProjectionOperator* op) const;
 };
 

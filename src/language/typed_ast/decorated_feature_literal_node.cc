@@ -2,8 +2,8 @@
 
 #include "language/typed_ast/construct_context.h"
 
-#include "language/plugins/options.h"
 #include "language/plugins/internal_function_definition.h"
+#include "language/plugins/options.h"
 
 #include "language/context.h"
 

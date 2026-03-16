@@ -18,4 +18,4 @@ EvaluationResult GEvaluator::compute_result(EvaluationContext& eval_context)
     return result;
 }
 
-} // namespace g_evaluator
+} // namespace downward::g_evaluator

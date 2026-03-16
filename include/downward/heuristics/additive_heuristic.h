@@ -29,7 +29,7 @@ class AdditiveHeuristic : public relaxation_heuristic::RelaxationHeuristic {
        weighted A* with a weight of 10 will have f values comfortably
        below the signed 32-bit int upper bound.
      */
-    static const int MAX_COST_VALUE = 100000000;
+    static const int MAX_COST_VALUE = 100'000'000;
 
     priority_queues::AdaptiveQueue<PropID> queue;
     bool did_write_overflow_warning;
@@ -107,6 +107,6 @@ public:
         return get_proposition(var, value)->cost;
     }
 };
-} // namespace additive_heuristic
+} // namespace downward::additive_heuristic
 
 #endif

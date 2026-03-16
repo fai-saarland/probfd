@@ -75,7 +75,8 @@ public:
     }
 };
 
-InternalFunctionDefinitionBase& add_eager_hill_climbing_search_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_eager_hill_climbing_search_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "ehc",

@@ -16,9 +16,7 @@ namespace probfd::json {
 class TokenizationError final : public std::runtime_error {
 public:
     template <typename... Args>
-    explicit TokenizationError(
-        std::format_string<Args...> fmt,
-        Args&&... args)
+    explicit TokenizationError(std::format_string<Args...> fmt, Args&&... args)
         : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
     {
     }

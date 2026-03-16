@@ -53,6 +53,6 @@ public:
     std::shared_ptr<PDBCollection> get_pdbs();
     std::shared_ptr<std::vector<PatternClique>> get_pattern_cliques();
 };
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

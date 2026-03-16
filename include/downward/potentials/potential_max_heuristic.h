@@ -47,6 +47,6 @@ public:
 
     ~PotentialMaxHeuristic() override;
 };
-} // namespace potentials
+} // namespace downward::potentials
 
 #endif

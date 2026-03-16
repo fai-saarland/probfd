@@ -11,7 +11,7 @@ namespace probfd::merge_and_shrink {
 class FactoredTransitionSystem;
 class ShrinkStrategy;
 class TransitionSystem;
-}
+} // namespace probfd::merge_and_shrink
 
 namespace probfd::merge_and_shrink {
 

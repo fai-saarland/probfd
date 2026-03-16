@@ -4,12 +4,12 @@
 namespace language::plugins {
 class DocumentationTopic;
 class Registry;
-}
+} // namespace language::plugins
 
 namespace downward::cli::evaluators {
 
-language::plugins::DocumentationTopic& add_evaluator_subcategory(
-    language::plugins::Registry& registry);
+language::plugins::DocumentationTopic&
+add_evaluator_subcategory(language::plugins::Registry& registry);
 
 }
 

@@ -115,9 +115,7 @@ public:
     {
         vector<int> vertices_1;
         vertices_1.reserve(graph.size());
-        for (size_t i = 0; i < graph.size(); ++i) {
-            vertices_1.push_back(i);
-        }
+        for (size_t i = 0; i < graph.size(); ++i) { vertices_1.push_back(i); }
         vector<int> vertices_2(vertices_1);
         current_max_clique.reserve(graph.size());
         expand(vertices_1, vertices_2);
@@ -131,4 +129,4 @@ void compute_max_cliques(
     MaxCliqueComputer clique_computer(graph, max_cliques);
     clique_computer.compute();
 }
-} // namespace max_cliques
+} // namespace downward::max_cliques

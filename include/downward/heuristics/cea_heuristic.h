@@ -77,6 +77,6 @@ public:
 
     virtual bool dead_ends_are_reliable() const override;
 };
-} // namespace cea_heuristic
+} // namespace downward::cea_heuristic
 
 #endif

@@ -45,6 +45,6 @@ public:
     const Pattern& get_pattern() const;
     std::shared_ptr<PatternDatabase> get_pdb();
 };
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

@@ -49,6 +49,6 @@ public:
         const std::string& description,
         utils::Verbosity verbosity);
 };
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions
 
 #endif

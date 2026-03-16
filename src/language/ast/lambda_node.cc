@@ -1,7 +1,7 @@
 #include "language/ast/lambda_node.h"
 
-#include "language/typed_ast/variable_environment.h"
 #include "language/ast/type_node.h"
+#include "language/typed_ast/variable_environment.h"
 
 #include "language/typed_ast/decorated_lambda_node.h"
 #include "language/typed_ast/variable_declaration.h"

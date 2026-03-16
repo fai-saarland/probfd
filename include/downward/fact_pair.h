@@ -64,9 +64,7 @@ struct std::formatter<downward::FactPair, Char> {
             underlying_.set_brackets("", "");
             underlying_.set_separator(" -> ");
 
-            if (auto it = std::next(ctx.begin()); *it == '}') {
-                return it;
-            }
+            if (auto it = std::next(ctx.begin()); *it == '}') { return it; }
 
             throw std::format_error("expected '}' after 'a'!");
         }

@@ -25,8 +25,7 @@ class flipped {
 public:
     template <typename Tp, typename Up>
         requires std::invocable<Fp&, Up, Tp>
-    std::invoke_result_t<Fp&, Up, Tp>
-    operator()(Tp&&, Up&&); // not defined
+    std::invoke_result_t<Fp&, Up, Tp> operator()(Tp&&, Up&&); // not defined
 };
 
 template <typename Fp, typename Tp, typename Iter, typename Up>
@@ -91,7 +90,7 @@ struct fold_left_fn {
 
 inline constexpr fold_left_fn fold_left;
 
-}
+} // namespace downward::views
 
 #endif
 

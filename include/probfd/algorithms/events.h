@@ -24,18 +24,12 @@ struct PruneStateExpansion {
     const downward::State& state;
 };
 
-struct AlgorithmStarted {
+struct AlgorithmStarted {};
 
-};
+struct AlgorithmIterationFinished {};
 
-struct AlgorithmIterationFinished {
+struct AlgorithmEnded {};
 
-};
-
-struct AlgorithmEnded {
-
-};
-
-}
+} // namespace probfd::algorithms
 
 #endif // MS_EVENTS_H

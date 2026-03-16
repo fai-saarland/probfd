@@ -91,8 +91,7 @@ class HeuristicDepthFirstSearch
           State,
           Action,
           internal::PerStateInformation<Action, UseInterval>> {
-    using Base =
-        typename HeuristicDepthFirstSearch::HeuristicSearchAlgorithm;
+    using Base = typename HeuristicDepthFirstSearch::HeuristicSearchAlgorithm;
 
 public:
     using StateInfo = typename Base::StateInfo;

@@ -67,6 +67,6 @@ private:
     std::vector<OperatorID> get_successor_operators(
         const ordered_set::OrderedSet<OperatorID>& preferred_operators) const;
 };
-} // namespace lazy_search
+} // namespace downward::lazy_search
 
 #endif

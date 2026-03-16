@@ -24,8 +24,7 @@ LimitedPruning::LimitedPruning(
     }
 
     if (num_expansions_before_checking_pruning_ratio < 0) {
-        throw std::domain_error(
-            "min_required_pruning_ratio not >= 0.");
+        throw std::domain_error("min_required_pruning_ratio not >= 0.");
     }
 }
 

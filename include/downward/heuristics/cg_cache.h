@@ -75,6 +75,6 @@ public:
         helpful_transition_cache[var][index] = helpful_transition;
     }
 };
-} // namespace cg_heuristic
+} // namespace downward::cg_heuristic
 
 #endif

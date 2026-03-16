@@ -9,4 +9,4 @@ State InitialStateValues::get_initial_state() const
     return State(this->get_initial_state_values());
 }
 
-}
+} // namespace downward

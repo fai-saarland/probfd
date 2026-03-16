@@ -157,9 +157,7 @@ void PatternCollectionGeneratorSystematic::build_sga_patterns(
     */
 
     // Build goal patterns.
-    for (FactPair goal : goals) {
-        enqueue_pattern_if_new({goal.var});
-    }
+    for (FactPair goal : goals) { enqueue_pattern_if_new({goal.var}); }
 
     /*
       Grow SGA patterns untill all patterns are processed. Note that

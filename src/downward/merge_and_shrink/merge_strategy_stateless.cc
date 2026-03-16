@@ -17,4 +17,4 @@ pair<int, int> MergeStrategyStateless::get_next()
 {
     return merge_selector->select_merge(fts);
 }
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

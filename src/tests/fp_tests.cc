@@ -21,7 +21,7 @@ TEST(FPTests, test_approx_greater)
 
 TEST(FPTests, test_fraction_to_value)
 {
-    ASSERT_EQ(fraction_to_value(853, 1003526), 853_vt / 1003526_vt);
+    ASSERT_EQ(fraction_to_value(853, 1'003'526), 853_vt / 1'003'526_vt);
 }
 
 TEST(FPTests, test_string_to_value)

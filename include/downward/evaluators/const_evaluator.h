@@ -16,10 +16,11 @@ public:
         int value,
         const std::string& description,
         utils::Verbosity verbosity);
+
     virtual void get_path_dependent_evaluators(std::set<Evaluator*>&) override
     {
     }
 };
-} // namespace const_evaluator
+} // namespace downward::const_evaluator
 
 #endif

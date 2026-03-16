@@ -46,9 +46,7 @@ public:
     {
         auto result = unordered_items.insert(item);
         bool inserted = result.second;
-        if (inserted) {
-            ordered_items.push_back(item);
-        }
+        if (inserted) { ordered_items.push_back(item); }
         assert(unordered_items.size() == ordered_items.size());
     }
 
@@ -88,6 +86,6 @@ public:
         return ordered_items.end();
     }
 };
-} // namespace ordered_set
+} // namespace downward::ordered_set
 
 #endif

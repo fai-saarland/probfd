@@ -86,4 +86,4 @@ VarToValues get_prev_landmarks(const LandmarkNode* node)
     }
     return groups;
 }
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions

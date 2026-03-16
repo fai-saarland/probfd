@@ -27,9 +27,7 @@ void ConvertNode::remove_variable_usages()
 
 std::any ConvertNode::construct(ConstructContext& context) const
 {
-    TraceBlock cblock(
-        context,
-        "Constructing value that requires conversion");
+    TraceBlock cblock(context, "Constructing value that requires conversion");
 
     const std::any constructed_value = [&] {
         TraceBlock block(

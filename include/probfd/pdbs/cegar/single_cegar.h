@@ -23,7 +23,7 @@ namespace downward::utils {
 class CountdownTimer;
 class LogProxy;
 class RandomNumberGenerator;
-} // namespace utils
+} // namespace downward::utils
 
 namespace probfd::pdbs {
 class ProjectionStateSpace;

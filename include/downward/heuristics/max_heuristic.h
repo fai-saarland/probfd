@@ -50,6 +50,6 @@ public:
         const std::string& description,
         utils::Verbosity verbosity);
 };
-} // namespace max_heuristic
+} // namespace downward::max_heuristic
 
 #endif

@@ -152,8 +152,7 @@ RelaxationHeuristic::RelaxationHeuristic(
 
 bool RelaxationHeuristic::dead_ends_are_reliable() const
 {
-    return !task_properties::has_axioms(
-        get_axioms(transformed_task));
+    return !task_properties::has_axioms(get_axioms(transformed_task));
 }
 
 PropID RelaxationHeuristic::get_prop_id(int var, int value) const
@@ -184,8 +183,7 @@ Proposition* RelaxationHeuristic::get_proposition(const FactProxy& fact)
 
 void RelaxationHeuristic::build_unary_operators(const AxiomOrOperatorProxy& op)
 {
-    const auto& cost_function =
-        get_shared_cost_function(transformed_task);
+    const auto& cost_function = get_shared_cost_function(transformed_task);
 
     int op_no = op.is_axiom() ? -1 : op.get_id();
     int base_cost = cost_function->get_operator_cost(op.get_id());

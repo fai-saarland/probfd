@@ -41,17 +41,17 @@ public:
     int hash() const { return index; }
 
     friend bool operator==(OperatorID left, OperatorID right) = default;
-    friend auto operator<=>(OperatorID left, OperatorID right)= default;
+    friend auto operator<=>(OperatorID left, OperatorID right) = default;
 };
 
 std::ostream& operator<<(std::ostream& os, OperatorID id);
-}
+} // namespace downward
 
 namespace downward::utils {
 inline void feed(HashState& hash_state, OperatorID id)
 {
     feed(hash_state, id.hash());
 }
-} // namespace utils
+} // namespace downward::utils
 
 #endif

@@ -8,5 +8,5 @@
 
 namespace downward::tasks {
 extern UniqueAbstractTask read_root_task(std::istream& in);
-} // namespace tasks
+} // namespace downward::tasks
 #endif

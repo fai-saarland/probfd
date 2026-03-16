@@ -15,7 +15,7 @@ class VariableSpace;
 
 namespace downward::utils {
 class Timer;
-} // namespace utils
+} // namespace downward::utils
 
 namespace probfd::cartesian_abstractions {
 class AbstractState;
@@ -71,8 +71,7 @@ public:
     ~CEGAR();
 
     // Build abstraction.
-    CEGARResult
-    run_refinement_loop(const SharedProbabilisticTask& task);
+    CEGARResult run_refinement_loop(const SharedProbabilisticTask& task);
 
 private:
     bool may_keep_refining(const CartesianAbstraction& abstraction) const;

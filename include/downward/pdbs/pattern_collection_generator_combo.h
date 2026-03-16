@@ -17,6 +17,6 @@ class PatternCollectionGeneratorCombo : public PatternCollectionGenerator {
 public:
     PatternCollectionGeneratorCombo(int max_states, utils::Verbosity verbosity);
 };
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

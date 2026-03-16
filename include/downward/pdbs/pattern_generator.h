@@ -29,8 +29,7 @@ public:
     explicit PatternCollectionGenerator(utils::Verbosity verbosity);
     virtual ~PatternCollectionGenerator() = default;
 
-    PatternCollectionInformation
-    generate(const SharedAbstractTask& task);
+    PatternCollectionInformation generate(const SharedAbstractTask& task);
 };
 
 class PatternGenerator {
@@ -48,6 +47,6 @@ public:
     PatternInformation generate(const SharedAbstractTask& task);
 };
 
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

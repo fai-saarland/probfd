@@ -16,8 +16,8 @@ using VarToGroups = std::unordered_map<int, ValueGroups>;
   Factory for creating domain abstractions.
 */
 SharedAbstractTask build_domain_abstracted_task(
-    const SharedAbstractTask &parent,
-    const VarToGroups &value_groups);
-}
+    const SharedAbstractTask& parent,
+    const VarToGroups& value_groups);
+} // namespace downward::extra_tasks
 
 #endif

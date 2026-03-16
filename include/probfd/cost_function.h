@@ -24,6 +24,7 @@ public:
     }
 
     static TerminationInfo from_goal(value_t value) { return {true, value}; }
+
     static TerminationInfo from_non_goal(value_t value)
     {
         return {false, value};

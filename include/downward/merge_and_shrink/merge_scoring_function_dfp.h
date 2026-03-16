@@ -17,6 +17,6 @@ public:
 
     virtual bool requires_goal_distances() const override { return true; }
 };
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink
 
 #endif
