@@ -84,7 +84,9 @@ class TrapAwareLRTDPSolverFeature
           bool)> {
 public:
     TrapAwareLRTDPSolverFeature()
-        : InternalFunctionDefinition("talrtdp", &TrapAwareLRTDPSolverFeature::func)
+        : InternalFunctionDefinition(
+              "talrtdp",
+              &TrapAwareLRTDPSolverFeature::func)
     {
         document_title("Trap-aware LRTDP");
         document_synopsis(

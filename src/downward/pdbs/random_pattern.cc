@@ -63,9 +63,7 @@ Pattern generate_random_pattern(
             }
         }
 
-        if (!found_neighbor) {
-            break;
-        }
+        if (!found_neighbor) { break; }
     }
 
     Pattern pattern(visited_vars.begin(), visited_vars.end());
@@ -73,4 +71,4 @@ Pattern generate_random_pattern(
     return pattern;
 }
 
-} // namespace pdbs
+} // namespace downward::pdbs

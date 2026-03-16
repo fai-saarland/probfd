@@ -2,8 +2,8 @@
 
 #include "downward/task_utils/successor_generator_internals.h"
 
-#include "downward/state.h"
 #include "downward/operator_space.h"
+#include "downward/state.h"
 
 #include "downward/utils/collections.h"
 #include "downward/utils/memory.h"

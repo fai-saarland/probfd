@@ -22,9 +22,8 @@ IncrementalCanonicalPDBs::IncrementalCanonicalPDBs(
 {
     pattern_databases->reserve(patterns->size());
     for (const Pattern& pattern : *patterns) add_pdb_for_pattern(pattern);
-    are_additive = compute_additive_vars(
-        get_variables(task),
-        get_operators(task));
+    are_additive =
+        compute_additive_vars(get_variables(task), get_operators(task));
     recompute_pattern_cliques();
 }
 

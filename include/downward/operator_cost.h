@@ -32,6 +32,6 @@ int get_adjusted_action_cost(
     OperatorCost cost_type,
     bool is_unit_cost);
 
-}
+} // namespace downward
 
 #endif

@@ -23,6 +23,6 @@ public:
         const std::string& description,
         utils::Verbosity verbosity);
 };
-} // namespace goal_count_heuristic
+} // namespace downward::goal_count_heuristic
 
 #endif

@@ -41,9 +41,7 @@ Interval& Interval::operator/=(value_t dividend)
 double Interval::length() const
 {
     // Handles infinities!
-    if (upper == lower) {
-        return 0.0;
-    }
+    if (upper == lower) { return 0.0; }
     return upper - lower;
 }
 

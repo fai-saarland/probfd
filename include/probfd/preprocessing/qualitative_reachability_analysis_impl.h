@@ -111,9 +111,7 @@ bool QualitativeReachabilityAnalysis<State, Action>::ExpansionInfo::
 
     if (transitions_in_scc) {
         if (exits_only_solvable) {
-            if (exits_scc) {
-                ++stack_info.active_exit_transitions;
-            }
+            if (exits_scc) { ++stack_info.active_exit_transitions; }
             ++stack_info.active_transitions;
         }
         stack_info.transition_flags.emplace_back(
@@ -336,6 +334,7 @@ void QualitativeReachabilityAnalysis<State, Action>::scc_found(
         }
 
         auto solvable_begin() { return solvable_beg; }
+
         auto solvable_end() { return partition.end(); }
 
         auto solvable()
@@ -388,9 +387,7 @@ void QualitativeReachabilityAnalysis<State, Action>::scc_found(
 
         bool promote_solvable(int s)
         {
-            if (!is_unsolvable(s)) {
-                return false;
-            }
+            if (!is_unsolvable(s)) { return false; }
 
             --solvable_beg;
 

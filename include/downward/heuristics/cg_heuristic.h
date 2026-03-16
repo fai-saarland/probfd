@@ -12,7 +12,7 @@
 namespace downward::domain_transition_graph {
 class DomainTransitionGraph;
 struct ValueNode;
-} // namespace domain_transition_graph
+} // namespace downward::domain_transition_graph
 
 namespace downward::cg_heuristic {
 class CGCache;
@@ -67,6 +67,6 @@ public:
 
     virtual bool dead_ends_are_reliable() const override;
 };
-} // namespace cg_heuristic
+} // namespace downward::cg_heuristic
 
 #endif

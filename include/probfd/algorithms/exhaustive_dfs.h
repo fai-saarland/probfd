@@ -100,26 +100,31 @@ struct SearchNodeInformation {
     {
         return status == NEW;
     }
+
     [[nodiscard]]
     bool is_open() const
     {
         return status == OPEN;
     }
+
     [[nodiscard]]
     bool is_onstack() const
     {
         return status == ONSTACK;
     }
+
     [[nodiscard]]
     bool is_closed() const
     {
         return status & CLOSED;
     }
+
     [[nodiscard]]
     bool is_dead_end() const
     {
         return status == DEAD || status == MARKED;
     }
+
     [[nodiscard]]
     bool is_marked_dead_end() const
     {

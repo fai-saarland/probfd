@@ -22,6 +22,6 @@ public:
 
     int get_value(const State& state) const;
 };
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

@@ -37,11 +37,9 @@ int CanonicalPDBs::get_value(const State& state) const
     }
     for (const PatternClique& clique : *pattern_cliques) {
         int clique_h = 0;
-        for (PatternID pdb_index : clique) {
-            clique_h += h_values[pdb_index];
-        }
+        for (PatternID pdb_index : clique) { clique_h += h_values[pdb_index]; }
         max_h = max(max_h, clique_h);
     }
     return max_h;
 }
-} // namespace pdbs
+} // namespace downward::pdbs

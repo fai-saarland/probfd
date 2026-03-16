@@ -466,7 +466,7 @@ struct transform_fn
     constexpr auto operator()(Rng&& Range) const noexcept(
         noexcept(transform_view<all_t<Rng>, F>(std::forward<Rng>(Range))))
         requires requires {
-            transform_view<all_t<Rng>, F>(static_cast<Rng&&>(Range));
+            transform_view<all_t<Rng>, F>(static_cast<Rng &&>(Range));
         }
     {
         return transform_view<all_t<Rng>, F>(std::forward<Rng>(Range));

@@ -68,7 +68,7 @@ constexpr auto slice_unique(TupleLike&& t)
 }
 
 template <typename... T, typename TupleLike>
-    requires (sizeof...(T) > 0)
+    requires(sizeof...(T) > 0)
 constexpr std::tuple<T...> slice(TupleLike&& t)
 {
     return std::forward_as_tuple(std::get<T>(std::forward<TupleLike>(t))...);

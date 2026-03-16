@@ -1,7 +1,7 @@
 #include "downward/heuristics/cg_cache.h"
 
-#include "downward/variable_space.h"
 #include "downward/state.h"
+#include "downward/variable_space.h"
 
 #include "downward/task_utils/causal_graph.h"
 
@@ -73,9 +73,7 @@ CGCache::CGCache(
         }
     }
 
-    if (log.is_at_least_normal()) {
-        log << "done!" << endl;
-    }
+    if (log.is_at_least_normal()) { log << "done!" << endl; }
 }
 
 int CGCache::compute_required_cache_size(
@@ -140,4 +138,4 @@ int CGCache::get_index(int var, const State& state, int from_val, int to_val)
     assert(utils::in_bounds(index, cache[var]));
     return index;
 }
-} // namespace cg_heuristic
+} // namespace downward::cg_heuristic

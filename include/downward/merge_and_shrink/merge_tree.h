@@ -7,7 +7,7 @@
 namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
-}
+} // namespace downward::utils
 
 namespace downward::merge_and_shrink {
 extern const int UNINITIALIZED;
@@ -18,40 +18,36 @@ extern const int UNINITIALIZED;
   leaf nodes that are not siblings (see also MergeTree class).
  */
 struct MergeTreeNode {
-    MergeTreeNode *parent;
-    MergeTreeNode *left_child;
-    MergeTreeNode *right_child;
+    MergeTreeNode* parent;
+    MergeTreeNode* left_child;
+    MergeTreeNode* right_child;
     int ts_index;
 
     MergeTreeNode() = delete;
     // Copy constructor. Does not set parent pointers.
-    MergeTreeNode(const MergeTreeNode &other);
+    MergeTreeNode(const MergeTreeNode& other);
     MergeTreeNode(int ts_index);
-    MergeTreeNode(MergeTreeNode *left_child, MergeTreeNode *right_child);
+    MergeTreeNode(MergeTreeNode* left_child, MergeTreeNode* right_child);
     ~MergeTreeNode();
 
-    MergeTreeNode *get_left_most_sibling();
+    MergeTreeNode* get_left_most_sibling();
     std::pair<int, int> erase_children_and_set_index(int new_index);
     // Find the parent node for the given index.
-    MergeTreeNode *get_parent_of_ts_index(int index);
+    MergeTreeNode* get_parent_of_ts_index(int index);
     int compute_num_internal_nodes() const;
-    void inorder(int offset, int current_indentation, utils::LogProxy &log) const;
+    void
+    inorder(int offset, int current_indentation, utils::LogProxy& log) const;
 
-    bool is_leaf() const {
-        return !left_child && !right_child;
-    }
+    bool is_leaf() const { return !left_child && !right_child; }
 
-    bool has_two_leaf_children() const {
-        return left_child && right_child &&
-               left_child->is_leaf() && right_child->is_leaf();
+    bool has_two_leaf_children() const
+    {
+        return left_child && right_child && left_child->is_leaf() &&
+               right_child->is_leaf();
     }
 };
 
-enum class UpdateOption {
-    USE_FIRST,
-    USE_SECOND,
-    USE_RANDOM
-};
+enum class UpdateOption { USE_FIRST, USE_SECOND, USE_RANDOM };
 
 /*
   This class manages a binary tree data structure (MergeTreeNode) that
@@ -79,7 +75,7 @@ enum class UpdateOption {
   future node representing the merge.
 */
 class MergeTree {
-    MergeTreeNode *root;
+    MergeTreeNode* root;
     std::shared_ptr<utils::RandomNumberGenerator> rng;
     UpdateOption update_option;
     /*
@@ -87,13 +83,15 @@ class MergeTree {
       one will correspond to a merge that would have been merged earlier in
       the merge tree than the second one.
     */
-    std::pair<MergeTreeNode *, MergeTreeNode *> get_parents_of_ts_indices(
-        const std::pair<int, int> &ts_indices, int new_index);
+    std::pair<MergeTreeNode*, MergeTreeNode*> get_parents_of_ts_indices(
+        const std::pair<int, int>& ts_indices,
+        int new_index);
     MergeTree() = delete;
+
 public:
     MergeTree(
-        MergeTreeNode *root,
-        const std::shared_ptr<utils::RandomNumberGenerator> &rng,
+        MergeTreeNode* root,
+        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         UpdateOption update_option);
     ~MergeTree();
     std::pair<int, int> get_next_merge(int new_index);
@@ -103,19 +101,18 @@ public:
     */
     void update(std::pair<int, int> merge, int new_index);
 
-    bool done() const {
-        return root->is_leaf();
-    }
+    bool done() const { return root->is_leaf(); }
 
-    int compute_num_internal_nodes() const {
+    int compute_num_internal_nodes() const
+    {
         return root->compute_num_internal_nodes();
     }
 
     // NOTE: this performs the "inverted" inorder_traversal, i.e. from right
     // to left, so that the printed tree matches the correct left-to-right
     // order.
-    void inorder_traversal(int indentation_offset, utils::LogProxy &log) const;
+    void inorder_traversal(int indentation_offset, utils::LogProxy& log) const;
 };
-}
+} // namespace downward::merge_and_shrink
 
 #endif

@@ -43,6 +43,6 @@ public:
 
     bool dead_ends_are_reliable() const override;
 };
-} // namespace landmarks
+} // namespace downward::landmarks
 
 #endif

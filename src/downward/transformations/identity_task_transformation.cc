@@ -12,8 +12,8 @@ int IdentityOperatorMapping::convert_operator_index(int index) const
     return index;
 }
 
-TaskTransformationResult IdentityTaskTransformation::transform(
-    const SharedAbstractTask& original_task)
+TaskTransformationResult
+IdentityTaskTransformation::transform(const SharedAbstractTask& original_task)
 {
     return {
         original_task,
@@ -21,4 +21,4 @@ TaskTransformationResult IdentityTaskTransformation::transform(
         std::make_shared<IdentityOperatorMapping>()};
 }
 
-}
+} // namespace downward

@@ -123,6 +123,6 @@ public:
     bool get_calculate_preferred() const;
 };
 
-}
+} // namespace downward
 
 #endif

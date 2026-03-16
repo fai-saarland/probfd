@@ -106,7 +106,9 @@ RandomWalkSampler::RandomWalkSampler(
     , axiom_evaluator(evaluator)
     , successor_generator(
           std::make_unique<
-              successor_generator::ProbabilisticSuccessorGenerator>(variables, operators))
+              successor_generator::ProbabilisticSuccessorGenerator>(
+              variables,
+              operators))
     , average_operator_costs(
           task_properties::get_average_operator_cost(operators, cost_function))
     , rng(rng)

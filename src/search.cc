@@ -127,7 +127,8 @@ static auto construct_solver(argparse::ArgumentParser& parser)
     register_definitions(registry);
 
     // Type check
-    const std::unique_ptr<DecoratedASTNode> decorated = parsed->static_analysis(registry);
+    const std::unique_ptr<DecoratedASTNode> decorated =
+        parsed->static_analysis(registry);
 
     // Remove unused definitions if enabled
     if (parser.get<bool>("--ignore-unused-definitions")) {

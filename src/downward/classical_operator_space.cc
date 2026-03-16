@@ -21,4 +21,4 @@ State OperatorProxy::get_registered_successor(
     return registry.get_successor_state(state, get_effects());
 }
 
-}
+} // namespace downward

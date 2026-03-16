@@ -9,10 +9,11 @@
 namespace downward {
 class StateMapping;
 class State;
-}
+} // namespace downward
 
 namespace downward::cartesian_abstractions {
 class RefinementHierarchy;
+
 /*
   Store RefinementHierarchy and heuristic values for looking up abstract state
   IDs and corresponding heuristic values efficiently.
@@ -36,6 +37,6 @@ public:
 
     int get_value(const State& state) const;
 };
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions
 
 #endif

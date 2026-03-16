@@ -79,6 +79,6 @@ extern std::vector<int> compute_abstraction_mapping(
     const StateEquivalenceRelation& equivalence_relation);
 
 extern bool is_goal_relevant(const TransitionSystem& ts);
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink
 
 #endif

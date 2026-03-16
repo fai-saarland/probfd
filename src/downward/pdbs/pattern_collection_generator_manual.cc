@@ -33,4 +33,4 @@ PatternCollectionInformation PatternCollectionGeneratorManual::compute_patterns(
     return PatternCollectionInformation(to_refs(task), patterns, log);
 }
 
-} // namespace pdbs
+} // namespace downward::pdbs

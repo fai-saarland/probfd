@@ -41,5 +41,5 @@ public:
 
     bool is_true_in_state(const State& state) const;
 };
-} // namespace landmarks
+} // namespace downward::landmarks
 #endif

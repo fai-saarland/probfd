@@ -61,6 +61,6 @@ public:
 
     ~MergeAndShrinkHeuristic() override;
 };
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink
 
 #endif // MERGE_AND_SHRINK_MERGE_AND_SHRINK_HEURISTIC_H

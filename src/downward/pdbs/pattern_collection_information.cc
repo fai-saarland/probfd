@@ -77,9 +77,8 @@ void PatternCollectionInformation::create_pattern_cliques_if_missing()
             log << "Computing pattern cliques for pattern collection..."
                 << endl;
         }
-        const VariableAdditivity are_additive = compute_additive_vars(
-            get_variables(task),
-            get_operators(task));
+        const VariableAdditivity are_additive =
+            compute_additive_vars(get_variables(task), get_operators(task));
         pattern_cliques = compute_pattern_cliques(*patterns, are_additive);
         if (log.is_at_least_normal()) {
             log << "Done computing pattern cliques for pattern collection: "

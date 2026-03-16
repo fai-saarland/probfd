@@ -11,6 +11,4 @@
 
 namespace downward {
 
-
-
 }

@@ -15,6 +15,6 @@ public:
     {
     }
 };
-} // namespace g_evaluator
+} // namespace downward::g_evaluator
 
 #endif

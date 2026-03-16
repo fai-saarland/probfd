@@ -95,8 +95,7 @@ void PatternCollectionInformation::create_pdbs_if_missing()
     if (pdbs_.size() != patterns_.size()) {
         assert(pdbs_.empty());
 
-            println(std::cout, "Computing PDBs for pattern collection...");
-
+        println(std::cout, "Computing PDBs for pattern collection...");
 
         utils::Timer timer;
 
@@ -112,9 +111,7 @@ void PatternCollectionInformation::create_pdbs_if_missing()
 
         timer.stop();
 
-            println(std::cout, "PDBs for pattern collection: {}",
-                timer());
-
+        println(std::cout, "PDBs for pattern collection: {}", timer());
     }
 }
 

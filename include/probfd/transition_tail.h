@@ -42,9 +42,7 @@ struct SuccessorDistribution {
         auto it = non_source_successor_dist.begin();
         value_t sum = it->probability;
 
-        while (sum <= r) {
-            sum += (++it)->probability;
-        }
+        while (sum <= r) { sum += (++it)->probability; }
 
         return it;
     }

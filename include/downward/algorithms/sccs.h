@@ -19,7 +19,7 @@ namespace downward::sccs {
   "supervertex" is necessarily acyclic. The SCCs returned by this function are
   in a topological sort order with regard to this derived DAG.
 */
-std::vector<std::vector<int>> compute_maximal_sccs(
-    const std::vector<std::vector<int>> &graph);
-}
+std::vector<std::vector<int>>
+compute_maximal_sccs(const std::vector<std::vector<int>>& graph);
+} // namespace downward::sccs
 #endif

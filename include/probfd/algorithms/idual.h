@@ -36,6 +36,7 @@ struct Statistics {
 
 struct PerStateInfo {
     enum { NEW, OPEN, CLOSED, TERMINAL };
+
     unsigned var_idx = std::numeric_limits<unsigned>::max();
     unsigned constraints_idx = std::numeric_limits<unsigned>::max();
     uint8_t status = NEW;

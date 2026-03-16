@@ -18,9 +18,7 @@ private:
     const bool require_goal_distances;
 
 public:
-    ShrinkStrategyBisimulation(
-        AtLimit at_limit,
-        bool require_goal_distances);
+    ShrinkStrategyBisimulation(AtLimit at_limit, bool require_goal_distances);
 
     StateEquivalenceRelation compute_equivalence_relation(
         const Labels& labels,

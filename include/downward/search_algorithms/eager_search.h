@@ -10,7 +10,7 @@
 namespace downward {
 class Evaluator;
 class PruningMethod;
-}
+} // namespace downward
 
 namespace downward::eager_search {
 class EagerSearch : public IterativeSearchAlgorithm<EagerSearch> {
@@ -55,6 +55,6 @@ private:
     SearchStatus step();
 };
 
-} // namespace eager_search
+} // namespace downward::eager_search
 
 #endif

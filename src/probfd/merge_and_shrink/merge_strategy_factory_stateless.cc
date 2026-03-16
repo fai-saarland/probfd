@@ -31,9 +31,7 @@ string MergeStrategyFactoryStateless::name() const
 
 void MergeStrategyFactoryStateless::dump_strategy_specific_options() const
 {
-    if (log.is_at_least_normal()) {
-        merge_selector->dump_options(log);
-    }
+    if (log.is_at_least_normal()) { merge_selector->dump_options(log); }
 }
 
 bool MergeStrategyFactoryStateless::requires_liveness() const

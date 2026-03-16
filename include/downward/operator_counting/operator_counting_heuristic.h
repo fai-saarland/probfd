@@ -41,6 +41,6 @@ public:
         const std::string& description,
         utils::Verbosity verbosity);
 };
-} // namespace operator_counting
+} // namespace downward::operator_counting
 
 #endif

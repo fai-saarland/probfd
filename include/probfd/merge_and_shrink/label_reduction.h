@@ -13,7 +13,7 @@ class EquivalenceRelation;
 namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
-} // namespace utils
+} // namespace downward::utils
 
 namespace probfd::merge_and_shrink {
 class FactoredTransitionSystem;
@@ -77,6 +77,7 @@ public:
     void dump_options(downward::utils::LogProxy& log) const;
 
     bool reduce_before_shrinking() const { return lr_before_shrinking; }
+
     bool reduce_before_merging() const { return lr_before_merging; }
 };
 

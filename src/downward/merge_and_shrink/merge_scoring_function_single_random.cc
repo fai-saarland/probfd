@@ -44,4 +44,4 @@ void MergeScoringFunctionSingleRandom::dump_function_specific_options(
 {
 }
 
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

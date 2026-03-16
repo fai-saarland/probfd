@@ -120,9 +120,7 @@ int ShrinkBisimulation::initialize_groups(
     int num_groups = 1; // Group 0 is for goal states.
     for (int state = 0; state < ts.get_size(); ++state) {
         int h = distances.get_goal_distance(state);
-        if (h == INF) {
-            h = IRRELEVANT;
-        }
+        if (h == INF) { h = IRRELEVANT; }
         if (ts.is_goal_state(state)) {
             assert(h == 0);
             state_to_group[state] = 0;
@@ -151,9 +149,7 @@ void ShrinkBisimulation::compute_signatures(
     signatures.push_back(Signature(-2, false, -1, SuccessorSignature(), -1));
     for (int state = 0; state < ts.get_size(); ++state) {
         int h = distances.get_goal_distance(state);
-        if (h == INF) {
-            h = IRRELEVANT;
-        }
+        if (h == INF) { h = IRRELEVANT; }
         Signature signature(
             h,
             ts.is_goal_state(state),
@@ -291,9 +287,7 @@ StateEquivalenceRelation ShrinkBisimulation::compute_equivalence_relation(
             int num_new_groups = 0;
             int sig_end;
             for (sig_end = sig_start; true; ++sig_end) {
-                if (signatures[sig_end].h_and_goal != h_and_goal) {
-                    break;
-                }
+                if (signatures[sig_end].h_and_goal != h_and_goal) { break; }
 
                 const Signature& prev_sig = signatures[sig_end - 1];
                 const Signature& curr_sig = signatures[sig_end];
@@ -388,4 +382,4 @@ void ShrinkBisimulation::dump_strategy_specific_options(
     }
 }
 
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

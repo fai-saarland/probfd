@@ -73,9 +73,7 @@ unique_ptr<Trace> AStarTraceGenerator::find_trace(
     scope_exit guard([&] {
         open_queue_.clear();
 
-        for (AbstractSearchInfo& info : search_info_) {
-            info.reset();
-        }
+        for (AbstractSearchInfo& info : search_info_) { info.reset(); }
     });
 
     const auto& out =

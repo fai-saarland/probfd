@@ -80,6 +80,6 @@ public:
         return LabelsConstIterator(label_costs, label_costs.end());
     }
 };
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink
 
 #endif

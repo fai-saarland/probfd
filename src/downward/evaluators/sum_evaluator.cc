@@ -25,4 +25,4 @@ int SumEvaluator::combine_values(const vector<int>& values)
     return result;
 }
 
-} // namespace sum_evaluator
+} // namespace downward::sum_evaluator

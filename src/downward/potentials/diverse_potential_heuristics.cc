@@ -159,4 +159,4 @@ DiversePotentialHeuristics::find_functions()
     return std::move(diverse_functions);
 }
 
-} // namespace potentials
+} // namespace downward::potentials

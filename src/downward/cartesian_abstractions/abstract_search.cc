@@ -21,9 +21,7 @@ void AbstractSearch::reset(int num_states)
 {
     open_queue.clear();
     search_info.resize(num_states);
-    for (AbstractSearchInfo& info : search_info) {
-        info.reset();
-    }
+    for (AbstractSearchInfo& info : search_info) { info.reset(); }
 }
 
 unique_ptr<Solution>
@@ -114,9 +112,7 @@ int AbstractSearch::astar_search(
         int new_f = g + search_info[state_id].get_h_value();
         assert(new_f <= old_f);
         if (new_f < old_f) continue;
-        if (goals.count(state_id)) {
-            return state_id;
-        }
+        if (goals.count(state_id)) { return state_id; }
         assert(utils::in_bounds(state_id, transitions));
         for (const Transition& transition : transitions[state_id]) {
             int op_id = transition.op_id;
@@ -199,4 +195,4 @@ vector<int> compute_distances(
     }
     return distances;
 }
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions

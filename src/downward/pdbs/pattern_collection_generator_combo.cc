@@ -23,9 +23,7 @@ PatternCollectionGeneratorCombo::PatternCollectionGeneratorCombo(
     , max_states(max_states)
     , verbosity(verbosity)
 {
-    if (max_states < 1) {
-        throw std::domain_error("max_states must be >= 1.");
-    }
+    if (max_states < 1) { throw std::domain_error("max_states must be >= 1."); }
 }
 
 string PatternCollectionGeneratorCombo::name() const

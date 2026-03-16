@@ -18,7 +18,7 @@ class AxiomSpace;
 
 template <typename>
 class OperatorCostFunction;
-}
+} // namespace downward
 
 namespace probfd {
 class ProbabilisticOperatorProxy;

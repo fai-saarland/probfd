@@ -69,6 +69,6 @@ public:
 
     std::unique_ptr<PotentialFunction> get_potential_function() const;
 };
-} // namespace potentials
+} // namespace downward::potentials
 
 #endif

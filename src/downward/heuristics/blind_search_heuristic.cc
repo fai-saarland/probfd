@@ -53,9 +53,7 @@ BlindSearchHeuristic::BlindSearchHeuristic(
 int BlindSearchHeuristic::compute_heuristic(const State& ancestor_state)
 {
     State state = convert_ancestor_state(ancestor_state);
-    if (task_properties::is_goal_state(
-            get_goal(transformed_task),
-            state))
+    if (task_properties::is_goal_state(get_goal(transformed_task), state))
         return 0;
     else
         return min_operator_cost;

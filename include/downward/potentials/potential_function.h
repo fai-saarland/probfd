@@ -19,11 +19,11 @@ class PotentialFunction {
 
 public:
     explicit PotentialFunction(
-        const std::vector<std::vector<double>> &fact_potentials);
+        const std::vector<std::vector<double>>& fact_potentials);
     ~PotentialFunction() = default;
 
-    int get_value(const State &state) const;
+    int get_value(const State& state) const;
 };
-}
+} // namespace downward::potentials
 
 #endif

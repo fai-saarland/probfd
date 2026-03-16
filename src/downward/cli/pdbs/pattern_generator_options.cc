@@ -10,8 +10,9 @@ using namespace language::plugins;
 
 namespace downward::cli::pdbs {
 
-std::size_t
-add_generator_options_to_feature(InternalFunctionDefinitionBase& feature, std::size_t start_index)
+std::size_t add_generator_options_to_feature(
+    InternalFunctionDefinitionBase& feature,
+    std::size_t start_index)
 {
     return utils::add_log_options_to_feature(feature, start_index);
 }

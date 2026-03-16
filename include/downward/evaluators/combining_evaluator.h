@@ -47,6 +47,6 @@ public:
     get_path_dependent_evaluators(std::set<Evaluator*>& evals) override;
 };
 
-} // namespace combining_evaluator
+} // namespace downward::combining_evaluator
 
 #endif

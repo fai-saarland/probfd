@@ -12,7 +12,7 @@ class Context;
 namespace language::parser {
 enum class TokenType;
 struct Token;
-}
+} // namespace language::parser
 
 namespace language::parser {
 

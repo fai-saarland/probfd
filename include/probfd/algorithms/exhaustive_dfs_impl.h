@@ -181,9 +181,7 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
         return false;
     }
 
-    if constexpr (UseInterval) {
-        info.value.lower = estimate;
-    }
+    if constexpr (UseInterval) { info.value.lower = estimate; }
 
     info.open();
 
@@ -230,9 +228,7 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::push_state(
         auto& t = si.successors[i];
         const auto& a = aops[i];
 
-        if (succs.non_source_successor_dist.empty()) {
-            continue;
-        }
+        if (succs.non_source_successor_dist.empty()) { continue; }
 
         pure_self_loop = false;
 
@@ -508,25 +504,19 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
         ProgressReport& progress)
 {
     auto it = expansion_infos_.rbegin();
-    if (!was_poped) {
-        it += 2;
-    }
+    if (!was_poped) { it += 2; }
 
     for (; it != expansion_infos_.rend(); ++it) {
         StackInformation& st = stack_infos_[it->stack_index];
         SearchNodeInfo& sn = search_space_[st.state_ref];
         const auto& t = st.successors[st.successors.size() - st.i - 1];
         const value_t v = t.closed_value + it->succ->probability * val;
-        if (!update_lower_bound(sn.value, v)) {
-            break;
-        }
+        if (!update_lower_bound(sn.value, v)) { break; }
 
         val = v;
     }
 
-    if (it == expansion_infos_.rend()) {
-        progress.print();
-    }
+    if (it == expansion_infos_.rend()) { progress.print(); }
 }
 
 template <typename State, typename Action, bool UseInterval>

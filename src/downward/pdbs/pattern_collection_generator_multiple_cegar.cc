@@ -59,4 +59,4 @@ PatternInformation PatternCollectionGeneratorMultipleCegar::compute_pattern(
         std::move(blacklisted_variables));
 }
 
-} // namespace pdbs
+} // namespace downward::pdbs

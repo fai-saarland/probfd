@@ -69,8 +69,8 @@ public:
         bool use_general_costs,
         downward::utils::Verbosity verbosity);
 
-    std::unique_ptr<FDRHeuristic> create_object(
-        const SharedProbabilisticTask& task) override;
+    std::unique_ptr<FDRHeuristic>
+    create_object(const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::heuristics

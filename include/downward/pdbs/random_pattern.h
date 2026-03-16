@@ -14,7 +14,7 @@ class VariableSpace;
 namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
-} // namespace utils
+} // namespace downward::utils
 
 namespace downward::pdbs {
 /*
@@ -33,6 +33,6 @@ extern Pattern generate_random_pattern(
     int goal_variable,
     std::vector<std::vector<int>>& cg_neighbors);
 
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

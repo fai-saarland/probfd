@@ -8,9 +8,9 @@
 
 #include "probfd/task_utils/task_properties.h"
 
+#include "probfd/probabilistic_operator_space.h"
 #include "probfd/probabilistic_task.h"
 #include "probfd/value_type.h"
-#include "probfd/probabilistic_operator_space.h"
 
 #include "downward/utils/collections.h"
 #include "downward/utils/rng.h"
@@ -135,8 +135,7 @@ GZOCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
     const auto& variables = get_variables(task);
     const auto& operators = get_operators(task);
     const auto& init_vals = get_init(task);
-    const auto& cost_function =
-        get_cost_function(task);
+    const auto& cost_function = get_cost_function(task);
     const auto& term_costs = get_termination_costs(task);
 
     const State& init_state = init_vals.get_initial_state();

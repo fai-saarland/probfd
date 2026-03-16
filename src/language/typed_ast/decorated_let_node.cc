@@ -114,14 +114,20 @@ void DecoratedLetNode::print(
     if (!decorated_variable_definitions.empty()) {
         {
             const auto& def = decorated_variable_definitions.front();
-            def->variable_expression->print(out, indent + 4, print_default_args);
+            def->variable_expression->print(
+                out,
+                indent + 4,
+                print_default_args);
             std::println(out, " as {}", def->variable_name);
         }
 
         for (const auto& def :
              decorated_variable_definitions | std::views::drop(1)) {
             std::println(out, ",");
-            def->variable_expression->print(out, indent + 4, print_default_args);
+            def->variable_expression->print(
+                out,
+                indent + 4,
+                print_default_args);
             std::println(out, " as {}", def->variable_name);
         }
     }

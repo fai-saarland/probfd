@@ -19,6 +19,6 @@ std::vector<State> sample_without_dead_end_detection(
     int num_samples,
     utils::RandomNumberGenerator& rng);
 
-} // namespace potentials
+} // namespace downward::potentials
 
 #endif

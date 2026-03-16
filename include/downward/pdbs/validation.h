@@ -21,6 +21,6 @@ extern void validate_and_normalize_patterns(
     const VariableSpace& variables,
     PatternCollection& patterns,
     utils::LogProxy& log);
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

@@ -25,6 +25,6 @@ public:
         const std::string& description,
         utils::Verbosity verbosity);
 };
-} // namespace blind_search_heuristic
+} // namespace downward::blind_search_heuristic
 
 #endif

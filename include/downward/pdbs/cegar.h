@@ -13,7 +13,7 @@
 namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
-} // namespace utils
+} // namespace downward::utils
 
 namespace downward::pdbs {
 /*
@@ -61,6 +61,6 @@ extern PatternInformation generate_pattern_with_cegar(
     std::unordered_set<int>&& blacklisted_variables =
         std::unordered_set<int>());
 
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

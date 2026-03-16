@@ -18,14 +18,14 @@ class TransitionSystem;
   product.
 */
 extern std::unique_ptr<TransitionSystem> shrink_before_merge_externally(
-    const FactoredTransitionSystem &fts,
+    const FactoredTransitionSystem& fts,
     int index1,
     int index2,
-    const ShrinkStrategy &shrink_strategy,
+    const ShrinkStrategy& shrink_strategy,
     int max_states,
     int max_states_before_merge,
     int shrink_threshold_before_merge,
-    utils::LogProxy &log);
-}
+    utils::LogProxy& log);
+} // namespace downward::merge_and_shrink
 
 #endif

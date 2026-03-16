@@ -14,7 +14,8 @@ template <typename Action>
 VDiffSuccessorSampler<Action>::VDiffSuccessorSampler(
     int random_seed,
     bool prefer_large_gaps)
-    : rng_(std::make_shared<downward::utils::RandomNumberGenerator>(random_seed))
+    : rng_(
+          std::make_shared<downward::utils::RandomNumberGenerator>(random_seed))
     , prefer_large_gaps_(prefer_large_gaps)
 {
 }
@@ -49,9 +50,7 @@ StateID VDiffSuccessorSampler<Action>::sample(
         }
     }
 
-    if (biased_.empty()) {
-        return successors.sample(*rng_)->item;
-    }
+    if (biased_.empty()) { return successors.sample(*rng_)->item; }
 
     return weighted_select(biased_, sum, *rng_)->item;
 }

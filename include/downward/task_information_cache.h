@@ -30,8 +30,8 @@ public:
         const VariableSpace& variables,
         const OperatorSpace& operators);
 
-    const int_packer::IntPacker& get_state_packer(
-        const VariableSpace& variables);
+    const int_packer::IntPacker&
+    get_state_packer(const VariableSpace& variables);
 };
 
 } // namespace downward

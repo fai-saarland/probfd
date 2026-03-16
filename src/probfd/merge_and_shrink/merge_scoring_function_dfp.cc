@@ -15,9 +15,7 @@ namespace probfd::merge_and_shrink {
 static bool is_self_loop(const Transition& transition)
 {
     for (const int target : transition.targets) {
-        if (target != transition.src) {
-            return false;
-        }
+        if (target != transition.src) { return false; }
     }
 
     return true;
@@ -55,9 +53,7 @@ compute_label_ranks(const FactoredTransitionSystem& fts, int index)
             }
         }
 
-        for (const int label : label_group) {
-            label_ranks[label] = label_rank;
-        }
+        for (const int label : label_group) { label_ranks[label] = label_rank; }
     }
 
     return label_ranks;

@@ -17,6 +17,6 @@ public:
         const std::string& description,
         utils::Verbosity verbosity);
 };
-} // namespace sum_evaluator
+} // namespace downward::sum_evaluator
 
 #endif

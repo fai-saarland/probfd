@@ -16,9 +16,7 @@ public:
 
     ~SegmentedArrayStore()
     {
-        for (void* segment : segments_) {
-            delete[](segment);
-        }
+        for (void* segment : segments_) { delete[] (segment); }
     }
 
     template <typename T>
@@ -46,4 +44,4 @@ public:
     }
 };
 
-} // namespace segmented_array_store
+} // namespace downward::segmented_array_store

@@ -20,8 +20,9 @@ using namespace language::plugins;
 namespace probfd::cli::solvers {
 
 template <bool Bisimulation, bool Fret>
-std::size_t
-add_mdp_hs_base_options_to_feature(InternalFunctionDefinitionBase& feature, std::size_t start_index)
+std::size_t add_mdp_hs_base_options_to_feature(
+    InternalFunctionDefinitionBase& feature,
+    std::size_t start_index)
 {
     feature.make_optional_argument_with_default(
         start_index,
@@ -47,8 +48,9 @@ add_mdp_hs_base_options_to_feature(InternalFunctionDefinitionBase& feature, std:
 }
 
 template <bool Bisimulation, bool Fret>
-std::size_t
-add_mdp_hs_options_to_feature(InternalFunctionDefinitionBase& feature, std::size_t start_index)
+std::size_t add_mdp_hs_options_to_feature(
+    InternalFunctionDefinitionBase& feature,
+    std::size_t start_index)
 {
     if constexpr (Fret) {
         feature.make_optional_argument_with_default(

@@ -50,9 +50,7 @@ compute_label_ranks(const FactoredTransitionSystem& fts, int index)
                         distances.get_goal_distance(transition.target));
             }
         }
-        for (int label : label_group) {
-            label_ranks[label] = label_rank;
-        }
+        for (int label : label_group) { label_ranks[label] = label_rank; }
     }
 
     return label_ranks;
@@ -102,4 +100,4 @@ string MergeScoringFunctionDFP::name() const
     return "dfp";
 }
 
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

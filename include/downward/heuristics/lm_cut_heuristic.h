@@ -30,6 +30,6 @@ public:
 
     ~LandmarkCutHeuristic() override;
 };
-} // namespace lm_cut_heuristic
+} // namespace downward::lm_cut_heuristic
 
 #endif

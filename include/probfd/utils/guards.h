@@ -20,6 +20,7 @@ public:
         : f_(std::move(f))
     {
     }
+
     ~scope_success()
     {
         if (!std::uncaught_exceptions()) f_();
@@ -35,6 +36,7 @@ public:
         : f_(std::move(f))
     {
     }
+
     ~scope_fail()
     {
         if (std::uncaught_exceptions()) f_();
@@ -50,6 +52,7 @@ public:
         : f_(std::move(f))
     {
     }
+
     ~scope_exit() { f_(); }
 };
 

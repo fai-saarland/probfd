@@ -25,9 +25,7 @@ public:
     {
         const auto state_id = state_space_->get_state_id(state);
         auto it = mapping_.find(state_id);
-        if (it != mapping_.end()) {
-            return it->second;
-        }
+        if (it != mapping_.end()) { return it->second; }
         return std::nullopt;
     }
 

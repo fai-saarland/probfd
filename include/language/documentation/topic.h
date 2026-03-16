@@ -46,6 +46,6 @@ public:
     std::string get_synopsis() const;
 };
 
-}
+} // namespace language::plugins
 
 #endif

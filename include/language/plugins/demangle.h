@@ -13,6 +13,6 @@ namespace language::plugins {
 /// Demangle a type name extracted from a std::type_index.
 std::string demangle(const char* name);
 
-}
+} // namespace language::plugins
 
 #endif

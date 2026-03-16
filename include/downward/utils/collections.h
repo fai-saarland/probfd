@@ -74,9 +74,7 @@ ValueType get_value_or_default(
     const ValueType& default_value)
 {
     auto it = dict.find(key);
-    if (it != dict.end()) {
-        return it->second;
-    }
+    if (it != dict.end()) { return it->second; }
     return default_value;
 }
 
@@ -137,10 +135,11 @@ int _estimate_hash_table_bytes(int num_entries)
     */
     int num_buckets = 0;
     const auto bounds = {
-        2,       5,        11,       23,       47,        97,       199,
-        409,     823,      1741,     3469,     6949,      14033,    28411,
-        57557,   116731,   236897,   480881,   976369,    1982627,  4026031,
-        8175383, 16601593, 33712729, 68460391, 139022417, 282312799};
+        2,          5,           11,         23,        47,         97,
+        199,        409,         823,        1741,      3469,       6949,
+        14033,      28411,       57557,      116731,    236897,     480881,
+        976369,     1'982'627,   4'026'031,  8'175'383, 16'601'593, 33'712'729,
+        68'460'391, 139'022'417, 282'312'799};
 
     for (int bound : bounds) {
         if (num_entries < bound) {
@@ -225,9 +224,7 @@ void insert_set(std::vector<T, A>& lhs, T element)
 template <typename T, typename A>
 void insert_set(std::vector<T, A>& lhs, const std::vector<T, A>& rhs)
 {
-    for (const auto& element : rhs) {
-        insert_set(lhs, element);
-    }
+    for (const auto& element : rhs) { insert_set(lhs, element); }
 }
 
 template <std::ranges::input_range T>
@@ -257,6 +254,6 @@ void release_container_memory(T& container)
     T().swap(container);
 }
 
-} // namespace utils
+} // namespace downward::utils
 
 #endif

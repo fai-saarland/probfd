@@ -23,4 +23,4 @@ int MaxEvaluator::combine_values(const vector<int>& values)
     return result;
 }
 
-} // namespace max_evaluator
+} // namespace downward::max_evaluator

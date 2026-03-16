@@ -52,4 +52,4 @@ void exit_with_reentrant(ExitCode exitcode)
     report_exit_code_reentrant(exitcode);
     _Exit(static_cast<int>(exitcode));
 }
-} // namespace utils
+} // namespace downward::utils

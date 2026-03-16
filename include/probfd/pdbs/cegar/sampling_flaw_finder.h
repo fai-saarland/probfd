@@ -16,7 +16,7 @@
 namespace downward {
 class StateID;
 class State;
-}
+} // namespace downward
 
 namespace downward::utils {
 class RandomNumberGenerator;

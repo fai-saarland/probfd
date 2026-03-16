@@ -102,6 +102,6 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, const Node& node);
 };
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions
 
 #endif

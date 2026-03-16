@@ -95,6 +95,6 @@ std::vector<int> compute_distances(
     const std::vector<Transitions>& transitions,
     const std::vector<int>& costs,
     const std::unordered_set<int>& start_ids);
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions
 
 #endif

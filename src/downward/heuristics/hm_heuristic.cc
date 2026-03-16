@@ -30,9 +30,7 @@ HMHeuristic::HMHeuristic(
     , has_cond_effects(
           task_properties::has_conditional_effects(
               get_operators(this->transformed_task)))
-    , goals(
-          task_properties::get_fact_pairs(
-              get_goal(this->transformed_task)))
+    , goals(task_properties::get_fact_pairs(get_goal(this->transformed_task)))
 {
     if (log.is_at_least_normal()) {
         log << "Using h^" << m << "." << endl;
@@ -62,17 +60,14 @@ HMHeuristic::HMHeuristic(
 
 bool HMHeuristic::dead_ends_are_reliable() const
 {
-    return !task_properties::has_axioms(
-               get_axioms(transformed_task)) &&
+    return !task_properties::has_axioms(get_axioms(transformed_task)) &&
            !has_cond_effects;
 }
 
 int HMHeuristic::compute_heuristic(const State& ancestor_state)
 {
     State state = convert_ancestor_state(ancestor_state);
-    if (task_properties::is_goal_state(
-            get_goal(transformed_task),
-            state)) {
+    if (task_properties::is_goal_state(get_goal(transformed_task), state)) {
         return 0;
     } else {
         Tuple s_tup = task_properties::get_fact_pairs(state | as_fact_pair_set);
@@ -128,8 +123,7 @@ void HMHeuristic::update_hm_table()
 
 void HMHeuristic::extend_tuple(const Tuple& t, const OperatorProxy& op)
 {
-    const auto& cost_function =
-        get_cost_function(this->transformed_task);
+    const auto& cost_function = get_cost_function(this->transformed_task);
 
     for (const auto& tuple : hm_table | std::views::keys) {
         bool contradict = false;

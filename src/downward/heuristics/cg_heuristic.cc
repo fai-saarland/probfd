@@ -101,8 +101,7 @@ int CGHeuristic::compute_heuristic(const State& ancestor_state)
     setup_domain_transition_graphs();
 
     int heuristic = 0;
-    for (const auto [var, value] :
-         get_goal(transformed_task)) {
+    for (const auto [var, value] : get_goal(transformed_task)) {
         DomainTransitionGraph* dtg = transition_graphs[var].get();
         int cost_for_goal = get_transition_cost(state, dtg, state[var], value);
         if (cost_for_goal == numeric_limits<int>::max()) {

@@ -49,9 +49,7 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
         StateID stateid = open_list_->pop();
         auto& info = this->state_infos_[stateid];
 
-        if (!info.is_on_fringe() || info.is_solved()) {
-            continue;
-        }
+        if (!info.is_on_fringe() || info.is_solved()) { continue; }
 
         ++this->statistics_.iterations;
 
@@ -131,9 +129,7 @@ bool ExhaustiveAOSearch<State, Action, UseInterval>::update_value_check_solved(
     const auto value = this->compute_bellman(state, transitions, mdp);
     bool value_changed = this->update_value(info, value, this->epsilon).changed;
 
-    if (info.unsolved == 0) {
-        info.set_solved();
-    }
+    if (info.unsolved == 0) { info.set_solved(); }
 
     return value_changed;
 }

@@ -207,9 +207,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::advance(
 {
     using enum BacktrackingUpdateType;
 
-    if (einfo.next_successor()) {
-        return true;
-    }
+    if (einfo.next_successor()) { return true; }
 
     if (backtrack_update_type_ == SINGLE ||
         (backtrack_update_type_ == ON_DEMAND && !einfo.value_converged)) {
@@ -338,9 +336,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
 
         einfo.value_converged = val_upd.converged;
 
-        if (!transition) {
-            return false;
-        }
+        if (!transition) { return false; }
 
         const bool cutoff = (cutoff_tip_ && is_tip_state) ||
                             (cutoff_inconsistent_ && !val_upd.converged);
@@ -375,8 +371,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::value_iteration(
     ++statistics_.convergence_value_iterations;
 
     for (;;) {
-        auto [value_changed, policy_changed] =
-            vi_step(mdp, range, timer);
+        auto [value_changed, policy_changed] = vi_step(mdp, range, timer);
 
         if (policy_changed) return false;
         if (!value_changed) break;

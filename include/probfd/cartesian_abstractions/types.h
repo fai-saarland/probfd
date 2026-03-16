@@ -11,13 +11,13 @@
 namespace downward {
 class StateMapping;
 class InverseOperatorMapping;
-}
+} // namespace downward
 
 namespace downward::cartesian_abstractions {
 class CartesianSet;
 class CartesianHeuristicFunction;
 class RefinementHierarchy;
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions
 
 namespace probfd {
 template <typename, typename>
@@ -31,7 +31,8 @@ struct ProbabilisticTransition;
 
 // Classed reused from classical implementation
 using CartesianSet = downward::cartesian_abstractions::CartesianSet;
-using RefinementHierarchy = downward::cartesian_abstractions::RefinementHierarchy;
+using RefinementHierarchy =
+    downward::cartesian_abstractions::RefinementHierarchy;
 
 // Typedefs reused from classical implementation
 using Goals = downward::cartesian_abstractions::Goals;

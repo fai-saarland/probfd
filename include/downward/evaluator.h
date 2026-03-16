@@ -97,6 +97,6 @@ public:
     */
     virtual int get_cached_estimate(const State& state) const;
 };
-}
+} // namespace downward
 
 #endif

@@ -41,7 +41,7 @@ static CanonicalPDBs get_canonical_pdbs(
     shared_ptr<PDBCollection> pdbs = pattern_collection_info.get_pdbs();
     shared_ptr<vector<PatternClique>> pattern_cliques =
         pattern_collection_info.get_pattern_cliques();
-    
+
     const auto& variables = get_variables(task);
 
     if (max_time_dominance_pruning > utils::FSeconds::zero()) {
@@ -124,4 +124,4 @@ int CanonicalPDBsHeuristic::compute_heuristic(const State& ancestor_state)
     }
 }
 
-} // namespace pdbs
+} // namespace downward::pdbs

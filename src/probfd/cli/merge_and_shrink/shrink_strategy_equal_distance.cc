@@ -19,7 +19,8 @@ using namespace probfd::cli::merge_and_shrink;
 
 namespace {
 
-InternalFunctionDefinitionBase& add_shrink_strategy_equal_distance_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_shrink_strategy_equal_distance_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "shrink_equal_distance",

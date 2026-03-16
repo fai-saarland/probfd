@@ -64,9 +64,7 @@ value_t DeadendPDBEvaluator::evaluate(StateRank state) const
 {
     int deterministic_val = pdb_.get_value_for_index(state);
 
-    if (deterministic_val == std::numeric_limits<int>::max()) {
-        return 0_vt;
-    }
+    if (deterministic_val == std::numeric_limits<int>::max()) { return 0_vt; }
 
     return -1_vt;
 }
@@ -141,17 +139,13 @@ value_t MergeEvaluator::evaluate(StateRank state) const
 
     auto leval = left_.lookup_estimate(lstate);
 
-    if (leval == termination_cost_) {
-        return leval;
-    }
+    if (leval == termination_cost_) { return leval; }
 
     const StateRank rstate = convert(state, mapper_, right_.ranking_function);
 
     auto reval = right_.lookup_estimate(rstate);
 
-    if (reval == termination_cost_) {
-        return reval;
-    }
+    if (reval == termination_cost_) { return reval; }
 
     return std::max(leval, reval);
 }

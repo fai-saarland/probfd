@@ -11,7 +11,7 @@
 namespace downward {
 class StateMapping;
 class InverseOperatorMapping;
-}
+} // namespace downward
 
 namespace downward::cartesian_abstractions {
 class AbstractState;
@@ -33,6 +33,6 @@ using SharedTasks = std::vector<std::tuple<
     std::shared_ptr<StateMapping>,
     std::shared_ptr<InverseOperatorMapping>>>;
 
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions
 
 #endif

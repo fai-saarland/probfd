@@ -173,9 +173,7 @@ void MergeAndShrinkHeuristic::extract_factors(FactoredTransitionSystem& fts)
     }
 
     bool unsolvalbe = extract_unsolvable_factor(fts);
-    if (!unsolvalbe) {
-        extract_nontrivial_factors(fts);
-    }
+    if (!unsolvalbe) { extract_nontrivial_factors(fts); }
 
     int num_factors_kept = mas_representations.size();
     if (log.is_at_least_normal()) {
@@ -199,4 +197,4 @@ int MergeAndShrinkHeuristic::compute_heuristic(const State& ancestor_state)
     return heuristic;
 }
 
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

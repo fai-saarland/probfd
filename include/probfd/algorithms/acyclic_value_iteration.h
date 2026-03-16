@@ -30,6 +30,7 @@ namespace internal {
 template <typename Action>
 struct StateInfo {
     enum Status : uint8_t { NEW, ON_STACK, CLOSED };
+
     Status status = NEW;
     std::optional<Action> best_action = std::nullopt;
     value_t value = -INFINITE_VALUE;

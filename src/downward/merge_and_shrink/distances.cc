@@ -209,9 +209,7 @@ void Distances::compute_distances(
         assert(init_distances.empty() && goal_distances.empty());
     }
 
-    if (log.is_at_least_verbose()) {
-        log << transition_system.tag();
-    }
+    if (log.is_at_least_verbose()) { log << transition_system.tag(); }
 
     int num_states = get_num_states();
     if (num_states == 0) {
@@ -223,12 +221,8 @@ void Distances::compute_distances(
         return;
     }
 
-    if (compute_init_distances) {
-        init_distances.resize(num_states, INF);
-    }
-    if (compute_goal_distances) {
-        goal_distances.resize(num_states, INF);
-    }
+    if (compute_init_distances) { init_distances.resize(num_states, INF); }
+    if (compute_goal_distances) { goal_distances.resize(num_states, INF); }
     if (log.is_at_least_verbose()) {
         log << "computing ";
         if (compute_init_distances && compute_goal_distances) {
@@ -241,36 +235,18 @@ void Distances::compute_distances(
         log << " distances using ";
     }
     if (is_unit_cost()) {
-        if (log.is_at_least_verbose()) {
-            log << "unit-cost";
-        }
-        if (compute_init_distances) {
-            compute_init_distances_unit_cost();
-        }
-        if (compute_goal_distances) {
-            compute_goal_distances_unit_cost();
-        }
+        if (log.is_at_least_verbose()) { log << "unit-cost"; }
+        if (compute_init_distances) { compute_init_distances_unit_cost(); }
+        if (compute_goal_distances) { compute_goal_distances_unit_cost(); }
     } else {
-        if (log.is_at_least_verbose()) {
-            log << "general-cost";
-        }
-        if (compute_init_distances) {
-            compute_init_distances_general_cost();
-        }
-        if (compute_goal_distances) {
-            compute_goal_distances_general_cost();
-        }
+        if (log.is_at_least_verbose()) { log << "general-cost"; }
+        if (compute_init_distances) { compute_init_distances_general_cost(); }
+        if (compute_goal_distances) { compute_goal_distances_general_cost(); }
     }
-    if (log.is_at_least_verbose()) {
-        log << " algorithm" << endl;
-    }
+    if (log.is_at_least_verbose()) { log << " algorithm" << endl; }
 
-    if (compute_init_distances) {
-        init_distances_computed = true;
-    }
-    if (compute_goal_distances) {
-        goal_distances_computed = true;
-    }
+    if (compute_init_distances) { init_distances_computed = true; }
+    if (compute_goal_distances) { goal_distances_computed = true; }
 }
 
 void Distances::apply_abstraction(
@@ -308,12 +284,8 @@ void Distances::apply_abstraction(
             state_equivalence_class.begin();
         int new_init_dist = -1;
         int new_goal_dist = -1;
-        if (compute_init_distances) {
-            new_init_dist = init_distances[*pos];
-        }
-        if (compute_goal_distances) {
-            new_goal_dist = goal_distances[*pos];
-        }
+        if (compute_init_distances) { new_init_dist = init_distances[*pos]; }
+        if (compute_goal_distances) { new_goal_dist = goal_distances[*pos]; }
 
         ++pos;
         for (; pos != state_equivalence_class.end(); ++pos) {
@@ -359,9 +331,7 @@ void Distances::dump(utils::LogProxy& log) const
             log << "Init distances: ";
             for (size_t i = 0; i < init_distances.size(); ++i) {
                 log << i << ": " << init_distances[i];
-                if (i != init_distances.size() - 1) {
-                    log << ", ";
-                }
+                if (i != init_distances.size() - 1) { log << ", "; }
             }
             log << endl;
         }
@@ -369,9 +339,7 @@ void Distances::dump(utils::LogProxy& log) const
             log << "Goal distances: ";
             for (size_t i = 0; i < goal_distances.size(); ++i) {
                 log << i << ": " << goal_distances[i] << ", ";
-                if (i != goal_distances.size() - 1) {
-                    log << ", ";
-                }
+                if (i != goal_distances.size() - 1) { log << ", "; }
             }
             log << endl;
         }
@@ -393,4 +361,4 @@ void Distances::statistics(utils::LogProxy& log) const
         log << endl;
     }
 }
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

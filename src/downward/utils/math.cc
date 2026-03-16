@@ -55,4 +55,4 @@ bool is_product_within_limits(
             safe_abs(lower_limit));
     }
 }
-} // namespace utils
+} // namespace downward::utils

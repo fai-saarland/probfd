@@ -7,4 +7,4 @@ MergeStrategy::MergeStrategy(const FactoredTransitionSystem& fts)
     : fts(fts)
 {
 }
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

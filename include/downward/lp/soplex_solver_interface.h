@@ -77,6 +77,6 @@ public:
     add_constraint(const LPConstraint& constraint, std::string_view name = "")
         override;
 };
-} // namespace lp
+} // namespace downward::lp
 
 #endif

@@ -23,6 +23,6 @@ public:
     {
     }
 };
-}
+} // namespace language
 
-#endif //LANGUAGE_CRITICAL_ERROR_H
+#endif // LANGUAGE_CRITICAL_ERROR_H

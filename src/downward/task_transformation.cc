@@ -18,4 +18,4 @@ OperatorID InverseOperatorMapping::get_ancestor_operator_id(int index) const
     return OperatorID(this->convert_operator_index(index));
 }
 
-}
+} // namespace downward

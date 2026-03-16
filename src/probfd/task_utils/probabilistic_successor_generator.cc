@@ -14,7 +14,8 @@ namespace probfd::successor_generator {
 ProbabilisticSuccessorGenerator::ProbabilisticSuccessorGenerator(
     const VariableSpace& variables,
     const OperatorSpace& operators)
-    : root_(ProbabilisticSuccessorGeneratorFactory(variables, operators).create())
+    : root_(
+          ProbabilisticSuccessorGeneratorFactory(variables, operators).create())
 {
 }
 

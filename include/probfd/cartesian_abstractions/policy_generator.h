@@ -8,7 +8,7 @@
 // Forward Declarations
 namespace downward::utils {
 class CountdownTimer;
-} // namespace utils
+} // namespace downward::utils
 
 namespace probfd::cartesian_abstractions {
 class CartesianAbstraction;

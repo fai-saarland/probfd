@@ -23,8 +23,9 @@ std::size_t add_landmark_factory_options_to_feature(
     return add_log_options_to_feature(feature, start_index);
 }
 
-std::size_t
-add_use_orders_option_to_feature(InternalFunctionDefinitionBase& feature, std::size_t start_index)
+std::size_t add_use_orders_option_to_feature(
+    InternalFunctionDefinitionBase& feature,
+    std::size_t start_index)
 {
     feature.make_optional_argument_with_default(
         start_index,

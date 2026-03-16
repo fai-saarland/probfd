@@ -28,18 +28,14 @@ int FactoredMapping::get_num_abstract_states() const
 void FactoredMapping::apply_abstraction(const vector<int>& abstraction_mapping)
 {
     for (int& entry : lookup_table) {
-        if (entry != PRUNED_STATE) {
-            entry = abstraction_mapping[entry];
-        }
+        if (entry != PRUNED_STATE) { entry = abstraction_mapping[entry]; }
     }
 }
 
 void FactoredMapping::scale(int scale)
 {
     for (int& entry : lookup_table) {
-        if (entry != PRUNED_STATE) {
-            entry *= scale;
-        }
+        if (entry != PRUNED_STATE) { entry *= scale; }
     }
 }
 

@@ -26,4 +26,4 @@ int PotentialFunction::get_value(const State& state) const
     const double epsilon = 0.01;
     return static_cast<int>(ceil(heuristic_value - epsilon));
 }
-} // namespace potentials
+} // namespace downward::potentials

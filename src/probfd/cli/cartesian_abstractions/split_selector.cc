@@ -18,7 +18,8 @@ using downward::cli::utils::add_rng_options_to_feature;
 
 namespace {
 
-InternalFunctionDefinitionBase& add_split_selector_random_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_split_selector_random_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "random",
@@ -35,12 +36,14 @@ InternalFunctionDefinitionBase& add_split_selector_random_to_namespace(Namespace
     return f;
 }
 
-InternalFunctionDefinitionBase& add_split_selector_min_unwanted_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_split_selector_min_unwanted_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "min_unwanted",
-        &language::plugins::
-            construct_shared<SplitSelectorFactory, SplitSelectorMinUnwantedFactory>);
+        &language::plugins::construct_shared<
+            SplitSelectorFactory,
+            SplitSelectorMinUnwantedFactory>);
 
     f.document_synopsis(
         "select an eligible variable which has the least unwanted values "
@@ -50,12 +53,14 @@ InternalFunctionDefinitionBase& add_split_selector_min_unwanted_to_namespace(Nam
     return f;
 }
 
-InternalFunctionDefinitionBase& add_split_selector_max_unwanted_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_split_selector_max_unwanted_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "max_unwanted",
-        &language::plugins::
-            construct_shared<SplitSelectorFactory, SplitSelectorMaxUnwantedFactory>);
+        &language::plugins::construct_shared<
+            SplitSelectorFactory,
+            SplitSelectorMaxUnwantedFactory>);
 
     f.document_synopsis(
         "select an eligible variable which has the most unwanted values "
@@ -65,12 +70,14 @@ InternalFunctionDefinitionBase& add_split_selector_max_unwanted_to_namespace(Nam
     return f;
 }
 
-InternalFunctionDefinitionBase& add_split_selector_min_refined_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_split_selector_min_refined_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "min_refined",
-        &language::plugins::
-            construct_shared<SplitSelectorFactory, SplitSelectorMinRefinedFactory>);
+        &language::plugins::construct_shared<
+            SplitSelectorFactory,
+            SplitSelectorMinRefinedFactory>);
 
     f.document_synopsis(
         "select an eligible variable which is the least refined "
@@ -80,12 +87,14 @@ InternalFunctionDefinitionBase& add_split_selector_min_refined_to_namespace(Name
     return f;
 }
 
-InternalFunctionDefinitionBase& add_split_selector_max_refined_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_split_selector_max_refined_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "max_refined",
-        &language::plugins::
-            construct_shared<SplitSelectorFactory, SplitSelectorMaxRefinedFactory>);
+        &language::plugins::construct_shared<
+            SplitSelectorFactory,
+            SplitSelectorMaxRefinedFactory>);
 
     f.document_synopsis(
         "select an eligible variable which is the most refined "
@@ -95,12 +104,14 @@ InternalFunctionDefinitionBase& add_split_selector_max_refined_to_namespace(Name
     return f;
 }
 
-InternalFunctionDefinitionBase& add_split_selector_min_hadd_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_split_selector_min_hadd_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "min_hadd",
-        &language::plugins::
-            construct_shared<SplitSelectorFactory, SplitSelectorMinHAddFactory>);
+        &language::plugins::construct_shared<
+            SplitSelectorFactory,
+            SplitSelectorMinHAddFactory>);
 
     f.document_synopsis(
         "select an eligible variable with minimal h^add(s_0) value "
@@ -109,12 +120,14 @@ InternalFunctionDefinitionBase& add_split_selector_min_hadd_to_namespace(Namespa
     return f;
 }
 
-InternalFunctionDefinitionBase& add_split_selector_max_hadd_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_split_selector_max_hadd_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "max_hadd",
-        &language::plugins::
-            construct_shared<SplitSelectorFactory, SplitSelectorMaxHAddFactory>);
+        &language::plugins::construct_shared<
+            SplitSelectorFactory,
+            SplitSelectorMaxHAddFactory>);
 
     f.document_synopsis(
         "Select an eligible variable with maximal h^add(s_0) value "

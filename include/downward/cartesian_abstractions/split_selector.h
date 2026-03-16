@@ -7,7 +7,6 @@
 #include <memory>
 #include <vector>
 
-
 namespace downward::additive_heuristic {
 class AdditiveHeuristic;
 }
@@ -71,6 +70,6 @@ public:
         const std::vector<Split>& splits,
         utils::RandomNumberGenerator& rng) const;
 };
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions
 
 #endif

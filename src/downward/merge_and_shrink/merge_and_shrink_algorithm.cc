@@ -72,8 +72,7 @@ void MergeAndShrinkAlgorithm::report_peak_memory_delta(bool final) const
     else
         log << "Current";
     log << " peak memory increase of merge-and-shrink algorithm: "
-        << utils::get_peak_memory_in_kib() - starting_peak_memory
-        << endl;
+        << utils::get_peak_memory_in_kib() - starting_peak_memory << endl;
 }
 
 void MergeAndShrinkAlgorithm::dump_options() const

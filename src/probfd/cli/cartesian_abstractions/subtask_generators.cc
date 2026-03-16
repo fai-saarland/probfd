@@ -19,11 +19,13 @@ using downward::cli::utils::add_rng_options_to_feature;
 
 namespace {
 
-InternalFunctionDefinitionBase& add_task_duplicator_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_task_duplicator_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "pcegar_original",
-        &language::plugins::construct_shared<SubtaskGenerator, TaskDuplicator, int>);
+        &language::plugins::
+            construct_shared<SubtaskGenerator, TaskDuplicator, int>);
 
     f.make_optional_argument_with_default(
         0,
@@ -34,12 +36,16 @@ InternalFunctionDefinitionBase& add_task_duplicator_to_namespace(Namespace& nspa
     return f;
 }
 
-InternalFunctionDefinitionBase& add_goal_decomposition_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_goal_decomposition_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "pcegar_goals",
-        &language::plugins::
-            construct_shared<SubtaskGenerator, GoalDecomposition, FactOrder, std::shared_ptr<RandomNumberGenerator>>);
+        &language::plugins::construct_shared<
+            SubtaskGenerator,
+            GoalDecomposition,
+            FactOrder,
+            std::shared_ptr<RandomNumberGenerator>>);
 
     f.make_optional_argument_with_default(
         0,
@@ -51,7 +57,8 @@ InternalFunctionDefinitionBase& add_goal_decomposition_to_namespace(Namespace& n
     return f;
 }
 
-InternalFunctionDefinitionBase& add_landmark_decomposition_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_landmark_decomposition_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "pcegar_landmarks",

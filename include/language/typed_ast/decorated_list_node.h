@@ -12,7 +12,8 @@ class DecoratedListNode : public DecoratedASTNode {
     std::vector<std::unique_ptr<DecoratedASTNode>> elements;
 
 public:
-    explicit DecoratedListNode(std::vector<std::unique_ptr<DecoratedASTNode>>&& elements);
+    explicit DecoratedListNode(
+        std::vector<std::unique_ptr<DecoratedASTNode>>&& elements);
 
     void remove_variable_usages() override;
 

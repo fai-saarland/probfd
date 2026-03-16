@@ -15,7 +15,7 @@ class EquivalenceRelation;
 namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
-} // namespace utils
+} // namespace downward::utils
 
 namespace downward::merge_and_shrink {
 class FactoredTransitionSystem;
@@ -83,9 +83,11 @@ public:
         FactoredTransitionSystem& fts,
         utils::LogProxy& log) const;
     void dump_options(utils::LogProxy& log) const;
+
     bool reduce_before_shrinking() const { return lr_before_shrinking; }
+
     bool reduce_before_merging() const { return lr_before_merging; }
 };
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink
 
 #endif

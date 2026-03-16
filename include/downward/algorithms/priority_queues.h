@@ -32,6 +32,7 @@ public:
     typedef std::pair<Key, Value> Entry;
 
     AbstractQueue() {}
+
     virtual ~AbstractQueue() {}
 
     virtual void push(const Key& key, const Value& value) = 0;
@@ -269,6 +270,6 @@ public:
         wrapped_queue->add_virtual_pushes(num_extra_pushes);
     }
 };
-} // namespace priority_queues
+} // namespace downward::priority_queues
 
 #endif

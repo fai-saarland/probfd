@@ -24,6 +24,6 @@ struct Transition {
         return os << "[" << t.op_id << "," << t.target_id << "]";
     }
 };
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions
 
 #endif

@@ -304,7 +304,7 @@ static void register_language_definitions(plugins::Registry& registry)
     add_infinity_feature_to_namespace(n);
 
     // Generic literal suffixes
-    add_scale_literal_feature_to_namespace<int, 1'000>(n, "__operator_int_k__");
+    add_scale_literal_feature_to_namespace<int, 1000>(n, "__operator_int_k__");
     add_scale_literal_feature_to_namespace<int, 1'000'000>(
         n,
         "__operator_int_m__");

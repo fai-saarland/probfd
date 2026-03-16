@@ -8,7 +8,8 @@ namespace probfd::successor_samplers {
 
 template <typename Action>
 RandomSuccessorSampler<Action>::RandomSuccessorSampler(int random_seed)
-    : rng_(std::make_shared<downward::utils::RandomNumberGenerator>(random_seed))
+    : rng_(
+          std::make_shared<downward::utils::RandomNumberGenerator>(random_seed))
 {
 }
 

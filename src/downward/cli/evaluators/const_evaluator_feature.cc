@@ -63,7 +63,11 @@ InternalFunctionDefinitionBase& add_const_evaluator_feature(Namespace& nspace)
     f.document_title("Constant evaluator");
     f.document_synopsis("Returns a constant value.");
 
-    f.make_optional_argument_with_default(0, "value", "1", "the constant value");
+    f.make_optional_argument_with_default(
+        0,
+        "value",
+        "1",
+        "the constant value");
     add_evaluator_options_to_feature(f, "const", 1);
 
     return f;

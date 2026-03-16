@@ -9,4 +9,4 @@ void ConstraintGenerator::initialize_constraints(
 {
 }
 
-} // namespace operator_counting
+} // namespace downward::operator_counting

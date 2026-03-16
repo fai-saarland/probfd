@@ -40,12 +40,13 @@ class FactoredTransitionSystem;
 */
 class MergeStrategy {
 protected:
-    const FactoredTransitionSystem &fts;
+    const FactoredTransitionSystem& fts;
+
 public:
-    explicit MergeStrategy(const FactoredTransitionSystem &fts);
+    explicit MergeStrategy(const FactoredTransitionSystem& fts);
     virtual ~MergeStrategy() = default;
     virtual std::pair<int, int> get_next() = 0;
 };
-}
+} // namespace downward::merge_and_shrink
 
 #endif

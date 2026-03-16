@@ -4,7 +4,7 @@
 namespace language::plugins {
 class InternalFunctionDefinitionBase;
 class Namespace;
-}
+} // namespace language::plugins
 
 namespace probfd::cli::heuristics {
 

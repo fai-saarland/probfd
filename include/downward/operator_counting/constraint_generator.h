@@ -15,7 +15,7 @@ class State;
 namespace downward::lp {
 class LinearProgram;
 class LPSolver;
-} // namespace lp
+} // namespace downward::lp
 
 namespace downward::operator_counting {
 /*
@@ -54,6 +54,6 @@ public:
     virtual bool
     update_constraints(const State& state, lp::LPSolver& lp_solver) = 0;
 };
-} // namespace operator_counting
+} // namespace downward::operator_counting
 
 #endif

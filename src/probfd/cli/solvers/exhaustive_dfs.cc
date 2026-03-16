@@ -104,7 +104,9 @@ class ExhaustiveDFSSolverFeature
           bool)> {
 public:
     ExhaustiveDFSSolverFeature()
-        : InternalFunctionDefinition("exhaustive_dfs", &ExhaustiveDFSSolverFeature::func)
+        : InternalFunctionDefinition(
+              "exhaustive_dfs",
+              &ExhaustiveDFSSolverFeature::func)
     {
         document_title("Exhaustive Depth-First Search");
 

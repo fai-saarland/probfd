@@ -205,9 +205,7 @@ bool EndComponentDecomposition<State, Action>::push(
         ++stats_.terminals;
         ++stats_.goals;
 
-        if (!expand_goals_) {
-            return false;
-        }
+        if (!expand_goals_) { return false; }
 
         state_info.expandable_goal = 1;
     } else if (
@@ -242,17 +240,13 @@ bool EndComponentDecomposition<State, Action>::push(
 
         for (StateID succ_id :
              successor_dist.non_source_successor_dist.support()) {
-            if (succ_id != state_id) {
-                succ_ids.push_back(succ_id);
-            }
+            if (succ_id != state_id) { succ_ids.push_back(succ_id); }
         }
 
         if (!succ_ids.empty()) {
             successors.emplace_back(std::move(succ_ids));
 
-            if (i != non_loop_actions) {
-                aops[non_loop_actions] = aops[i];
-            }
+            if (i != non_loop_actions) { aops[non_loop_actions] = aops[i]; }
 
             ++non_loop_actions;
         }
@@ -321,9 +315,7 @@ void EndComponentDecomposition<State, Action>::find_and_decompose_sccs(
     downward::utils::CountdownTimer& timer,
     auto&... mdp_and_h)
 {
-    if (expansion_queue_.size() <= limit) {
-        return;
-    }
+    if (expansion_queue_.size() <= limit) { return; }
 
     ExpansionInfo* e = &expansion_queue_.back();
     StackInfo* s = &stack_[e->stck];
@@ -356,9 +348,7 @@ void EndComponentDecomposition<State, Action>::find_and_decompose_sccs(
 
             expansion_queue_.pop_back();
 
-            if (expansion_queue_.size() <= limit) {
-                return;
-            }
+            if (expansion_queue_.size() <= limit) { return; }
 
             timer.throw_if_expired();
 
@@ -379,9 +369,7 @@ void EndComponentDecomposition<State, Action>::find_and_decompose_sccs(
             }
 
             // If a successor exists stop backtracking
-            if (e->next_successor()) {
-                break;
-            }
+            if (e->next_successor()) { break; }
 
             // Finalize fully explored transition.
             if (!e->nz_or_leaves_scc) {
@@ -413,9 +401,7 @@ bool EndComponentDecomposition<State, Action>::push_successor(
 
             switch (succ_info.get_status()) {
             case StateInfo::NEW:
-                if (push(succ_id, succ_info, mdp_and_h...)) {
-                    return true;
-                }
+                if (push(succ_id, succ_info, mdp_and_h...)) { return true; }
 
                 [[fallthrough]];
 
@@ -466,9 +452,7 @@ void EndComponentDecomposition<State, Action>::scc_found(
         // Update stats
         ++stats_.ec1;
 
-        if constexpr (RootIteration) {
-            ++stats_.sccs1;
-        }
+        if constexpr (RootIteration) { ++stats_.sccs1; }
     } else {
         if (expand_goals_) {
             for (auto& stk_info : scc) {
@@ -485,9 +469,7 @@ void EndComponentDecomposition<State, Action>::scc_found(
         if (e.recurse) {
             ++stats_.recursions;
 
-            if constexpr (RootIteration) {
-                ++stats_.sccsk;
-            }
+            if constexpr (RootIteration) { ++stats_.sccsk; }
 
             for (const auto& stk_info : scc) {
                 assert(stk_info.successors.size() == stk_info.aops.size());
@@ -513,9 +495,7 @@ void EndComponentDecomposition<State, Action>::scc_found(
             ++stats_.eck;
             stats_.ec_transitions += transitions;
 
-            if constexpr (RootIteration) {
-                ++stats_.sccsk;
-            }
+            if constexpr (RootIteration) { ++stats_.sccsk; }
         }
     }
 

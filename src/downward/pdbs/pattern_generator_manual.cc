@@ -34,4 +34,4 @@ PatternGeneratorManual::compute_pattern(const SharedAbstractTask& task)
     return pattern_info;
 }
 
-} // namespace pdbs
+} // namespace downward::pdbs

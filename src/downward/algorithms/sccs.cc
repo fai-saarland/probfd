@@ -79,4 +79,4 @@ vector<vector<int>> compute_maximal_sccs(const vector<vector<int>>& graph)
     reverse(sccs.begin(), sccs.end());
     return sccs;
 }
-} // namespace sccs
+} // namespace downward::sccs

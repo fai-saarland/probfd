@@ -49,7 +49,7 @@ public:
         return vec.begin() + random(vec.size());
     }
 
-    template<typename T>
+    template <typename T>
     void shuffle(std::vector<T>& vec)
     {
         std::shuffle(vec.begin(), vec.end(), rng);
@@ -58,6 +58,6 @@ public:
 
 std::shared_ptr<RandomNumberGenerator> get_default_rng();
 
-} // namespace utils
+} // namespace downward::utils
 
 #endif

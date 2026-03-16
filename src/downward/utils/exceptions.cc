@@ -12,4 +12,4 @@ void Exception::print(std::ostream& out) const
     std::print(out, "{}", this->what());
 }
 
-} // namespace utils
+} // namespace downward::utils

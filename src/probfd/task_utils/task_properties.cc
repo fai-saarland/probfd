@@ -170,7 +170,7 @@ void dump_probabilistic_task(
     std::ostream& os)
 {
     const auto& [variables, axioms, operators, goals, init_vals, cost_function, _] =
-    task;
+        task;
 
     value_t min_action_cost = numeric_limits<int>::max();
     value_t max_action_cost = 0;

@@ -68,9 +68,7 @@ class add_pm_assignment {
 public:
     Derived& operator+=(int n)
         requires requires(Derived d, int x) {
-            {
-                d + x
-            } -> std::convertible_to<Derived>;
+            { d + x } -> std::convertible_to<Derived>;
         }
     {
         auto& self = static_cast<Derived&>(*this);
@@ -80,9 +78,7 @@ public:
 
     Derived& operator-=(int n)
         requires requires(Derived d, int x) {
-            {
-                d - x
-            } -> std::convertible_to<Derived>;
+            { d - x } -> std::convertible_to<Derived>;
         }
     {
         auto& self = static_cast<Derived&>(*this);
@@ -106,12 +102,8 @@ class add_subscript {
 public:
     auto& operator[](int n)
         requires requires(Derived d, int x) {
-            {
-                d + x
-            } -> std::convertible_to<Derived>;
-            {
-                *d
-            };
+            { d + x } -> std::convertible_to<Derived>;
+            { *d };
         }
     {
         auto& self = static_cast<Derived&>(*this);

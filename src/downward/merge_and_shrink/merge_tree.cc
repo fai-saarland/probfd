@@ -18,9 +18,7 @@ MergeTreeNode::MergeTreeNode(const MergeTreeNode& other)
     , right_child(nullptr)
     , ts_index(other.ts_index)
 {
-    if (other.left_child) {
-        left_child = new MergeTreeNode(*other.left_child);
-    }
+    if (other.left_child) { left_child = new MergeTreeNode(*other.left_child); }
     if (other.right_child) {
         right_child = new MergeTreeNode(*other.right_child);
     }
@@ -56,14 +54,10 @@ MergeTreeNode::~MergeTreeNode()
 
 MergeTreeNode* MergeTreeNode::get_left_most_sibling()
 {
-    if (has_two_leaf_children()) {
-        return this;
-    }
+    if (has_two_leaf_children()) { return this; }
     assert(left_child && right_child);
 
-    if (!left_child->is_leaf()) {
-        return left_child->get_left_most_sibling();
-    }
+    if (!left_child->is_leaf()) { return left_child->get_left_most_sibling(); }
 
     assert(!right_child->is_leaf());
     return right_child->get_left_most_sibling();
@@ -97,16 +91,10 @@ MergeTreeNode* MergeTreeNode::get_parent_of_ts_index(int index)
     }
 
     MergeTreeNode* parent = nullptr;
-    if (left_child) {
-        parent = left_child->get_parent_of_ts_index(index);
-    }
-    if (parent) {
-        return parent;
-    }
+    if (left_child) { parent = left_child->get_parent_of_ts_index(index); }
+    if (parent) { return parent; }
 
-    if (right_child) {
-        parent = right_child->get_parent_of_ts_index(index);
-    }
+    if (right_child) { parent = right_child->get_parent_of_ts_index(index); }
     return parent;
 }
 
@@ -136,9 +124,7 @@ void MergeTreeNode::inorder(
     if (right_child) {
         right_child->inorder(offset, current_indentation + offset, log);
     }
-    for (int i = 0; i < current_indentation; ++i) {
-        log << " ";
-    }
+    for (int i = 0; i < current_indentation; ++i) { log << " "; }
     log << ts_index << endl;
     if (left_child) {
         left_child->inorder(offset, current_indentation + offset, log);
@@ -186,14 +172,10 @@ pair<MergeTreeNode*, MergeTreeNode*> MergeTree::get_parents_of_ts_indices(
             ++found_indices;
         }
         if (merge.first == ts_index2 || merge.second == ts_index2) {
-            if (!found_indices) {
-                use_first_index_for_first_parent = false;
-            }
+            if (!found_indices) { use_first_index_for_first_parent = false; }
             ++found_indices;
         }
-        if (found_indices == 2) {
-            break;
-        }
+        if (found_indices == 2) { break; }
     }
     delete copy;
 
@@ -284,9 +266,7 @@ void MergeTree::update(pair<int, int> merge, int new_index)
             removed_node->left_child = nullptr;
         }
 
-        if (removed_node == root) {
-            root = surviving_child_of_removed_node;
-        }
+        if (removed_node == root) { root = surviving_child_of_removed_node; }
 
         // Finally delete removed_node (this also deletes its child
         // corresponding to one of the merged indices, but not the other one).
@@ -317,4 +297,4 @@ void MergeTree::inorder_traversal(int indentation_offset, utils::LogProxy& log)
     log << "Merge tree, read from left to right (90° rotated tree): " << endl;
     return root->inorder(indentation_offset, 0, log);
 }
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

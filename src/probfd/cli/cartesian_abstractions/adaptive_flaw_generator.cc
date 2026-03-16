@@ -14,7 +14,8 @@ using namespace probfd::cartesian_abstractions;
 
 namespace {
 
-InternalFunctionDefinitionBase& add_adaptive_flaw_generator_astar_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_adaptive_flaw_generator_astar_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "flaws_adaptive",

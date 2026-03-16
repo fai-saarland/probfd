@@ -116,4 +116,4 @@ int AdditiveCartesianHeuristic::compute_heuristic(const State& ancestor_state)
     return sum_h;
 }
 
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions

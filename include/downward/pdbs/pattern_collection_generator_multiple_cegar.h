@@ -9,7 +9,9 @@ class PatternCollectionGeneratorMultipleCegar
     const bool use_wildcard_plans;
 
     std::string id() const override;
+
     void initialize(const SharedAbstractTask&) override {}
+
     PatternInformation compute_pattern(
         int max_pdb_size,
         utils::FSeconds max_time,
@@ -31,6 +33,6 @@ public:
         std::shared_ptr<utils::RandomNumberGenerator> rng,
         utils::Verbosity verbosity);
 };
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

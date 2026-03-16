@@ -72,6 +72,6 @@ public:
         const LandmarkStatusManager& lm_status_manager,
         const State& ancestor_state) override;
 };
-} // namespace landmarks
+} // namespace downward::landmarks
 
 #endif

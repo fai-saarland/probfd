@@ -19,4 +19,4 @@ EvaluationResult ConstEvaluator::compute_result(EvaluationContext&)
     return result;
 }
 
-} // namespace const_evaluator
+} // namespace downward::const_evaluator

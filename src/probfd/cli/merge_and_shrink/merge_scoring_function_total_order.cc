@@ -18,7 +18,8 @@ using namespace probfd::merge_and_shrink;
 
 namespace {
 
-InternalFunctionDefinitionBase& add_merge_scoring_function_total_order_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_merge_scoring_function_total_order_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "ptotal_order",

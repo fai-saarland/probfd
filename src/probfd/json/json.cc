@@ -140,13 +140,9 @@ std::unique_ptr<JsonElement> parse_element(
             "Unexpected end of file while parsing element.");
     }
 
-    if (it->type == TokenType::LEFT_BRACKET) {
-        return parse_array(tokens, it);
-    }
+    if (it->type == TokenType::LEFT_BRACKET) { return parse_array(tokens, it); }
 
-    if (it->type == TokenType::LEFT_BRACE) {
-        return parse_object(tokens, it);
-    }
+    if (it->type == TokenType::LEFT_BRACE) { return parse_object(tokens, it); }
 
     if (it->type == TokenType::STRING) {
         auto r = std::make_unique<JsonString>(

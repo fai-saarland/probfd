@@ -17,12 +17,16 @@ using namespace downward::merge_and_shrink;
 
 namespace {
 
-InternalFunctionDefinitionBase& add_shrink_strategy_bisimulation_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_shrink_strategy_bisimulation_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "shrink_bisimulation",
-        &language::plugins::
-            construct_shared<ShrinkStrategy, ShrinkBisimulation, bool, AtLimit>);
+        &language::plugins::construct_shared<
+            ShrinkStrategy,
+            ShrinkBisimulation,
+            bool,
+            AtLimit>);
     f.document_title("Bismulation based shrink strategy");
     f.document_synopsis(
         "This shrink strategy implements the algorithm described in"

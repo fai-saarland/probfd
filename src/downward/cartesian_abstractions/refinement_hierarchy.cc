@@ -90,4 +90,4 @@ int RefinementHierarchy::get_abstract_state_id(const State& state) const
 {
     return nodes[get_node_id(state)].get_state_id();
 }
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions

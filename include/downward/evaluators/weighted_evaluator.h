@@ -23,6 +23,6 @@ public:
     virtual void
     get_path_dependent_evaluators(std::set<Evaluator*>& evals) override;
 };
-} // namespace weighted_evaluator
+} // namespace downward::weighted_evaluator
 
 #endif

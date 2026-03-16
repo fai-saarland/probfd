@@ -11,9 +11,10 @@ namespace downward::cli::search_algorithms {
 
 void add_search_algorithm_factory_category(Namespace& nspace)
 {
-    nspace.insert_shared_type_declaration<TaskDependentFactory<SearchAlgorithm>>(
-        "SearchAlgorithmFactory",
-        "");
+    nspace
+        .insert_shared_type_declaration<TaskDependentFactory<SearchAlgorithm>>(
+            "SearchAlgorithmFactory",
+            "");
 }
 
 } // namespace downward::cli::search_algorithms

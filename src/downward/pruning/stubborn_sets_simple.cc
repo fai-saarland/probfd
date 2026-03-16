@@ -79,4 +79,4 @@ void StubbornSetsSimple::handle_stubborn_operator(const State& state, int op_no)
     }
 }
 
-} // namespace stubborn_sets_simple
+} // namespace downward::stubborn_sets_simple

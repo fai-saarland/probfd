@@ -21,4 +21,4 @@ void MergeScoringFunction::dump_options(utils::LogProxy& log) const
     }
 }
 
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

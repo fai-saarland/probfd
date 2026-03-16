@@ -55,9 +55,7 @@ Interval LRTDP<State, Action, UseInterval>::do_solve(
     progress.register_print(
         [&](std::ostream& out) { out << "trials=" << statistics_.trials; });
 
-    if (state_info.is_solved()) {
-        return state_info.get_bounds();
-    }
+    if (state_info.is_solved()) { return state_info.get_bounds(); }
 
     bool terminate;
     do {
@@ -150,9 +148,7 @@ bool LRTDP<State, Action, UseInterval>::trial(
             break;
         }
 
-        if (stop_consistent_ == REVISITED) {
-            state_info.set_on_trial();
-        }
+        if (stop_consistent_ == REVISITED) { state_info.set_on_trial(); }
 
         auto next = sample_->sample(
             state_id,
@@ -257,9 +253,7 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
 
         // cut off if value has changed by more than epsilon
         if (!val_upd.changed) {
-            if (!val_upd.converged) {
-                rv = false;
-            }
+            if (!val_upd.converged) { rv = false; }
 
             for (const auto& d = transition->successor_dist;
                  StateID succ_id : d.non_source_successor_dist.support()) {

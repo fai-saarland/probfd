@@ -103,9 +103,7 @@ class SplitSelectorRefinedness
     const double factor_;
 
 public:
-    SplitSelectorRefinedness(
-        SharedProbabilisticTask task,
-        double factor);
+    SplitSelectorRefinedness(SharedProbabilisticTask task, double factor);
 
     [[nodiscard]]
     double rate_split(const AbstractState& state, const Split& split) const;
@@ -130,8 +128,7 @@ class SplitSelectorMinHAdd
     : public RateBasedSplitSelector<SplitSelectorMinHAdd>
     , public SplitSelectorHAdd {
 public:
-    explicit SplitSelectorMinHAdd(
-        const SharedProbabilisticTask& task);
+    explicit SplitSelectorMinHAdd(const SharedProbabilisticTask& task);
 
     [[nodiscard]]
     double rate_split(const AbstractState& state, const Split& split) const;
@@ -145,8 +142,7 @@ class SplitSelectorMaxHAdd
     : public RateBasedSplitSelector<SplitSelectorMaxHAdd>
     , public SplitSelectorHAdd {
 public:
-    explicit SplitSelectorMaxHAdd(
-        const SharedProbabilisticTask& task);
+    explicit SplitSelectorMaxHAdd(const SharedProbabilisticTask& task);
 
     [[nodiscard]]
     double rate_split(const AbstractState& state, const Split& split) const;
@@ -177,8 +173,8 @@ public:
     explicit SplitSelectorRandomFactory(
         std::shared_ptr<downward::utils::RandomNumberGenerator> rng);
 
-    std::unique_ptr<SplitSelector> create_split_selector(
-        const SharedProbabilisticTask& task) override;
+    std::unique_ptr<SplitSelector>
+    create_split_selector(const SharedProbabilisticTask& task) override;
 };
 
 /*
@@ -186,8 +182,8 @@ public:
 */
 class SplitSelectorMinUnwantedFactory : public SplitSelectorFactory {
 public:
-    std::unique_ptr<SplitSelector> create_split_selector(
-        const SharedProbabilisticTask& task) override;
+    std::unique_ptr<SplitSelector>
+    create_split_selector(const SharedProbabilisticTask& task) override;
 };
 
 /*
@@ -195,8 +191,8 @@ public:
 */
 class SplitSelectorMaxUnwantedFactory : public SplitSelectorFactory {
 public:
-    std::unique_ptr<SplitSelector> create_split_selector(
-        const SharedProbabilisticTask& task) override;
+    std::unique_ptr<SplitSelector>
+    create_split_selector(const SharedProbabilisticTask& task) override;
 };
 
 /*
@@ -204,8 +200,8 @@ public:
 */
 class SplitSelectorMinRefinedFactory : public SplitSelectorFactory {
 public:
-    std::unique_ptr<SplitSelector> create_split_selector(
-        const SharedProbabilisticTask& task) override;
+    std::unique_ptr<SplitSelector>
+    create_split_selector(const SharedProbabilisticTask& task) override;
 };
 
 /*
@@ -213,8 +209,8 @@ public:
 */
 class SplitSelectorMaxRefinedFactory : public SplitSelectorFactory {
 public:
-    std::unique_ptr<SplitSelector> create_split_selector(
-        const SharedProbabilisticTask& task) override;
+    std::unique_ptr<SplitSelector>
+    create_split_selector(const SharedProbabilisticTask& task) override;
 };
 
 /*
@@ -222,8 +218,8 @@ public:
 */
 class SplitSelectorMinHAddFactory : public SplitSelectorFactory {
 public:
-    std::unique_ptr<SplitSelector> create_split_selector(
-        const SharedProbabilisticTask& task) override;
+    std::unique_ptr<SplitSelector>
+    create_split_selector(const SharedProbabilisticTask& task) override;
 };
 
 /*
@@ -231,8 +227,8 @@ public:
 */
 class SplitSelectorMaxHAddFactory : public SplitSelectorFactory {
 public:
-    std::unique_ptr<SplitSelector> create_split_selector(
-        const SharedProbabilisticTask& task) override;
+    std::unique_ptr<SplitSelector>
+    create_split_selector(const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::cartesian_abstractions

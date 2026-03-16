@@ -17,4 +17,4 @@ void NullPruningMethod::initialize(const SharedAbstractTask& task)
     log << "pruning method: none" << endl;
 }
 
-} // namespace null_pruning_method
+} // namespace downward::null_pruning_method

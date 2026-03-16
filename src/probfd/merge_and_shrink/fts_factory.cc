@@ -83,8 +83,7 @@ public:
 FTSFactory::FTSFactory(const ProbabilisticTaskTuple& task)
     : task(task)
 {
-    assert(!task_properties::has_conditional_effects(
-        get_operators(task)));
+    assert(!task_properties::has_conditional_effects(get_operators(task)));
 }
 
 void FTSFactory::initialize_transition_system_data(int max_num_labels)

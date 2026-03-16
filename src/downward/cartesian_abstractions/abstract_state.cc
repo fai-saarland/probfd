@@ -82,8 +82,7 @@ bool AbstractState::domain_subsets_intersect(
 bool AbstractState::includes(const State& concrete_state) const
 {
     for (FactPair fact : concrete_state | as_fact_pair_set) {
-        if (!cartesian_set.test(fact.var, fact.value))
-            return false;
+        if (!cartesian_set.test(fact.var, fact.value)) return false;
     }
     return true;
 }
@@ -116,4 +115,4 @@ AbstractState::get_trivial_abstract_state(const vector<int>& domain_sizes)
 {
     return std::make_unique<AbstractState>(0, 0, CartesianSet(domain_sizes));
 }
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions

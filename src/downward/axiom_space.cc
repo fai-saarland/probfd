@@ -19,4 +19,4 @@ int AxiomSpace::get_default_axiom_value(VariableProxy var) const
     return get_default_axiom_value(var.get_id());
 }
 
-}
+} // namespace downward

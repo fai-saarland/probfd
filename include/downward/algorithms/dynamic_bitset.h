@@ -184,7 +184,7 @@ struct std::formatter<downward::dynamic_bitset::DynamicBitset<Block>, Char> {
     typename FmtContext::iterator format(
         const downward::dynamic_bitset::DynamicBitset<Block>& bs,
         FmtContext& ctx) const
-    {        
+    {
         return underlying_.format(bs.set_indices(), ctx);
     }
 };

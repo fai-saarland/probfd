@@ -28,4 +28,4 @@ std::string demangle(const char* name)
 #endif
 }
 
-}
+} // namespace language::plugins

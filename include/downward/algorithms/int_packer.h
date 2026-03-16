@@ -24,9 +24,11 @@ class IntPacker {
     std::vector<VariableInfo> var_infos;
     int num_bins;
 
-    int pack_one_bin(const std::vector<int> &ranges,
-                     std::vector<std::vector<int>> &bits_to_vars);
-    void pack_bins(const std::vector<int> &ranges);
+    int pack_one_bin(
+        const std::vector<int>& ranges,
+        std::vector<std::vector<int>>& bits_to_vars);
+    void pack_bins(const std::vector<int>& ranges);
+
 public:
     typedef unsigned int Bin;
 
@@ -36,15 +38,16 @@ public:
       ints for the ranges (and genenerally for the values of variables),
       a variable can take up at most 31 bits if int is 32-bit.
     */
-    explicit IntPacker(const std::vector<int> &ranges);
+    explicit IntPacker(const std::vector<int>& ranges);
     ~IntPacker();
 
-    int get(const Bin *buffer, int var) const;
-    void set(Bin *buffer, int var, int value) const;
+    int get(const Bin* buffer, int var) const;
+    void set(Bin* buffer, int var, int value) const;
 
     int get_num_bins() const { return num_bins; }
+
     std::size_t get_num_variables() const;
 };
-}
+} // namespace downward::int_packer
 
 #endif

@@ -13,7 +13,8 @@ using namespace language::plugins;
 
 namespace {
 
-InternalFunctionDefinitionBase& add_additive_max_orthogonality_factory_to_namespace(Namespace& nspace)
+InternalFunctionDefinitionBase&
+add_additive_max_orthogonality_factory_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "additive_max_orthogonality_factory",

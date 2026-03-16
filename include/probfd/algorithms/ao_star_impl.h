@@ -178,11 +178,8 @@ bool AOStar<State, Action, UseInterval>::update_value_check_solved(
     std::vector<TransitionTail<Action>> transitions,
     StateInfo& info)
 {
-    const auto value = this->compute_bellman_and_greedy(
-        state,
-        transitions,
-        mdp,
-        qvalues_);
+    const auto value =
+        this->compute_bellman_and_greedy(state, transitions, mdp, qvalues_);
 
     auto greedy_transition =
         this->select_greedy_transition(mdp, info.get_policy(), transitions_);
@@ -200,9 +197,7 @@ bool AOStar<State, Action, UseInterval>::update_value_check_solved(
         }
     }
 
-    if (all_succs_solved) {
-        info.set_solved();
-    }
+    if (all_succs_solved) { info.set_solved(); }
 
     return value_changed;
 }

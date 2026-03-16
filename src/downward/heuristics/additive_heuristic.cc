@@ -157,8 +157,7 @@ void AdditiveHeuristic::mark_preferred_operators(
             }
             int operator_no = unary_op->operator_no;
             if (is_preferred && operator_no != -1) {
-                const auto& operators =
-                    get_operators(transformed_task);
+                const auto& operators = get_operators(transformed_task);
                 // This is not an axiom.
                 OperatorProxy op = operators[operator_no];
                 assert(task_properties::is_applicable(op, state));

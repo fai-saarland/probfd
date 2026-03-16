@@ -53,7 +53,9 @@ TEST(PDBTests, test_ranking_function_one_variable)
 
     const auto& variables = get_variables(task);
 
-    StateRankingFunction ranking_function(variables, {fact_index.get_clear_var(0)});
+    StateRankingFunction ranking_function(
+        variables,
+        {fact_index.get_clear_var(0)});
 
     ASSERT_EQ(ranking_function.num_states(), 2);
     ASSERT_EQ(ranking_function.num_vars(), 1);

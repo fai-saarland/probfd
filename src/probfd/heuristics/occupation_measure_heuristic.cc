@@ -52,13 +52,11 @@ OccupationMeasureHeuristicFactory::OccupationMeasureHeuristicFactory(
 {
 }
 
-std::unique_ptr<FDRHeuristic>
-OccupationMeasureHeuristicFactory::create_object(
+std::unique_ptr<FDRHeuristic> OccupationMeasureHeuristicFactory::create_object(
     const SharedProbabilisticTask& task)
 {
     auto constraints =
-        constraint_generator_factory_->construct_constraint_generator(
-            task);
+        constraint_generator_factory_->construct_constraint_generator(task);
 
     return std::make_unique<OccupationMeasureHeuristic>(
         task,

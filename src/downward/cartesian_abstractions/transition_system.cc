@@ -117,9 +117,7 @@ void TransitionSystem::add_loops_in_trivial_abstraction()
     assert(get_num_states() == 0);
     enlarge_vectors_by_one();
     int init_id = 0;
-    for (int i = 0; i < get_num_operators(); ++i) {
-        add_loop(init_id, i);
-    }
+    for (int i = 0; i < get_num_operators(); ++i) { add_loop(init_id, i); }
 }
 
 void TransitionSystem::add_transition(int src_id, int op_id, int target_id)
@@ -167,9 +165,7 @@ void TransitionSystem::rewire_incoming_transitions(
         if (post == UNDEFINED) {
             // op has no precondition and no effect on var.
             bool u_and_v1_intersect = u.domain_subsets_intersect(v1, var);
-            if (u_and_v1_intersect) {
-                add_transition(u_id, op_id, v1_id);
-            }
+            if (u_and_v1_intersect) { add_transition(u_id, op_id, v1_id); }
             /* If u and v1 don't intersect, we must add the other transition
                and can avoid an intersection test. */
             if (!u_and_v1_intersect || u.domain_subsets_intersect(v2, var)) {
@@ -218,9 +214,7 @@ void TransitionSystem::rewire_outgoing_transitions(
             assert(pre == UNDEFINED);
             // op has no precondition and no effect on var.
             bool v1_and_w_intersect = v1.domain_subsets_intersect(w, var);
-            if (v1_and_w_intersect) {
-                add_transition(v1_id, op_id, w_id);
-            }
+            if (v1_and_w_intersect) { add_transition(v1_id, op_id, w_id); }
             /* If v1 and w don't intersect, we must add the other transition
                and can avoid an intersection test. */
             if (!v1_and_w_intersect || v2.domain_subsets_intersect(w, var)) {
@@ -385,4 +379,4 @@ void TransitionSystem::print_statistics(utils::LogProxy& log) const
             << endl;
     }
 }
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions

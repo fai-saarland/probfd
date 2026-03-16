@@ -305,4 +305,4 @@ void SoPlexSolverInterface::add_constraint(
     ++num_permanent_constraints;
 }
 
-} // namespace lp
+} // namespace downward::lp

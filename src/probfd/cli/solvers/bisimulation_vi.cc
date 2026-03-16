@@ -233,10 +233,13 @@ public:
 };
 
 class BisimulationVISolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(value_t)> {
+    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
+          value_t)> {
 public:
     BisimulationVISolverFeature()
-        : InternalFunctionDefinition("bisimulation_vi", &BisimulationVISolverFeature::func)
+        : InternalFunctionDefinition(
+              "bisimulation_vi",
+              &BisimulationVISolverFeature::func)
     {
         document_title("Bisimulation Value Iteration");
 
@@ -257,10 +260,13 @@ protected:
 };
 
 class BisimulationIISolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(value_t)> {
+    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
+          value_t)> {
 public:
     BisimulationIISolverFeature()
-        : InternalFunctionDefinition("bisimulation_ii", &BisimulationIISolverFeature::func)
+        : InternalFunctionDefinition(
+              "bisimulation_ii",
+              &BisimulationIISolverFeature::func)
     {
         document_title("Bisimulation Interval Iteration");
 

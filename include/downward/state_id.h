@@ -9,10 +9,10 @@ namespace downward {
 
 class StateID {
     friend class StateRegistry;
-    friend std::ostream &operator<<(std::ostream &os, StateID id);
-    template<typename>
+    friend std::ostream& operator<<(std::ostream& os, StateID id);
+    template <typename>
     friend class PerStateInformation;
-    template<typename>
+    template <typename>
     friend class PerStateArray;
     friend class PerStateBitset;
 
@@ -32,17 +32,13 @@ public:
 
     static const StateID no_state;
 
-    bool operator==(const StateID &other) const {
-        return value == other.value;
-    }
+    bool operator==(const StateID& other) const { return value == other.value; }
 
-    bool operator!=(const StateID &other) const {
-        return !(*this == other);
-    }
+    bool operator!=(const StateID& other) const { return !(*this == other); }
 
     // HACK
     int get_value() const { return value; }
 };
-}
+} // namespace downward
 
 #endif

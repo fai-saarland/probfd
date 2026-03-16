@@ -11,7 +11,8 @@ using namespace std;
 
 namespace language::parser {
 
-DecoratedListNode::DecoratedListNode(vector<std::unique_ptr<DecoratedASTNode>>&& elements)
+DecoratedListNode::DecoratedListNode(
+    vector<std::unique_ptr<DecoratedASTNode>>&& elements)
     : elements(move(elements))
 {
 }

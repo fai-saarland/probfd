@@ -167,9 +167,8 @@ struct std::formatter<probfd::ItemProbabilityPair<T, F>, Char> {
     }
 
     template <class FmtContext>
-    typename FmtContext::iterator format(
-        const probfd::ItemProbabilityPair<T, F> p,
-        FmtContext& ctx) const
+    typename FmtContext::iterator
+    format(const probfd::ItemProbabilityPair<T, F> p, FmtContext& ctx) const
     {
         return underlying_.format(ctx, std::make_pair(p.item, p.probability));
     }

@@ -57,9 +57,7 @@ public:
     {
         BucketRef b = bucket_map_.begin();
         const StateID res = bucket_pop(b);
-        if (bucket_empty(b)) {
-            remove(b);
-        }
+        if (bucket_empty(b)) { remove(b); }
         --size_;
         return res;
     }

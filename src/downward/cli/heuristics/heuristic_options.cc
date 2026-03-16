@@ -27,7 +27,8 @@ std::size_t add_heuristic_options_to_feature(
         "cache_estimates",
         "true",
         "cache heuristic estimates");
-    const auto n = add_evaluator_options_to_feature(feature, description, start_index + 2);
+    const auto n =
+        add_evaluator_options_to_feature(feature, description, start_index + 2);
 
     return n + 2;
 }

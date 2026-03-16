@@ -39,9 +39,7 @@ template <typename Action>
 void QuotientInformation<Action>::filter_actions(
     const std::ranges::input_range auto& filter)
 {
-    if (std::ranges::empty(filter)) {
-        return;
-    }
+    if (std::ranges::empty(filter)) { return; }
 
     total_num_outer_acts_ = 0;
 
@@ -184,9 +182,7 @@ auto quotient_id_iterator<State, Action>::operator++() -> quotient_id_iterator&
 {
     while (++i_.id < qs_->quotient_ids_.size()) {
         const StateID ref = qs_->quotient_ids_[i_];
-        if (i_ == (ref & QuotientSystem<State, Action>::MASK)) {
-            break;
-        }
+        if (i_ == (ref & QuotientSystem<State, Action>::MASK)) { break; }
     }
 
     return *this;
@@ -229,9 +225,7 @@ auto QuotientSystem<State, Action>::get_state(StateID state_id) -> QState
 {
     const QuotientInformationType* info = get_quotient_info(state_id);
 
-    if (info) {
-        return QState(mdp_, info);
-    }
+    if (info) { return QState(mdp_, info); }
 
     return QState(mdp_, mdp_.get_state(state_id));
 }
@@ -265,9 +259,7 @@ void QuotientSystem<State, Action>::generate_applicable_actions(
                 const StateID state_id = mdp_.get_state_id(s);
                 aops.reserve(orig.size());
 
-                for (const Action& a : orig) {
-                    aops.emplace_back(state_id, a);
-                }
+                for (const Action& a : orig) { aops.emplace_back(state_id, a); }
             }},
         state.single_or_quotient);
 }
@@ -537,9 +529,7 @@ void QuotientSystem<State, Action>::build_quotient(
         const auto& aops = get<1>(e);
 
         // Already handled.
-        if (state_id == rid) {
-            continue;
-        }
+        if (state_id == rid) { continue; }
 
         const StateID::size_type qsqid = get_masked_state_id(state_id);
 
@@ -653,9 +643,7 @@ void QuotientSystem<State, Action>::build_new_quotient(
         const auto& aops = get<1>(e);
 
         // Already handled.
-        if (state_id == rid) {
-            continue;
-        }
+        if (state_id == rid) { continue; }
 
         assert(!(get_masked_state_id(state_id) & FLAG));
 

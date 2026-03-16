@@ -15,9 +15,7 @@ vector<double> MergeScoringFunctionGoalRelevance::compute_scores(
     vector<bool> goal_relevant(num_ts, false);
     for (int ts_index : fts) {
         const TransitionSystem& ts = fts.get_transition_system(ts_index);
-        if (is_goal_relevant(ts)) {
-            goal_relevant[ts_index] = true;
-        }
+        if (is_goal_relevant(ts)) { goal_relevant[ts_index] = true; }
     }
 
     vector<double> scores;
@@ -26,9 +24,7 @@ vector<double> MergeScoringFunctionGoalRelevance::compute_scores(
         int ts_index1 = merge_candidate.first;
         int ts_index2 = merge_candidate.second;
         int score = INF;
-        if (goal_relevant[ts_index1] || goal_relevant[ts_index2]) {
-            score = 0;
-        }
+        if (goal_relevant[ts_index1] || goal_relevant[ts_index2]) { score = 0; }
         scores.push_back(score);
     }
     return scores;
@@ -39,4 +35,4 @@ string MergeScoringFunctionGoalRelevance::name() const
     return "goal relevance";
 }
 
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

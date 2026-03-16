@@ -16,6 +16,6 @@ public:
         const std::string& description,
         utils::Verbosity verbosity);
 };
-} // namespace max_evaluator
+} // namespace downward::max_evaluator
 
 #endif

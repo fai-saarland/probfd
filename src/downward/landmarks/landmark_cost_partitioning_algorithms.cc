@@ -218,9 +218,7 @@ double OptimalCostPartitioningAlgorithm::get_cost_partitioned_heuristic_value(
       in the op-th row and lm-th column, the matrix has a 1.0 entry.
     */
     // Reuse previous constraint objects to save the effort of recreating them.
-    for (lp::LPConstraint& constraint : lp_constraints) {
-        constraint.clear();
-    }
+    for (lp::LPConstraint& constraint : lp_constraints) { constraint.clear(); }
     for (int lm_id = 0; lm_id < num_cols; ++lm_id) {
         const Landmark& landmark = lm_graph.get_node(lm_id)->get_landmark();
         if (future.test(lm_id)) {
@@ -253,4 +251,4 @@ double OptimalCostPartitioningAlgorithm::get_cost_partitioned_heuristic_value(
 
     return h;
 }
-} // namespace landmarks
+} // namespace downward::landmarks

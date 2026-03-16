@@ -19,8 +19,8 @@ namespace downward::max_cliques {
    use bit vectors instead of vectors.
  */
 extern void compute_max_cliques(
-    const std::vector<std::vector<int>> &graph,
-    std::vector<std::vector<int>> &max_cliques);
-}
+    const std::vector<std::vector<int>>& graph,
+    std::vector<std::vector<int>>& max_cliques);
+} // namespace downward::max_cliques
 
 #endif

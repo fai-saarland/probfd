@@ -88,20 +88,24 @@ public:
 
     // needed by both landmarkgraph-factories and non-landmarkgraph-factories
     const Nodes& get_nodes() const { return nodes; }
+
     // needed by both landmarkgraph-factories and non-landmarkgraph-factories
     int get_num_landmarks() const { return nodes.size(); }
+
     /* This is needed only by landmark graph factories and will disappear
        when moving landmark graph creation there. */
     int get_num_disjunctive_landmarks() const
     {
         return num_disjunctive_landmarks;
     }
+
     /* This is needed only by landmark graph factories and will disappear
        when moving landmark graph creation there. */
     int get_num_conjunctive_landmarks() const
     {
         return num_conjunctive_landmarks;
     }
+
     /* This is needed only by landmark graph factories and will disappear
        when moving landmark graph creation there. */
     int get_num_edges() const;
@@ -148,6 +152,6 @@ public:
        when moving landmark graph creation there. */
     void set_landmark_ids();
 };
-} // namespace landmarks
+} // namespace downward::landmarks
 
 #endif

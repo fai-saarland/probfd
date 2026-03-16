@@ -42,8 +42,7 @@ PatternGeneratorRandom::compute_pattern(const SharedAbstractTask& task)
 {
     vector<vector<int>> cg_neighbors =
         compute_cg_neighbors(task, bidirectional);
-    vector<FactPair> goals =
-        get_goals_in_random_order(get_goal(task), *rng);
+    vector<FactPair> goals = get_goals_in_random_order(get_goal(task), *rng);
 
     Pattern pattern = generate_random_pattern(
         max_pdb_size,

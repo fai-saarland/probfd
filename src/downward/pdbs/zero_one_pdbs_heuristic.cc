@@ -61,4 +61,4 @@ int ZeroOnePDBsHeuristic::compute_heuristic(const State& ancestor_state)
     return h;
 }
 
-} // namespace pdbs
+} // namespace downward::pdbs

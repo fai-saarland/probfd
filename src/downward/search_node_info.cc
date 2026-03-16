@@ -12,4 +12,4 @@ static_assert(
     "that packing two fields into one integer using bitfields is not "
     "supported.");
 
-} // namespace myNamespace
+} // namespace downward

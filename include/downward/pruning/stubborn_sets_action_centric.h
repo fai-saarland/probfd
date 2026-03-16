@@ -37,6 +37,6 @@ protected:
     // Return true iff the operator was enqueued.
     bool enqueue_stubborn_operator(int op_no);
 };
-} // namespace stubborn_sets
+} // namespace downward::stubborn_sets
 
 #endif

@@ -74,4 +74,4 @@ PatternInformation PatternCollectionGeneratorMultipleRandom::compute_pattern(
     return result;
 }
 
-} // namespace pdbs
+} // namespace downward::pdbs

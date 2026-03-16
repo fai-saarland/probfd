@@ -8,8 +8,7 @@
 using namespace std;
 
 namespace downward::merge_and_shrink {
-ShrinkRandom::ShrinkRandom(
-    std::shared_ptr<utils::RandomNumberGenerator> rng)
+ShrinkRandom::ShrinkRandom(std::shared_ptr<utils::RandomNumberGenerator> rng)
     : ShrinkBucketBased(std::move(rng))
 {
 }
