@@ -5,6 +5,7 @@ AllowAllArgumentsOnNextLine: false
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortBlocksOnASingleLine: Always
 AllowShortCaseLabelsOnASingleLine: true
+AllowShortCompoundRequirementOnASingleLine: true
 AllowShortFunctionsOnASingleLine: InlineOnly
 AllowShortIfStatementsOnASingleLine: WithoutElse
 AllowShortLoopsOnASingleLine: true
@@ -13,6 +14,7 @@ BinPackArguments: false
 BinPackParameters: false
 BreakAfterAttributes: Always
 BreakBeforeBraces: Custom
+BreakBeforeConceptDeclarations: Always
 BraceWrapping:
   AfterClass: false
   AfterControlStatement: false
@@ -29,13 +31,20 @@ BreakInheritanceList: BeforeComma
 ColumnLimit: 80
 ConstructorInitializerIndentWidth: 4
 ContinuationIndentWidth: 4
+IndentRequiresClause: true
 IndentWidth: 4
+IntegerLiteralSeparator:
+  Decimal: 3
+  DecimalMinDigits: 7
 PenaltyBreakBeforeFirstCallParameter: 5
 PenaltyReturnTypeOnItsOwnLine: 5
 PointerAlignment: Left
+RequiresClausePosition: OwnLine
 SeparateDefinitionBlocks: Always
+SortUsingDeclarations: LexicographicNumeric
 SpaceAfterTemplateKeyword: true
 SpaceBeforeCtorInitializerColon: true
 SpaceBeforeInheritanceColon: true
 SpaceBeforeRangeBasedForLoopColon: true
 UseTab: Never
+WrapNamespaceBodyWithEmptyLines: Leave
