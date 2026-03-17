@@ -113,7 +113,8 @@ public:
     operator<<(std::ostream& out, const LabelEquivalenceClass& label_info);
 
     friend bool
-    operator==(const LabelEquivalenceClass&, const LabelEquivalenceClass&) = default;
+    operator==(const LabelEquivalenceClass&, const LabelEquivalenceClass&) =
+        default;
 
     friend std::unique_ptr<json::JsonObject>
     to_json(const LabelEquivalenceClass& info);

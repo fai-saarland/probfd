@@ -149,13 +149,15 @@ void LabelEquivalenceClass::recompute_cost(const Labels& labels)
     }
 }
 
-void LabelEquivalenceClass::replace_transitions(vector<Transition>&& new_transitions)
+void LabelEquivalenceClass::replace_transitions(
+    vector<Transition>&& new_transitions)
 {
     transitions = std::move(new_transitions);
     assert(is_consistent());
 }
 
-void LabelEquivalenceClass::merge_local_label_info(LabelEquivalenceClass& local_label_info)
+void LabelEquivalenceClass::merge_local_label_info(
+    LabelEquivalenceClass& local_label_info)
 {
     assert(is_consistent());
     assert(local_label_info.is_consistent());
@@ -181,7 +183,8 @@ bool LabelEquivalenceClass::is_consistent() const
            utils::is_sorted_unique(transitions);
 }
 
-std::ostream& operator<<(std::ostream& out, const LabelEquivalenceClass& label_info)
+std::ostream&
+operator<<(std::ostream& out, const LabelEquivalenceClass& label_info)
 {
     std::print(
         out,
@@ -520,7 +523,11 @@ void TransitionRelation::apply_label_reduction(
 }
 
 bool TransitionRelation::are_local_labels_consistent() const
-{ return std::ranges::all_of(label_infos(), &LabelEquivalenceClass::is_consistent); }
+{
+    return std::ranges::all_of(
+        label_infos(),
+        &LabelEquivalenceClass::is_consistent);
+}
 
 bool TransitionRelation::is_valid(const Labels& labels) const
 { return are_local_labels_consistent() && is_label_mapping_consistent(labels); }
