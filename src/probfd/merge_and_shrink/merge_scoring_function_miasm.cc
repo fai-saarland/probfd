@@ -8,6 +8,8 @@
 
 #include "probfd/probabilistic_task.h"
 
+#include "downward/variable_space.h"
+
 #include "downward/utils/logging.h"
 
 using namespace std;

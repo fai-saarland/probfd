@@ -26,45 +26,16 @@ using namespace downward;
 
 namespace probfd::merge_and_shrink {
 
-void compute_liveness(
+static void compute_liveness(
     const TransitionSystem& transition_system,
     std::span<const value_t> goal_distances,
-    std::vector<bool>& liveness,
-    std::vector<int> queue)
+    std::vector<bool>& liveness)
 {
-    const int init_state = transition_system.get_init_state();
-
     auto is_unsolvable = [&](int state) {
         return goal_distances[state] == INFINITE_VALUE;
     };
 
-    if (is_unsolvable(init_state)) return;
-
-    vector<vector<int>> forward_graph(transition_system.get_size());
-    for (const auto& local_label_info : transition_system.label_infos()) {
-        for (const auto& [src, targets] : local_label_info.get_transitions()) {
-            // Skip transitions which are not alive
-            if (std::ranges::any_of(targets, is_unsolvable)) continue;
-
-            for (int target : targets) {
-                forward_graph[src].emplace_back(target);
-            }
-        }
-    }
-
-    liveness[init_state] = true;
-    queue.push_back(init_state);
-
-    while (!queue.empty()) {
-        const int state = queue.back();
-        queue.pop_back();
-
-        for (int successor : forward_graph[state]) {
-            if (liveness[successor]) continue;
-            liveness[successor] = true;
-            queue.push_back(successor);
-        }
-    }
+    compute_forward_reachability(transition_system, is_unsolvable, liveness);
 }
 
 namespace {
@@ -107,9 +78,7 @@ public:
     StateID get_state_id(int state) override { return StateID(state); }
 
     int get_state(StateID state_id) override
-    {
-        return static_cast<int>(state_id.id);
-    }
+    { return static_cast<int>(state_id.id); }
 
     void generate_applicable_actions(
         int state,
@@ -171,11 +140,23 @@ public:
     }
 
     value_t get_action_cost(const ProbabilisticTransition* action) override
-    {
-        return action->cost;
-    }
+    { return action->cost; }
 };
 } // namespace
+
+void Distances::compute_distances(
+    const Labels& labels,
+    const TransitionSystem& transition_system,
+    bool compute_liveness,
+    utils::LogProxy& log)
+{
+    compute_distances(
+        labels,
+        transition_system,
+        compute_liveness,
+        log,
+        heuristics::ConstantHeuristic<int>(0_vt));
+}
 
 void Distances::compute_distances(
     const Labels& labels,
@@ -362,6 +343,18 @@ void Distances::statistics(
             log.println("transition system is unsolvable");
         }
     }
+}
+
+void compute_goal_distances(
+    const Labels& labels,
+    const TransitionSystem& transition_system,
+    std::span<value_t> distances)
+{
+    compute_goal_distances(
+        labels,
+        transition_system,
+        distances,
+        heuristics::ConstantHeuristic<int>(0_vt));
 }
 
 void compute_goal_distances(
