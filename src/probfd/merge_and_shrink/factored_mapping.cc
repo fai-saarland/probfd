@@ -3,6 +3,8 @@
 #include "probfd/merge_and_shrink/distances.h"
 #include "probfd/merge_and_shrink/types.h"
 
+#include "downward/state.h"
+
 #include "downward/utils/logging.h"
 
 #include <algorithm>

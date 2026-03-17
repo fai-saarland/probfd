@@ -3,8 +3,6 @@
 
 #include "probfd/merge_and_shrink/types.h"
 
-#include "probfd/heuristics/constant_heuristic.h"
-
 #include "probfd/value_type.h"
 
 #include <cassert>
@@ -21,6 +19,11 @@
 
 namespace downward::utils {
 class LogProxy;
+}
+
+namespace probfd {
+template <typename State>
+class Heuristic;
 }
 
 namespace probfd::merge_and_shrink {
@@ -58,17 +61,20 @@ public:
     }
 
     std::vector<value_t> extract_goal_distances()
-    {
-        return std::move(goal_distances);
-    }
+    { return std::move(goal_distances); }
+
+    void compute_distances(
+        const Labels& labels,
+        const TransitionSystem& transition_system,
+        bool compute_liveness,
+        downward::utils::LogProxy& log);
 
     void compute_distances(
         const Labels& labels,
         const TransitionSystem& transition_system,
         bool compute_liveness,
         downward::utils::LogProxy& log,
-        const Heuristic<int>& heuristic =
-            heuristics::ConstantHeuristic<int>(0_vt));
+        const Heuristic<int>& heuristic);
 
     /*
       Update distances according to the given abstraction. If the abstraction
@@ -87,22 +93,101 @@ public:
         downward::utils::LogProxy& log);
 
     void dump(downward::utils::LogProxy& log) const;
+
     void statistics(
         const TransitionSystem& transition_system,
         downward::utils::LogProxy& log) const;
 };
 
-void compute_liveness(
+/// Computes the forward-reachable states of a transition system for the given
+/// initial state.
+void compute_forward_reachability(
     const TransitionSystem& transition_system,
-    std::span<const value_t> goal_distances,
-    std::vector<bool>& liveness,
-    std::vector<int> queue = std::vector<int>());
+    std::predicate<int> auto is_state_pruned,
+    std::vector<bool>& is_reachable,
+    int init_state,
+    std::vector<int>& queue);
+
+/// Computes the forward-reachable states of a transition system for the given
+/// initial state.
+void compute_forward_reachability(
+    const TransitionSystem& transition_system,
+    std::invocable<int> auto is_pruned,
+    std::vector<bool>& reachability);
+
+void compute_goal_distances(
+    const Labels& labels,
+    const TransitionSystem& transition_system,
+    std::span<value_t> distances);
 
 void compute_goal_distances(
     const Labels& labels,
     const TransitionSystem& transition_system,
     std::span<value_t> distances,
-    const Heuristic<int>& heuristic = heuristics::ConstantHeuristic<int>(0_vt));
+    const Heuristic<int>& heuristic);
+
+} // namespace probfd::merge_and_shrink
+
+#include "probfd/merge_and_shrink/transition_system.h"
+
+#include <algorithm>
+#include <ranges>
+
+namespace probfd::merge_and_shrink {
+
+void compute_forward_reachability(
+    const TransitionSystem& transition_system,
+    std::predicate<int> auto is_state_pruned,
+    std::vector<bool>& is_reachable,
+    int init_state,
+    std::vector<int>& queue)
+{
+    if (is_state_pruned(init_state)) return;
+
+    std::vector<std::vector<int>> forward_graph(transition_system.get_size());
+    for (const auto& local_label_info : transition_system.label_infos()) {
+        for (const auto& [src, targets] : local_label_info.get_transitions()) {
+            // Skip pruned transitions
+            if (std::ranges::any_of(targets, is_state_pruned)) continue;
+
+            for (auto& edges = forward_graph[src]; int target : targets) {
+                edges.emplace_back(target);
+            }
+        }
+    }
+
+    is_reachable[init_state] = true;
+    queue.push_back(init_state);
+
+    do {
+        const int state = queue.back();
+        queue.pop_back();
+
+        for (int successor : forward_graph[state]) {
+            if (is_reachable[successor]) continue;
+            is_reachable[successor] = true;
+            queue.push_back(successor);
+        }
+    } while (!queue.empty());
+}
+
+void compute_forward_reachability(
+    const TransitionSystem& transition_system,
+    std::invocable<int> auto is_pruned,
+    std::vector<bool>& reachability)
+{
+    const int init_state = transition_system.get_init_state();
+
+    std::vector<int> queue;
+    queue.reserve(transition_system.get_size());
+
+    compute_forward_reachability(
+        transition_system,
+        is_pruned,
+        reachability,
+        init_state,
+        queue);
+}
 
 } // namespace probfd::merge_and_shrink
 

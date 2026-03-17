@@ -1,6 +1,7 @@
 #include "probfd/merge_and_shrink/merge_and_shrink_algorithm.h"
 
 #include "probfd/merge_and_shrink/distances.h"
+#include "probfd/merge_and_shrink/factored_mapping.h"
 #include "probfd/merge_and_shrink/factored_transition_system.h"
 #include "probfd/merge_and_shrink/fts_factory.h"
 #include "probfd/merge_and_shrink/label_reduction.h"
@@ -12,18 +13,19 @@
 #include "probfd/merge_and_shrink/transition_system.h"
 #include "probfd/merge_and_shrink/utils.h"
 
+#include "probfd/heuristics/constant_heuristic.h"
+
 #include "probfd/task_utils/task_properties.h"
 
 #include "probfd/utils/guards.h"
+
+#include "probfd/heuristic.h"
 
 #include "downward/task_utils/task_properties.h"
 
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/system.h"
 #include "downward/utils/timer.h"
-
-#include "language/plugins/internal_function_definition.h"
-#include "probfd/merge_and_shrink/factored_mapping.h"
 
 #include <cassert>
 #include <iostream>
@@ -37,9 +39,7 @@ namespace probfd::merge_and_shrink {
 
 static void
 log_progress(const utils::Timer& timer, const string& msg, utils::LogProxy& log)
-{
-    log.println("M&S algorithm timer: {} ({})", timer(), msg);
-}
+{ log.println("M&S algorithm timer: {} ({})", timer(), msg); }
 
 MergeAndShrinkAlgorithm::MergeAndShrinkAlgorithm(
     std::shared_ptr<MergeStrategyFactory> merge_strategy,
