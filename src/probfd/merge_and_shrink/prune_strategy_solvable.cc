@@ -14,7 +14,7 @@ StateEquivalenceRelation PruneStrategySolvable::compute_pruning_abstraction(
     const Distances& distances,
     utils::LogProxy& log)
 {
-    const int num_states = ts.get_size();
+    const int num_states = ts.num_states();
     StateEquivalenceRelation state_equivalence_relation;
     state_equivalence_relation.reserve(num_states);
     int unsolvable = 0;

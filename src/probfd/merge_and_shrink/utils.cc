@@ -84,7 +84,7 @@ static bool shrink_factor(
       function copy_and_shrink_ts in merge_scoring_function_miasm_utils.cc.
     */
     const TransitionSystem& ts = fts.get_transition_system(index);
-    if (const int num_states = ts.get_size();
+    if (const int num_states = ts.num_states();
         num_states > min(new_size, shrink_threshold_before_merge)) {
         if (log.is_at_least_verbose()) {
             log.print("{} current size: {}", ts.tag(), num_states);
@@ -135,8 +135,8 @@ bool shrink_before_merge_step(
       max_states and max_states_before_merge.
     */
     auto [left_size, right_size] = compute_shrink_sizes(
-        fts.get_transition_system(index1).get_size(),
-        fts.get_transition_system(index2).get_size(),
+        fts.get_transition_system(index1).num_states(),
+        fts.get_transition_system(index2).num_states(),
         max_states_before_merge,
         max_states);
 
@@ -195,7 +195,7 @@ vector<int> compute_abstraction_mapping(
 
 bool is_goal_relevant(const TransitionSystem& ts)
 {
-    const int num_states = ts.get_size();
+    const int num_states = ts.num_states();
     for (int state = 0; state < num_states; ++state) {
         if (!ts.is_goal_state(state)) { return true; }
     }

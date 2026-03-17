@@ -34,12 +34,13 @@ compute_label_ranks(const FactoredTransitionSystem& fts, int index)
     // Irrelevant (and inactive, i.e. reduced) labels have a dummy rank of -1
     vector label_ranks(num_labels, -1.0);
 
-    for (const LocalLabelInfo& local_label_info : ts.label_infos()) {
+    for (const auto& t = ts.get_transition_relation();
+         const LabelEquivalenceClass& local_label_info : t.label_infos()) {
         const LabelGroup& label_group = local_label_info.get_label_group();
         const auto& transitions = local_label_info.get_transitions();
 
         const bool group_relevant =
-            static_cast<int>(transitions.size()) != ts.get_size() ||
+            static_cast<int>(transitions.size()) != ts.num_states() ||
             !ranges::all_of(transitions, is_self_loop);
 
         double label_rank;
@@ -95,8 +96,6 @@ vector<double> MergeScoringFunctionDFP::compute_scores(
 }
 
 string MergeScoringFunctionDFP::name() const
-{
-    return "dfp";
-}
+{ return "dfp"; }
 
 } // namespace probfd::merge_and_shrink

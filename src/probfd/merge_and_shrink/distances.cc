@@ -50,13 +50,14 @@ class ExplicitMDP : public MDP<int, const ProbabilisticTransition*> {
 
 public:
     ExplicitMDP(const Labels& labels, const TransitionSystem& transition_system)
-        : transitions_(transition_system.get_size())
-        , goal_flags_(transition_system.get_size())
+        : transitions_(transition_system.num_states())
+        , goal_flags_(transition_system.num_states())
     {
         namespace vws = std::views;
 
         // Set up transitions
-        for (const auto& label_info : transition_system.label_infos()) {
+        for (const auto& t = transition_system.get_transition_relation();
+             const auto& label_info : t.label_infos()) {
             const value_t label_cost = label_info.get_cost();
             const auto& probabilities = labels.get_label_probabilities(
                 label_info.get_label_group().front());
@@ -70,7 +71,7 @@ public:
         }
 
         // Set up goal state flags
-        for (int i = 0; i != transition_system.get_size(); ++i) {
+        for (int i = 0; i != transition_system.num_states(); ++i) {
             goal_flags_[i] = transition_system.is_goal_state(i);
         }
     }
@@ -173,7 +174,7 @@ void Distances::compute_distances(
 
     if (log.is_at_least_verbose()) { log.print(transition_system.tag()); }
 
-    const int num_states = transition_system.get_size();
+    const int num_states = transition_system.num_states();
 
     if (num_states == 0) {
         if (log.is_at_least_verbose()) {
@@ -303,7 +304,7 @@ void Distances::apply_abstraction(
             log.print(transition_system.tag());
             log.println("simplification was not alive-preserving!");
         }
-        const int num_states = transition_system.get_size();
+        const int num_states = transition_system.num_states();
         liveness.resize(num_states);
         std::ranges::fill(liveness, false);
         merge_and_shrink::compute_liveness(
@@ -365,17 +366,17 @@ void compute_goal_distances(
 {
     using namespace algorithms::ta_topological_vi;
 
-    assert(std::cmp_equal(distances.size(), transition_system.get_size()));
+    assert(std::cmp_equal(distances.size(), transition_system.num_states()));
 
     ExplicitMDP explicit_mdp(labels, transition_system);
 
     TATopologicalValueIteration<int, const ProbabilisticTransition*> tatvi(
         0.0001,
-        transition_system.get_size());
+        transition_system.num_states());
 
     std::ranges::fill(distances, DISTANCE_UNKNOWN);
 
-    for (int i = 0; i != transition_system.get_size(); ++i) {
+    for (int i = 0; i != transition_system.num_states(); ++i) {
         if (!std::isnan(distances[i])) continue; // Already seen
         tatvi.solve(explicit_mdp, heuristic, i, distances);
     }

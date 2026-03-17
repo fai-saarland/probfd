@@ -130,7 +130,7 @@ TEST(MnSTests, test_atomic_fts3)
 
 TEST(MnSTests, test_merge1)
 {
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
+    utils::LogProxy log = utils::get_silent_log();
 
     std::ifstream labels_file("resources/mns_tests/bw3_labels.json");
     std::ifstream file1("resources/mns_tests/bw3_ts_0.json");
@@ -140,7 +140,7 @@ TEST(MnSTests, test_merge1)
     auto ts1 = json::read<TransitionSystem>(file1);
     auto ts2 = json::read<TransitionSystem>(file2);
 
-    auto ts = TransitionSystem::merge(labels, ts1, ts2, log);
+    auto ts = merge_transition_systems(ts1, ts2, labels, log);
 
     std::ifstream e_file("resources/mns_tests/bw3_ts_01.json");
     auto expected_ts = json::read<TransitionSystem>(e_file);
@@ -162,47 +162,47 @@ TEST(MnSTests, test_merge2)
 
     const auto& variables = get_shared_variables(task);
 
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
+    utils::LogProxy log = utils::get_silent_log();
     FactoredTransitionSystem fts =
         create_factored_transition_system(to_refs(task), log);
 
     ASSERT_EQ(fts.get_size(), variables->get_num_variables())
         << "Unexpected number of atomic factors!";
 
-    auto ts56 = TransitionSystem::merge(
-        fts.get_labels(),
+    auto ts56 = merge_transition_systems(
         fts.get_transition_system(5),
         fts.get_transition_system(6),
+        fts.get_labels(),
         log);
 
-    auto ts456 = TransitionSystem::merge(
-        fts.get_labels(),
+    auto ts456 = merge_transition_systems(
         fts.get_transition_system(4),
         *ts56,
+        fts.get_labels(),
         log);
 
-    auto ts3456 = TransitionSystem::merge(
-        fts.get_labels(),
+    auto ts3456 = merge_transition_systems(
         fts.get_transition_system(3),
         *ts456,
+        fts.get_labels(),
         log);
 
-    auto ts23456 = TransitionSystem::merge(
-        fts.get_labels(),
+    auto ts23456 = merge_transition_systems(
         fts.get_transition_system(2),
         *ts3456,
+        fts.get_labels(),
         log);
 
-    auto ts123456 = TransitionSystem::merge(
-        fts.get_labels(),
+    auto ts123456 = merge_transition_systems(
         fts.get_transition_system(1),
         *ts23456,
+        fts.get_labels(),
         log);
 
-    auto ts = TransitionSystem::merge(
-        fts.get_labels(),
+    auto ts = merge_transition_systems(
         fts.get_transition_system(0),
         *ts123456,
+        fts.get_labels(),
         log);
 
     std::ifstream e_file("resources/mns_tests/bw3_ts_0123456.json");
@@ -214,7 +214,7 @@ TEST(MnSTests, test_merge2)
 
 TEST(MnSTests, test_shrink_all)
 {
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
+    utils::LogProxy log = utils::get_silent_log();
 
     std::ifstream labels_file("resources/mns_tests/bw3_labels.json");
     std::ifstream ts_file("resources/mns_tests/bw3_ts_0.json");
@@ -223,9 +223,9 @@ TEST(MnSTests, test_shrink_all)
     auto ts = json::read<TransitionSystem>(ts_file);
 
     StateEquivalenceRelation eq_rel{
-        std::views::iota(0, ts.get_size()) |
+        std::views::iota(0, ts.num_states()) |
         std::ranges::to<std::forward_list>()};
-    std::vector state_mapping(ts.get_size(), 0);
+    std::vector state_mapping(ts.num_states(), 0);
     ts.apply_abstraction(labels, eq_rel, state_mapping, log);
 
     std::ifstream e_file("resources/mns_tests/bw3_ts_0_shrink_all.json");
@@ -237,7 +237,7 @@ TEST(MnSTests, test_shrink_all)
 
 TEST(MnSTests, test_projection_distances)
 {
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
+    utils::LogProxy log = utils::get_silent_log();
 
     std::ifstream labels_file("resources/mns_tests/bw3_labels.json");
     const auto labels = json::read<Labels>(labels_file);
@@ -251,7 +251,7 @@ TEST(MnSTests, test_projection_distances)
             std::format("resources/mns_tests/bw3_ts_{}_distances.json", i));
         auto value_table = json::read<std::vector<value_t>>(d_file);
 
-        std::vector distances(ts.get_size(), -INFINITE_VALUE);
+        std::vector distances(ts.num_states(), -INFINITE_VALUE);
         compute_goal_distances(labels, ts, distances);
 
         for (size_t k = 0; k != value_table.size(); ++k) {
@@ -266,7 +266,7 @@ TEST(MnSTests, test_projection_distances)
 
 TEST(MnSTests, test_projection_distances2)
 {
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
+    utils::LogProxy log = utils::get_silent_log();
 
     std::ifstream labels_file("resources/mns_tests/bw2_labels.json");
     const auto labels = json::read<Labels>(labels_file);
@@ -288,7 +288,7 @@ TEST(MnSTests, test_projection_distances2)
                     j));
             auto value_table = json::read<std::vector<value_t>>(d_file);
 
-            std::vector distances(ts.get_size(), -INFINITE_VALUE);
+            std::vector distances(ts.num_states(), -INFINITE_VALUE);
             compute_goal_distances(labels, ts, distances);
 
             for (size_t k = 0; k != value_table.size(); ++k) {
@@ -305,7 +305,7 @@ TEST(MnSTests, test_projection_distances2)
 
 TEST(MnSTests, test_projection_distances3)
 {
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
+    utils::LogProxy log = utils::get_silent_log();
 
     std::ifstream labels_file("resources/mns_tests/bw3_labels.json");
     const auto labels = json::read<Labels>(labels_file);
@@ -316,7 +316,7 @@ TEST(MnSTests, test_projection_distances3)
     std::ifstream d_file("resources/mns_tests/bw3_ts_0123456_distances.json");
     auto value_table = json::read<std::vector<value_t>>(d_file);
 
-    std::vector distances(ts.get_size(), -INFINITE_VALUE);
+    std::vector distances(ts.num_states(), -INFINITE_VALUE);
     compute_goal_distances(labels, ts, distances);
 
     for (size_t k = 0; k != value_table.size(); ++k) {
@@ -330,7 +330,7 @@ TEST(MnSTests, test_projection_distances3)
 
 TEST(MnSTests, test_bisimulation_distance_preserved)
 {
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
+    utils::LogProxy log = utils::get_silent_log();
 
     std::ifstream labels_file("resources/mns_tests/bw3_labels.json");
     const auto labels = json::read<Labels>(labels_file);
@@ -352,7 +352,7 @@ TEST(MnSTests, test_bisimulation_distance_preserved)
         std::numeric_limits<int>::max(),
         log);
 
-    std::vector<int> abs_mapping(ts.get_size());
+    std::vector<int> abs_mapping(ts.num_states());
     for (size_t i = 0; i != eq_relation.size(); ++i) {
         for (const auto& eq_class = eq_relation[i]; int state : eq_class) {
             abs_mapping[state] = static_cast<int>(i);
@@ -361,7 +361,7 @@ TEST(MnSTests, test_bisimulation_distance_preserved)
 
     ts.apply_abstraction(labels, eq_relation, abs_mapping, log);
 
-    std::vector new_distances(ts.get_size(), -INFINITE_VALUE);
+    std::vector new_distances(ts.num_states(), -INFINITE_VALUE);
     compute_goal_distances(labels, ts, new_distances);
 
     auto old_distances = distances.extract_goal_distances();
@@ -377,7 +377,7 @@ TEST(MnSTests, test_bisimulation_distance_preserved)
 
 TEST(MnSTests, test_prune_solvable)
 {
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
+    utils::LogProxy log = utils::get_silent_log();
 
     std::ifstream labels_file("resources/mns_tests/bw3_labels.json");
     const auto labels = json::read<Labels>(labels_file);
@@ -391,7 +391,7 @@ TEST(MnSTests, test_prune_solvable)
     PruneStrategySolvable prune;
     auto eq_relation = prune.compute_pruning_abstraction(ts, distances, log);
 
-    std::vector abs_mapping(ts.get_size(), PRUNED_STATE);
+    std::vector abs_mapping(ts.num_states(), PRUNED_STATE);
     for (size_t i = 0; i != eq_relation.size(); ++i) {
         for (const auto& eq_class = eq_relation[i]; int state : eq_class) {
             abs_mapping[state] = static_cast<int>(i);
@@ -400,7 +400,7 @@ TEST(MnSTests, test_prune_solvable)
 
     ts.apply_abstraction(labels, eq_relation, abs_mapping, log);
 
-    std::vector new_distances(ts.get_size(), -INFINITE_VALUE);
+    std::vector new_distances(ts.num_states(), -INFINITE_VALUE);
     compute_goal_distances(labels, ts, new_distances);
 
     auto old_distances = distances.extract_goal_distances();
@@ -419,7 +419,7 @@ TEST(MnSTests, test_prune_solvable)
 
 TEST(MnSTests, test_prune_alive)
 {
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
+    utils::LogProxy log = utils::get_silent_log();
 
     std::ifstream labels_file("resources/mns_tests/bw3_labels.json");
     const auto labels = json::read<Labels>(labels_file);
@@ -433,7 +433,7 @@ TEST(MnSTests, test_prune_alive)
     PruneStrategyAlive prune;
     auto eq_relation = prune.compute_pruning_abstraction(ts, distances, log);
 
-    std::vector abs_mapping(ts.get_size(), PRUNED_STATE);
+    std::vector abs_mapping(ts.num_states(), PRUNED_STATE);
     for (size_t i = 0; i != eq_relation.size(); ++i) {
         for (const auto& eq_class = eq_relation[i]; int state : eq_class) {
             abs_mapping[state] = static_cast<int>(i);
@@ -442,7 +442,7 @@ TEST(MnSTests, test_prune_alive)
 
     ts.apply_abstraction(labels, eq_relation, abs_mapping, log);
 
-    std::vector new_distances(ts.get_size(), -INFINITE_VALUE);
+    std::vector new_distances(ts.num_states(), -INFINITE_VALUE);
     compute_goal_distances(labels, ts, new_distances);
 
     auto old_distances = distances.extract_goal_distances();
@@ -474,7 +474,7 @@ TEST(MnSTests, test_label_reduction)
         1,
         1);
 
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
+    utils::LogProxy log = utils::get_silent_log();
     FactoredTransitionSystem fts =
         create_factored_transition_system(to_refs(task), log);
 
@@ -500,17 +500,17 @@ TEST(MnSTests, test_label_reduction)
     label_reduction.initialize(to_refs(task));
 
     auto& ts = fts.get_transition_system(index);
-    std::vector old_distances(ts.get_size(), -INFINITE_VALUE);
+    std::vector old_distances(ts.num_states(), -INFINITE_VALUE);
     compute_goal_distances(fts.get_labels(), ts, old_distances);
 
     label_reduction.reduce(0, 0, fts, log);
 
-    std::vector new_distances(ts.get_size(), -INFINITE_VALUE);
+    std::vector new_distances(ts.num_states(), -INFINITE_VALUE);
     compute_goal_distances(fts.get_labels(), ts, new_distances);
 
     for (size_t k = 0; k != old_distances.size(); ++k) {
         if (old_distances[k] == INFINITE_VALUE)
-            ASSERT_TRUE(new_distances[k] == INFINITE_VALUE);
+            ASSERT_EQ(new_distances[k], INFINITE_VALUE);
         else
             ASSERT_NEAR(old_distances[k], new_distances[k], 0.0001)
                 << "Distance of state " << k << " not preserved!";

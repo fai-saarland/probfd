@@ -63,7 +63,7 @@ vector<double> MergeScoringFunctionMIASM::compute_scores(
         distances
             .compute_distances(fts.get_labels(), *product, true, silent_log);
 
-        const int num_states = product->get_size();
+        const int num_states = product->num_states();
         int alive_states_count = 0;
 
         for (int state = 0; state < num_states; ++state) {

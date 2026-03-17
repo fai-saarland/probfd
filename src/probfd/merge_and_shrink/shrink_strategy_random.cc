@@ -20,7 +20,7 @@ ShrinkStrategyRandom::partition_into_buckets(
     const TransitionSystem& ts,
     const Distances&) const
 {
-    return {std::views::iota(0, ts.get_size()) | std::ranges::to<Bucket>()};
+    return {std::views::iota(0, ts.num_states()) | std::ranges::to<Bucket>()};
 }
 
 string ShrinkStrategyRandom::name() const

@@ -100,7 +100,7 @@ static int initialize_groups(
     std::map<value_t, int> h_to_group;
     int num_groups = 1; // Group 0 is for goal states.
 
-    for (int state = 0; state < ts.get_size(); ++state) {
+    for (int state = 0; state < ts.num_states(); ++state) {
         if (ts.is_goal_state(state)) {
             assert(distances.get_goal_distance(state) == 0);
             state_to_group[state] = 0;
@@ -137,7 +137,7 @@ static void compute_signatures(
     assert(signatures.empty());
 
     // Step 1: Compute bare state signatures (without transition information).
-    for (int state = 0; state < ts.get_size(); ++state) {
+    for (int state = 0; state < ts.num_states(); ++state) {
         signatures.emplace_back(state_to_group[state], state);
     }
 
@@ -147,7 +147,8 @@ static void compute_signatures(
 
     int label_group_counter = 0;
 
-    for (const LocalLabelInfo& local_label_info : ts.label_infos()) {
+    for (const auto& t = ts.get_transition_relation();
+         const LabelEquivalenceClass& local_label_info : t.label_infos()) {
         const auto& probabilities = local_label_info.get_probabilities(labels);
         for (const auto& [src, targets] : local_label_info.get_transitions()) {
             assert(signatures[src].state == src);
@@ -180,7 +181,7 @@ ShrinkStrategyProbabilisticBisimulation::compute_equivalence_relation(
     utils::LogProxy&) const
 {
     assert(distances.are_goal_distances_computed());
-    const int num_states = ts.get_size();
+    const int num_states = ts.num_states();
 
     vector<int> state_to_group(num_states);
 
@@ -268,9 +269,7 @@ break_outer_loop:;
 }
 
 string ShrinkStrategyProbabilisticBisimulation::name() const
-{
-    return "bisimulation";
-}
+{ return "bisimulation"; }
 
 void ShrinkStrategyProbabilisticBisimulation::dump_strategy_specific_options(
     utils::LogProxy& log) const

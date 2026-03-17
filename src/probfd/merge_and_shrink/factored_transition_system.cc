@@ -88,7 +88,7 @@ bool FactoredTransitionSystem::is_component_valid(int index) const
 
 bool FactoredTransitionSystem::is_factor_valid(const Factor& factor) const
 {
-    return factor.transition_system->is_valid(labels);
+    return factor.transition_system->get_transition_relation().is_valid(labels);
 }
 
 void FactoredTransitionSystem::assert_all_components_valid() const
@@ -134,12 +134,12 @@ bool FactoredTransitionSystem::apply_abstraction(
     auto&& [ts, fm, distances] = factors[index];
 
     if (const int new_num_states = state_equivalence_relation.size();
-        new_num_states == ts->get_size()) {
+        new_num_states == ts->num_states()) {
         return false;
     }
 
     const vector<int> abstraction_mapping =
-        compute_abstraction_mapping(ts->get_size(), state_equivalence_relation);
+        compute_abstraction_mapping(ts->num_states(), state_equivalence_relation);
 
     ts->apply_abstraction(
         labels,
@@ -177,7 +177,7 @@ auto FactoredTransitionSystem::merge(
     auto&& f = factors.emplace_back();
     auto&& [ts, fm, distances] = f;
 
-    ts = TransitionSystem::merge(labels, *ts1, *ts2, log);
+    ts = merge_transition_systems(*ts1, *ts2, labels, log);
 
     fm = std::make_unique<FactoredMappingMerge>(std::move(fm1), std::move(fm2));
 
@@ -243,7 +243,7 @@ bool FactoredTransitionSystem::is_factor_trivial(int index) const
 
     if (!factor.factored_mapping->is_total()) { return false; }
     const TransitionSystem& ts = *factor.transition_system;
-    for (int state = 0; state < ts.get_size(); ++state) {
+    for (int state = 0; state < ts.num_states(); ++state) {
         if (!ts.is_goal_state(state)) { return false; }
     }
     return true;

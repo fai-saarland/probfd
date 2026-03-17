@@ -7,7 +7,6 @@
 #include <format>
 #include <iosfwd>
 #include <vector>
-#include <version>
 
 namespace probfd::merge_and_shrink {
 
