@@ -39,7 +39,7 @@ using LabelGroup = std::vector<int>;
   The local label is in a consistent state if label_group and transitions
   are sorted and unique.
 */
-class LocalLabelInfo {
+class LabelEquivalenceClass {
     // The sorted set of labels with identical transitions in a transition
     // system.
     LabelGroup label_group;
@@ -50,18 +50,16 @@ class LocalLabelInfo {
     value_t cost;
 
 public:
-    explicit LocalLabelInfo(const json::JsonObject& object);
+    explicit LabelEquivalenceClass(const json::JsonObject& object);
 
-    LocalLabelInfo(
+    LabelEquivalenceClass(
         LabelGroup label_group,
         std::vector<Transition> transitions,
         value_t cost)
         : label_group(std::move(label_group))
         , transitions(std::move(transitions))
         , cost(cost)
-    {
-        assert(is_consistent());
-    }
+    { assert(is_consistent()); }
 
     void add_label(int label, value_t label_cost);
 
@@ -84,7 +82,7 @@ public:
       moved into this local label info. The given local label is then
       invalidated.
     */
-    void merge_local_label_info(LocalLabelInfo& local_label_info);
+    void merge_local_label_info(LabelEquivalenceClass& local_label_info);
 
     // Empty all data structures.
     void deactivate();
@@ -97,9 +95,7 @@ public:
     std::vector<Transition>& get_transitions() { return transitions; }
 
     const std::vector<Transition>& get_transitions() const
-    {
-        return transitions;
-    }
+    { return transitions; }
 
     const std::vector<value_t>& get_probabilities(const Labels& labels) const
     {
@@ -114,26 +110,20 @@ public:
     bool is_consistent() const;
 
     friend std::ostream&
-    operator<<(std::ostream& out, const LocalLabelInfo& label_info);
+    operator<<(std::ostream& out, const LabelEquivalenceClass& label_info);
 
     friend bool
-    operator==(const LocalLabelInfo&, const LocalLabelInfo&) = default;
+    operator==(const LabelEquivalenceClass&, const LabelEquivalenceClass&) = default;
 
     friend std::unique_ptr<json::JsonObject>
-    to_json(const LocalLabelInfo& info);
+    to_json(const LabelEquivalenceClass& info);
 
-    void merge(LocalLabelInfo& right);
+    void merge(LabelEquivalenceClass& right);
 };
 
-void dump_json(std::ostream& os, const LocalLabelInfo& info);
+void dump_json(std::ostream& os, const LabelEquivalenceClass& info);
 
-class TransitionSystem {
-    /*
-     * This attribute is only used for output. Variables that contributed to
-     * this transition system.
-     */
-    std::vector<int> incorporated_variables;
-
+class TransitionRelation {
     /*
      * All locally equivalent labels are grouped together, and their
      * transitions are only stored once for every such group, see below.
@@ -142,19 +132,42 @@ class TransitionSystem {
      * labels of the underlying factored transition system.
      */
     std::vector<int> label_to_local_label;
-    std::vector<LocalLabelInfo> local_label_infos;
 
-    int init_state;
-    std::vector<bool> goal_states;
+    std::vector<LabelEquivalenceClass> local_label_infos;
+
+public:
+    explicit TransitionRelation(const json::JsonObject& object);
+
+    explicit TransitionRelation(
+        std::vector<int> label_to_local_label,
+        std::vector<LabelEquivalenceClass> local_label_infos);
+
+    auto label_infos() const
+    {
+        using namespace std::views;
+        return local_label_infos | filter(&LabelEquivalenceClass::is_active);
+    }
+
+    friend TransitionRelation merge_transition_relations(
+        const TransitionRelation& t1,
+        const TransitionRelation& t2,
+        const Labels& labels,
+        int num_states_t1);
+
+    void apply_label_reduction(
+        const Labels& labels,
+        const std::vector<std::pair<int, std::vector<int>>>& label_mapping,
+        bool only_equivalent_labels);
+
+    void apply_abstraction(
+        const Labels& labels,
+        const std::vector<int>& abstraction_mapping);
 
     /*
-     * Check if two or more labels are locally equivalent to each other, and
-     * if so, update the label equivalence relation.
-     */
-    void compute_equivalent_local_labels(const Labels& labels);
-
-    // Statistics and output
-    int compute_total_transitions() const;
+      The transitions for every group of locally equivalent labels are
+      sorted (by source, by target) and there are no duplicates.
+    */
+    bool is_valid(const Labels& labels) const;
 
     /*
      * The transitions for every group of locally equivalent labels are
@@ -163,11 +176,44 @@ class TransitionSystem {
     bool are_local_labels_consistent() const;
 
     /*
-      The mapping label_to_local_label is consistent with local_label_infos.
+      The mapping label_to_local_label is consistent with the transition
+      relation.
     */
     bool is_label_mapping_consistent(const Labels& labels) const;
 
     void dump_label_mapping(const Labels& labels, std::ostream& out) const;
+
+    int compute_total_transitions() const;
+
+    friend std::unique_ptr<json::JsonObject>
+    to_json(const TransitionRelation& t);
+
+    friend std::ostream&
+    operator<<(std::ostream& os, const TransitionRelation& t);
+
+    friend bool operator==(
+        const TransitionRelation& left,
+        const TransitionRelation& right) = default;
+
+private:
+    /*
+     * Check if two or more labels are locally equivalent to each other, and
+     * if so, update the label equivalence relation.
+     */
+    void compute_equivalent_local_labels(const Labels& labels);
+};
+
+class TransitionSystem {
+    /*
+     * This attribute is only used for output. Variables that contributed to
+     * this transition system.
+     */
+    std::vector<int> incorporated_variables;
+
+    TransitionRelation transition_relation;
+
+    int init_state;
+    std::vector<bool> goal_states;
 
 public:
     explicit TransitionSystem(const json::JsonObject& object);
@@ -175,26 +221,30 @@ public:
     TransitionSystem(
         std::vector<int> incorporated_variables,
         std::vector<int> label_to_local_label,
-        std::vector<LocalLabelInfo> local_label_infos,
+        std::vector<LabelEquivalenceClass> local_label_infos,
         int init_state,
         std::vector<bool> goal_states);
 
-    int get_size() const { return static_cast<int>(goal_states.size()); }
+    TransitionSystem(
+        std::vector<int> incorporated_variables,
+        TransitionRelation transition_relation,
+        int init_state,
+        std::vector<bool> goal_states);
+
+    const std::vector<int>& get_incorporated_variables() const
+    { return incorporated_variables; }
+
+    TransitionRelation& get_transition_relation()
+    { return transition_relation; }
+
+    const TransitionRelation& get_transition_relation() const
+    { return transition_relation; }
 
     int get_init_state() const { return init_state; }
 
     bool is_goal_state(int state) const { return goal_states[state]; }
 
-    const std::vector<int>& get_incorporated_variables() const
-    {
-        return incorporated_variables;
-    }
-
-    auto label_infos() const
-    {
-        using namespace std::views;
-        return local_label_infos | filter(&LocalLabelInfo::is_active);
-    }
+    int num_states() const { return static_cast<int>(goal_states.size()); }
 
     /*
       Factory method to construct the merge of two transition systems.
@@ -202,10 +252,10 @@ public:
       Invariant: the children ts1 and ts2 must be solvable.
       (It is a bug to merge an unsolvable transition system.)
     */
-    static std::unique_ptr<TransitionSystem> merge(
-        const Labels& labels,
+    friend std::unique_ptr<TransitionSystem> merge_transition_systems(
         const TransitionSystem& ts1,
         const TransitionSystem& ts2,
+        const Labels& labels,
         downward::utils::LogProxy& log);
 
     /*
@@ -232,12 +282,6 @@ public:
         const std::vector<std::pair<int, std::vector<int>>>& label_mapping,
         bool only_equivalent_labels);
 
-    /*
-      The transitions for every group of locally equivalent labels are
-      sorted (by source, by target) and there are no duplicates.
-    */
-    bool is_valid(const Labels& labels) const;
-
     bool is_solvable(const Distances& distances) const;
 
     /*
@@ -261,22 +305,24 @@ public:
         default;
 
     friend std::unique_ptr<json::JsonObject>
-    to_json(const TransitionSystem& info);
+    to_json(const TransitionSystem& ts);
+
+private:
+    // Statistics and output
+    int compute_total_transitions() const;
 };
 
 } // namespace probfd::merge_and_shrink
 
 template <>
-struct std::formatter<probfd::merge_and_shrink::LocalLabelInfo, char> {
+struct std::formatter<probfd::merge_and_shrink::LabelEquivalenceClass, char> {
     template <class ParseContext>
     constexpr typename ParseContext::iterator parse(ParseContext& ctx)
-    {
-        return ctx.begin();
-    }
+    { return ctx.begin(); }
 
     template <class FmtContext>
     typename FmtContext::iterator format(
-        const probfd::merge_and_shrink::LocalLabelInfo& info,
+        const probfd::merge_and_shrink::LabelEquivalenceClass& info,
         FmtContext& ctx) const
     {
         return std::format_to(

@@ -43,7 +43,7 @@ class FTSFactory {
         vector<int> incorporated_variables;
 
         vector<int> label_to_local_label;
-        vector<LocalLabelInfo> local_label_infos;
+        vector<LabelEquivalenceClass> local_label_infos;
         std::map<std::vector<value_t>, LabelGroupCost> irrelevant_labels;
         vector<bool> goal_states;
         int init_state;
@@ -237,8 +237,8 @@ void FTSFactory::build_transitions(const Labels& labels)
         auto& local_label_infos = ts_data.local_label_infos;
 
         // Merge equivalent label groups
-        auto cmp = [&](const LocalLabelInfo* left,
-                       const LocalLabelInfo* right) {
+        auto cmp = [&](const LabelEquivalenceClass* left,
+                       const LabelEquivalenceClass* right) {
             return std::tie(
                        left->get_probabilities(labels),
                        left->get_transitions()) <=>
@@ -248,17 +248,17 @@ void FTSFactory::build_transitions(const Labels& labels)
                    0;
         };
 
-        std::set<LocalLabelInfo*, decltype(cmp)> duplicates(cmp);
+        std::set<LabelEquivalenceClass*, decltype(cmp)> duplicates(cmp);
 
-        for (LocalLabelInfo& element : local_label_infos) {
+        for (LabelEquivalenceClass& element : local_label_infos) {
             auto [it, inserted] = duplicates.insert(&element);
             if (inserted) continue;
 
-            LocalLabelInfo& first_occurence = **it;
+            LabelEquivalenceClass& first_occurence = **it;
             first_occurence.merge(element);
         }
 
-        std::erase_if(local_label_infos, [&](const LocalLabelInfo& element) {
+        std::erase_if(local_label_infos, [&](const LabelEquivalenceClass& element) {
             return element.get_label_group().empty();
         });
 

@@ -46,9 +46,7 @@ LabelReduction::LabelReduction(
 }
 
 bool LabelReduction::initialized() const
-{
-    return !transition_system_order.empty();
-}
+{ return !transition_system_order.empty(); }
 
 void LabelReduction::initialize(const ProbabilisticTaskTuple& task)
 {
@@ -158,8 +156,9 @@ compute_combinable_equivalence_relation(
 
     for (const int index : fts) {
         if (index != ts_index) {
-            for (const TransitionSystem& ts = fts.get_transition_system(index);
-                 const LocalLabelInfo& local_label_info : ts.label_infos()) {
+            for (const auto& t =
+                     fts.get_transition_system(index).get_transition_relation();
+                 const LabelEquivalenceClass& local_label_info : t.label_infos()) {
                 relation.refine(local_label_info.get_label_group());
             }
         }

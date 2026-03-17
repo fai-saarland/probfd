@@ -26,7 +26,7 @@ FactorDistances::FactorDistances(
     const Labels& labels,
     const TransitionSystem& ts)
     : factored_mapping(std::move(factored_mapping))
-    , distance_table(ts.get_size(), DISTANCE_UNKNOWN)
+    , distance_table(ts.num_states(), DISTANCE_UNKNOWN)
 {
     compute_goal_distances(labels, ts, distance_table);
 }

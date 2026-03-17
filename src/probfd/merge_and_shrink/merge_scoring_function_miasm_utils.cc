@@ -37,7 +37,7 @@ static unique_ptr<TransitionSystem> copy_and_shrink_ts(
     // assert(equivalence_relation.size() <= target_size);
 
     if (const int new_num_states = equivalence_relation.size();
-        new_num_states >= ts.get_size())
+        new_num_states >= ts.num_states())
         return nullptr;
 
     /*
@@ -45,7 +45,7 @@ static unique_ptr<TransitionSystem> copy_and_shrink_ts(
         then shrink it and return it.
     */
     const vector<int> abstraction_mapping =
-        compute_abstraction_mapping(ts.get_size(), equivalence_relation);
+        compute_abstraction_mapping(ts.num_states(), equivalence_relation);
 
     auto ts_copy = std::make_unique<TransitionSystem>(ts);
     ts_copy->apply_abstraction(
@@ -74,14 +74,14 @@ unique_ptr<TransitionSystem> shrink_before_merge_externally(
       in the merge-and-shrink loop.
     */
     auto [left_size, right_size] = compute_shrink_sizes(
-        original_ts1.get_size(),
-        original_ts2.get_size(),
+        original_ts1.num_states(),
+        original_ts2.num_states(),
         max_states_before_merge,
         max_states);
 
     const bool must_shrink_ts1 =
-        original_ts1.get_size() > min(left_size, shrink_threshold_before_merge);
-    const bool must_shrink_ts2 = original_ts2.get_size() >
+        original_ts1.num_states() > min(left_size, shrink_threshold_before_merge);
+    const bool must_shrink_ts2 = original_ts2.num_states() >
                                  min(right_size, shrink_threshold_before_merge);
 
     /*
@@ -116,10 +116,10 @@ unique_ptr<TransitionSystem> shrink_before_merge_externally(
       Return the product, using either the original transition systems or
       the copied and shrunk ones.
     */
-    return TransitionSystem::merge(
-        fts.get_labels(),
+    return merge_transition_systems(
         (ts1 ? *ts1 : original_ts1),
         (ts2 ? *ts2 : original_ts2),
+        fts.get_labels(),
         log);
 }
 

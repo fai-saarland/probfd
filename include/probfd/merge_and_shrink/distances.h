@@ -144,8 +144,9 @@ void compute_forward_reachability(
 {
     if (is_state_pruned(init_state)) return;
 
-    std::vector<std::vector<int>> forward_graph(transition_system.get_size());
-    for (const auto& local_label_info : transition_system.label_infos()) {
+    std::vector<std::vector<int>> forward_graph(transition_system.num_states());
+    for (const auto& t = transition_system.get_transition_relation();
+         const auto& local_label_info : t.label_infos()) {
         for (const auto& [src, targets] : local_label_info.get_transitions()) {
             // Skip pruned transitions
             if (std::ranges::any_of(targets, is_state_pruned)) continue;
@@ -179,7 +180,7 @@ void compute_forward_reachability(
     const int init_state = transition_system.get_init_state();
 
     std::vector<int> queue;
-    queue.reserve(transition_system.get_size());
+    queue.reserve(transition_system.num_states());
 
     compute_forward_reachability(
         transition_system,

@@ -175,7 +175,7 @@ void MergeAndShrinkAlgorithm::main_loop(
 
     int maximum_intermediate_size = 0;
     for (int i = 0; i < fts.get_size(); ++i) {
-        if (const int size = fts.get_transition_system(i).get_size();
+        if (const int size = fts.get_transition_system(i).num_states();
             size > maximum_intermediate_size) {
             maximum_intermediate_size = size;
         }
@@ -300,7 +300,7 @@ void MergeAndShrinkAlgorithm::main_loop(
         }
 
         if (const int abs_size =
-                fts.get_transition_system(merged_index).get_size();
+                fts.get_transition_system(merged_index).num_states();
             abs_size > maximum_intermediate_size) {
             maximum_intermediate_size = abs_size;
         }

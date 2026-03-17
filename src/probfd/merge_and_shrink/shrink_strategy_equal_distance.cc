@@ -44,7 +44,7 @@ ShrinkStrategyEqualDistance::ordered_buckets_use_map(
 {
     std::map<value_t, Bucket> states_by_h;
 
-    for (int state = 0; state < ts.get_size(); ++state) {
+    for (int state = 0; state < ts.num_states(); ++state) {
         value_t h = distances.get_goal_distance(state);
 
         // Get epsilon-close bucket, if existent
