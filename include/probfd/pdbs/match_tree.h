@@ -23,8 +23,11 @@ template <typename>
 struct TransitionTail;
 }
 
-namespace probfd::pdbs {
+namespace probfd::enumeration {
 class AssignmentEnumerator;
+}
+
+namespace probfd::pdbs {
 class ProjectionOperator;
 class ProjectionStateSpace;
 } // namespace probfd::pdbs
@@ -51,7 +54,7 @@ public:
      * into the match tree.
      */
     void insert(
-        const AssignmentEnumerator& ranking_function,
+        const enumeration::AssignmentEnumerator& enumerator,
         ProjectionOperator op,
         const std::vector<downward::FactPair>& progression_preconditions,
         downward::OperatorCostFunction<value_t>* cost_function);

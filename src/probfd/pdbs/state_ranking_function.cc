@@ -6,6 +6,8 @@
 
 using namespace downward;
 
+using namespace probfd::enumeration;
+
 namespace probfd::pdbs {
 
 StateRankingFunction::StateRankingFunction(

@@ -1,8 +1,6 @@
-#include "probfd/pdbs/assignment_enumerator.h"
+#include "probfd/task_utils/assignment_enumerator.h"
 
-#include <ranges>
-
-namespace probfd::pdbs {
+namespace probfd::enumeration {
 
 unsigned AssignmentEnumerator::num_assignments() const
 {

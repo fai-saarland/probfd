@@ -31,6 +31,7 @@ create_library(
         probfd/heuristics/constant_heuristic
 
         # Task Utils
+        probfd/task_utils/assignment_enumerator
         probfd/task_utils/causal_graph
         probfd/task_utils/sampling
 
@@ -170,7 +171,6 @@ create_library(
 create_library(
     NAME probability_aware_pdbs
     SOURCES
-        probfd/pdbs/assignment_enumerator
         probfd/pdbs/heuristics
         probfd/pdbs/match_tree
         probfd/pdbs/probability_aware_pattern_database
