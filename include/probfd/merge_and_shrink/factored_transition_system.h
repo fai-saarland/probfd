@@ -40,9 +40,7 @@ public:
 
     friend bool
     operator==(const FTSConstIterator& lhs, const FTSConstIterator& rhs)
-    {
-        return lhs.current_index == rhs.current_index;
-    }
+    { return lhs.current_index == rhs.current_index; }
 };
 
 struct Factor {
@@ -73,15 +71,6 @@ struct Factor {
   interface that this class shows to the outside world.
 */
 class FactoredTransitionSystem {
-public:
-    struct MergeResult {
-        Factor left_factor;
-        Factor right_factor;
-        Factor& merged_factor;
-        int merge_index;
-    };
-
-private:
     Labels labels;
     std::vector<Factor> factors;
     int num_active_entries;
@@ -121,7 +110,12 @@ public:
     /*
       Merge the two factors at index1 and index2.
     */
-    MergeResult merge(int index1, int index2, downward::utils::LogProxy& log);
+    int merge(
+        int index1,
+        int index2,
+        bool compute_goal_distances,
+        bool compute_liveness,
+        downward::utils::LogProxy& log);
 
     /*
       Extract the factor at the given index, rendering the FTS invalid.
@@ -129,16 +123,12 @@ public:
     Factor extract_factor(int index);
 
     const TransitionSystem& get_transition_system(int index) const
-    {
-        return *factors[index].transition_system;
-    }
+    { return *factors[index].transition_system; }
 
     Distances& get_distances(int index) { return *factors[index].distances; }
 
     const Distances& get_distances(int index) const
-    {
-        return *factors[index].distances;
-    }
+    { return *factors[index].distances; }
 
     int get_num_active_entries() const { return num_active_entries; }
 

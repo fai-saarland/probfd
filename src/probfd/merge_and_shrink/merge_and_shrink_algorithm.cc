@@ -257,47 +257,12 @@ void MergeAndShrinkAlgorithm::main_loop(
         if (ran_out_of_time(timer)) { break; }
 
         // Merging
-        auto&& [left_factor, right_factor, factor, merged_index] =
-            fts.merge(merge_index1, merge_index2, log);
-
-        class MergeHeuristic : public Heuristic<int> {
-            const FactoredMappingMerge& merge_fm;
-            std::vector<value_t> distance_table1;
-            std::vector<value_t> distance_table2;
-
-        public:
-            MergeHeuristic(
-                const FactoredMappingMerge& merge_fm,
-                Distances& distances1,
-                Distances& distances2)
-                : merge_fm(merge_fm)
-                , distance_table1(distances1.extract_goal_distances())
-                , distance_table2(distances2.extract_goal_distances())
-            {
-            }
-
-            value_t evaluate(int state) const override
-            {
-                const auto [left, right] = merge_fm.get_children_states(state);
-                return std::max(distance_table1[left], distance_table2[right]);
-            }
-        };
-
-        // Restore the invariant that distances are computed.
-        if (compute_goal_distances) {
-            const MergeHeuristic heuristic(
-                static_cast<const FactoredMappingMerge&>(
-                    *factor.factored_mapping),
-                *left_factor.distances,
-                *right_factor.distances);
-
-            factor.distances->compute_distances(
-                fts.get_labels(),
-                *factor.transition_system,
-                compute_liveness,
-                log,
-                heuristic);
-        }
+        const auto merged_index = fts.merge(
+            merge_index1,
+            merge_index2,
+            compute_goal_distances,
+            compute_liveness,
+            log);
 
         if (const int abs_size =
                 fts.get_transition_system(merged_index).num_states();

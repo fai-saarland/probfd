@@ -478,17 +478,17 @@ TEST(MnSTests, test_label_reduction)
     FactoredTransitionSystem fts =
         create_factored_transition_system(to_refs(task), log);
 
-    int index =
+    int index = fts.merge(
+        0,
         fts.merge(
-               0,
-               fts.merge(
-                      1,
-                      fts.merge(2, fts.merge(3, 4, log).merge_index, log)
-                          .merge_index,
-                      log)
-                   .merge_index,
-               log)
-            .merge_index;
+            1,
+            fts.merge(2, fts.merge(3, 4, false, false, log), false, false, log),
+            false,
+            false,
+            log),
+        false,
+        false,
+        log);
 
     LabelReduction label_reduction(
         true,

@@ -6,7 +6,11 @@
 #include "probfd/merge_and_shrink/transition_system.h"
 #include "probfd/merge_and_shrink/utils.h"
 
+#include "probfd/task_utils/tuple_enumerator.h"
+
 #include "probfd/utils/bind.h"
+
+#include "probfd/heuristic.h"
 
 #include "downward/utils/collections.h"
 #include "downward/utils/logging.h"
@@ -29,9 +33,7 @@ FTSConstIterator::FTSConstIterator(
     bool end)
     : fts(fts)
     , current_index((end ? fts.get_size() : 0))
-{
-    next_valid_index();
-}
+{ next_valid_index(); }
 
 void FTSConstIterator::next_valid_index()
 {
@@ -52,8 +54,8 @@ Factor::~Factor() = default;
 
 bool Factor::is_valid() const
 {
-    return (transition_system && factored_mapping && distances) ||
-           (!transition_system && !factored_mapping && !distances);
+    return (transition_system && distances) ||
+           (!transition_system && !distances);
 }
 
 FactoredTransitionSystem::FactoredTransitionSystem(
@@ -87,9 +89,7 @@ bool FactoredTransitionSystem::is_component_valid(int index) const
 }
 
 bool FactoredTransitionSystem::is_factor_valid(const Factor& factor) const
-{
-    return factor.transition_system->get_transition_relation().is_valid(labels);
-}
+{ return factor.transition_system->get_transition_relation().is_valid(labels); }
 
 void FactoredTransitionSystem::assert_all_components_valid() const
 {
@@ -138,8 +138,9 @@ bool FactoredTransitionSystem::apply_abstraction(
         return false;
     }
 
-    const vector<int> abstraction_mapping =
-        compute_abstraction_mapping(ts->num_states(), state_equivalence_relation);
+    const vector<int> abstraction_mapping = compute_abstraction_mapping(
+        ts->num_states(),
+        state_equivalence_relation);
 
     ts->apply_abstraction(
         labels,
@@ -163,10 +164,12 @@ bool FactoredTransitionSystem::apply_abstraction(
     return true;
 }
 
-auto FactoredTransitionSystem::merge(
+int FactoredTransitionSystem::merge(
     int index1,
     int index2,
-    utils::LogProxy& log) -> MergeResult
+    bool compute_goal_distances,
+    bool compute_liveness,
+    utils::LogProxy& log)
 {
     assert(is_component_valid(index1));
     assert(is_component_valid(index2));
@@ -177,11 +180,46 @@ auto FactoredTransitionSystem::merge(
     auto&& f = factors.emplace_back();
     auto&& [ts, fm, distances] = f;
 
-    ts = merge_transition_systems(*ts1, *ts2, labels, log);
+    const enumeration::PairEnumerator linearization(
+        ts1->num_states(),
+        ts2->num_states());
 
-    fm = std::make_unique<FactoredMappingMerge>(std::move(fm1), std::move(fm2));
+    ts = merge_transition_systems(*ts1, *ts2, labels, linearization, log);
 
     distances = std::make_unique<Distances>();
+
+    class MergeHeuristic : public Heuristic<int> {
+        const enumeration::PairEnumerator& linearization;
+        std::vector<value_t> distance_table1;
+        std::vector<value_t> distance_table2;
+
+    public:
+        MergeHeuristic(
+            const enumeration::PairEnumerator& linearization,
+            Distances& distances1,
+            Distances& distances2)
+            : linearization(linearization)
+            , distance_table1(distances1.extract_goal_distances())
+            , distance_table2(distances2.extract_goal_distances())
+        {
+        }
+
+        value_t evaluate(int state) const override
+        {
+            const auto [left, right] = linearization.to_tuple(state);
+            return std::max(distance_table1[left], distance_table2[right]);
+        }
+    };
+
+    // Restore the invariant that distances are computed.
+    if (compute_goal_distances) {
+        const MergeHeuristic heuristic(linearization, *distances1, *distances2);
+
+        distances
+            ->compute_distances(labels, *ts, compute_liveness, log, heuristic);
+    }
+
+    fm = create_merge_fm(linearization, std::move(fm1), std::move(fm2));
 
     --num_active_entries;
 
@@ -189,11 +227,7 @@ auto FactoredTransitionSystem::merge(
 
     assert(is_component_valid(new_index));
 
-    return {
-        std::move(factors[index1]),
-        std::move(factors[index2]),
-        f,
-        new_index};
+    return new_index;
 }
 
 Factor FactoredTransitionSystem::extract_factor(int index)

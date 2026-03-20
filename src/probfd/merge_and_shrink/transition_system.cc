@@ -1,9 +1,12 @@
 #include "probfd/merge_and_shrink/transition_system.h"
 
 #include "probfd/merge_and_shrink/distances.h"
+#include "probfd/merge_and_shrink/factored_mapping.h"
 #include "probfd/merge_and_shrink/labels.h"
 
 #include "probfd/json/json.h"
+
+#include "probfd/task_utils/tuple_enumerator.h"
 
 #include "downward/utils/collections.h"
 #include "downward/utils/logging.h"
@@ -234,7 +237,7 @@ TransitionRelation merge_transition_relations(
     const TransitionRelation& t1,
     const TransitionRelation& t2,
     const Labels& labels,
-    int num_states_t1)
+    const enumeration::PairEnumerator& enumerator)
 {
     vector label_to_local_label(labels.get_max_num_labels(), -1);
     vector<LabelEquivalenceClass> local_label_infos;
@@ -289,11 +292,11 @@ TransitionRelation merge_transition_relations(
                 for (const auto& [src2, targets2] : transitions2) {
                     assert(targets1.size() == targets2.size());
 
-                    const int src = src1 + src2 * num_states_t1;
+                    const int src = enumerator.to_index(src1, src2);
                     std::vector<int> targets;
                     for (const auto [t1, t2] :
                          std::views::zip(targets1, targets2)) {
-                        targets.push_back(t1 + t2 * num_states_t1);
+                        targets.push_back(enumerator.to_index(t1, t2));
                     }
                     new_transitions.emplace_back(src, std::move(targets));
                 }
@@ -668,6 +671,18 @@ unique_ptr<TransitionSystem> merge_transition_systems(
     const Labels& labels,
     utils::LogProxy& log)
 {
+    enumeration::PairEnumerator enumerator(ts1.num_states(), ts2.num_states());
+
+    return merge_transition_systems(ts1, ts2, labels, enumerator, log);
+}
+
+unique_ptr<TransitionSystem> merge_transition_systems(
+    const TransitionSystem& ts1,
+    const TransitionSystem& ts2,
+    const Labels& labels,
+    const enumeration::PairEnumerator& enumerator,
+    utils::LogProxy& log)
+{
     if (log.is_at_least_verbose()) {
         log.println(
             "Merging transition system with variables {} and transition system "
@@ -693,7 +708,7 @@ unique_ptr<TransitionSystem> merge_transition_systems(
     const int ts2_size = ts2.num_states();
 
     // Compute merged initial state
-    const int init_state = ts1.init_state + ts2.init_state * ts1_size;
+    const int init_state = enumerator.to_index(ts1.init_state, ts2.init_state);
 
     // Compute merged goal states
     vector goal_states(ts1_size * ts2_size, false);
@@ -701,7 +716,7 @@ unique_ptr<TransitionSystem> merge_transition_systems(
         if (!ts1.goal_states[s1]) continue;
         for (int s2 = 0; s2 < ts2_size; ++s2) {
             if (ts2.goal_states[s2]) {
-                const int state = s1 + s2 * ts1_size;
+                const int state = enumerator.to_index(s1, s2);
                 goal_states[state] = true;
             }
         }
@@ -711,7 +726,7 @@ unique_ptr<TransitionSystem> merge_transition_systems(
         ts1.get_transition_relation(),
         ts2.get_transition_relation(),
         labels,
-        ts1_size);
+        enumerator);
 
     return std::make_unique<TransitionSystem>(
         std::move(incorporated_variables),

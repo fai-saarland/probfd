@@ -82,9 +82,7 @@ public:
 
 FTSFactory::FTSFactory(const ProbabilisticTaskTuple& task)
     : task(task)
-{
-    assert(!task_properties::has_conditional_effects(get_operators(task)));
-}
+{ assert(!task_properties::has_conditional_effects(get_operators(task))); }
 
 void FTSFactory::initialize_transition_system_data(int max_num_labels)
 {
@@ -258,9 +256,11 @@ void FTSFactory::build_transitions(const Labels& labels)
             first_occurence.merge(element);
         }
 
-        std::erase_if(local_label_infos, [&](const LabelEquivalenceClass& element) {
-            return element.get_label_group().empty();
-        });
+        std::erase_if(
+            local_label_infos,
+            [&](const LabelEquivalenceClass& element) {
+                return element.get_label_group().empty();
+            });
 
         // Construct global label to local label mapping
         const int num_labels = local_label_infos.size();
@@ -299,7 +299,7 @@ FactoredTransitionSystem FTSFactory::create(utils::LogProxy& log)
     factors.reserve(num_variables * 2 - 1);
 
     for (int var_id = 0; var_id < num_variables; ++var_id) {
-        int range = variables[var_id].get_domain_size();
+        int num_local_states = variables[var_id].get_domain_size();
         auto& ts_data = transition_system_data_by_var[var_id];
         auto&& [ts, fm, distances] = factors.emplace_back();
         ts = std::make_unique<TransitionSystem>(
@@ -308,7 +308,7 @@ FactoredTransitionSystem FTSFactory::create(utils::LogProxy& log)
             std::move(ts_data.local_label_infos),
             ts_data.init_state,
             std::move(ts_data.goal_states));
-        fm = std::make_unique<FactoredMappingAtomic>(var_id, range);
+        fm = create_projection_fm(var_id, num_local_states);
         distances = std::make_unique<Distances>();
     }
 
@@ -318,8 +318,6 @@ FactoredTransitionSystem FTSFactory::create(utils::LogProxy& log)
 FactoredTransitionSystem create_factored_transition_system(
     const ProbabilisticTaskTuple& task,
     utils::LogProxy& log)
-{
-    return FTSFactory(task).create(log);
-}
+{ return FTSFactory(task).create(log); }
 
 } // namespace probfd::merge_and_shrink

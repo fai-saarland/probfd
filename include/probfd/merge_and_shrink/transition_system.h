@@ -5,9 +5,11 @@
 #include "probfd/merge_and_shrink/transition.h"
 #include "probfd/merge_and_shrink/types.h"
 
-#include "probfd/value_type.h"
+#include "probfd/task_utils/tuple_enumerator_fwd.h"
 
 #include "probfd/json/json.h"
+
+#include "probfd/value_type.h"
 
 #include <algorithm>
 #include <cassert>
@@ -153,7 +155,7 @@ public:
         const TransitionRelation& t1,
         const TransitionRelation& t2,
         const Labels& labels,
-        int num_states_t1);
+        const enumeration::PairEnumerator& enumerator);
 
     void apply_label_reduction(
         const Labels& labels,
@@ -253,6 +255,13 @@ public:
       Invariant: the children ts1 and ts2 must be solvable.
       (It is a bug to merge an unsolvable transition system.)
     */
+    friend std::unique_ptr<TransitionSystem> merge_transition_systems(
+        const TransitionSystem& ts1,
+        const TransitionSystem& ts2,
+        const Labels& labels,
+        const enumeration::PairEnumerator& enumerator,
+        downward::utils::LogProxy& log);
+
     friend std::unique_ptr<TransitionSystem> merge_transition_systems(
         const TransitionSystem& ts1,
         const TransitionSystem& ts2,
