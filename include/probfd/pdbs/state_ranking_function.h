@@ -1,7 +1,7 @@
 #ifndef PROBFD_PDBS_STATE_RANKING_FUNCTION_H
 #define PROBFD_PDBS_STATE_RANKING_FUNCTION_H
 
-#include "probfd/pdbs/assignment_enumerator.h"
+#include "probfd/task_utils/assignment_enumerator.h"
 #include "probfd/pdbs/types.h"
 
 #include "downward/state.h"
@@ -23,7 +23,7 @@ namespace probfd::pdbs {
  */
 class StateRankingFunction {
     Pattern pattern_;
-    AssignmentEnumerator enumerator_;
+    enumeration::AssignmentEnumerator enumerator_;
 
 public:
     StateRankingFunction() = default;
@@ -58,7 +58,7 @@ public:
      * @brief Get the assignment enumerator for the projection's assignments.
      */
     [[nodiscard]]
-    const AssignmentEnumerator& get_enumerator() const;
+    const enumeration::AssignmentEnumerator& get_enumerator() const;
 
     /**
      * @brief Get the ranking coefficient

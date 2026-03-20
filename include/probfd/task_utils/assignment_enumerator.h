@@ -1,5 +1,5 @@
-#ifndef PROBFD_PDBS_ASSIGNMENT_ENUMERATOR_H
-#define PROBFD_PDBS_ASSIGNMENT_ENUMERATOR_H
+#ifndef PROBFD_TASK_UTILS_ASSIGNMENT_ENUMERATOR_H
+#define PROBFD_TASK_UTILS_ASSIGNMENT_ENUMERATOR_H
 
 #include <limits>
 #include <ranges>
@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <vector>
 
-namespace probfd::pdbs {
+namespace probfd::enumeration {
 
 class AssignmentEnumerator {
     struct VariableInfo {
@@ -147,4 +147,4 @@ public:
 
 } // namespace probfd::pdbs
 
-#endif // PROBFD_PDBS_ASSIGNMENT_ENUMERATOR_H
+#endif // PROBFD_TASK_UTILS_ASSIGNMENT_ENUMERATOR_H

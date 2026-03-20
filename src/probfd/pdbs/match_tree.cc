@@ -64,7 +64,7 @@ MatchTree::MatchTree(size_t hint_num_operators)
 MatchTree::~MatchTree() = default;
 
 void MatchTree::insert(
-    const AssignmentEnumerator& enumerator,
+    const enumeration::AssignmentEnumerator& enumerator,
     ProjectionOperator op,
     const vector<FactPair>& progression_preconditions,
     OperatorCostFunction<value_t>* cost_function)
