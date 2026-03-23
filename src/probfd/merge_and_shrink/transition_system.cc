@@ -110,7 +110,7 @@ std::istream& operator>>(std::istream& in, std::vector<T>& list)
 } // namespace
 
 LabelEquivalenceClass::LabelEquivalenceClass(const json::JsonObject& object)
-    : label_group(object.read<LabelGroup>("labels"))
+    : members(object.read<LabelGroup>("labels"))
     , transitions(object.read<std::vector<Transition>>("transitions"))
     , cost(object.read<value_t>("cost"))
 {
@@ -118,7 +118,7 @@ LabelEquivalenceClass::LabelEquivalenceClass(const json::JsonObject& object)
 
 void LabelEquivalenceClass::add_label(int label, value_t label_cost)
 {
-    label_group.push_back(label);
+    members.push_back(label);
     if (label_cost != -1) { cost = min(cost, label_cost); }
     assert(is_consistent());
 }
@@ -129,7 +129,7 @@ void LabelEquivalenceClass::apply_same_cost_label_mapping(
 {
     assert(is_consistent());
     remove_labels(old_labels);
-    label_group.push_back(new_label);
+    members.push_back(new_label);
     assert(is_consistent());
 }
 
@@ -138,15 +138,15 @@ void LabelEquivalenceClass::remove_labels(const vector<int>& old_labels)
     assert(is_consistent());
     assert(utils::is_sorted_unique(old_labels));
     const auto [_, it] =
-        ranges::set_difference(label_group, old_labels, label_group.begin());
-    label_group.erase(it, label_group.end());
+        ranges::set_difference(members, old_labels, members.begin());
+    members.erase(it, members.end());
     assert(is_consistent());
 }
 
 void LabelEquivalenceClass::recompute_cost(const Labels& labels)
 {
     cost = INFINITE_VALUE;
-    for (const int label : label_group) {
+    for (const int label : members) {
         value_t label_cost = labels.get_label_cost(label);
         cost = min(cost, label_cost);
     }
@@ -165,24 +165,24 @@ void LabelEquivalenceClass::merge_local_label_info(
     assert(is_consistent());
     assert(local_label_info.is_consistent());
     assert(transitions == local_label_info.transitions);
-    label_group.append_range(
-        std::views::as_rvalue(local_label_info.label_group));
+    members.append_range(
+        std::views::as_rvalue(local_label_info.members));
     cost = min(cost, local_label_info.cost);
     local_label_info.deactivate();
-    ranges::sort(label_group);
+    ranges::sort(members);
     assert(is_consistent());
 }
 
 void LabelEquivalenceClass::deactivate()
 {
     utils::release_vector_memory(transitions);
-    utils::release_vector_memory(label_group);
+    utils::release_vector_memory(members);
     cost = -1;
 }
 
 bool LabelEquivalenceClass::is_consistent() const
 {
-    return utils::is_sorted_unique(label_group) &&
+    return utils::is_sorted_unique(members) &&
            utils::is_sorted_unique(transitions);
 }
 
@@ -203,7 +203,7 @@ std::unique_ptr<json::JsonObject> to_json(const LabelEquivalenceClass& info)
 {
     return json::make_object(
         "labels",
-        info.label_group,
+        info.members,
         "transitions",
         info.transitions,
         "cost",
@@ -213,23 +213,23 @@ std::unique_ptr<json::JsonObject> to_json(const LabelEquivalenceClass& info)
 void LabelEquivalenceClass::merge(LabelEquivalenceClass& right)
 {
     cost = std::min(cost, right.cost);
-    label_group.push_back(right.label_group.back());
-    right.label_group.clear();
+    members.push_back(right.members.back());
+    right.members.clear();
 }
 
 TransitionRelation::TransitionRelation(const json::JsonObject& object)
-    : label_to_local_label(
+    : label_to_eqv_class(
           object.read<std::vector<int>>("label_to_local_label"))
-    , local_label_infos(
+    , eqv_class_infos(
           object.read<std::vector<LabelEquivalenceClass>>("local_label_infos"))
 {
 }
 
 TransitionRelation::TransitionRelation(
     std::vector<int> label_to_local_label,
-    std::vector<LabelEquivalenceClass> local_label_infos)
-    : label_to_local_label(std::move(label_to_local_label))
-    , local_label_infos(std::move(local_label_infos))
+    std::vector<LabelEquivalenceClass> eqv_class_infos)
+    : label_to_eqv_class(std::move(label_to_local_label))
+    , eqv_class_infos(std::move(eqv_class_infos))
 {
 }
 
@@ -264,7 +264,7 @@ TransitionRelation merge_transition_relations(
         // corresponding to the groups of ts2.
         std::map<int, vector<int>> buckets;
         for (int label : group1) {
-            int ts_local_label2 = t2.label_to_local_label[label];
+            int ts_local_label2 = t2.label_to_eqv_class[label];
             buckets[ts_local_label2].push_back(label);
         }
         // Now buckets contains all equivalence classes that are
@@ -273,7 +273,7 @@ TransitionRelation merge_transition_relations(
         // Now create the new groups together with their transitions.
         for (auto& [local_label2, new_labels] : buckets) {
             const auto& transitions2 =
-                t2.local_label_infos[local_label2].get_transitions();
+                t2.eqv_class_infos[local_label2].get_transitions();
 
             if (transitions1.empty() || transitions2.empty()) {
                 dead_labels[probabilities1].append_range(new_labels);
@@ -359,9 +359,9 @@ void TransitionRelation::compute_equivalent_local_labels(const Labels& labels)
       reduction when combining labels which are combinable for this transition
       system.
     */
-    const int num_local_labels = local_label_infos.size();
+    const int num_local_labels = eqv_class_infos.size();
     for (int llabel1 = 0; llabel1 < num_local_labels; ++llabel1) {
-        auto& local_label_info1 = local_label_infos[llabel1];
+        auto& local_label_info1 = eqv_class_infos[llabel1];
         if (!local_label_info1.is_active()) continue;
 
         const auto& transitions1 = local_label_info1.get_transitions();
@@ -369,7 +369,7 @@ void TransitionRelation::compute_equivalent_local_labels(const Labels& labels)
             local_label_info1.get_probabilities(labels);
 
         for (int llabel2 = llabel1 + 1; llabel2 < num_local_labels; ++llabel2) {
-            auto& local_label_info2 = local_label_infos[llabel2];
+            auto& local_label_info2 = eqv_class_infos[llabel2];
             if (!local_label_info2.is_active()) continue;
 
             const auto& transitions2 = local_label_info2.get_transitions();
@@ -381,7 +381,7 @@ void TransitionRelation::compute_equivalent_local_labels(const Labels& labels)
             if (probabilities1 == probabilities2 &&
                 transitions1 == transitions2) {
                 for (const int label : local_label_info2.get_label_group()) {
-                    label_to_local_label[label] = llabel1;
+                    label_to_eqv_class[label] = llabel1;
                 }
                 local_label_info1.merge_local_label_info(local_label_info2);
             }
@@ -393,7 +393,7 @@ void TransitionRelation::apply_abstraction(
     const Labels& labels,
     const vector<int>& abstraction_mapping)
 {
-    for (LabelEquivalenceClass& local_label_info : local_label_infos) {
+    for (LabelEquivalenceClass& local_label_info : eqv_class_infos) {
         auto& transitions = local_label_info.get_transitions();
 
         /*
@@ -457,16 +457,16 @@ void TransitionRelation::apply_label_reduction(
         // Update both label mappings.
         for (const auto& [new_label, old_labels] : label_mapping) {
             assert(old_labels.size() >= 2);
-            const int local_label = label_to_local_label[old_labels.front()];
-            local_label_infos[local_label].apply_same_cost_label_mapping(
+            const int local_label = label_to_eqv_class[old_labels.front()];
+            eqv_class_infos[local_label].apply_same_cost_label_mapping(
                 new_label,
                 old_labels);
 
-            label_to_local_label[new_label] = local_label;
+            label_to_eqv_class[new_label] = local_label;
             for (const int old_label : old_labels) {
-                assert(label_to_local_label[old_label] == local_label);
+                assert(label_to_eqv_class[old_label] == local_label);
                 // Reset (for consistency only, old labels are never accessed).
-                label_to_local_label[old_label] = -1;
+                label_to_eqv_class[old_label] = -1;
             }
         }
     } else {
@@ -485,25 +485,25 @@ void TransitionRelation::apply_label_reduction(
             std::vector<Transition> new_label_transitions;
 
             for (int old_label : old_labels) {
-                int old_local_label = label_to_local_label[old_label];
+                int old_local_label = label_to_eqv_class[old_label];
 
                 if (seen_local_labels.insert(old_local_label).second) {
-                    auto& local_info = local_label_infos[old_local_label];
+                    auto& local_info = eqv_class_infos[old_local_label];
                     new_label_transitions.append_range(
                         local_info.get_transitions());
                 }
                 local_label_to_old_labels[old_local_label].push_back(old_label);
                 // Reset (for consistency only, old labels are never accessed).
-                label_to_local_label[old_label] = -1;
+                label_to_eqv_class[old_label] = -1;
             }
 
             utils::sort_unique(new_label_transitions);
 
-            const int new_local_label = local_label_infos.size();
-            label_to_local_label[new_label] = new_local_label;
+            const int new_local_label = eqv_class_infos.size();
+            label_to_eqv_class[new_label] = new_local_label;
             value_t new_cost = labels.get_label_cost(new_label);
 
-            local_label_infos.emplace_back(
+            eqv_class_infos.emplace_back(
                 std::vector<int>{new_label},
                 std::move(new_label_transitions),
                 new_cost);
@@ -515,8 +515,8 @@ void TransitionRelation::apply_label_reduction(
         */
         for (auto& [local_label, old_labels] : local_label_to_old_labels) {
             ranges::sort(old_labels);
-            local_label_infos[local_label].remove_labels(old_labels);
-            local_label_infos[local_label].recompute_cost(labels);
+            eqv_class_infos[local_label].remove_labels(old_labels);
+            eqv_class_infos[local_label].recompute_cost(labels);
         }
 
         compute_equivalent_local_labels(labels);
@@ -538,9 +538,9 @@ bool TransitionRelation::is_valid(const Labels& labels) const
 bool TransitionRelation::is_label_mapping_consistent(const Labels& labels) const
 {
     for (int label : labels.get_active_labels() | std::views::keys) {
-        const int local_label = label_to_local_label[label];
+        const int local_label = label_to_eqv_class[label];
         const LabelGroup& label_group =
-            local_label_infos[local_label].get_label_group();
+            eqv_class_infos[local_label].get_label_group();
         assert(!label_group.empty());
 
         if (!ranges::binary_search(label_group, label)) {
@@ -553,11 +553,11 @@ bool TransitionRelation::is_label_mapping_consistent(const Labels& labels) const
         }
     }
 
-    for (size_t local_label = 0; local_label < local_label_infos.size();
+    for (size_t local_label = 0; local_label < eqv_class_infos.size();
          ++local_label) {
-        for (const auto& local_label_info = local_label_infos[local_label];
+        for (const auto& local_label_info = eqv_class_infos[local_label];
              const int label : local_label_info.get_label_group()) {
-            if (label_to_local_label[label] != static_cast<int>(local_label)) {
+            if (label_to_eqv_class[label] != static_cast<int>(local_label)) {
                 dump_label_mapping(labels, cerr);
                 std::print(
                     cerr,
@@ -579,17 +579,17 @@ void TransitionRelation::dump_label_mapping(
         "to local label mapping: {:m}",
         labels.get_active_labels() | std::views::keys |
             std::views::transform([&](auto label) {
-                return std::make_pair(label, label_to_local_label[label]);
+                return std::make_pair(label, label_to_eqv_class[label]);
             }));
 
     std::println(
         out,
         "local to label mapping: {:m}",
-        std::views::iota(0U, local_label_infos.size()) |
+        std::views::iota(0U, eqv_class_infos.size()) |
             std::views::transform([&](auto label) {
                 return std::make_pair(
                     label,
-                    local_label_infos[label].get_label_group());
+                    eqv_class_infos[label].get_label_group());
             }));
 }
 
@@ -604,7 +604,7 @@ int TransitionRelation::compute_total_transitions() const
 
 std::ostream& operator<<(std::ostream& os, const TransitionRelation& t)
 {
-    std::println(os, "  Equivalence class mapping: {}", t.label_to_local_label);
+    std::println(os, "  Equivalence class mapping: {}", t.label_to_eqv_class);
 
     std::println(os, "  Label class transitions:");
     for (auto&& label_infos = t.label_infos(); auto&& elem : label_infos) {
@@ -908,9 +908,9 @@ std::unique_ptr<json::JsonObject> to_json(const TransitionRelation& t)
 {
     return json::make_object(
         "label_to_local_label",
-        t.label_to_local_label,
+        t.label_to_eqv_class,
         "local_label_infos",
-        t.local_label_infos);
+        t.eqv_class_infos);
 }
 
 } // namespace probfd::merge_and_shrink

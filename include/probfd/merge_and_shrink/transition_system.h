@@ -44,7 +44,7 @@ using LabelGroup = std::vector<int>;
 class LabelEquivalenceClass {
     // The sorted set of labels with identical transitions in a transition
     // system.
-    LabelGroup label_group;
+    LabelGroup members;
 
     std::vector<Transition> transitions;
 
@@ -58,7 +58,7 @@ public:
         LabelGroup label_group,
         std::vector<Transition> transitions,
         value_t cost)
-        : label_group(std::move(label_group))
+        : members(std::move(label_group))
         , transitions(std::move(transitions))
         , cost(cost)
     { assert(is_consistent()); }
@@ -90,9 +90,9 @@ public:
     void deactivate();
 
     // A local label is active as long as it represents labels (in label_group).
-    bool is_active() const { return !label_group.empty(); }
+    bool is_active() const { return !members.empty(); }
 
-    const LabelGroup& get_label_group() const { return label_group; }
+    const LabelGroup& get_label_group() const { return members; }
 
     std::vector<Transition>& get_transitions() { return transitions; }
 
@@ -101,8 +101,8 @@ public:
 
     const std::vector<value_t>& get_probabilities(const Labels& labels) const
     {
-        assert(!label_group.empty());
-        return labels.get_label_probabilities(label_group.front());
+        assert(!members.empty());
+        return labels.get_label_probabilities(members.front());
     }
 
     value_t get_cost() const { return cost; }
@@ -129,26 +129,23 @@ void dump_json(std::ostream& os, const LabelEquivalenceClass& info);
 class TransitionRelation {
     /*
      * All locally equivalent labels are grouped together, and their
-     * transitions are only stored once for every such group, see below.
-     *
-     * LabelEquivalenceRelation stores the equivalence relation over all
-     * labels of the underlying factored transition system.
+     * transitions are only stored once for every equvalence class, see below.
      */
-    std::vector<int> label_to_local_label;
+    std::vector<int> label_to_eqv_class;
 
-    std::vector<LabelEquivalenceClass> local_label_infos;
+    std::vector<LabelEquivalenceClass> eqv_class_infos;
 
 public:
     explicit TransitionRelation(const json::JsonObject& object);
 
     explicit TransitionRelation(
         std::vector<int> label_to_local_label,
-        std::vector<LabelEquivalenceClass> local_label_infos);
+        std::vector<LabelEquivalenceClass> eqv_class_infos);
 
     auto label_infos() const
     {
         using namespace std::views;
-        return local_label_infos | filter(&LabelEquivalenceClass::is_active);
+        return eqv_class_infos | filter(&LabelEquivalenceClass::is_active);
     }
 
     friend TransitionRelation merge_transition_relations(

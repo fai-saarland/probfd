@@ -33,13 +33,8 @@ class FTSFactory {
     const ProbabilisticTaskTuple& task;
 
     struct TransitionData {
-        struct LabelGroupCost {
-            LabelGroup label_group;
-            value_t cost = INFINITE_VALUE;
-        };
-
-        vector<int> label_to_local_label;
-        vector<LabelEquivalenceClass> local_label_infos;
+        vector<int> label_to_eqv_class;
+        vector<LabelEquivalenceClass> eqv_class_infos;
 
         TransitionData() = default;
         TransitionData(TransitionData&& other) = default;
@@ -82,7 +77,7 @@ void FTSFactory::initialize_transition_system_data(int max_num_labels)
     transition_data_by_var.resize(variables.size());
 
     for (TransitionData& ts_data : transition_data_by_var) {
-        ts_data.label_to_local_label.resize(max_num_labels, -1);
+        ts_data.label_to_eqv_class.resize(max_num_labels, -1);
     }
 }
 
@@ -140,7 +135,7 @@ void FTSFactory::build_transitions_for_operator(
 
         assert(utils::is_sorted_unique(var_transitions));
 
-        transition_data_by_var[var_id].local_label_infos.emplace_back(
+        transition_data_by_var[var_id].eqv_class_infos.emplace_back(
             LabelGroup{label},
             std::move(var_transitions),
             label_cost);
@@ -173,7 +168,7 @@ void FTSFactory::build_transitions_for_operator(
 
         assert(utils::is_sorted_unique(var_transitions));
 
-        transition_data_by_var[var_id].local_label_infos.emplace_back(
+        transition_data_by_var[var_id].eqv_class_infos.emplace_back(
             LabelGroup{label},
             std::move(var_transitions),
             label_cost);
@@ -200,7 +195,7 @@ void FTSFactory::build_transitions(const Labels& labels)
       Merge labels with equivalent transitions into the same labels group.
     */
     for (TransitionData& ts_data : transition_data_by_var) {
-        auto& local_label_infos = ts_data.local_label_infos;
+        auto& local_label_infos = ts_data.eqv_class_infos;
 
         // Merge equivalent label groups
         auto cmp = [&](const LabelEquivalenceClass* left,
@@ -236,7 +231,7 @@ void FTSFactory::build_transitions(const Labels& labels)
         for (int index = 0; index != num_labels; ++index) {
             for (const auto& local_label_info = local_label_infos[index];
                  const int label : local_label_info.get_label_group()) {
-                ts_data.label_to_local_label[label] = index;
+                ts_data.label_to_eqv_class[label] = index;
             }
         }
     }
@@ -287,8 +282,8 @@ FactoredTransitionSystem FTSFactory::create()
 
         ts = std::make_unique<TransitionSystem>(
             std::vector{var_id},
-            std::move(ts_data.label_to_local_label),
-            std::move(ts_data.local_label_infos),
+            std::move(ts_data.label_to_eqv_class),
+            std::move(ts_data.eqv_class_infos),
             initial_state[var_id],
             std::move(goal_states));
 
