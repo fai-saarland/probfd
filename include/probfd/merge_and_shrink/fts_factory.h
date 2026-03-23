@@ -13,19 +13,14 @@
   should not need to know about planning task concepts.
 */
 
-namespace downward::utils {
-class LogProxy;
-}
-
 namespace probfd::merge_and_shrink {
 class FactoredTransitionSystem;
 }
 
 namespace probfd::merge_and_shrink {
 
-extern FactoredTransitionSystem create_factored_transition_system(
-    const ProbabilisticTaskTuple& task,
-    downward::utils::LogProxy& log);
+extern FactoredTransitionSystem
+create_factored_transition_system(const ProbabilisticTaskTuple& task);
 
 } // namespace probfd::merge_and_shrink
 

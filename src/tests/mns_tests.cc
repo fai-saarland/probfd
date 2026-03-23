@@ -45,9 +45,8 @@ TEST(MnSTests, test_atomic_fts)
 
     const auto& variables = get_shared_variables(task);
 
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
     FactoredTransitionSystem fts =
-        create_factored_transition_system(to_refs(task), log);
+        create_factored_transition_system(to_refs(task));
 
     ASSERT_EQ(fts.get_size(), variables->get_num_variables())
         << "Unexpected number of atomic factors!";
@@ -77,9 +76,8 @@ TEST(MnSTests, test_atomic_fts2)
 
     const auto& variables = get_shared_variables(task);
 
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
     FactoredTransitionSystem fts =
-        create_factored_transition_system(to_refs(task), log);
+        create_factored_transition_system(to_refs(task));
 
     ASSERT_EQ(fts.get_size(), variables->get_num_variables())
         << "Unexpected number of atomic factors!";
@@ -109,9 +107,8 @@ TEST(MnSTests, test_atomic_fts3)
 
     const auto& variables = get_shared_variables(task);
 
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
     FactoredTransitionSystem fts =
-        create_factored_transition_system(to_refs(task), log);
+        create_factored_transition_system(to_refs(task));
 
     ASSERT_EQ(fts.get_size(), variables->get_num_variables())
         << "Unexpected number of atomic factors!";
@@ -164,7 +161,7 @@ TEST(MnSTests, test_merge2)
 
     utils::LogProxy log = utils::get_silent_log();
     FactoredTransitionSystem fts =
-        create_factored_transition_system(to_refs(task), log);
+        create_factored_transition_system(to_refs(task));
 
     ASSERT_EQ(fts.get_size(), variables->get_num_variables())
         << "Unexpected number of atomic factors!";
@@ -476,7 +473,7 @@ TEST(MnSTests, test_label_reduction)
 
     utils::LogProxy log = utils::get_silent_log();
     FactoredTransitionSystem fts =
-        create_factored_transition_system(to_refs(task), log);
+        create_factored_transition_system(to_refs(task));
 
     int index = fts.merge(
         0,

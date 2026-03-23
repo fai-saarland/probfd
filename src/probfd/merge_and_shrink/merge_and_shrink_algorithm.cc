@@ -355,8 +355,12 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
     warn_on_unusual_options(log);
     log.println();
 
+    if (log.is_at_least_normal()) {
+        log.println("Building atomic transition systems... ");
+    }
+
     FactoredTransitionSystem fts =
-        create_factored_transition_system(to_refs(task), log);
+        create_factored_transition_system(to_refs(task));
 
     if (log.is_at_least_normal()) {
         log_progress(timer, "after computation of atomic factors", log);

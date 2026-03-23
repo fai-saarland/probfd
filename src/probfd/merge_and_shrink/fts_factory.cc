@@ -12,7 +12,6 @@
 #include "probfd/value_type.h"
 
 #include "downward/utils/collections.h"
-#include "downward/utils/logging.h"
 
 #include "downward/goal_fact_list.h"
 #include "downward/initial_state_values.h"
@@ -33,31 +32,24 @@ namespace {
 class FTSFactory {
     const ProbabilisticTaskTuple& task;
 
-    struct TransitionSystemData {
+    struct TransitionData {
         struct LabelGroupCost {
             LabelGroup label_group;
             value_t cost = INFINITE_VALUE;
         };
 
-        // The following two attributes are only used for statistics
-        vector<int> incorporated_variables;
-
         vector<int> label_to_local_label;
         vector<LabelEquivalenceClass> local_label_infos;
-        std::map<std::vector<value_t>, LabelGroupCost> irrelevant_labels;
-        vector<bool> goal_states;
-        int init_state;
 
-        TransitionSystemData() = default;
-        TransitionSystemData(TransitionSystemData&& other) = default;
+        TransitionData() = default;
+        TransitionData(TransitionData&& other) = default;
 
-        TransitionSystemData(const TransitionSystemData& other) = delete;
-        TransitionSystemData&
-        operator=(const TransitionSystemData& other) = delete;
-        TransitionSystemData& operator=(TransitionSystemData&& other) = delete;
+        TransitionData(const TransitionData& other) = delete;
+        TransitionData& operator=(const TransitionData& other) = delete;
+        TransitionData& operator=(TransitionData&& other) = delete;
     };
 
-    vector<TransitionSystemData> transition_system_data_by_var;
+    vector<TransitionData> transition_data_by_var;
 
     void initialize_transition_system_data(int max_num_labels);
 
@@ -75,7 +67,7 @@ public:
       Note: create() may only be called once. We don't worry about
       misuse because the class is only used internally in this file.
     */
-    FactoredTransitionSystem create(utils::LogProxy& log);
+    FactoredTransitionSystem create();
 };
 
 } // namespace
@@ -87,32 +79,10 @@ FTSFactory::FTSFactory(const ProbabilisticTaskTuple& task)
 void FTSFactory::initialize_transition_system_data(int max_num_labels)
 {
     const auto& variables = get_variables(task);
-    const auto& goals = get_goal(task);
-    const auto& init_vals = get_init(task);
+    transition_data_by_var.resize(variables.size());
 
-    const State initial_state = init_vals.get_initial_state();
-
-    auto goals_it = std::ranges::begin(goals);
-    const auto goals_end = std::ranges::end(goals);
-
-    transition_system_data_by_var.resize(variables.size());
-
-    for (VariableProxy var : variables) {
-        const int var_id = var.get_id();
-        const int range = var.get_domain_size();
-
-        TransitionSystemData& ts_data = transition_system_data_by_var[var_id];
-        ts_data.incorporated_variables.push_back(var_id);
+    for (TransitionData& ts_data : transition_data_by_var) {
         ts_data.label_to_local_label.resize(max_num_labels, -1);
-        ts_data.init_state = initial_state[var_id];
-
-        if (goals_it != goals_end && (*goals_it).var == var_id) {
-            ts_data.goal_states.resize(range, false);
-            ts_data.goal_states[(*goals_it).value] = true;
-            ++goals_it;
-        } else {
-            ts_data.goal_states.resize(range, true);
-        }
     }
 }
 
@@ -170,7 +140,7 @@ void FTSFactory::build_transitions_for_operator(
 
         assert(utils::is_sorted_unique(var_transitions));
 
-        transition_system_data_by_var[var_id].local_label_infos.emplace_back(
+        transition_data_by_var[var_id].local_label_infos.emplace_back(
             LabelGroup{label},
             std::move(var_transitions),
             label_cost);
@@ -201,11 +171,9 @@ void FTSFactory::build_transitions_for_operator(
             }
         }
 
-        auto& data = transition_system_data_by_var[var_id];
-
         assert(utils::is_sorted_unique(var_transitions));
 
-        data.local_label_infos.emplace_back(
+        transition_data_by_var[var_id].local_label_infos.emplace_back(
             LabelGroup{label},
             std::move(var_transitions),
             label_cost);
@@ -231,7 +199,7 @@ void FTSFactory::build_transitions(const Labels& labels)
     /*
       Merge labels with equivalent transitions into the same labels group.
     */
-    for (TransitionSystemData& ts_data : transition_system_data_by_var) {
+    for (TransitionData& ts_data : transition_data_by_var) {
         auto& local_label_infos = ts_data.local_label_infos;
 
         // Merge equivalent label groups
@@ -274,12 +242,8 @@ void FTSFactory::build_transitions(const Labels& labels)
     }
 }
 
-FactoredTransitionSystem FTSFactory::create(utils::LogProxy& log)
+FactoredTransitionSystem FTSFactory::create()
 {
-    if (log.is_at_least_normal()) {
-        log.println("Building atomic transition systems... ");
-    }
-
     const auto& variables = get_variables(task);
     const auto& operators = get_operators(task);
     const auto& cost_function = get<OperatorCostFunction<value_t>&>(task);
@@ -295,19 +259,39 @@ FactoredTransitionSystem FTSFactory::create(utils::LogProxy& log)
     // Create the actual Factor objects.
     vector<Factor> factors;
 
-    // We reserve space for the data structures systems added later by merging.
+    // We reserve space for the transition systems added later by merging.
     factors.reserve(num_variables * 2 - 1);
 
-    for (int var_id = 0; var_id < num_variables; ++var_id) {
-        int num_local_states = variables[var_id].get_domain_size();
-        auto& ts_data = transition_system_data_by_var[var_id];
+    const auto& init_vals = get_init(task);
+    const State initial_state = init_vals.get_initial_state();
+
+    const auto& goals = get_goal(task);
+    auto goals_it = std::ranges::begin(goals);
+    const auto goals_end = std::ranges::end(goals);
+
+    for (const VariableProxy& variable : variables) {
+        const int var_id = variable.get_id();
+        const int num_local_states = variable.get_domain_size();
+
+        auto& ts_data = transition_data_by_var[var_id];
         auto&& [ts, fm, distances] = factors.emplace_back();
+
+        std::vector goal_states(num_local_states, false);
+
+        if (goals_it != goals_end && (*goals_it).var == var_id) {
+            goal_states[(*goals_it).value] = true;
+            ++goals_it;
+        } else {
+            std::ranges::fill(goal_states, true);
+        }
+
         ts = std::make_unique<TransitionSystem>(
-            std::move(ts_data.incorporated_variables),
+            std::vector{var_id},
             std::move(ts_data.label_to_local_label),
             std::move(ts_data.local_label_infos),
-            ts_data.init_state,
-            std::move(ts_data.goal_states));
+            initial_state[var_id],
+            std::move(goal_states));
+
         fm = create_projection_fm(var_id, num_local_states);
         distances = std::make_unique<Distances>();
     }
@@ -315,9 +299,8 @@ FactoredTransitionSystem FTSFactory::create(utils::LogProxy& log)
     return FactoredTransitionSystem(std::move(labels), std::move(factors));
 }
 
-FactoredTransitionSystem create_factored_transition_system(
-    const ProbabilisticTaskTuple& task,
-    utils::LogProxy& log)
-{ return FTSFactory(task).create(log); }
+FactoredTransitionSystem
+create_factored_transition_system(const ProbabilisticTaskTuple& task)
+{ return FTSFactory(task).create(); }
 
 } // namespace probfd::merge_and_shrink
