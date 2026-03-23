@@ -15,7 +15,7 @@
   ],
   "init_state": 4,
   "transitions": {
-    "label_to_local_label": [
+    "label_to_eq_class_id": [
       0,
       1,
       4,
@@ -36,7 +36,7 @@
       -1,
       -1
     ],
-    "local_label_infos": [
+    "eq_class_infos": [
       {
         "cost": 1,
         "labels": [

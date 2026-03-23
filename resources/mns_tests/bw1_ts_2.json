@@ -3,12 +3,12 @@
     2
   ],
   "transitions": {
-    "label_to_local_label": [
+    "label_to_eq_class_id": [
       0,
       1,
       -1
     ],
-    "local_label_infos": [
+    "eq_class_infos": [
       {
         "labels": [
           0

@@ -36,9 +36,10 @@ using LabelGroup = std::vector<int>;
 
 /*
   Class for representing groups of labels with equivalent transitions in a
-  transition system. See also documentation for TransitionSystem.
+  transition system.
+  See also documentation for TransitionSystem.
 
-  The local label is in a consistent state if label_group and transitions
+  The equivalence class is in a consistent state if members and transitions
   are sorted and unique.
 */
 class LabelEquivalenceClass {
@@ -48,7 +49,7 @@ class LabelEquivalenceClass {
 
     std::vector<Transition> transitions;
 
-    // The cost is the minimum cost over all labels in label_group.
+    // The cost is the minimum cost over all labels in members.
     value_t cost;
 
 public:
@@ -80,16 +81,17 @@ public:
     void replace_transitions(std::vector<Transition>&& new_transitions);
 
     /*
-      The given local label must have identical transitions. Its labels are
-      moved into this local label info. The given local label is then
-      invalidated.
+      The given equivalence class must have identical transitions.
+      Its labels are moved into this equivalence class.
+      The given equivalence class is then invalidated.
     */
-    void merge_local_label_info(LabelEquivalenceClass& local_label_info);
+    void merge_eqv_classes(LabelEquivalenceClass& eq_class_info);
 
     // Empty all data structures.
     void deactivate();
 
-    // A local label is active as long as it represents labels (in label_group).
+    // An equivalence class is active as long as it represents labels
+    // (in label_group).
     bool is_active() const { return !members.empty(); }
 
     const LabelGroup& get_label_group() const { return members; }
@@ -129,7 +131,7 @@ void dump_json(std::ostream& os, const LabelEquivalenceClass& info);
 class TransitionRelation {
     /*
      * All locally equivalent labels are grouped together, and their
-     * transitions are only stored once for every equvalence class, see below.
+     * transitions are only stored once for every equivalence class, see below.
      */
     std::vector<int> label_to_eqv_class;
 
@@ -139,7 +141,7 @@ public:
     explicit TransitionRelation(const json::JsonObject& object);
 
     explicit TransitionRelation(
-        std::vector<int> label_to_local_label,
+        std::vector<int> label_to_eq_class_id,
         std::vector<LabelEquivalenceClass> eqv_class_infos);
 
     auto label_infos() const
@@ -173,10 +175,10 @@ public:
      * The transitions for every group of locally equivalent labels are
      * sorted (by source, by target) and there are no duplicates.
      */
-    bool are_local_labels_consistent() const;
+    bool are_eqv_classes_consistent() const;
 
     /*
-      The mapping label_to_local_label is consistent with the transition
+      The mapping label_to_eq_class_id is consistent with the transition
       relation.
     */
     bool is_label_mapping_consistent(const Labels& labels) const;
@@ -200,7 +202,7 @@ private:
      * Check if two or more labels are locally equivalent to each other, and
      * if so, update the label equivalence relation.
      */
-    void compute_equivalent_local_labels(const Labels& labels);
+    void compute_equivalence_classes(const Labels& labels);
 };
 
 class TransitionSystem {
@@ -220,8 +222,8 @@ public:
 
     TransitionSystem(
         std::vector<int> incorporated_variables,
-        std::vector<int> label_to_local_label,
-        std::vector<LabelEquivalenceClass> local_label_infos,
+        std::vector<int> label_to_eq_class_id,
+        std::vector<LabelEquivalenceClass> eq_class_infos,
         int init_state,
         std::vector<bool> goal_states);
 
