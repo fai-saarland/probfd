@@ -21,65 +21,42 @@ StateRankingFunction::StateRankingFunction(
 }
 
 unsigned StateRankingFunction::num_states() const
-{
-    return enumerator_.num_assignments();
-}
+{ return enumerator_.num_assignments(); }
 
 unsigned StateRankingFunction::num_vars() const
-{
-    return enumerator_.num_vars();
-}
+{ return enumerator_.num_vars(); }
 
 const Pattern& StateRankingFunction::get_pattern() const
-{
-    return pattern_;
-}
+{ return pattern_; }
 
 const AssignmentEnumerator& StateRankingFunction::get_enumerator() const
-{
-    return enumerator_;
-}
+{ return enumerator_; }
 
 StateRank StateRankingFunction::get_abstract_rank(const State& state) const
 {
-    StateRank res = 0;
-    for (size_t i = 0; i != pattern_.size(); ++i) {
-        res += rank_fact(i, state[pattern_[i]]);
-    }
-    return res;
+    return StateRank{enumerator_.get_index(
+        pattern_ | std::views::transform([&](int var) { return state[var]; }))};
 }
 
 int StateRankingFunction::rank_fact(int idx, int val) const
-{
-    return enumerator_.rank_fact(idx, val);
-}
+{ return enumerator_.rank_fact(idx, val); }
 
 std::vector<int> StateRankingFunction::unrank(StateRank state_rank) const
-{
-    return enumerator_.unrank(state_rank);
-}
+{ return enumerator_.unrank(state_rank); }
 
 int StateRankingFunction::value_of(StateRank state_rank, int idx) const
-{
-    return enumerator_.value_of(state_rank, idx);
-}
+{ return enumerator_.value_of(state_rank, idx); }
 
 bool StateRankingFunction::next_rank(
     StateRank& abstract_state_rank,
     std::span<int> mutable_variables) const
-{
-    return enumerator_.next_index(abstract_state_rank, mutable_variables);
-}
+{ return enumerator_.next_index(abstract_state_rank, mutable_variables); }
 
 long long int StateRankingFunction::get_multiplier(int var) const
-{
-    return enumerator_.get_multiplier(var);
-}
+{ return enumerator_.get_multiplier(var); }
 
 int StateRankingFunction::get_domain_size(int var) const
-{
-    return enumerator_.get_domain_size(var);
-}
+{ return enumerator_.get_domain_size(var); }
 
 StateRankToString::StateRankToString(
     const VariableSpace& variables,
