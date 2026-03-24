@@ -88,6 +88,19 @@ public:
     [[nodiscard]]
     int rank_fact(int idx, int val) const;
 
+    template <std::ranges::input_range R>
+        requires std::convertible_to<std::ranges::range_reference_t<R>, int>
+    int get_index(const R& assignment) const
+    {
+        using std::views::zip;
+
+        int res = 0;
+        for (const auto& [info, value] : zip(var_infos_, assignment)) {
+            res += info.multiplier * value;
+        }
+        return res;
+    }
+
     /**
      * @brief Unrank a given state rank and converts it into an explicit
      * abstract state.
@@ -145,6 +158,6 @@ public:
     next_index(int& assignment_index, std::span<int> mutable_variables) const;
 };
 
-} // namespace probfd::pdbs
+} // namespace probfd::enumeration
 
 #endif // PROBFD_TASK_UTILS_ASSIGNMENT_ENUMERATOR_H
