@@ -9,12 +9,12 @@
 #include <vector>
 
 namespace downward {
+class CartesianSet;
 class StateMapping;
 class InverseOperatorMapping;
 } // namespace downward
 
 namespace downward::cartesian_abstractions {
-class CartesianSet;
 class CartesianHeuristicFunction;
 class RefinementHierarchy;
 } // namespace downward::cartesian_abstractions
@@ -30,7 +30,7 @@ struct TransitionOutcome;
 struct ProbabilisticTransition;
 
 // Classed reused from classical implementation
-using CartesianSet = downward::cartesian_abstractions::CartesianSet;
+using CartesianSet = downward::CartesianSet;
 using RefinementHierarchy =
     downward::cartesian_abstractions::RefinementHierarchy;
 

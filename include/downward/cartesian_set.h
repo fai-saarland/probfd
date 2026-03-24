@@ -1,5 +1,5 @@
-#ifndef CEGAR_CARTESIAN_SET_H
-#define CEGAR_CARTESIAN_SET_H
+#ifndef CARTESIAN_SET_H
+#define CARTESIAN_SET_H
 
 #include "downward/algorithms/dynamic_bitset.h"
 
@@ -9,7 +9,8 @@
 #include <ranges>
 #include <vector>
 
-namespace downward::cartesian_abstractions {
+namespace downward {
+
 using Bitset = dynamic_bitset::DynamicBitset<unsigned short>;
 
 /*
@@ -30,9 +31,8 @@ public:
     {
         domain_subsets.reserve(domain_sizes.size());
         for (const int domain_size : domain_sizes) {
-            Bitset domain(domain_size);
-            domain.set();
-            domain_subsets.push_back(std::move(domain));
+            Bitset& b = domain_subsets.emplace_back(domain_size);
+            b.set();
         }
     }
 
@@ -51,11 +51,11 @@ public:
     friend std::ostream&
     operator<<(std::ostream& os, const CartesianSet& cartesian_set);
 };
-} // namespace downward::cartesian_abstractions
+} // namespace downward
 
 template <typename Char>
-struct std::formatter<downward::cartesian_abstractions::CartesianSet, Char> {
-    using R = downward::cartesian_abstractions::Bitset;
+struct std::formatter<downward::CartesianSet, Char> {
+    using R = downward::Bitset;
 
     std::range_formatter<R, Char> underlying_;
 
@@ -66,18 +66,13 @@ struct std::formatter<downward::cartesian_abstractions::CartesianSet, Char> {
     }
 
     template <class ParseContext>
-    constexpr typename ParseContext::iterator parse(ParseContext& ctx)
-    {
-        return underlying_.parse(ctx);
-    }
+    constexpr ParseContext::iterator parse(ParseContext& ctx)
+    { return underlying_.parse(ctx); }
 
     template <class FmtContext>
-    typename FmtContext::iterator format(
-        const downward::cartesian_abstractions::CartesianSet& t,
-        FmtContext& ctx) const
-    {
-        return underlying_.format(t.domain_subsets, ctx);
-    }
+    FmtContext::iterator
+    format(const downward::CartesianSet& t, FmtContext& ctx) const
+    { return underlying_.format(t.domain_subsets, ctx); }
 };
 
 #endif

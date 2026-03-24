@@ -2,7 +2,6 @@
 
 #include "downward/cartesian_abstractions/abstract_state.h"
 #include "downward/cartesian_abstractions/abstraction.h"
-#include "downward/cartesian_abstractions/cartesian_set.h"
 #include "downward/cartesian_abstractions/transition_system.h"
 #include "downward/cartesian_abstractions/utils.h"
 
@@ -14,11 +13,12 @@
 
 #include "downward/abstract_task.h"
 #include "downward/axioms.h"
+#include "downward/cartesian_set.h"
 #include "downward/initial_state_values.h"
+#include "downward/operator_cost_function_fwd.h"
 
 #include <algorithm>
 #include <cassert>
-#include <downward/operator_cost_function_fwd.h>
 #include <iostream>
 #include <unordered_map>
 
@@ -53,9 +53,7 @@ struct Flaw {
         : concrete_state(std::move(concrete_state))
         , current_abstract_state(current_abstract_state)
         , desired_cartesian_set(std::move(desired_cartesian_set))
-    {
-        assert(current_abstract_state.includes(this->concrete_state));
-    }
+    { assert(current_abstract_state.includes(this->concrete_state)); }
 
     vector<Split> get_possible_splits(const VariableSpace& variables) const
     {

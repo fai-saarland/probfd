@@ -15,19 +15,16 @@
 */
 
 namespace downward::dynamic_bitset {
-template <typename Block = unsigned int>
-class DynamicBitset {
-    static_assert(
-        !std::numeric_limits<Block>::is_signed,
-        "Block type must be unsigned");
 
+template <std::unsigned_integral Block>
+class DynamicBitset {
     std::vector<Block> blocks;
     const std::size_t num_bits;
 
-    static const Block zeros;
-    static const Block ones;
+    static constexpr Block zeros = Block(0);
+    static constexpr Block ones = Block(~Block(0));
 
-    static const int bits_per_block = std::numeric_limits<Block>::digits;
+    static constexpr int bits_per_block = std::numeric_limits<Block>::digits;
 
     static int compute_num_blocks(std::size_t num_bits)
     {
@@ -36,19 +33,13 @@ class DynamicBitset {
     }
 
     static std::size_t block_index(std::size_t pos)
-    {
-        return pos / bits_per_block;
-    }
+    { return pos / bits_per_block; }
 
     static std::size_t bit_index(std::size_t pos)
-    {
-        return pos % bits_per_block;
-    }
+    { return pos % bits_per_block; }
 
     static Block bit_mask(std::size_t pos)
-    {
-        return Block(1) << bit_index(pos);
-    }
+    { return Block(1) << bit_index(pos); }
 
     int count_bits_in_last_block() const { return bit_index(num_bits); }
 
@@ -139,29 +130,14 @@ public:
                    [&](std::integral auto i) { return test(i); });
     }
 
-    friend bool operator<(
-        const DynamicBitset<Block>& left,
-        const DynamicBitset<Block>& right)
-    {
-        return std::tie(left.blocks, left.num_bits) <
-               std::tie(right.blocks, right.num_bits);
-    }
+    friend auto
+    operator<=>(const DynamicBitset& left, const DynamicBitset& right) =
+        default;
 
-    friend bool operator==(
-        const DynamicBitset<Block>& left,
-        const DynamicBitset<Block>& right)
-    {
-        return std::tie(left.blocks, left.num_bits) ==
-               std::tie(right.blocks, right.num_bits);
-    }
+    friend bool
+    operator==(const DynamicBitset& left, const DynamicBitset& right) = default;
 };
 
-template <typename Block>
-const Block DynamicBitset<Block>::zeros = Block(0);
-
-template <typename Block>
-// MSVC's bitwise negation always returns a signed type.
-const Block DynamicBitset<Block>::ones = Block(~Block(0));
 } // namespace downward::dynamic_bitset
 
 template <typename Block, typename Char>
@@ -175,18 +151,14 @@ struct std::formatter<downward::dynamic_bitset::DynamicBitset<Block>, Char> {
     }
 
     template <class ParseContext>
-    constexpr typename ParseContext::iterator parse(ParseContext& ctx)
-    {
-        return underlying_.parse(ctx);
-    }
+    constexpr ParseContext::iterator parse(ParseContext& ctx)
+    { return underlying_.parse(ctx); }
 
     template <class FmtContext>
-    typename FmtContext::iterator format(
+    FmtContext::iterator format(
         const downward::dynamic_bitset::DynamicBitset<Block>& bs,
         FmtContext& ctx) const
-    {
-        return underlying_.format(bs.set_indices(), ctx);
-    }
+    { return underlying_.format(bs.set_indices(), ctx); }
 };
 
 /*

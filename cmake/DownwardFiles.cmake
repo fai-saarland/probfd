@@ -7,6 +7,7 @@ create_library(
         downward/axioms
         downward/axiom_space
         downward/axiom_utils
+        downward/cartesian_set
         downward/classical_operator_space
         downward/concepts
         downward/evaluation_context
@@ -554,7 +555,6 @@ create_library(
         downward/cartesian_abstractions/abstract_state
         downward/cartesian_abstractions/additive_cartesian_heuristic
         downward/cartesian_abstractions/cartesian_heuristic_function
-        downward/cartesian_abstractions/cartesian_set
         downward/cartesian_abstractions/cegar
         downward/cartesian_abstractions/cost_saturation
         downward/cartesian_abstractions/refinement_hierarchy

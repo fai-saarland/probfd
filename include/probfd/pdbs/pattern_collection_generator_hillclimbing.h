@@ -19,7 +19,7 @@ class RandomNumberGenerator;
 } // namespace downward::utils
 
 namespace downward::dynamic_bitset {
-template <typename>
+template <std::unsigned_integral>
 class DynamicBitset;
 }
 

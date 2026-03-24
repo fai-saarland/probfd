@@ -1,6 +1,5 @@
 #include "probfd/cartesian_abstractions/cartesian_abstraction.h"
 
-#include "downward/initial_state_values.h"
 #include "probfd/cartesian_abstractions/abstract_state.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition_system.h"
@@ -11,7 +10,8 @@
 
 #include "downward/cartesian_abstractions/refinement_hierarchy.h"
 
-#include "downward/cartesian_abstractions/cartesian_set.h"
+#include "downward/cartesian_set.h"
+#include "downward/initial_state_values.h"
 
 #include "downward/task_utils/task_properties.h"
 

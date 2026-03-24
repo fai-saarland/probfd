@@ -1,10 +1,10 @@
-#include "downward/cartesian_abstractions/cartesian_set.h"
+#include "downward/cartesian_set.h"
 
 #include <sstream>
 
 using namespace std;
 
-namespace downward::cartesian_abstractions {
+namespace downward {
 
 void CartesianSet::add(int var, int value)
 {

@@ -2,6 +2,7 @@
 
 #include "probfd/tasks/root_task.h"
 
+#include "probfd/distribution.h"
 #include "probfd/probabilistic_operator_space.h"
 #include "probfd/probabilistic_task.h"
 #include "probfd/termination_costs.h"
@@ -18,7 +19,6 @@
 #include "downward/goal_fact_list.h"
 #include "downward/initial_state_values.h"
 #include "downward/operator_cost_function.h"
-#include "probfd/distribution.h"
 
 #include <fstream>
 
@@ -27,9 +27,7 @@ using namespace probfd;
 using namespace probfd::cartesian_abstractions;
 
 static size_t get_num_transitions(const ProbabilisticTransitionSystem& ts)
-{
-    return ts.get_num_loops() + ts.get_num_non_loops();
-}
+{ return ts.get_num_loops() + ts.get_num_non_loops(); }
 
 TEST(CartesianTests, test_probabilistic_transition_system)
 {
