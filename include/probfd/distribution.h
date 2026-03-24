@@ -146,17 +146,15 @@ struct std::formatter<probfd::Distribution<T>, Char> {
         underlying_.underlying().set_brackets("", "");
         underlying_.underlying().set_separator(" -> ");
         underlying_.set_brackets("{", "}");
-        underlying_.set_separator(",");
+        underlying_.set_separator(", ");
     }
 
     template <class ParseContext>
-    constexpr typename ParseContext::iterator parse(ParseContext& ctx)
-    {
-        return ctx.begin();
-    }
+    constexpr ParseContext::iterator parse(ParseContext& ctx)
+    { return ctx.begin(); }
 
     template <class FmtContext>
-    typename FmtContext::iterator
+    FmtContext::iterator
     format(const probfd::Distribution<T>& p, FmtContext& ctx) const
     {
         return underlying_.format(
