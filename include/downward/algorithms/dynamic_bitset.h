@@ -16,27 +16,34 @@
 
 namespace downward::dynamic_bitset {
 
+struct zero_construct_tag {};
+
+struct one_construct_tag {};
+
+inline constexpr auto construct_all_zeros = zero_construct_tag{};
+inline constexpr auto construct_all_ones = one_construct_tag{};
+
 template <std::unsigned_integral Block>
 class DynamicBitset {
     std::vector<Block> blocks;
     const std::size_t num_bits;
 
-    static constexpr Block zeros = Block(0);
-    static constexpr Block ones = Block(~Block(0));
+    static constexpr Block ZEROS = Block(0);
+    static constexpr Block ONES = Block(~Block(0));
 
-    static constexpr int bits_per_block = std::numeric_limits<Block>::digits;
+    static constexpr int BITS_PER_BLOCK = std::numeric_limits<Block>::digits;
 
     static int compute_num_blocks(std::size_t num_bits)
     {
-        return num_bits / bits_per_block +
-               static_cast<int>(num_bits % bits_per_block != 0);
+        return num_bits / BITS_PER_BLOCK +
+               static_cast<int>(num_bits % BITS_PER_BLOCK != 0);
     }
 
     static std::size_t block_index(std::size_t pos)
-    { return pos / bits_per_block; }
+    { return pos / BITS_PER_BLOCK; }
 
     static std::size_t bit_index(std::size_t pos)
-    { return pos % bits_per_block; }
+    { return pos % BITS_PER_BLOCK; }
 
     static Block bit_mask(std::size_t pos)
     { return Block(1) << bit_index(pos); }
@@ -49,16 +56,46 @@ class DynamicBitset {
 
         if (bits_in_last_block != 0) {
             assert(!blocks.empty());
-            blocks.back() &= ~(ones << bits_in_last_block);
+            blocks.back() &= ~(ONES << bits_in_last_block);
         }
     }
 
 public:
     explicit DynamicBitset(std::size_t num_bits)
-        : blocks(compute_num_blocks(num_bits), zeros)
+        : blocks(compute_num_blocks(num_bits))
+        , num_bits(num_bits)
+    {
+        zero_unused_bits();
+    }
+
+    explicit DynamicBitset(std::size_t num_bits, zero_construct_tag)
+        : blocks(compute_num_blocks(num_bits), ZEROS)
         , num_bits(num_bits)
     {
     }
+
+    explicit DynamicBitset(std::size_t num_bits, one_construct_tag)
+        : blocks(compute_num_blocks(num_bits), ONES)
+        , num_bits(num_bits)
+    {
+        zero_unused_bits();
+    }
+
+    template <std::ranges::input_range R>
+        requires std::convertible_to<
+                     std::ranges::range_reference_t<R>,
+                     std::size_t>
+    explicit DynamicBitset(std::size_t num_bits, R&& set_bits)
+        : DynamicBitset(num_bits, construct_all_zeros)
+    {
+        for (const std::size_t i : set_bits) { set(i); }
+    }
+
+    static DynamicBitset zeros(std::size_t num_bits)
+    { return DynamicBitset(num_bits, construct_all_zeros); }
+
+    static DynamicBitset ones(std::size_t num_bits)
+    { return DynamicBitset(num_bits, construct_all_ones); }
 
     std::size_t size() const { return num_bits; }
 
@@ -79,11 +116,11 @@ public:
 
     void set()
     {
-        std::fill(blocks.begin(), blocks.end(), ones);
+        std::fill(blocks.begin(), blocks.end(), ONES);
         zero_unused_bits();
     }
 
-    void reset() { std::fill(blocks.begin(), blocks.end(), zeros); }
+    void reset() { std::fill(blocks.begin(), blocks.end(), ZEROS); }
 
     void set(std::size_t pos)
     {
@@ -147,7 +184,7 @@ struct std::formatter<downward::dynamic_bitset::DynamicBitset<Block>, Char> {
     constexpr formatter()
     {
         underlying_.set_brackets("{", "}");
-        underlying_.set_separator(",");
+        underlying_.set_separator(", ");
     }
 
     template <class ParseContext>

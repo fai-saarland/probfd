@@ -26,13 +26,33 @@ class CartesianSet {
 
 public:
     template <std::ranges::input_range R = std::initializer_list<int>>
-        requires std::same_as<std::ranges::range_value_t<R>, int>
+        requires std::convertible_to<std::ranges::range_value_t<R>, int>
     explicit CartesianSet(R&& domain_sizes)
     {
         domain_subsets.reserve(domain_sizes.size());
         for (const int domain_size : domain_sizes) {
-            Bitset& b = domain_subsets.emplace_back(domain_size);
-            b.set();
+            domain_subsets.emplace_back(
+                domain_size,
+                dynamic_bitset::construct_all_ones);
+        }
+    }
+
+    template <
+        std::ranges::input_range R = std::initializer_list<int>,
+        std::ranges::input_range R2 =
+            std::initializer_list<std::initializer_list<std::size_t>>>
+        requires std::convertible_to<std::ranges::range_value_t<R>, int> &&
+                 std::ranges::input_range<std::ranges::range_value_t<R2>> &&
+                 std::convertible_to<
+                     std::ranges::range_reference_t<
+                         std::ranges::range_value_t<R2>>,
+                     std::size_t>
+    explicit CartesianSet(R&& domain_sizes, R2&& subsets)
+    {
+        domain_subsets.reserve(domain_sizes.size());
+        for (const auto& [domain_size, subset] :
+             std::views::zip(domain_sizes, subsets)) {
+            domain_subsets.emplace_back(domain_size, subset);
         }
     }
 

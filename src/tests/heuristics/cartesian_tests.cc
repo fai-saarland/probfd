@@ -88,11 +88,16 @@ TEST(CartesianTests, test_format)
     c.set_single_value(2, 3);
 
     std::println(std::cout, "{}", c);
+}
 
-    probfd::Distribution<int> d;
-    d.add_probability(6, 0.5);
-    d.add_probability(42, 0.25);
-    d.add_probability(7, 0.25);
+TEST(CartesianTests, test_format2)
+{
+    CartesianSet c({4, 5, 6}, {{0, 1, 2}, {2}, {3}});
+    std::println(std::cout, "{}", c);
+}
 
+TEST(CartesianTests, test_distribution_format)
+{
+    probfd::Distribution<int> d({{6, 0.5}, {42, 0.25}, {7, 0.25}});
     std::println(std::cout, "{}", d);
 }
