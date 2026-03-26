@@ -25,13 +25,31 @@ class CartesianSet {
 
 public:
     template <std::ranges::input_range R = std::initializer_list<int>>
-        requires std::same_as<std::ranges::range_value_t<R>, int>
+        requires std::convertible_to<std::ranges::range_value_t<R>, int>
     explicit CartesianSet(R&& domain_sizes)
     {
         domain_subsets.reserve(domain_sizes.size());
         for (const int domain_size : domain_sizes) {
-            Bitset domain = Bitset::ones(domain_size);
-            domain_subsets.push_back(std::move(domain));
+            domain_subsets.emplace_back(Bitset::ones(domain_size));
+        }
+    }
+
+    template <
+        std::ranges::input_range R = std::initializer_list<int>,
+        std::ranges::input_range R2 =
+            std::initializer_list<std::initializer_list<std::size_t>>>
+        requires std::convertible_to<std::ranges::range_value_t<R>, int> &&
+                 std::ranges::input_range<std::ranges::range_value_t<R2>> &&
+                 std::convertible_to<
+                     std::ranges::range_reference_t<
+                         std::ranges::range_value_t<R2>>,
+                     std::size_t>
+    explicit CartesianSet(R&& domain_sizes, R2&& subsets)
+    {
+        domain_subsets.reserve(domain_sizes.size());
+        for (const auto& [domain_size, subset] :
+             std::views::zip(domain_sizes, subsets)) {
+            domain_subsets.emplace_back(domain_size, subset);
         }
     }
 
@@ -41,7 +59,10 @@ public:
     void add_all(int var);
     void remove_all(int var);
 
-    bool test(int var, int value) const { return domain_subsets[var][value]; }
+    bool test(int var, int value) const
+    {
+        return domain_subsets[var][value];
+    }
 
     int count(int var) const;
     bool intersects(const CartesianSet& other, int var) const;
@@ -54,7 +75,9 @@ public:
 
 template <typename Char>
 struct std::formatter<downward::cartesian_abstractions::CartesianSet, Char> {
-    using R = downward::cartesian_abstractions::Bitset;
+    using R =
+        decltype(std::declval<const downward::cartesian_abstractions::Bitset&>()
+                     .set_indices());
 
     std::range_formatter<R, Char> underlying_;
 
@@ -62,20 +85,27 @@ struct std::formatter<downward::cartesian_abstractions::CartesianSet, Char> {
     {
         underlying_.set_brackets("", "");
         underlying_.set_separator(" x ");
+        underlying_.underlying().set_brackets("{", "}");
     }
 
     template <class ParseContext>
-    constexpr typename ParseContext::iterator parse(ParseContext& ctx)
+    constexpr ParseContext::iterator parse(ParseContext& ctx)
     {
-        return underlying_.parse(ctx);
+        if (*ctx.begin() != '}') {
+            throw std::format_error("Expected '}'!");
+        }
+        return ctx.begin();
     }
 
     template <class FmtContext>
-    typename FmtContext::iterator format(
+    FmtContext::iterator format(
         const downward::cartesian_abstractions::CartesianSet& t,
         FmtContext& ctx) const
     {
-        return underlying_.format(t.domain_subsets, ctx);
+        auto r = t.domain_subsets |
+                 std::views::transform(
+                     &downward::cartesian_abstractions::Bitset::set_indices);
+        return underlying_.format(r, ctx);
     }
 };
 

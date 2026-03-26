@@ -2,6 +2,7 @@
 
 #include "probfd/tasks/root_task.h"
 
+#include "probfd/distribution.h"
 #include "probfd/probabilistic_operator_space.h"
 #include "probfd/probabilistic_task.h"
 #include "probfd/termination_costs.h"
@@ -18,7 +19,6 @@
 #include "downward/goal_fact_list.h"
 #include "downward/initial_state_values.h"
 #include "downward/operator_cost_function.h"
-#include "probfd/distribution.h"
 
 #include <fstream>
 
@@ -90,11 +90,22 @@ TEST(CartesianTests, test_format)
     c.set_single_value(2, 3);
 
     std::println(std::cout, "{}", c);
+}
 
-    probfd::Distribution<int> d;
-    d.add_probability(6, 0.5);
-    d.add_probability(42, 0.25);
-    d.add_probability(7, 0.25);
+TEST(CartesianTests, test_format2)
+{
+    CartesianSet c({4, 5, 6}, {{0, 1, 2}, {2}, {3}});
+    std::println(std::cout, "{}", c);
+}
 
+TEST(CartesianTests, test_format3)
+{
+    dynamic_bitset::DynamicBitset<unsigned int> c(70, {1, 4, 8, 9, 69});
+    std::println(std::cout, "{}", c);
+}
+
+TEST(CartesianTests, test_distribution_format)
+{
+    probfd::Distribution<int> d({{6, 0.5}, {42, 0.25}, {7, 0.25}});
     std::println(std::cout, "{}", d);
 }
