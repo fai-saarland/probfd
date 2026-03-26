@@ -61,41 +61,54 @@ public:
     consteval char operator[](size_t index) const { return value[index]; }
 
     consteval operator std::string_view() const
-    {
-        return std::string_view(value.data());
-    }
+    { return std::string_view(value.data()); }
 };
 
 template <std::size_t N1, std::size_t N2>
 consteval StringLiteral<N1 + N2 - 1>
 concat(StringLiteral<N1> str1, StringLiteral<N2> str2)
-{
-    return StringLiteral<N1 + N2 - 1>(str1, str2);
-}
+{ return StringLiteral<N1 + N2 - 1>(str1, str2); }
 
 template <std::size_t N1, std::size_t N2>
 consteval StringLiteral<N1 + N2 - 1>
 concat(const char (&str1)[N1], const char (&str2)[N2])
-{
-    return StringLiteral<N1 + N2 - 1>(StringLiteral(str1), StringLiteral(str2));
-}
+{ return StringLiteral<N1 + N2 - 1>(StringLiteral(str1), StringLiteral(str2)); }
 
 template <std::size_t N>
 consteval bool
 operator==(const StringLiteral<N>& left, const StringLiteral<N>& right)
-{
-    return left.value == right.value;
-}
+{ return left.value == right.value; }
 
 template <std::size_t N>
 consteval auto
 operator<=>(const StringLiteral<N>& left, const StringLiteral<N>& right)
-{
-    return left.value == right.value;
-}
+{ return left.value == right.value; }
 
 template <size_t N>
 StringLiteral(const char (&str)[N]) -> StringLiteral<N>;
+
+template <std::size_t v>
+consteval static auto to_string()
+{
+    constexpr auto to_buffer = [] {
+        constexpr size_t bufsize =
+            std::numeric_limits<std::size_t>::digits10 + 2;
+        std::array<char, bufsize> buf{};
+        auto r = std::to_chars(begin(buf), end(buf), v);
+
+        return std::make_pair(buf, r.ptr - begin(buf));
+    };
+
+    constexpr auto buf_end = to_buffer();
+
+    constexpr auto length = buf_end.second;
+    std::array<char, length + 1> res;
+    std::copy(begin(buf_end.first), begin(buf_end.first) + length, begin(res));
+
+    res[length] = '\0';
+
+    return downward::utils::StringLiteral{res};
+}
 
 namespace string_literals {
 // String literal operator
@@ -105,9 +118,7 @@ namespace string_literals {
 // The length of the string is deduced via the deduction guide above.
 template <StringLiteral A>
 constexpr auto operator""_sl()
-{
-    return A;
-}
+{ return A; }
 
 } // namespace string_literals
 
@@ -119,17 +130,13 @@ struct std::formatter<downward::utils::StringLiteral<N>> {
     std::formatter<const char*> underlying_;
 
     template <class ParseContext>
-    constexpr typename ParseContext::iterator parse(ParseContext& ctx)
-    {
-        return underlying_.parse(ctx);
-    }
+    constexpr ParseContext::iterator parse(ParseContext& ctx)
+    { return underlying_.parse(ctx); }
 
     template <class FmtContext>
-    typename FmtContext::iterator
+    FmtContext::iterator
     format(const downward::utils::StringLiteral<N>& sl, FmtContext& ctx) const
-    {
-        return underlying_.format(sl.value.data(), ctx);
-    }
+    { return underlying_.format(sl.value.data(), ctx); }
 };
 
 #endif

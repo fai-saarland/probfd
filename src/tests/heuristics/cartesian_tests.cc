@@ -96,6 +96,13 @@ TEST(CartesianTests, test_format2)
     std::println(std::cout, "{}", c);
 }
 
+TEST(CartesianTests, test_format3)
+{
+    dynamic_bitset::DynamicBitset<unsigned int> c(70, {1, 4, 8, 9, 69});
+    std::println(std::cout, "{}", c);
+}
+
+
 TEST(CartesianTests, test_distribution_format)
 {
     probfd::Distribution<int> d({{6, 0.5}, {42, 0.25}, {7, 0.25}});
