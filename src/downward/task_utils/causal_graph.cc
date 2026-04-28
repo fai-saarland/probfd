@@ -32,8 +32,11 @@ using namespace std;
 namespace downward::causal_graph {
 
 static utils::HashMap<
-    std::tuple<VariableSpace*, AxiomSpace*, ClassicalOperatorSpace*>,
-    unique_ptr<CausalGraph>>
+    std::tuple<
+        const VariableSpace*,
+        const AxiomSpace*,
+        const ClassicalOperatorSpace*>,
+    CausalGraph>
     causal_graph_cache;
 
 /*
@@ -221,17 +224,16 @@ void CausalGraph::dump(const VariableSpace& variables, utils::LogProxy log)
     }
 }
 
-const CausalGraph& get_causal_graph(const AbstractTaskTuple& task)
+const CausalGraph& get_causal_graph(
+    const VariableSpace& variables,
+    const AxiomSpace& axioms,
+    const ClassicalOperatorSpace& operators)
 {
-    auto [variables, axioms, operators] =
-        slice<VariableSpace&, AxiomSpace&, ClassicalOperatorSpace&>(task);
-    auto ptrs = std::make_tuple(&variables, &axioms, &operators);
-
-    if (!causal_graph_cache.contains(ptrs)) {
-        causal_graph_cache.insert(make_pair(
-            ptrs,
-            std::make_unique<CausalGraph>(variables, axioms, operators)));
-    }
-    return *causal_graph_cache[ptrs];
+    return causal_graph_cache
+        .emplace(
+            std::piecewise_construct,
+            std::forward_as_tuple(&variables, &axioms, &operators),
+            std::forward_as_tuple(variables, axioms, operators))
+        .first->second;
 }
 } // namespace downward::causal_graph

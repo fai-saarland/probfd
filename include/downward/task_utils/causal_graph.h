@@ -137,7 +137,10 @@ private:
 
 /* Create or retrieve a causal graph from cache. If causal graphs are created
    with this function, we build at most one causal graph per AbstractTask. */
-extern const CausalGraph& get_causal_graph(const AbstractTaskTuple& task);
+extern const CausalGraph& get_causal_graph(
+    const VariableSpace& variables,
+    const AxiomSpace& axioms,
+    const ClassicalOperatorSpace& operators);
 
 } // namespace downward::causal_graph
 #endif

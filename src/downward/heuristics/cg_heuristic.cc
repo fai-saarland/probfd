@@ -48,8 +48,12 @@ CGHeuristic::CGHeuristic(
     const auto& variables = get_variables(transformed_task);
 
     if (max_cache_size > 0) {
-        const auto& cg =
-            causal_graph::get_causal_graph(to_refs(transformed_task));
+        const auto& axioms = get_axioms(transformed_task);
+        const auto& operators = get_operators(transformed_task);
+
+        const causal_graph::CausalGraph& cg =
+            causal_graph::get_causal_graph(variables, axioms, operators);
+
         cache = std::make_unique<CGCache>(cg, variables, max_cache_size, log);
     }
 

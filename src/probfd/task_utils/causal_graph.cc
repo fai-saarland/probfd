@@ -25,7 +25,7 @@ static utils::HashMap<
         const VariableSpace*,
         const AxiomSpace*,
         const ProbabilisticOperatorSpace*>,
-    std::unique_ptr<ProbabilisticCausalGraph>>
+    ProbabilisticCausalGraph>
     causal_graph_cache;
 
 /*
@@ -248,23 +248,12 @@ const ProbabilisticCausalGraph& get_causal_graph(
     const AxiomSpace& axioms,
     const ProbabilisticOperatorSpace& operators)
 {
-    const std::tuple<
-        const VariableSpace*,
-        const AxiomSpace*,
-        const ProbabilisticOperatorSpace*>
-        entry = map_tuple(
-            std::forward_as_tuple(variables, axioms, operators),
-            [](auto&& arg) { return &arg; });
-
-    if (!causal_graph_cache.contains(entry)) {
-        causal_graph_cache.emplace(
-            entry,
-            std::make_unique<ProbabilisticCausalGraph>(
-                variables,
-                axioms,
-                operators));
-    }
-    return *causal_graph_cache[entry];
+    return causal_graph_cache
+        .emplace(
+            std::piecewise_construct,
+            std::forward_as_tuple(&variables, &axioms, &operators),
+            std::forward_as_tuple(variables, axioms, operators))
+        .first->second;
 }
 
 } // namespace probfd::causal_graph

@@ -54,7 +54,11 @@ unique_ptr<MergeStrategy> MergeStrategyFactorySCCs::compute_merge_strategy(
     vector<vector<int>> cg;
     cg.reserve(num_vars);
 
-    const auto& causal_graph = causal_graph::get_causal_graph(task);
+    const auto& axioms = get_axioms(task);
+    const auto& operators = get_operators(task);
+
+    const causal_graph::CausalGraph& causal_graph =
+        causal_graph::get_causal_graph(variables, axioms, operators);
 
     for (VariableProxy var : variables) {
         cg.push_back(causal_graph.get_successors(var.get_id()));

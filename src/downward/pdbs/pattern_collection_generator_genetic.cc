@@ -127,6 +127,13 @@ void PatternCollectionGeneratorGenetic::remove_irrelevant_variables(
         }
     }
 
+    const auto& variables = get_variables(task);
+    const auto& axioms = get_axioms(task);
+    const auto& operators = get_operators(task);
+
+    const causal_graph::CausalGraph& cg =
+        causal_graph::get_causal_graph(variables, axioms, operators);
+
     while (!vars_to_check.empty()) {
         int var = vars_to_check.back();
         vars_to_check.pop_back();
@@ -135,9 +142,6 @@ void PatternCollectionGeneratorGenetic::remove_irrelevant_variables(
           there is a pre->eff arc from the variable to a relevant variable.
           Note that there is no point in considering eff->eff arcs here.
         */
-        const causal_graph::CausalGraph& cg =
-            causal_graph::get_causal_graph(to_refs(task));
-
         const vector<int>& rel = cg.get_eff_to_pre(var);
         for (size_t i = 0; i < rel.size(); ++i) {
             int var_no = rel[i];

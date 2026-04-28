@@ -77,9 +77,13 @@ vector<vector<int>>
 compute_cg_neighbors(const SharedAbstractTask& task, bool bidirectional)
 {
     const auto& variables = get_variables(task);
+    const auto& axioms = get_axioms(task);
+    const auto& operators = get_operators(task);
+
+    const causal_graph::CausalGraph& cg =
+        causal_graph::get_causal_graph(variables, axioms, operators);
 
     int num_vars = variables.size();
-    const auto& cg = causal_graph::get_causal_graph(to_refs(task));
     vector<vector<int>> cg_neighbors(num_vars);
     for (int var_id = 0; var_id < num_vars; ++var_id) {
         cg_neighbors[var_id] = cg.get_predecessors(var_id);

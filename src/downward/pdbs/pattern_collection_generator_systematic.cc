@@ -188,9 +188,13 @@ void PatternCollectionGeneratorSystematic::build_patterns(
     const AbstractTaskTuple& task)
 {
     const auto& variables = get_variables(task);
+    const auto& axioms = get_axioms(task);
+    const auto& operators = get_operators(task);
+
+    const causal_graph::CausalGraph& cg =
+        causal_graph::get_causal_graph(variables, axioms, operators);
 
     int num_variables = variables.size();
-    const causal_graph::CausalGraph& cg = causal_graph::get_causal_graph(task);
 
     // Generate SGA (single-goal-ancestor) patterns.
     // They are generated into the patterns variable,

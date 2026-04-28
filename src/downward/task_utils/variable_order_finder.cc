@@ -55,7 +55,14 @@ void VariableOrderFinder::select_next(int position, int var_no)
     assert(remaining_vars[position] == var_no);
     remaining_vars.erase(remaining_vars.begin() + position);
     selected_vars.push_back(var_no);
-    const causal_graph::CausalGraph& cg = causal_graph::get_causal_graph(task);
+
+    const auto& variables = get_variables(task);
+    const auto& axioms = get_axioms(task);
+    const auto& operators = get_operators(task);
+
+    const causal_graph::CausalGraph& cg =
+        causal_graph::get_causal_graph(variables, axioms, operators);
+
     const vector<int>& new_vars = cg.get_eff_to_pre(var_no);
     for (int new_var : new_vars) is_causal_predecessor[new_var] = true;
 }

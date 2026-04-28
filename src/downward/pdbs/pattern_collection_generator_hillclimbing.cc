@@ -369,7 +369,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
     }
 
     const causal_graph::CausalGraph& causal_graph =
-        causal_graph::get_causal_graph(task);
+        causal_graph::get_causal_graph(variables, axioms, operators);
 
     const vector<vector<int>> relevant_neighbours =
         compute_relevant_neighbours(variables, goals, causal_graph);
