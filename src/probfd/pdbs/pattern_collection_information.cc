@@ -3,8 +3,8 @@
 #include "probfd/pdbs/probability_aware_pattern_database.h"
 #include "probfd/pdbs/trivial_finder.h"
 
-#include "probfd/cost_function.h"
 #include "probfd/probabilistic_task.h"
+#include "probfd/termination_cost_function.h"
 
 #include "downward/pdbs/pattern_collection_information.h"
 

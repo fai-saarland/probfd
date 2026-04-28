@@ -8,19 +8,19 @@
 #include "probfd/labelled_successor_distribution.h"
 #include "probfd/mdp_algorithm.h"
 #include "probfd/policy.h"
+#include "probfd/probabilistic_operator_space.h"
 #include "probfd/probabilistic_task.h"
-#include "probfd/task_cost_function.h"
+#include "probfd/task_action_cost_function.h"
 #include "probfd/task_heuristic_factory.h"
 #include "probfd/task_state_space_factory.h"
+#include "probfd/task_termination_cost_function.h"
 
 #include "probfd/utils/timed.h"
 
 #include "downward/utils/exceptions.h"
-#include "downward/utils/timer.h"
 #include "downward/utils/system.h"
+#include "downward/utils/timer.h"
 
-#include "downward/utils/exceptions.h"
-#include "probfd/probabilistic_operator_space.h"
 
 #include <deque>
 #include <fstream>
@@ -57,7 +57,9 @@ void print_policy(
 
         auto decision = policy.get_decision(state);
 
-        if (!decision) { continue; }
+        if (!decision) {
+            continue;
+        }
 
         println(
             out,
@@ -73,7 +75,9 @@ void print_policy(
 
         for (const probfd::StateID succ_id :
              successor_dist.non_source_successor_dist.support()) {
-            if (visited.insert(succ_id).second) { queue.push_back(succ_id); }
+            if (visited.insert(succ_id).second) {
+                queue.push_back(succ_id);
+            }
         }
     } while (!queue.empty());
 }
@@ -163,10 +167,9 @@ public:
                 get_shared_goal(task),
                 get_shared_termination_costs(task));
 
-            CompositeMDP mdp{
-                *state_space,
-                action_cost_function,
-                term_cost_function};
+            CompositeMDP mdp{*state_space,
+                             action_cost_function,
+                             term_cost_function};
 
             Timer search_timer;
 

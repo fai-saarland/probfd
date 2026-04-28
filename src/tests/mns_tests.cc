@@ -15,7 +15,7 @@
 
 #include "probfd/json/json.h"
 
-#include "probfd/task_cost_function.h"
+#include "probfd/task_termination_cost_function.h"
 
 #include "downward/utils/logging.h"
 #include "downward/utils/rng.h"

@@ -10,8 +10,8 @@
 #include "probfd/pdbs/subcollection_finder_factory.h"
 #include "probfd/pdbs/utils.h"
 
-#include "probfd/cost_function.h"
 #include "probfd/probabilistic_task.h"
+#include "probfd/termination_cost_function.h"
 
 #include "probfd/task_utils/causal_graph.h"
 #include "probfd/task_utils/sampling.h"

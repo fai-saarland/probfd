@@ -1,8 +1,9 @@
 #ifndef PROBFD_MDP_H
 #define PROBFD_MDP_H
 
-#include "probfd/cost_function.h" // IWYU pragma: export
-#include "probfd/state_space.h"   // IWYU pragma: export
+#include "probfd/state_space.h"               // IWYU pragma: export
+#include "probfd/action_cost_function.h" // IWYU pragma: export
+#include "probfd/termination_cost_function.h" // IWYU pragma: export
 
 namespace probfd {
 

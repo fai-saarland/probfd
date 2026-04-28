@@ -1,8 +1,8 @@
 #ifndef PROBFD_STATE_SPACE_H
 #define PROBFD_STATE_SPACE_H
 
+#include "probfd/aliases.h"
 #include "probfd/state_id.h"
-#include "probfd/type_traits.h"
 
 #include <vector>
 

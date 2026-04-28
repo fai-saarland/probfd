@@ -2,7 +2,7 @@
 
 #include "probfd/task_utils/task_properties.h"
 
-#include "probfd/cost_function.h"
+#include "probfd/termination_cost_function.h"
 
 #include "downward/utils/system.h"
 #include "downward/utils/timer.h"

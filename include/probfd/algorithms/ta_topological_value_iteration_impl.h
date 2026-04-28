@@ -8,9 +8,9 @@
 #include "probfd/utils/iterators.h"
 #include "probfd/utils/not_implemented.h"
 
-#include "probfd/cost_function.h"
 #include "probfd/heuristic.h"
 #include "probfd/progress_report.h"
+#include "probfd/termination_cost_function.h"
 
 #include "downward/utils/countdown_timer.h"
 

@@ -4,8 +4,8 @@
 #include "probfd/pdbs/pattern_collection_information.h"
 #include "probfd/pdbs/probability_aware_pattern_database.h"
 
-#include "probfd/cost_function.h"
 #include "probfd/task_heuristic_factory.h"
+#include "probfd/termination_cost_function.h"
 
 #include "downward/pdbs/dominance_pruning.h"
 

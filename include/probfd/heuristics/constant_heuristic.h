@@ -3,9 +3,9 @@
 
 #include "probfd/task_utils/task_properties.h"
 
-#include "probfd/cost_function.h"
 #include "probfd/heuristic.h"
 #include "probfd/task_heuristic_factory.h"
+#include "probfd/termination_cost_function.h"
 #include "probfd/termination_costs.h"
 #include "probfd/type_traits.h"
 #include "probfd/value_type.h"

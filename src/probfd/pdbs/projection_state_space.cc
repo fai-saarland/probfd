@@ -3,9 +3,9 @@
 #include "probfd/pdbs/projection_operator.h"
 #include "probfd/pdbs/state_ranking_function.h"
 
-#include "probfd/cost_function.h"
 #include "probfd/labelled_successor_distribution.h"
 #include "probfd/probabilistic_task.h"
+#include "probfd/termination_cost_function.h"
 
 #include "probfd/probabilistic_operator_space.h"
 #include "probfd/termination_costs.h"
@@ -287,7 +287,9 @@ ProjectionStateSpace::ProjectionStateSpace(
             }
 
             if (++goal_it == goal_end) {
-                while (v < num_variables) { non_goal_vars.push_back(v++); }
+                while (v < num_variables) {
+                    non_goal_vars.push_back(v++);
+                }
                 break;
             }
         }
