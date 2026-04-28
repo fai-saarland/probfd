@@ -4,8 +4,8 @@
 
 #include "probfd/task_utils/task_properties.h"
 
-#include "probfd/cost_function.h"
 #include "probfd/probabilistic_task.h"
+#include "probfd/termination_cost_function.h"
 #include "probfd/value_type.h"
 
 #include "downward/lp/lp_solver.h"

@@ -8,9 +8,10 @@
 #include "probfd/mdp_algorithm.h"
 #include "probfd/policy.h"
 #include "probfd/probabilistic_task.h"
-#include "probfd/task_cost_function.h"
+#include "probfd/task_action_cost_function.h"
 #include "probfd/task_heuristic_factory.h"
 #include "probfd/task_state_space_factory.h"
+#include "probfd/task_termination_cost_function.h"
 #include "probfd/transition_tail.h"
 
 #include "probfd/utils/timed.h"

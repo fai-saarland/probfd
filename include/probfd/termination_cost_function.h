@@ -1,7 +1,6 @@
-#ifndef PROBFD_COST_FUNCTION_H
-#define PROBFD_COST_FUNCTION_H
+#ifndef PROBFD_TERMINATION_COST_FUNCTION_H
+#define PROBFD_TERMINATION_COST_FUNCTION_H
 
-#include "probfd/state_id.h"
 #include "probfd/type_traits.h"
 #include "probfd/value_type.h"
 
@@ -43,41 +42,6 @@ public:
     {
         return terminal_cost_;
     }
-};
-
-/**
- * @brief The interface specifying action costs.
- *
- * This interface communicates the action costs of a state space to the MDP
- * algorithms.
- * Users must implement the public method
- * `value_t get_action_cost(ParamType<Action> action)`.
- *
- * Example
- * =======
- *
- * ```
-class MaxProbActionCostFunction : public ActionCostFunction<OperatorID>
-{
-protected:
-    value_t get_action_cost(OperatorID) override
-    {
-        // Actions have no cost.
-        return 0;
-    }
-};
- * ```
- *
- * @tparam Action - The action type of the underlying MDP model.
- */
-template <typename Action>
-class ActionCostFunction {
-public:
-    virtual ~ActionCostFunction() = default;
-    /**
-     * @brief Gets the cost of an action.
-     */
-    virtual value_t get_action_cost(ParamType<Action> action) = 0;
 };
 
 /**
@@ -144,8 +108,9 @@ public:
     }
 
     virtual bool is_goal(ParamType<State> state) const = 0;
-    [[nodiscard]]
+
     virtual value_t get_goal_termination_cost() const = 0;
+
     virtual value_t get_non_goal_termination_cost() const = 0;
 };
 

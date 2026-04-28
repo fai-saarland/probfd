@@ -3,8 +3,8 @@
 #include "probfd/pdbs/projection_operator.h"
 #include "probfd/pdbs/state_ranking_function.h"
 
-#include "probfd/cost_function.h"
 #include "probfd/probabilistic_task.h"
+#include "probfd/termination_cost_function.h"
 #include "probfd/transition_tail.h"
 
 #include "probfd/probabilistic_operator_space.h"

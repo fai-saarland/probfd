@@ -1,7 +1,5 @@
 #include <gtest/gtest.h>
 
-#include "probfd/tasks/root_task.h"
-
 #include "probfd/algorithms/depth_first_heuristic_search.h"
 #include "probfd/algorithms/fret.h"
 
@@ -11,8 +9,9 @@
 
 #include "probfd/quotients/quotient_system.h"
 
-#include "probfd/task_cost_function.h"
 #include "probfd/task_state_space.h"
+#include "probfd/task_action_cost_function.h"
+#include "probfd/task_termination_cost_function.h"
 
 #include "tests/tasks/blocksworld.h"
 

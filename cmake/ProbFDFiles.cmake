@@ -25,7 +25,8 @@ create_library(
         probfd/algorithms/utils
 
         # Cost Functions
-        probfd/task_cost_function
+        probfd/task_action_cost_function
+        probfd/task_termination_cost_function
 
         # Constant heuristic (default)
         probfd/heuristics/constant_heuristic

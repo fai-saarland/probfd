@@ -12,12 +12,10 @@
 
 #include "probfd/heuristics/constant_heuristic.h"
 
-#include "probfd/task_utils/task_properties.h"
-
 #include "probfd/tasks/root_task.h"
 
 #include "probfd/progress_report.h"
-#include "probfd/task_cost_function.h"
+#include "probfd/task_termination_cost_function.h"
 
 #include "probfd/tasks/determinization_task.h"
 
@@ -26,6 +24,8 @@
 #include "downward/merge_and_shrink/factored_transition_system.h"
 #include "downward/merge_and_shrink/merge_and_shrink_representation.h"
 #include "downward/merge_and_shrink/transition_system.h"
+
+#include "downward/task_utils/task_properties.h"
 
 #include "downward/utils/timer.h"
 

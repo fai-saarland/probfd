@@ -1,9 +1,9 @@
-#ifndef PROBFD_TASK_COST_FUNCTION_H
-#define PROBFD_TASK_COST_FUNCTION_H
+#ifndef PROBFD_TASK_TERMINATION_COST_FUNCTION_H
+#define PROBFD_TASK_TERMINATION_COST_FUNCTION_H
 
-#include "probfd/cost_function.h"
+#include "probfd/termination_cost_function.h"
 
-#include "downward/task_utils/task_properties.h"
+#include "downward/state.h"
 
 namespace downward {
 class GoalFactList;
@@ -29,17 +29,6 @@ public:
 
     value_t get_goal_termination_cost() const override;
     value_t get_non_goal_termination_cost() const override;
-};
-
-class TaskActionCostFunction : public ActionCostFunction<downward::OperatorID> {
-    std::shared_ptr<downward::OperatorCostFunction<value_t>> op_cost_function_;
-
-public:
-    explicit TaskActionCostFunction(
-        std::shared_ptr<downward::OperatorCostFunction<value_t>>
-            op_cost_function);
-
-    value_t get_action_cost(downward::OperatorID action) override;
 };
 
 } // namespace probfd

@@ -5,7 +5,7 @@
 
 #include "probfd/abstractions/distances.h"
 
-#include "probfd/cost_function.h"
+#include "probfd/termination_cost_function.h"
 
 #include "downward/pdbs/pattern_database.h"
 
