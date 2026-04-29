@@ -25,11 +25,6 @@ public:
     bool requires_liveness() const override { return false; }
 
     bool requires_goal_distances() const override { return false; }
-
-private:
-    std::string name() const override;
-    void dump_function_specific_options(
-        downward::utils::LogProxy& log) const override;
 };
 
 } // namespace probfd::merge_and_shrink

@@ -578,26 +578,12 @@ create_library(
 )
 
 create_library(
-    NAME pmerge_strategy_factory_options
-    HELP "Enables the base merge strategy factory options"
-    SOURCES
-        probfd/cli/merge_and_shrink/merge_strategy_factory_options
-    DEPENDS
-        pa_merge_and_shrink
-    language
-        plugins
-    TARGET
-        probfd
-)
-
-create_library(
     NAME pmerge_strategy_factory_precomputed
     HELP "Enables precomputed merge strategy factory plugin"
     SOURCES
         probfd/cli/merge_and_shrink/merge_strategy_factory_precomputed
     DEPENDS
         pmerge_strategy_factory_category
-        pmerge_strategy_factory_options
         pa_merge_and_shrink
     language
         plugins
@@ -612,7 +598,6 @@ create_library(
         probfd/cli/merge_and_shrink/merge_strategy_factory_sccs
     DEPENDS
         pmerge_strategy_factory_category
-        pmerge_strategy_factory_options
         pa_merge_and_shrink
     language
         plugins
@@ -627,7 +612,6 @@ create_library(
         probfd/cli/merge_and_shrink/merge_strategy_factory_stateless
     DEPENDS
         pmerge_strategy_factory_category
-        pmerge_strategy_factory_options
         pa_merge_and_shrink
     language
         plugins

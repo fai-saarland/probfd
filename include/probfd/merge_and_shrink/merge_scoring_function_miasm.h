@@ -3,6 +3,8 @@
 
 #include "probfd/merge_and_shrink/merge_scoring_function.h"
 
+#include "probfd/probabilistic_task.h"
+
 #include "downward/utils/logging.h"
 
 #include <memory>
@@ -20,12 +22,15 @@ class MergeScoringFunctionMIASM : public MergeScoringFunction {
     const int max_states;
     const int max_states_before_merge;
     const int shrink_threshold_before_merge;
-    downward::utils::LogProxy silent_log;
-    std::vector<std::vector<std::optional<double>>>
+
+    mutable std::vector<std::vector<std::optional<double>>>
         cached_scores_by_merge_candidate_indices;
+
+    mutable downward::utils::LogProxy silent_log;
 
 public:
     MergeScoringFunctionMIASM(
+        const ProbabilisticTaskTuple& task,
         bool use_caching,
         std::shared_ptr<ShrinkStrategy> shrink_strategy,
         int max_states,
@@ -36,16 +41,9 @@ public:
         const FactoredTransitionSystem& fts,
         const std::vector<std::pair<int, int>>& merge_candidates) override;
 
-    void initialize(const ProbabilisticTaskTuple& task) override;
-
     bool requires_liveness() const override { return true; }
 
     bool requires_goal_distances() const override { return true; }
-
-private:
-    std::string name() const override;
-    void dump_function_specific_options(
-        downward::utils::LogProxy& log) const override;
 };
 
 } // namespace probfd::merge_and_shrink

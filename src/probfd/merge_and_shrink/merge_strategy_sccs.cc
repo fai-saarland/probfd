@@ -78,6 +78,16 @@ pair<int, int> MergeStrategySCCsTree::get_next()
     return next_pair;
 }
 
+bool MergeStrategySCCsTree::requires_liveness() const
+{
+    return false;
+}
+
+bool MergeStrategySCCsTree::requires_goal_distances() const
+{
+    return false;
+}
+
 MergeStrategySCCsSelector::MergeStrategySCCsSelector(
     const FactoredTransitionSystem& fts,
     SharedProbabilisticTask task,
@@ -130,6 +140,16 @@ pair<int, int> MergeStrategySCCsSelector::get_next()
     });
 
     return next_pair;
+}
+
+bool MergeStrategySCCsSelector::requires_liveness() const
+{
+    return merge_selector->requires_liveness();
+}
+
+bool MergeStrategySCCsSelector::requires_goal_distances() const
+{
+    return merge_selector->requires_goal_distances();
 }
 
 } // namespace probfd::merge_and_shrink

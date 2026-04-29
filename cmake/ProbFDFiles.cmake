@@ -353,8 +353,16 @@ create_library(
         probfd/merge_and_shrink/merge_scoring_function_miasm_utils
         probfd/merge_and_shrink/merge_scoring_function_single_random
         probfd/merge_and_shrink/merge_scoring_function_total_order
+        probfd/merge_and_shrink/merge_scoring_function_factory
+        probfd/merge_and_shrink/merge_scoring_function_dfp_factory
+        probfd/merge_and_shrink/merge_scoring_function_goal_relevance_factory
+        probfd/merge_and_shrink/merge_scoring_function_miasm_factory
+        probfd/merge_and_shrink/merge_scoring_function_single_random_factory
+        probfd/merge_and_shrink/merge_scoring_function_total_order_factory
         probfd/merge_and_shrink/merge_selector
         probfd/merge_and_shrink/merge_selector_score_based_filtering
+        probfd/merge_and_shrink/merge_selector_factory
+        probfd/merge_and_shrink/merge_selector_score_based_filtering_factory
         probfd/merge_and_shrink/merge_strategy
         probfd/merge_and_shrink/merge_strategy_factory
         probfd/merge_and_shrink/merge_strategy_factory_precomputed

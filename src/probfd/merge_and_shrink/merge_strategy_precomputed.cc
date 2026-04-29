@@ -29,4 +29,14 @@ pair<int, int> MergeStrategyPrecomputed::get_next()
     return {left, right};
 }
 
+bool MergeStrategyPrecomputed::requires_liveness() const
+{
+    return false;
+}
+
+bool MergeStrategyPrecomputed::requires_goal_distances() const
+{
+    return false;
+}
+
 } // namespace probfd::merge_and_shrink

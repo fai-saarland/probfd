@@ -5,11 +5,6 @@
 
 #include "probfd/merge_and_shrink/merge_strategy_factory_stateless.h"
 
-#include "probfd/merge_and_shrink/merge_selector.h"
-#include "probfd/merge_and_shrink/merge_strategy_stateless.h"
-
-#include "probfd/cli/merge_and_shrink/merge_strategy_factory_options.h"
-
 using namespace std;
 using namespace language::plugins;
 using namespace downward;
@@ -26,8 +21,7 @@ add_merge_strategy_factory_stateless_feature(Namespace& nspace)
         &language::plugins::construct_shared<
             MergeStrategyFactory,
             MergeStrategyFactoryStateless,
-            utils::Verbosity,
-            std::shared_ptr<MergeSelector>>);
+            std::shared_ptr<MergeSelectorFactory>>);
 
     f.document_title("Stateless merge strategy");
     f.document_synopsis(
@@ -56,9 +50,8 @@ add_merge_strategy_factory_stateless_feature(Namespace& nspace)
         "order_option>)]"
         "\n}}}");
 
-    const auto n = add_merge_strategy_options_to_feature(f, 0);
     f.make_required_argument(
-        n,
+        0,
         "merge_selector",
         "The merge selector to be used.");
 

@@ -1,14 +1,8 @@
 #ifndef PROBFD_MERGE_AND_SHRINK_MERGE_SCORING_FUNCTION_H
 #define PROBFD_MERGE_AND_SHRINK_MERGE_SCORING_FUNCTION_H
 
-#include "probfd/probabilistic_task.h"
-
-#include <string>
+#include <utility>
 #include <vector>
-
-namespace downward::utils {
-class LogProxy;
-}
 
 namespace probfd::merge_and_shrink {
 class FactoredTransitionSystem;
@@ -17,16 +11,6 @@ class FactoredTransitionSystem;
 namespace probfd::merge_and_shrink {
 
 class MergeScoringFunction {
-    virtual std::string name() const = 0;
-
-    virtual void
-    dump_function_specific_options(downward::utils::LogProxy&) const
-    {
-    }
-
-protected:
-    bool initialized = false;
-
 public:
     virtual ~MergeScoringFunction() = default;
 
@@ -36,14 +20,6 @@ public:
 
     virtual bool requires_liveness() const = 0;
     virtual bool requires_goal_distances() const = 0;
-
-    // Overriding methods must set initialized to true.
-    virtual void initialize(const ProbabilisticTaskTuple&)
-    {
-        initialized = true;
-    }
-
-    void dump_options(downward::utils::LogProxy& log) const;
 };
 
 } // namespace probfd::merge_and_shrink

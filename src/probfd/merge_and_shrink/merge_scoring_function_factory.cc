@@ -1,4 +1,4 @@
-#include "probfd/merge_and_shrink/merge_scoring_function.h"
+#include "probfd/merge_and_shrink/merge_scoring_function_factory.h"
 
 #include "downward/utils/logging.h"
 
@@ -7,7 +7,7 @@ using namespace downward;
 
 namespace probfd::merge_and_shrink {
 
-void MergeScoringFunction::dump_options(utils::LogProxy& log) const
+void MergeScoringFunctionFactory::dump_options(utils::LogProxy& log) const
 {
     if (log.is_at_least_normal()) {
         log.println("Merge scoring function:");

@@ -36,14 +36,4 @@ vector<double> MergeScoringFunctionSingleRandom::compute_scores(
     return scores;
 }
 
-string MergeScoringFunctionSingleRandom::name() const
-{
-    return "single random";
-}
-
-void MergeScoringFunctionSingleRandom::dump_function_specific_options(
-    utils::LogProxy&) const
-{
-}
-
 } // namespace probfd::merge_and_shrink

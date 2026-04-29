@@ -6,8 +6,6 @@
 namespace probfd::merge_and_shrink {
 
 class MergeScoringFunctionGoalRelevance : public MergeScoringFunction {
-    std::string name() const override;
-
 public:
     std::vector<double> compute_scores(
         const FactoredTransitionSystem& fts,

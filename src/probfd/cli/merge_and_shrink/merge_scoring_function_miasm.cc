@@ -3,7 +3,7 @@
 #include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
-#include "probfd/merge_and_shrink/merge_scoring_function_miasm.h"
+#include "probfd/merge_and_shrink/merge_scoring_function_miasm_factory.h"
 
 #include "probfd/merge_and_shrink/distances.h"
 #include "probfd/merge_and_shrink/shrink_strategy.h"
@@ -21,7 +21,7 @@ using namespace probfd::cli::merge_and_shrink;
 
 namespace {
 
-shared_ptr<MergeScoringFunction> create_merge_scoring_function_miasm(
+shared_ptr<MergeScoringFunctionFactory> create_merge_scoring_function_miasm(
     bool use_caching,
     std::shared_ptr<ShrinkStrategy> shrink_strategy,
     int max_states,
@@ -33,7 +33,7 @@ shared_ptr<MergeScoringFunction> create_merge_scoring_function_miasm(
         max_states_before_merge,
         threshold_before_merge);
 
-    return make_shared_from_arg_tuples<MergeScoringFunctionMIASM>(
+    return make_shared_from_arg_tuples<MergeScoringFunctionMIASMFactory>(
         use_caching,
         std::move(shrink_strategy),
         max_states,

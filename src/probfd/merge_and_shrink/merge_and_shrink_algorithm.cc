@@ -82,7 +82,7 @@ void MergeAndShrinkAlgorithm::dump_options(utils::LogProxy log) const
 {
     if (log.is_at_least_normal()) {
         if (merge_strategy_factory) { // deleted after merge strategy extraction
-            merge_strategy_factory->dump_options();
+            merge_strategy_factory->dump_options(log);
             log.println();
         }
 
@@ -372,13 +372,17 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
         log.println();
     });
 
+    const unique_ptr<MergeStrategy> merge_strategy =
+        merge_strategy_factory->compute_merge_strategy(task, fts, log);
+    merge_strategy_factory = nullptr;
+
     const bool compute_liveness = shrink_strategy->requires_liveness() ||
-                                  merge_strategy_factory->requires_liveness() ||
+                                  merge_strategy->requires_liveness() ||
                                   prune_strategy->requires_liveness();
 
     const bool compute_goal_distances =
         shrink_strategy->requires_goal_distances() ||
-        merge_strategy_factory->requires_goal_distances() ||
+        merge_strategy->requires_goal_distances() ||
         prune_strategy->requires_goal_distances();
 
     // Restore the invariant that distances are computed.
@@ -451,10 +455,6 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
     }
 
     if (label_reduction) { label_reduction->initialize(to_refs(task)); }
-
-    const unique_ptr<MergeStrategy> merge_strategy =
-        merge_strategy_factory->compute_merge_strategy(task, fts);
-    merge_strategy_factory = nullptr;
 
     main_loop(
         fts,

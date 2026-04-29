@@ -34,6 +34,9 @@ public:
     ~MergeStrategySCCsTree() override;
 
     std::pair<int, int> get_next() override;
+
+    bool requires_liveness() const override;
+    bool requires_goal_distances() const override;
 };
 
 class MergeStrategySCCsSelector : public MergeStrategy {
@@ -55,6 +58,9 @@ public:
     ~MergeStrategySCCsSelector() override;
 
     std::pair<int, int> get_next() override;
+
+    bool requires_liveness() const override;
+    bool requires_goal_distances() const override;
 };
 
 } // namespace probfd::merge_and_shrink

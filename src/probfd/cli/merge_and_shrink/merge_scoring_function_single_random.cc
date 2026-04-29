@@ -5,9 +5,7 @@
 
 #include "downward/cli/utils/rng_options.h"
 
-#include "probfd/merge_and_shrink/merge_scoring_function_single_random.h"
-
-#include "downward/utils/logging.h"
+#include "probfd/merge_and_shrink/merge_scoring_function_single_random_factory.h"
 
 using namespace std;
 using namespace language::plugins;
@@ -22,8 +20,8 @@ add_merge_scoring_function_single_random_feature(Namespace& nspace)
     auto& f = nspace.insert_function_definition(
         "psingle_random",
         &language::plugins::construct_shared<
-            MergeScoringFunction,
-            MergeScoringFunctionSingleRandom,
+            MergeScoringFunctionFactory,
+            MergeScoringFunctionSingleRandomFactory,
             std::shared_ptr<utils::RandomNumberGenerator>>);
 
     f.document_title("Single random");

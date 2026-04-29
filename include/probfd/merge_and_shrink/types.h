@@ -19,6 +19,9 @@ static constexpr int PRUNED_STATE = -1;
 using StateEquivalenceClass = std::forward_list<int>;
 using StateEquivalenceRelation = std::vector<StateEquivalenceClass>;
 
+enum class AtomicTSOrder { REVERSE_LEVEL, LEVEL, RANDOM };
+enum class ProductTSOrder { OLD_TO_NEW, NEW_TO_OLD, RANDOM };
+
 } // namespace probfd::merge_and_shrink
 
 #endif

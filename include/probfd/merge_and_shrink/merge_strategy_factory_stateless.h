@@ -4,30 +4,28 @@
 #include "probfd/merge_and_shrink/merge_strategy_factory.h"
 
 namespace probfd::merge_and_shrink {
-class MergeSelector;
+class MergeSelectorFactory;
 }
 
 namespace probfd::merge_and_shrink {
 
 class MergeStrategyFactoryStateless : public MergeStrategyFactory {
-    std::shared_ptr<MergeSelector> merge_selector;
+    std::shared_ptr<MergeSelectorFactory> merge_selector;
 
 public:
-    MergeStrategyFactoryStateless(
-        downward::utils::Verbosity verbosity,
-        std::shared_ptr<MergeSelector> merge_selector);
+    explicit MergeStrategyFactoryStateless(
+        std::shared_ptr<MergeSelectorFactory> merge_selector);
 
     std::unique_ptr<MergeStrategy> compute_merge_strategy(
         const SharedProbabilisticTask& task,
-        const FactoredTransitionSystem& fts) override;
-
-    bool requires_liveness() const override;
-    bool requires_goal_distances() const override;
+        const FactoredTransitionSystem& fts,
+        downward::utils::LogProxy& log) override;
 
 protected:
     std::string name() const override;
 
-    void dump_strategy_specific_options() const override;
+    void dump_strategy_specific_options(
+        downward::utils::LogProxy& log) const override;
 };
 
 } // namespace probfd::merge_and_shrink

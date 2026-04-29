@@ -3,9 +3,7 @@
 #include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
-#include "probfd/merge_and_shrink/merge_selector_score_based_filtering.h"
-
-#include "probfd/merge_and_shrink/merge_scoring_function.h"
+#include "probfd/merge_and_shrink/merge_selector_score_based_filtering_factory.h"
 
 using namespace std;
 using namespace language::plugins;
@@ -20,9 +18,9 @@ add_merge_selector_score_based_filtering_feature(Namespace& nspace)
     auto& f = nspace.insert_function_definition(
         "pscore_based_filtering",
         &language::plugins::construct_shared<
-            MergeSelector,
-            MergeSelectorScoreBasedFiltering,
-            std::vector<std::shared_ptr<MergeScoringFunction>>>);
+            MergeSelectorFactory,
+            MergeSelectorScoreBasedFilteringFactory,
+            std::vector<std::shared_ptr<MergeScoringFunctionFactory>>>);
 
     f.document_title("Score based filtering merge selector");
     f.document_synopsis(

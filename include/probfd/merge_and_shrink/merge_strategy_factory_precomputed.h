@@ -13,21 +13,19 @@ class MergeStrategyFactoryPrecomputed : public MergeStrategyFactory {
     std::shared_ptr<MergeTreeFactory> merge_tree_factory;
 
 public:
-    MergeStrategyFactoryPrecomputed(
-        downward::utils::Verbosity verbosity,
+    explicit MergeStrategyFactoryPrecomputed(
         std::shared_ptr<MergeTreeFactory> merge_tree_factory);
 
     std::unique_ptr<MergeStrategy> compute_merge_strategy(
         const SharedProbabilisticTask& task,
-        const FactoredTransitionSystem& fts) override;
-
-    bool requires_liveness() const override;
-    bool requires_goal_distances() const override;
+        const FactoredTransitionSystem& fts,
+        downward::utils::LogProxy& log) override;
 
 protected:
     std::string name() const override;
 
-    void dump_strategy_specific_options() const override;
+    void dump_strategy_specific_options(
+        downward::utils::LogProxy& log) const override;
 };
 
 } // namespace probfd::merge_and_shrink

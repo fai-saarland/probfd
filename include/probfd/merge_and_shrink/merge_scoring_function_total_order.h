@@ -2,6 +2,9 @@
 #define PROBFD_MERGE_AND_SHRINK_MERGE_SCORING_FUNCTION_TOTAL_ORDER_H
 
 #include "probfd/merge_and_shrink/merge_scoring_function.h"
+#include "probfd/merge_and_shrink/types.h"
+
+#include "probfd/probabilistic_task.h"
 
 #include <memory>
 #include <tuple>
@@ -12,9 +15,6 @@ class RandomNumberGenerator;
 
 namespace probfd::merge_and_shrink {
 
-enum class AtomicTSOrder { REVERSE_LEVEL, LEVEL, RANDOM };
-enum class ProductTSOrder { OLD_TO_NEW, NEW_TO_OLD, RANDOM };
-
 class MergeScoringFunctionTotalOrder : public MergeScoringFunction {
     AtomicTSOrder atomic_ts_order;
     ProductTSOrder product_ts_order;
@@ -24,6 +24,7 @@ class MergeScoringFunctionTotalOrder : public MergeScoringFunction {
 
 public:
     MergeScoringFunctionTotalOrder(
+        const ProbabilisticTaskTuple& task,
         AtomicTSOrder atomic_ts_order,
         ProductTSOrder product_ts_order,
         bool atomic_before_product,
@@ -32,16 +33,10 @@ public:
     std::vector<double> compute_scores(
         const FactoredTransitionSystem& fts,
         const std::vector<std::pair<int, int>>& merge_candidates) override;
-    void initialize(const ProbabilisticTaskTuple& task) override;
 
     bool requires_liveness() const override { return false; }
 
     bool requires_goal_distances() const override { return false; }
-
-private:
-    std::string name() const override;
-    void dump_function_specific_options(
-        downward::utils::LogProxy& log) const override;
 };
 
 } // namespace probfd::merge_and_shrink

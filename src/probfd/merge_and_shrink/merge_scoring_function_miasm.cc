@@ -18,6 +18,7 @@ using namespace downward;
 namespace probfd::merge_and_shrink {
 
 MergeScoringFunctionMIASM::MergeScoringFunctionMIASM(
+    const ProbabilisticTaskTuple& task,
     bool use_caching,
     shared_ptr<ShrinkStrategy> shrink_strategy,
     int max_states,
@@ -30,6 +31,13 @@ MergeScoringFunctionMIASM::MergeScoringFunctionMIASM(
     , shrink_threshold_before_merge(threshold_before_merge)
     , silent_log(utils::get_silent_log())
 {
+    const auto& variables = get_variables(task);
+
+    const int num_variables = variables.size();
+    const int max_factor_index = 2 * num_variables - 1;
+    cached_scores_by_merge_candidate_indices.resize(
+        max_factor_index,
+        vector<optional<double>>(max_factor_index));
 }
 
 vector<double> MergeScoringFunctionMIASM::compute_scores(
@@ -86,31 +94,6 @@ vector<double> MergeScoringFunctionMIASM::compute_scores(
     }
 
     return scores;
-}
-
-void MergeScoringFunctionMIASM::initialize(const ProbabilisticTaskTuple& task)
-{
-    const auto& variables = get_variables(task);
-
-    initialized = true;
-    const int num_variables = variables.size();
-    const int max_factor_index = 2 * num_variables - 1;
-    cached_scores_by_merge_candidate_indices.resize(
-        max_factor_index,
-        vector<optional<double>>(max_factor_index));
-}
-
-void MergeScoringFunctionMIASM::dump_function_specific_options(
-    utils::LogProxy& log) const
-{
-    if (log.is_at_least_normal()) {
-        log.println("Use caching: {}", use_caching ? "yes" : "no");
-    }
-}
-
-string MergeScoringFunctionMIASM::name() const
-{
-    return "miasm";
 }
 
 } // namespace probfd::merge_and_shrink

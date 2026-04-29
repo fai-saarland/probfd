@@ -36,9 +36,4 @@ vector<double> MergeScoringFunctionGoalRelevance::compute_scores(
     return scores;
 }
 
-string MergeScoringFunctionGoalRelevance::name() const
-{
-    return "goal relevance";
-}
-
 } // namespace probfd::merge_and_shrink

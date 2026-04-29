@@ -5,15 +5,11 @@
 
 #include "probfd/merge_and_shrink/merge_strategy_factory_sccs.h"
 
-#include "probfd/merge_and_shrink/merge_selector.h"
-#include "probfd/merge_and_shrink/merge_strategy_sccs.h"
 #include "probfd/merge_and_shrink/merge_tree_factory.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
 #include "downward/utils/logging.h"
 #include "downward/utils/markup.h"
-
-#include "probfd/cli/merge_and_shrink/merge_strategy_factory_options.h"
 
 using namespace std;
 using namespace language::plugins;
@@ -31,7 +27,6 @@ add_merge_strategy_sccs_tree_to_namespace(Namespace& nspace)
         &language::plugins::construct_shared<
             MergeStrategyFactory,
             MergeStrategyFactorySCCsTree,
-            utils::Verbosity,
             OrderOfSCCs,
             std::shared_ptr<MergeTreeFactory>>);
 
@@ -60,15 +55,13 @@ add_merge_strategy_sccs_tree_to_namespace(Namespace& nspace)
         "the final abstraction, again using the specified fallback merge "
         "strategy and the configurable order of the SCCs.");
 
-    const auto n = add_merge_strategy_options_to_feature(f, 0);
-
     f.make_optional_argument_with_default(
-        n,
+        0,
         "order_of_sccs",
         "topological",
         "how the SCCs should be ordered");
     f.make_required_argument(
-        n + 1,
+        1,
         "merge_tree",
         "the fallback merge strategy to use if a precomputed strategy "
         "should be used.");
@@ -84,9 +77,8 @@ add_merge_strategy_sccs_selector_to_namespace(Namespace& nspace)
         &language::plugins::construct_shared<
             MergeStrategyFactory,
             MergeStrategyFactorySCCsSelector,
-            utils::Verbosity,
             OrderOfSCCs,
-            std::shared_ptr<MergeSelector>>);
+            std::shared_ptr<MergeSelectorFactory>>);
 
     f.document_title("Merge strategy SSCs");
     f.document_synopsis(
@@ -113,15 +105,13 @@ add_merge_strategy_sccs_selector_to_namespace(Namespace& nspace)
         "the final abstraction, again using the specified fallback merge "
         "strategy and the configurable order of the SCCs.");
 
-    const auto n = add_merge_strategy_options_to_feature(f, 0);
-
     f.make_optional_argument_with_default(
-        n,
+        0,
         "order_of_sccs",
         "topological",
         "how the SCCs should be ordered");
     f.make_required_argument(
-        n + 1,
+        1,
         "merge_selector",
         "the fallback merge strategy to use if a stateless strategy should "
         "be used.");

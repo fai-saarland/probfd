@@ -3,9 +3,8 @@
 #include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
-#include "probfd/merge_and_shrink/merge_scoring_function_dfp.h"
+#include "probfd/merge_and_shrink/merge_scoring_function_dfp_factory.h"
 
-#include "probfd/merge_and_shrink/distances.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
 #include "downward/utils/markup.h"
@@ -22,8 +21,9 @@ add_merge_scoring_function_dfp_feature(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
         "pdfp",
-        &language::plugins::
-            construct_shared<MergeScoringFunction, MergeScoringFunctionDFP>);
+        &language::plugins::construct_shared<
+            MergeScoringFunctionFactory,
+            MergeScoringFunctionDFPFactory>);
 
     f.document_title("DFP scoring");
     f.document_synopsis(

@@ -1,8 +1,6 @@
 #include "probfd/merge_and_shrink/merge_selector.h"
 #include "probfd/merge_and_shrink/factored_transition_system.h"
 
-#include "downward/utils/logging.h"
-
 #include <cassert>
 
 using namespace std;
@@ -40,15 +38,6 @@ vector<pair<int, int>> MergeSelector::compute_merge_candidates(
     }
 
     return merge_candidates;
-}
-
-void MergeSelector::dump_options(utils::LogProxy& log) const
-{
-    if (log.is_at_least_normal()) {
-        log.println("Merge selector options:");
-        log.println("Name: {}", name());
-        dump_selector_specific_options(log);
-    }
 }
 
 } // namespace probfd::merge_and_shrink

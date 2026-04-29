@@ -14,6 +14,7 @@
 #include "downward/task_utils/causal_graph.h"
 
 #include "downward/utils/logging.h"
+#include "probfd/merge_and_shrink/merge_selector_factory.h"
 
 #include <algorithm>
 #include <cassert>
@@ -25,29 +26,24 @@ namespace probfd::merge_and_shrink {
 
 static bool
 compare_sccs_increasing(const vector<int>& lhs, const vector<int>& rhs)
-{
-    return lhs.size() < rhs.size();
-}
+{ return lhs.size() < rhs.size(); }
 
 static bool
 compare_sccs_decreasing(const vector<int>& lhs, const vector<int>& rhs)
-{
-    return lhs.size() > rhs.size();
-}
+{ return lhs.size() > rhs.size(); }
 
 MergeStrategyFactorySCCsTree::MergeStrategyFactorySCCsTree(
-    utils::Verbosity verbosity,
     OrderOfSCCs order_of_sccs,
     std::shared_ptr<MergeTreeFactory> merge_tree_factory)
-    : MergeStrategyFactory(verbosity)
-    , order_of_sccs(order_of_sccs)
+    : order_of_sccs(order_of_sccs)
     , merge_tree_factory(std::move(merge_tree_factory))
 {
 }
 
 unique_ptr<MergeStrategy> MergeStrategyFactorySCCsTree::compute_merge_strategy(
     const SharedProbabilisticTask& task,
-    const FactoredTransitionSystem& fts)
+    const FactoredTransitionSystem& fts,
+    utils::LogProxy& log)
 {
     const auto& variables = get_variables(task);
     const auto& axioms = get_axioms(task);
@@ -109,17 +105,8 @@ unique_ptr<MergeStrategy> MergeStrategyFactorySCCsTree::compute_merge_strategy(
         std::move(non_singleton_cg_sccs));
 }
 
-bool MergeStrategyFactorySCCsTree::requires_liveness() const
-{
-    return merge_tree_factory->requires_liveness();
-}
-
-bool MergeStrategyFactorySCCsTree::requires_goal_distances() const
-{
-    return merge_tree_factory->requires_goal_distances();
-}
-
-void MergeStrategyFactorySCCsTree::dump_strategy_specific_options() const
+void MergeStrategyFactorySCCsTree::dump_strategy_specific_options(
+    utils::LogProxy& log) const
 {
     if (log.is_at_least_normal()) {
         log.print("Merge order of sccs: ");
@@ -139,16 +126,12 @@ void MergeStrategyFactorySCCsTree::dump_strategy_specific_options() const
 }
 
 string MergeStrategyFactorySCCsTree::name() const
-{
-    return "sccs-tree";
-}
+{ return "sccs-tree"; }
 
 MergeStrategyFactorySCCsSelector::MergeStrategyFactorySCCsSelector(
-    utils::Verbosity verbosity,
     OrderOfSCCs order_of_sccs,
-    std::shared_ptr<MergeSelector> merge_selector)
-    : MergeStrategyFactory(verbosity)
-    , order_of_sccs(order_of_sccs)
+    std::shared_ptr<MergeSelectorFactory> merge_selector)
+    : order_of_sccs(order_of_sccs)
     , merge_selector(std::move(merge_selector))
 {
 }
@@ -156,7 +139,8 @@ MergeStrategyFactorySCCsSelector::MergeStrategyFactorySCCsSelector(
 unique_ptr<MergeStrategy>
 MergeStrategyFactorySCCsSelector::compute_merge_strategy(
     const SharedProbabilisticTask& task,
-    const FactoredTransitionSystem& fts)
+    const FactoredTransitionSystem& fts,
+    downward::utils::LogProxy& log)
 {
     const auto& variables = get_variables(task);
     const auto& axioms = get_axioms(task);
@@ -211,26 +195,17 @@ MergeStrategyFactorySCCsSelector::compute_merge_strategy(
         assert(non_singleton_cg_sccs.empty());
     }
 
-    merge_selector->initialize(to_refs(task));
+    auto ms = merge_selector->create(task);
 
     return std::make_unique<MergeStrategySCCsSelector>(
         fts,
         task,
-        merge_selector,
+        std::move(ms),
         std::move(non_singleton_cg_sccs));
 }
 
-bool MergeStrategyFactorySCCsSelector::requires_liveness() const
-{
-    return merge_selector->requires_liveness();
-}
-
-bool MergeStrategyFactorySCCsSelector::requires_goal_distances() const
-{
-    return merge_selector->requires_goal_distances();
-}
-
-void MergeStrategyFactorySCCsSelector::dump_strategy_specific_options() const
+void MergeStrategyFactorySCCsSelector::dump_strategy_specific_options(
+    utils::LogProxy& log) const
 {
     if (log.is_at_least_normal()) {
         log.print("Merge order of sccs: ");
@@ -250,8 +225,6 @@ void MergeStrategyFactorySCCsSelector::dump_strategy_specific_options() const
 }
 
 string MergeStrategyFactorySCCsSelector::name() const
-{
-    return "sccs-selector";
-}
+{ return "sccs-selector"; }
 
 } // namespace probfd::merge_and_shrink

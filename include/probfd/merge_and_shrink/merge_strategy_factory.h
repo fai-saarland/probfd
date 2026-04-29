@@ -14,26 +14,21 @@ class MergeStrategy;
 namespace probfd::merge_and_shrink {
 
 class MergeStrategyFactory {
-protected:
-    mutable downward::utils::LogProxy log;
-
 public:
-    explicit MergeStrategyFactory(downward::utils::Verbosity verbosity);
-
     virtual ~MergeStrategyFactory() = default;
-
-    void dump_options() const;
 
     virtual std::unique_ptr<MergeStrategy> compute_merge_strategy(
         const SharedProbabilisticTask& task,
-        const FactoredTransitionSystem& fts) = 0;
+        const FactoredTransitionSystem& fts,
+        downward::utils::LogProxy& log) = 0;
 
-    virtual bool requires_liveness() const = 0;
-    virtual bool requires_goal_distances() const = 0;
+    void dump_options(downward::utils::LogProxy& log) const;
 
 protected:
     virtual std::string name() const = 0;
-    virtual void dump_strategy_specific_options() const = 0;
+
+    virtual void
+    dump_strategy_specific_options(downward::utils::LogProxy& log) const = 0;
 };
 
 } // namespace probfd::merge_and_shrink

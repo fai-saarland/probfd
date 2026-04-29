@@ -5,7 +5,7 @@
 
 #include "downward/cli/utils/rng_options.h"
 
-#include "probfd/merge_and_shrink/merge_scoring_function_total_order.h"
+#include "probfd/merge_and_shrink/merge_scoring_function_total_order_factory.h"
 
 #include "probfd/merge_and_shrink/transition_system.h"
 
@@ -24,8 +24,8 @@ add_merge_scoring_function_total_order_to_namespace(Namespace& nspace)
     auto& f = nspace.insert_function_definition(
         "ptotal_order",
         &language::plugins::construct_shared<
-            MergeScoringFunction,
-            MergeScoringFunctionTotalOrder,
+            MergeScoringFunctionFactory,
+            MergeScoringFunctionTotalOrderFactory,
             AtomicTSOrder,
             ProductTSOrder,
             bool,

@@ -5,10 +5,7 @@
 
 #include "probfd/merge_and_shrink/merge_strategy_factory_precomputed.h"
 
-#include "probfd/merge_and_shrink/merge_strategy_precomputed.h"
 #include "probfd/merge_and_shrink/merge_tree_factory.h"
-
-#include "probfd/cli/merge_and_shrink/merge_strategy_factory_options.h"
 
 using namespace std;
 using namespace language::plugins;
@@ -26,7 +23,6 @@ add_merge_strategy_factory_precomputed_feature(Namespace& nspace)
         &language::plugins::construct_shared<
             MergeStrategyFactory,
             MergeStrategyFactoryPrecomputed,
-            utils::Verbosity,
             std::shared_ptr<MergeTreeFactory>>);
 
     f.document_title("Precomputed merge strategy");
@@ -42,7 +38,7 @@ add_merge_strategy_factory_precomputed_feature(Namespace& nspace)
 
     f.document_note(
         "Note",
-        "An example of a precomputed merge startegy is a linear merge "
+        "An example of a precomputed merge strategy is a linear merge "
         "strategy, "
         "which can be obtained using:\n"
         "{{{\n"
@@ -50,8 +46,7 @@ add_merge_strategy_factory_precomputed_feature(Namespace& nspace)
         "order>))"
         "\n}}}");
 
-    const auto n = add_merge_strategy_options_to_feature(f, 0);
-    f.make_required_argument(n, "merge_tree", "The precomputed merge tree.");
+    f.make_required_argument(0, "merge_tree", "The precomputed merge tree.");
 
     return f;
 }
