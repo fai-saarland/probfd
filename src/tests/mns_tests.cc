@@ -491,13 +491,12 @@ TEST(MnSTests, test_label_reduction)
             .merge_index;
 
     LabelReduction label_reduction(
+        to_refs(task),
         true,
         true,
         LabelReductionMethod::ALL_TRANSITION_SYSTEMS,
         LabelReductionSystemOrder::REGULAR,
         42);
-
-    label_reduction.initialize(to_refs(task));
 
     auto& ts = fts.get_transition_system(index);
     std::vector old_distances(ts.get_size(), -INFINITE_VALUE);
