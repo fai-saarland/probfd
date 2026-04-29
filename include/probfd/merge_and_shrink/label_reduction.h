@@ -6,10 +6,6 @@
 #include <memory>
 #include <vector>
 
-namespace downward::equivalence_relation {
-class EquivalenceRelation;
-}
-
 namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
