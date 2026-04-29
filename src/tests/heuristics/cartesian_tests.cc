@@ -102,6 +102,13 @@ TEST(CartesianTests, test_format3)
     std::println(std::cout, "{}", c);
 }
 
+TEST(CartesianTests, test_format4)
+{
+    dynamic_bitset::DynamicBitset<unsigned char> c(
+        std::from_range,
+        std::vector<bool>{1, 1, 0, 0, 1, 1, 1, 0});
+    std::println(std::cout, "{}", c);
+}
 
 TEST(CartesianTests, test_distribution_format)
 {
