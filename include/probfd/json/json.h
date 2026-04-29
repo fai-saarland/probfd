@@ -546,19 +546,21 @@ constexpr bool enable_json_array = false;
 
 template <typename T>
 concept JsonArrayConvertibleRange =
-    std::ranges::input_range<T> &&
-    JsonConvertible<std::ranges::range_value_t<T>> && enable_json_array<T>;
+    std::ranges::input_range<const T> &&
+    JsonConvertible<std::ranges::range_value_t<const T>> &&
+    enable_json_array<T>;
 
 template <typename T>
 constexpr bool enable_json_object = false;
 
 template <typename R>
 concept JsonObjectConvertibleRange =
-    std::ranges::input_range<R> &&
+    std::ranges::input_range<const R> &&
     std::convertible_to<
-        std::ranges::range_value_t<R>,
+        std::ranges::range_value_t<const R>,
         std::pair<const std::string, std::unique_ptr<JsonElement>>> &&
-    JsonConvertible<std::ranges::range_value_t<R>> && enable_json_object<R>;
+    JsonConvertible<std::ranges::range_value_t<const R>> &&
+    enable_json_object<R>;
 
 template <typename T>
     requires(std::is_object_v<T>)
