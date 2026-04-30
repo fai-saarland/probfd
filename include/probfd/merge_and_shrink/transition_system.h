@@ -9,6 +9,8 @@
 
 #include "probfd/json/json.h"
 
+#include "downward/algorithms/dynamic_bitset.h"
+
 #include <algorithm>
 #include <cassert>
 #include <compare>
@@ -145,7 +147,7 @@ class TransitionSystem {
     std::vector<LocalLabelInfo> local_label_infos;
 
     int init_state;
-    std::vector<bool> goal_states;
+    downward::dynamic_bitset::DynamicBitset<uint64_t> goal_states;
 
 public:
     explicit TransitionSystem(const json::JsonObject& object);
@@ -155,7 +157,7 @@ public:
         std::vector<int> label_to_local_label,
         std::vector<LocalLabelInfo> local_label_infos,
         int init_state,
-        std::vector<bool> goal_states);
+        downward::dynamic_bitset::DynamicBitset<uint64_t> goal_states);
 
     int get_size() const { return static_cast<int>(goal_states.size()); }
 

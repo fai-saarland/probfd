@@ -43,10 +43,15 @@ struct FactorData {
     vector<LocalLabelInfo> local_label_infos;
     std::map<std::vector<value_t>, LabelGroupCost> irrelevant_labels;
 
-    vector<bool> goal_states;
+    dynamic_bitset::DynamicBitset<uint64_t> goal_states;
     int init_state;
 
-    FactorData() = default;
+    explicit FactorData(int num_local_states)
+        : goal_states(
+              dynamic_bitset::DynamicBitset<uint64_t>::uninitialized(
+                  num_local_states))
+    {
+    }
 
     FactorData(FactorData&& other) = default;
 
@@ -73,19 +78,20 @@ void initialize_transition_system_data(
 
     for (VariableProxy var : variables) {
         const int var_id = var.get_id();
-        const int range = var.get_domain_size();
+        const int num_local_states = var.get_domain_size();
 
-        FactorData& ts_data = transition_system_data_by_var.emplace_back();
+        FactorData& ts_data =
+            transition_system_data_by_var.emplace_back(num_local_states);
         ts_data.incorporated_variables.push_back(var_id);
         ts_data.label_to_local_label.resize(max_num_labels, -1);
         ts_data.init_state = initial_state[var_id];
 
         if (goals_it != goals_end && (*goals_it).var == var_id) {
-            ts_data.goal_states.resize(range, false);
+            ts_data.goal_states.reset();
             ts_data.goal_states[(*goals_it).value] = true;
             ++goals_it;
         } else {
-            ts_data.goal_states.resize(range, true);
+            ts_data.goal_states.set();
         }
     }
 }

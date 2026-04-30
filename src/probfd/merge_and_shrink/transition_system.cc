@@ -36,7 +36,7 @@ struct FormatWrapper {
 template <std::ranges::input_range R>
     requires std::formattable<R, char>
 FormatWrapper(R&&) -> FormatWrapper<std::views::all_t<R>>;
-}
+} // namespace
 
 template <std::ranges::input_range R, typename Char>
     requires std::formattable<R, Char>
@@ -120,7 +120,9 @@ LocalLabelInfo::LocalLabelInfo(const json::JsonObject& object)
 void LocalLabelInfo::add_label(int label, value_t label_cost)
 {
     label_group.push_back(label);
-    if (label_cost != -1) { cost = min(cost, label_cost); }
+    if (label_cost != -1) {
+        cost = min(cost, label_cost);
+    }
     assert(is_consistent());
 }
 
@@ -237,7 +239,9 @@ TransitionSystem::TransitionSystem(const json::JsonObject& object)
     , local_label_infos(
           object.read<std::vector<LocalLabelInfo>>("local_label_infos"))
     , init_state(object.read<int>("init_state"))
-    , goal_states(object.read<std::vector<bool>>("goal_states"))
+    , goal_states(
+          std::from_range,
+          object.read<std::vector<bool>>("goal_states"))
 {
 }
 
@@ -246,7 +250,7 @@ TransitionSystem::TransitionSystem(
     vector<int> label_to_local_label,
     vector<LocalLabelInfo> local_label_infos,
     int init_state,
-    vector<bool> goal_states)
+    dynamic_bitset::DynamicBitset<uint64_t> goal_states)
     : incorporated_variables(std::move(incorporated_variables))
     , label_to_local_label(std::move(label_to_local_label))
     , local_label_infos(std::move(local_label_infos))
@@ -287,7 +291,9 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
     const int init_state = ts1.init_state + ts2.init_state * ts1_size;
 
     // Compute merged goal states
-    vector goal_states(ts1_size * ts2_size, false);
+    auto goal_states =
+        dynamic_bitset::DynamicBitset<uint64_t>::zeros(ts1_size * ts2_size);
+
     for (int s1 = 0; s1 < ts1_size; ++s1) {
         if (!ts1.goal_states[s1]) continue;
         for (int s2 = 0; s2 < ts2_size; ++s2) {
@@ -472,7 +478,8 @@ void TransitionSystem::apply_abstraction(
     }
 
     // Compute abstract goal states
-    std::vector<bool> new_goal_states(new_num_states);
+    auto new_goal_states =
+        dynamic_bitset::DynamicBitset<uint64_t>::zeros(new_num_states);
 
     for (int new_state = 0; new_state < new_num_states; ++new_state) {
         const auto& state_eqv_class = state_equivalence_relation[new_state];
@@ -809,7 +816,7 @@ std::unique_ptr<json::JsonObject> to_json(const TransitionSystem& ts)
         "init_state",
         ts.init_state,
         "goal_states",
-        ts.goal_states);
+        ts.goal_states | std::ranges::to<std::vector>());
 }
 
 } // namespace probfd::merge_and_shrink
