@@ -634,7 +634,9 @@ TransitionSystem::TransitionSystem(const json::JsonObject& object)
           object.read<std::vector<int>>("incorporated_variables"))
     , transition_relation(object.read<TransitionRelation>("transitions"))
     , init_state(object.read<int>("init_state"))
-    , goal_states(object.read<std::vector<bool>>("goal_states"))
+    , goal_states(
+          std::from_range,
+          object.read<std::vector<bool>>("goal_states"))
 {
 }
 
@@ -643,7 +645,7 @@ TransitionSystem::TransitionSystem(
     vector<int> label_to_eq_class_id,
     vector<LabelEquivalenceClass> eq_class_infos,
     int init_state,
-    vector<bool> goal_states)
+    downward::dynamic_bitset::DynamicBitset<uint64_t> goal_states)
     : incorporated_variables(std::move(incorporated_variables))
     , transition_relation(
           std::move(label_to_eq_class_id),
@@ -657,7 +659,7 @@ TransitionSystem::TransitionSystem(
     std::vector<int> incorporated_variables,
     TransitionRelation transition_relation,
     int init_state,
-    std::vector<bool> goal_states)
+    downward::dynamic_bitset::DynamicBitset<uint64_t> goal_states)
     : incorporated_variables(std::move(incorporated_variables))
     , transition_relation(std::move(transition_relation))
     , init_state(init_state)
@@ -709,13 +711,16 @@ unique_ptr<TransitionSystem> merge_transition_systems(
     const int init_state = enumerator.to_index(ts1.init_state, ts2.init_state);
 
     // Compute merged goal states
-    vector goal_states(ts1_size * ts2_size, false);
+    dynamic_bitset::DynamicBitset<uint64_t> goal_states(
+        ts1_size * ts2_size,
+        dynamic_bitset::construct_all_zeros);
+
     for (int s1 = 0; s1 < ts1_size; ++s1) {
         if (!ts1.goal_states[s1]) continue;
         for (int s2 = 0; s2 < ts2_size; ++s2) {
             if (ts2.goal_states[s2]) {
                 const int state = enumerator.to_index(s1, s2);
-                goal_states[state] = true;
+                goal_states.set(state);
             }
         }
     }
@@ -757,9 +762,9 @@ void TransitionSystem::apply_abstraction(
     }
 
     // Compute abstract goal states
-    std::vector<bool> new_goal_states(new_num_states);
+    dynamic_bitset::DynamicBitset<uint64_t> new_goal_states(new_num_states, dynamic_bitset::construct_all_zeros);
 
-    for (int new_state = 0; new_state < new_num_states; ++new_state) {
+    for (int new_state = 0; new_state != new_num_states; ++new_state) {
         const auto& state_eqv_class = state_equivalence_relation[new_state];
         assert(!state_eqv_class.empty());
 
@@ -895,7 +900,7 @@ std::unique_ptr<json::JsonObject> to_json(const TransitionSystem& ts)
         "init_state",
         ts.init_state,
         "goal_states",
-        ts.goal_states);
+        ts.goal_states | std::ranges::to<std::vector>());
 }
 
 std::unique_ptr<json::JsonObject> to_json(const TransitionRelation& t)

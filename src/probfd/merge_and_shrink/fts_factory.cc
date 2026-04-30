@@ -271,13 +271,15 @@ FactoredTransitionSystem FTSFactory::create()
         auto& ts_data = transition_data_by_var[var_id];
         auto&& [ts, fm, distances] = factors.emplace_back();
 
-        std::vector goal_states(num_local_states, false);
+        dynamic_bitset::DynamicBitset<uint64_t> goal_states(
+            num_local_states,
+            dynamic_bitset::construct_all_zeros);
 
         if (goals_it != goals_end && (*goals_it).var == var_id) {
-            goal_states[(*goals_it).value] = true;
+            goal_states.set((*goals_it).value);
             ++goals_it;
         } else {
-            std::ranges::fill(goal_states, true);
+            goal_states.set();
         }
 
         ts = std::make_unique<TransitionSystem>(

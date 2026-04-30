@@ -1,6 +1,7 @@
 #ifndef PROBFD_MERGE_AND_SHRINK_TRANSITION_SYSTEM_H
 #define PROBFD_MERGE_AND_SHRINK_TRANSITION_SYSTEM_H
 
+#include "downward/algorithms/dynamic_bitset.h"
 #include "probfd/merge_and_shrink/labels.h"
 #include "probfd/merge_and_shrink/transition.h"
 #include "probfd/merge_and_shrink/types.h"
@@ -215,7 +216,7 @@ class TransitionSystem {
     TransitionRelation transition_relation;
 
     int init_state;
-    std::vector<bool> goal_states;
+    downward::dynamic_bitset::DynamicBitset<uint64_t> goal_states;
 
 public:
     explicit TransitionSystem(const json::JsonObject& object);
@@ -225,13 +226,13 @@ public:
         std::vector<int> label_to_eq_class_id,
         std::vector<LabelEquivalenceClass> eq_class_infos,
         int init_state,
-        std::vector<bool> goal_states);
+        downward::dynamic_bitset::DynamicBitset<uint64_t> goal_states);
 
     TransitionSystem(
         std::vector<int> incorporated_variables,
         TransitionRelation transition_relation,
         int init_state,
-        std::vector<bool> goal_states);
+        downward::dynamic_bitset::DynamicBitset<uint64_t> goal_states);
 
     const std::vector<int>& get_incorporated_variables() const
     { return incorporated_variables; }
