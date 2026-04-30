@@ -13,7 +13,16 @@
     0,
     3
   ],
-  "init_state": 5,
+  "init_states": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false
+  ],
   "transitions": {
     "label_to_eq_class_id": [
       0,

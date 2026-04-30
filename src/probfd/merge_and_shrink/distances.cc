@@ -336,12 +336,21 @@ void Distances::statistics(
         log.print(transition_system.tag());
         if (!are_goal_distances_computed()) {
             log.println("goal distances not computed");
-        } else if (transition_system.is_solvable(*this)) {
-            log.println(
-                "init h={}",
-                get_goal_distance(transition_system.get_init_state()));
         } else {
-            log.println("transition system is unsolvable");
+            value_t min_init_distance = INFINITE_VALUE;
+
+            for (int i = 0; i != transition_system.num_states(); ++i) {
+                if (transition_system.is_init_state(i)) {
+                    min_init_distance =
+                        std::min(min_init_distance, get_goal_distance(i));
+                }
+            }
+
+            if (min_init_distance == INFINITE_VALUE) {
+                log.println("init h={}", min_init_distance);
+            } else {
+                log.println("transition system is unsolvable");
+            }
         }
     }
 }

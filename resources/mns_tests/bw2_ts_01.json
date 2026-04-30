@@ -9,7 +9,12 @@
     0,
     1
   ],
-  "init_state": 1,
+  "init_states": [
+    false,
+    true,
+    false,
+    false
+  ],
   "transitions": {
     "label_to_eq_class_id": [
       0,

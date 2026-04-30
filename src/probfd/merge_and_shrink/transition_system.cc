@@ -633,7 +633,9 @@ TransitionSystem::TransitionSystem(const json::JsonObject& object)
     : incorporated_variables(
           object.read<std::vector<int>>("incorporated_variables"))
     , transition_relation(object.read<TransitionRelation>("transitions"))
-    , init_state(object.read<int>("init_state"))
+    , init_states(
+          std::from_range,
+          object.read<std::vector<bool>>("init_states"))
     , goal_states(
           std::from_range,
           object.read<std::vector<bool>>("goal_states"))
@@ -644,13 +646,13 @@ TransitionSystem::TransitionSystem(
     vector<int> incorporated_variables,
     vector<int> label_to_eq_class_id,
     vector<LabelEquivalenceClass> eq_class_infos,
-    int init_state,
-    downward::dynamic_bitset::DynamicBitset<uint64_t> goal_states)
+    dynamic_bitset::DynamicBitset<uint64_t> init_states,
+    dynamic_bitset::DynamicBitset<uint64_t> goal_states)
     : incorporated_variables(std::move(incorporated_variables))
     , transition_relation(
           std::move(label_to_eq_class_id),
           std::move(eq_class_infos))
-    , init_state(init_state)
+    , init_states(std::move(init_states))
     , goal_states(std::move(goal_states))
 {
 }
@@ -658,11 +660,11 @@ TransitionSystem::TransitionSystem(
 TransitionSystem::TransitionSystem(
     std::vector<int> incorporated_variables,
     TransitionRelation transition_relation,
-    int init_state,
-    downward::dynamic_bitset::DynamicBitset<uint64_t> goal_states)
+    dynamic_bitset::DynamicBitset<uint64_t> init_states,
+    dynamic_bitset::DynamicBitset<uint64_t> goal_states)
     : incorporated_variables(std::move(incorporated_variables))
     , transition_relation(std::move(transition_relation))
-    , init_state(init_state)
+    , init_states(std::move(init_states))
     , goal_states(std::move(goal_states))
 {
 }
@@ -693,7 +695,6 @@ unique_ptr<TransitionSystem> merge_transition_systems(
             ts2.get_incorporated_variables());
     }
 
-    assert(ts1.init_state != PRUNED_STATE && ts2.init_state != PRUNED_STATE);
     assert(
         ts1.transition_relation.is_valid(labels) &&
         ts2.transition_relation.is_valid(labels));
@@ -707,8 +708,20 @@ unique_ptr<TransitionSystem> merge_transition_systems(
     const int ts1_size = ts1.num_states();
     const int ts2_size = ts2.num_states();
 
-    // Compute merged initial state
-    const int init_state = enumerator.to_index(ts1.init_state, ts2.init_state);
+    // Compute merged initial states
+    dynamic_bitset::DynamicBitset<uint64_t> init_states(
+        ts1_size * ts2_size,
+        dynamic_bitset::construct_all_zeros);
+
+    for (int s1 = 0; s1 < ts1_size; ++s1) {
+        if (!ts1.init_states[s1]) continue;
+        for (int s2 = 0; s2 < ts2_size; ++s2) {
+            if (ts2.init_states[s2]) {
+                const int state = enumerator.to_index(s1, s2);
+                init_states.set(state);
+            }
+        }
+    }
 
     // Compute merged goal states
     dynamic_bitset::DynamicBitset<uint64_t> goal_states(
@@ -734,7 +747,7 @@ unique_ptr<TransitionSystem> merge_transition_systems(
     return std::make_unique<TransitionSystem>(
         std::move(incorporated_variables),
         std::move(sync_prod),
-        init_state,
+        std::move(init_states),
         std::move(goal_states));
 }
 
@@ -754,15 +767,26 @@ void TransitionSystem::apply_abstraction(
             new_num_states);
     }
 
-    // Compute abstract initial state
-    init_state = abstraction_mapping[init_state];
-    if (log.is_at_least_verbose() && init_state == PRUNED_STATE) {
-        log.print(tag());
-        log.println("initial state pruned; task unsolvable");
+    // Compute abstract initial states
+    dynamic_bitset::DynamicBitset<uint64_t> new_init_states(
+        new_num_states,
+        dynamic_bitset::construct_all_zeros);
+
+    for (int new_state = 0; new_state != new_num_states; ++new_state) {
+        const auto& state_eqv_class = state_equivalence_relation[new_state];
+        assert(!state_eqv_class.empty());
+
+        auto is_initial = [&](int old_state) { return init_states[old_state]; };
+        new_init_states[new_state] =
+            std::ranges::any_of(state_eqv_class, is_initial);
     }
 
+    init_states = std::move(new_init_states);
+
     // Compute abstract goal states
-    dynamic_bitset::DynamicBitset<uint64_t> new_goal_states(new_num_states, dynamic_bitset::construct_all_zeros);
+    dynamic_bitset::DynamicBitset<uint64_t> new_goal_states(
+        new_num_states,
+        dynamic_bitset::construct_all_zeros);
 
     for (int new_state = 0; new_state != new_num_states; ++new_state) {
         const auto& state_eqv_class = state_equivalence_relation[new_state];
@@ -792,9 +816,13 @@ void TransitionSystem::apply_label_reduction(
 
 bool TransitionSystem::is_solvable(const Distances& distances) const
 {
-    return init_state != PRUNED_STATE &&
-           (!distances.are_goal_distances_computed() ||
-            distances.get_goal_distance(init_state) != INFINITE_VALUE);
+    if (!distances.are_goal_distances_computed()) {
+        return init_states.set_indices().empty();
+    }
+
+    return std::ranges::any_of(
+        init_states.set_indices(),
+        std::bind_front(&Distances::is_solvable, distances));
 }
 
 int TransitionSystem::compute_total_transitions() const
@@ -824,12 +852,18 @@ void TransitionSystem::dump_dot_graph(utils::LogProxy& log) const
         log.print("digraph transition_system");
         for (int var : incorporated_variables) log.print("_{}", var);
         log.println(" {");
+
         log.println("    node [shape = none] start;");
+
         for (int i = 0; i < num_states(); ++i) {
             log.println(
                 "    node [shape = {}] node{};",
                 goal_states[i] ? "doublecircle" : "circle",
                 i);
+        }
+
+        for (int i : init_states.set_indices()) {
+            log.println("    start -> node{};", i);
         }
 
         // Introduce intermediate nodes for every transition
@@ -840,9 +874,6 @@ void TransitionSystem::dump_dot_graph(utils::LogProxy& log) const
                 log.println("    node [shape = diamond] interm{};", k++);
             }
         }
-
-        if (PRUNED_STATE != init_state)
-            log.println("    start -> node{};", init_state);
 
         k = 0;
         for (const auto& eq_class_info : transition_relation.label_infos()) {
@@ -884,8 +915,8 @@ std::ostream& operator<<(std::ostream& os, const TransitionSystem& ts)
 
     os << ts.transition_relation;
 
-    std::println(os, "Initial state: {}", ts.init_state);
-    std::print(os, "Goal states: {}", ts.goal_states);
+    std::println(os, "Initial state: {}", ts.init_states.set_indices());
+    std::print(os, "Goal states: {}", ts.goal_states.set_indices());
 
     return os;
 }
@@ -898,7 +929,7 @@ std::unique_ptr<json::JsonObject> to_json(const TransitionSystem& ts)
         "transitions",
         ts.transition_relation,
         "init_state",
-        ts.init_state,
+        ts.init_states | std::ranges::to<std::vector>(),
         "goal_states",
         ts.goal_states | std::ranges::to<std::vector>());
 }

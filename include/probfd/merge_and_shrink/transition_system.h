@@ -215,7 +215,7 @@ class TransitionSystem {
 
     TransitionRelation transition_relation;
 
-    int init_state;
+    downward::dynamic_bitset::DynamicBitset<uint64_t> init_states;
     downward::dynamic_bitset::DynamicBitset<uint64_t> goal_states;
 
 public:
@@ -225,13 +225,13 @@ public:
         std::vector<int> incorporated_variables,
         std::vector<int> label_to_eq_class_id,
         std::vector<LabelEquivalenceClass> eq_class_infos,
-        int init_state,
+        downward::dynamic_bitset::DynamicBitset<uint64_t> init_states,
         downward::dynamic_bitset::DynamicBitset<uint64_t> goal_states);
 
     TransitionSystem(
         std::vector<int> incorporated_variables,
         TransitionRelation transition_relation,
-        int init_state,
+        downward::dynamic_bitset::DynamicBitset<uint64_t> init_states,
         downward::dynamic_bitset::DynamicBitset<uint64_t> goal_states);
 
     const std::vector<int>& get_incorporated_variables() const
@@ -243,7 +243,7 @@ public:
     const TransitionRelation& get_transition_relation() const
     { return transition_relation; }
 
-    int get_init_state() const { return init_state; }
+    bool is_init_state(int state) const { return init_states[state]; }
 
     bool is_goal_state(int state) const { return goal_states[state]; }
 
@@ -251,9 +251,6 @@ public:
 
     /*
       Factory method to construct the merge of two transition systems.
-
-      Invariant: the children ts1 and ts2 must be solvable.
-      (It is a bug to merge an unsolvable transition system.)
     */
     friend std::unique_ptr<TransitionSystem> merge_transition_systems(
         const TransitionSystem& ts1,

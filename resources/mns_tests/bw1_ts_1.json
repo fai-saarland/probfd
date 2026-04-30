@@ -40,7 +40,11 @@
       }
     ]
   },
-  "init_state": 1,
+  "init_states": [
+    false,
+    true,
+    false
+  ],
   "goal_states": [
     false,
     true,

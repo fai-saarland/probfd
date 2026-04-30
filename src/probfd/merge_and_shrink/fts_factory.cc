@@ -271,6 +271,12 @@ FactoredTransitionSystem FTSFactory::create()
         auto& ts_data = transition_data_by_var[var_id];
         auto&& [ts, fm, distances] = factors.emplace_back();
 
+        dynamic_bitset::DynamicBitset<uint64_t> init_states(
+            num_local_states,
+            dynamic_bitset::construct_all_zeros);
+
+        init_states.set(initial_state[var_id]);
+
         dynamic_bitset::DynamicBitset<uint64_t> goal_states(
             num_local_states,
             dynamic_bitset::construct_all_zeros);
@@ -286,7 +292,7 @@ FactoredTransitionSystem FTSFactory::create()
             std::vector{var_id},
             std::move(ts_data.label_to_eqv_class),
             std::move(ts_data.eqv_class_infos),
-            initial_state[var_id],
+            std::move(init_states),
             std::move(goal_states));
 
         fm = create_projection_fm(var_id, num_local_states);

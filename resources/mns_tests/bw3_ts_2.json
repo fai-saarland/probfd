@@ -6,7 +6,10 @@
   "incorporated_variables": [
     2
   ],
-  "init_state": 0,
+  "init_states": [
+    true,
+    false
+  ],
   "transitions": {
     "label_to_eq_class_id": [
       0,

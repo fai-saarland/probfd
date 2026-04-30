@@ -60,6 +60,9 @@ public:
         return goal_distances[state];
     }
 
+    value_t is_solvable(int state) const
+    { return get_goal_distance(state) != INFINITE_VALUE; }
+
     std::vector<value_t> extract_goal_distances()
     { return std::move(goal_distances); }
 
@@ -105,7 +108,6 @@ void compute_forward_reachability(
     const TransitionSystem& transition_system,
     std::predicate<int> auto is_state_pruned,
     std::vector<bool>& is_reachable,
-    int init_state,
     std::vector<int>& queue);
 
 /// Computes the forward-reachable states of a transition system for the given
@@ -139,11 +141,8 @@ void compute_forward_reachability(
     const TransitionSystem& transition_system,
     std::predicate<int> auto is_state_pruned,
     std::vector<bool>& is_reachable,
-    int init_state,
     std::vector<int>& queue)
 {
-    if (is_state_pruned(init_state)) return;
-
     std::vector<std::vector<int>> forward_graph(transition_system.num_states());
     for (const auto& t = transition_system.get_transition_relation();
          const auto& local_label_info : t.label_infos()) {
@@ -157,8 +156,7 @@ void compute_forward_reachability(
         }
     }
 
-    is_reachable[init_state] = true;
-    queue.push_back(init_state);
+    for (int init_state : queue) { is_reachable[init_state] = true; }
 
     do {
         const int state = queue.back();
@@ -177,16 +175,17 @@ void compute_forward_reachability(
     std::invocable<int> auto is_pruned,
     std::vector<bool>& reachability)
 {
-    const int init_state = transition_system.get_init_state();
-
     std::vector<int> queue;
     queue.reserve(transition_system.num_states());
+
+    for (int i = 0; i != transition_system.num_states(); ++i) {
+        if (transition_system.is_init_state(i)) { queue.push_back(i); }
+    }
 
     compute_forward_reachability(
         transition_system,
         is_pruned,
         reachability,
-        init_state,
         queue);
 }
 
