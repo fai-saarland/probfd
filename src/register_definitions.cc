@@ -163,7 +163,8 @@
 #include "probfd/cli/merge_and_shrink/merge_selector_score_based_filtering.h"
 #include "probfd/cli/merge_and_shrink/merge_strategy_factory_category.h"
 #include "probfd/cli/merge_and_shrink/merge_strategy_factory_precomputed.h"
-#include "probfd/cli/merge_and_shrink/merge_strategy_factory_sccs.h"
+#include "probfd/cli/merge_and_shrink/merge_strategy_factory_sccs_selector.h"
+#include "probfd/cli/merge_and_shrink/merge_strategy_factory_sccs_tree.h"
 #include "probfd/cli/merge_and_shrink/merge_strategy_factory_stateless.h"
 #include "probfd/cli/merge_and_shrink/merge_tree_factory_category.h"
 #include "probfd/cli/merge_and_shrink/merge_tree_factory_linear.h"
@@ -693,7 +694,8 @@ static void register_probfd_definitions(plugins::Registry& registry)
     merge_and_shrink::add_merge_scoring_function_total_order_feature(n);
     merge_and_shrink::add_merge_selector_score_based_filtering_feature(n);
     merge_and_shrink::add_merge_strategy_factory_precomputed_feature(n);
-    merge_and_shrink::add_merge_strategy_factory_sccs_feature(n);
+    merge_and_shrink::add_merge_strategy_factory_sccs_selector_feature(n);
+    merge_and_shrink::add_merge_strategy_factory_sccs_tree_feature(n);
     merge_and_shrink::add_merge_strategy_factory_stateless_feature(n);
     merge_and_shrink::add_merge_tree_factory_linear_feature(n);
     merge_and_shrink::add_prune_strategy_alive_feature(n);

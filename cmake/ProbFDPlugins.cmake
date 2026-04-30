@@ -592,14 +592,28 @@ create_library(
 )
 
 create_library(
-    NAME pmerge_strategy_factory_sccs
-    HELP "Enables merge strategy factory SCC plugin"
+    NAME pmerge_strategy_factory_sccs_tree
+    HELP "Enables merge strategy factory SCC tree plugin"
     SOURCES
-        probfd/cli/merge_and_shrink/merge_strategy_factory_sccs
+        probfd/cli/merge_and_shrink/merge_strategy_factory_sccs_tree
     DEPENDS
         pmerge_strategy_factory_category
         pa_merge_and_shrink
-    language
+        language
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME pmerge_strategy_factory_sccs_selector
+    HELP "Enables merge strategy factory SCC selector plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/merge_strategy_factory_sccs_selector
+    DEPENDS
+        pmerge_strategy_factory_category
+        pa_merge_and_shrink
+        language
         plugins
     TARGET
         probfd

@@ -1,8 +1,6 @@
-#include "probfd/merge_and_shrink/merge_strategy_factory_sccs.h"
+#include "probfd/merge_and_shrink/merge_strategy_factory_sccs_tree.h"
 
-#include "downward/variable_space.h"
-#include "probfd/merge_and_shrink/merge_selector.h"
-#include "probfd/merge_and_shrink/merge_strategy_sccs.h"
+#include "probfd/merge_and_shrink/merge_strategy_sccs_tree.h"
 #include "probfd/merge_and_shrink/merge_tree_factory.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
@@ -14,7 +12,8 @@
 #include "downward/task_utils/causal_graph.h"
 
 #include "downward/utils/logging.h"
-#include "probfd/merge_and_shrink/merge_selector_factory.h"
+
+#include "downward/variable_space.h"
 
 #include <algorithm>
 #include <cassert>
@@ -127,104 +126,5 @@ void MergeStrategyFactorySCCsTree::dump_strategy_specific_options(
 
 string MergeStrategyFactorySCCsTree::name() const
 { return "sccs-tree"; }
-
-MergeStrategyFactorySCCsSelector::MergeStrategyFactorySCCsSelector(
-    OrderOfSCCs order_of_sccs,
-    std::shared_ptr<MergeSelectorFactory> merge_selector)
-    : order_of_sccs(order_of_sccs)
-    , merge_selector(std::move(merge_selector))
-{
-}
-
-unique_ptr<MergeStrategy>
-MergeStrategyFactorySCCsSelector::compute_merge_strategy(
-    const SharedProbabilisticTask& task,
-    const FactoredTransitionSystem& fts,
-    downward::utils::LogProxy& log)
-{
-    const auto& variables = get_variables(task);
-    const auto& axioms = get_axioms(task);
-    const auto& operators = get_operators(task);
-
-    const auto& cgraph =
-        causal_graph::get_causal_graph(variables, axioms, operators);
-
-    int num_vars = variables.size();
-
-    // Compute SCCs of the causal graph.
-    vector<vector<int>> cg;
-    cg.reserve(num_vars);
-    for (VariableProxy var : variables) {
-        const vector<int>& successors = cgraph.get_successors(var.get_id());
-        cg.push_back(successors);
-    }
-    vector<vector<int>> sccs(sccs::compute_maximal_sccs(cg));
-
-    // Put the SCCs in the desired order.
-    switch (order_of_sccs) {
-    case OrderOfSCCs::TOPOLOGICAL:
-        // SCCs are computed in topological order.
-        break;
-    case OrderOfSCCs::REVERSE_TOPOLOGICAL:
-        // SCCs are computed in topological order.
-        reverse(sccs.begin(), sccs.end());
-        break;
-    case OrderOfSCCs::DECREASING:
-        sort(sccs.begin(), sccs.end(), compare_sccs_decreasing);
-        break;
-    case OrderOfSCCs::INCREASING:
-        sort(sccs.begin(), sccs.end(), compare_sccs_increasing);
-        break;
-    }
-
-    if (log.is_at_least_normal()) { log.println("SCCs of the causal graph:"); }
-
-    vector<vector<int>> non_singleton_cg_sccs;
-    vector<int> indices_of_merged_sccs;
-    indices_of_merged_sccs.reserve(sccs.size());
-    for (const vector<int>& scc : sccs) {
-        if (log.is_at_least_normal()) { log.println("{}", scc); }
-        int scc_size = scc.size();
-        if (scc_size != 1) { non_singleton_cg_sccs.push_back(scc); }
-    }
-    if (log.is_at_least_normal() && sccs.size() == 1) {
-        log.println("Only one single SCC");
-    }
-    if (log.is_at_least_normal() && static_cast<int>(sccs.size()) == num_vars) {
-        log.println("Only singleton SCCs");
-        assert(non_singleton_cg_sccs.empty());
-    }
-
-    auto ms = merge_selector->create(task);
-
-    return std::make_unique<MergeStrategySCCsSelector>(
-        fts,
-        task,
-        std::move(ms),
-        std::move(non_singleton_cg_sccs));
-}
-
-void MergeStrategyFactorySCCsSelector::dump_strategy_specific_options(
-    utils::LogProxy& log) const
-{
-    if (log.is_at_least_normal()) {
-        log.print("Merge order of sccs: ");
-        switch (order_of_sccs) {
-        case OrderOfSCCs::TOPOLOGICAL: log.print("topological"); break;
-        case OrderOfSCCs::REVERSE_TOPOLOGICAL:
-            log.print("reverse topological");
-            break;
-        case OrderOfSCCs::DECREASING: log.print("decreasing"); break;
-        case OrderOfSCCs::INCREASING: log.print("increasing"); break;
-        }
-        log.println();
-
-        log.println("Merge strategy for merging within sccs: ");
-        if (merge_selector) { merge_selector->dump_options(log); }
-    }
-}
-
-string MergeStrategyFactorySCCsSelector::name() const
-{ return "sccs-selector"; }
 
 } // namespace probfd::merge_and_shrink

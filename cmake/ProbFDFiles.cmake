@@ -366,10 +366,12 @@ create_library(
         probfd/merge_and_shrink/merge_strategy
         probfd/merge_and_shrink/merge_strategy_factory
         probfd/merge_and_shrink/merge_strategy_factory_precomputed
-        probfd/merge_and_shrink/merge_strategy_factory_sccs
+        probfd/merge_and_shrink/merge_strategy_factory_sccs_tree
+        probfd/merge_and_shrink/merge_strategy_factory_sccs_selector
         probfd/merge_and_shrink/merge_strategy_factory_stateless
         probfd/merge_and_shrink/merge_strategy_precomputed
-        probfd/merge_and_shrink/merge_strategy_sccs
+        probfd/merge_and_shrink/merge_strategy_sccs_tree
+        probfd/merge_and_shrink/merge_strategy_sccs_selector
         probfd/merge_and_shrink/merge_strategy_stateless
         probfd/merge_and_shrink/merge_tree
         probfd/merge_and_shrink/merge_tree_factory
