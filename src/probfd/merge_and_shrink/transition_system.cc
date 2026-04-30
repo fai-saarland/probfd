@@ -672,6 +672,16 @@ TransitionSystem::TransitionSystem(
 unique_ptr<TransitionSystem> merge_transition_systems(
     const TransitionSystem& ts1,
     const TransitionSystem& ts2,
+    const Labels& labels)
+{
+    enumeration::PairEnumerator enumerator(ts1.num_states(), ts2.num_states());
+
+    return merge_transition_systems(ts1, ts2, labels, enumerator);
+}
+
+unique_ptr<TransitionSystem> merge_transition_systems(
+    const TransitionSystem& ts1,
+    const TransitionSystem& ts2,
     const Labels& labels,
     utils::LogProxy& log)
 {
@@ -709,17 +719,8 @@ unique_ptr<TransitionSystem> merge_transition_systems(
     const TransitionSystem& ts1,
     const TransitionSystem& ts2,
     const Labels& labels,
-    const enumeration::PairEnumerator& enumerator,
-    utils::LogProxy& log)
+    const enumeration::PairEnumerator& enumerator)
 {
-    if (log.is_at_least_verbose()) {
-        log.println(
-            "Merging transition system with variables {} and transition system "
-            "with variables {}",
-            ts1.get_incorporated_variables(),
-            ts2.get_incorporated_variables());
-    }
-
     assert(
         ts1.transition_relation.is_valid(labels) &&
         ts2.transition_relation.is_valid(labels));
@@ -752,6 +753,24 @@ unique_ptr<TransitionSystem> merge_transition_systems(
         std::move(goal_states));
 }
 
+unique_ptr<TransitionSystem> merge_transition_systems(
+    const TransitionSystem& ts1,
+    const TransitionSystem& ts2,
+    const Labels& labels,
+    const enumeration::PairEnumerator& enumerator,
+    utils::LogProxy& log)
+{
+    if (log.is_at_least_verbose()) {
+        log.println(
+            "Merging transition system with variables {} and transition system "
+            "with variables {}",
+            ts1.get_incorporated_variables(),
+            ts2.get_incorporated_variables());
+    }
+
+    return merge_transition_systems(ts1, ts2, labels, enumerator);
+}
+
 static dynamic_bitset::DynamicBitset<uint64_t> compute_image(
     const dynamic_bitset::DynamicBitset<uint64_t> set,
     const StateEquivalenceRelation& state_equivalence_relation)
@@ -776,6 +795,21 @@ static dynamic_bitset::DynamicBitset<uint64_t> compute_image(
 void TransitionSystem::apply_abstraction(
     const Labels& labels,
     const StateEquivalenceRelation& state_equivalence_relation,
+    const vector<int>& abstraction_mapping)
+{
+    // Update all transitions.
+    transition_relation.apply_abstraction(labels, abstraction_mapping);
+
+    // Compute abstract initial states
+    init_states = compute_image(init_states, state_equivalence_relation);
+
+    // Compute abstract goal states
+    goal_states = compute_image(goal_states, state_equivalence_relation);
+}
+
+void TransitionSystem::apply_abstraction(
+    const Labels& labels,
+    const StateEquivalenceRelation& state_equivalence_relation,
     const vector<int>& abstraction_mapping,
     utils::LogProxy& log)
 {
@@ -789,14 +823,7 @@ void TransitionSystem::apply_abstraction(
             new_num_states);
     }
 
-    // Update all transitions.
-    transition_relation.apply_abstraction(labels, abstraction_mapping);
-
-    // Compute abstract initial states
-    init_states = compute_image(init_states, state_equivalence_relation);
-
-    // Compute abstract goal states
-    goal_states = compute_image(goal_states, state_equivalence_relation);
+    apply_abstraction(labels, state_equivalence_relation, abstraction_mapping);
 }
 
 void TransitionSystem::apply_label_reduction(

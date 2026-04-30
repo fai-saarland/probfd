@@ -148,6 +148,18 @@ public:
 void Distances::compute_distances(
     const Labels& labels,
     const TransitionSystem& transition_system,
+    bool compute_liveness)
+{
+    compute_distances(
+        labels,
+        transition_system,
+        compute_liveness,
+        heuristics::ConstantHeuristic<int>(0_vt));
+}
+
+void Distances::compute_distances(
+    const Labels& labels,
+    const TransitionSystem& transition_system,
     bool compute_liveness,
     utils::LogProxy& log)
 {
@@ -163,7 +175,6 @@ void Distances::compute_distances(
     const Labels& labels,
     const TransitionSystem& transition_system,
     bool compute_liveness,
-    utils::LogProxy& log,
     const Heuristic<int>& heuristic)
 {
     /*
@@ -172,23 +183,12 @@ void Distances::compute_distances(
       states.
     */
 
-    if (log.is_at_least_verbose()) { log.print(transition_system.tag()); }
-
     const int num_states = transition_system.num_states();
 
     if (num_states == 0) {
-        if (log.is_at_least_verbose()) {
-            log.println("empty transition system, no distances to compute");
-        }
         liveness_computed = true;
         goal_distances_computed = true;
         return;
-    }
-
-    if (log.is_at_least_verbose()) {
-        log.print("computing ");
-        if (compute_liveness) { log.print("liveness and "); }
-        log.println("goal distances");
     }
 
     goal_distances.resize(num_states);
@@ -208,6 +208,23 @@ void Distances::compute_distances(
             liveness);
         liveness_computed = true;
     }
+}
+
+void Distances::compute_distances(
+    const Labels& labels,
+    const TransitionSystem& transition_system,
+    bool compute_liveness,
+    utils::LogProxy& log,
+    const Heuristic<int>& heuristic)
+{
+    if (log.is_at_least_verbose()) {
+        log.print(transition_system.tag());
+        log.print("computing ");
+        if (compute_liveness) { log.print("liveness and "); }
+        log.println("goal distances");
+    }
+
+    compute_distances(labels, transition_system, compute_liveness, heuristic);
 }
 
 void Distances::apply_abstraction(

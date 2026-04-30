@@ -256,6 +256,17 @@ public:
         const TransitionSystem& ts1,
         const TransitionSystem& ts2,
         const Labels& labels,
+        const enumeration::PairEnumerator& enumerator);
+
+    friend std::unique_ptr<TransitionSystem> merge_transition_systems(
+        const TransitionSystem& ts1,
+        const TransitionSystem& ts2,
+        const Labels& labels);
+
+    friend std::unique_ptr<TransitionSystem> merge_transition_systems(
+        const TransitionSystem& ts1,
+        const TransitionSystem& ts2,
+        const Labels& labels,
         const enumeration::PairEnumerator& enumerator,
         downward::utils::LogProxy& log);
 
@@ -272,6 +283,11 @@ public:
       old states are only mapped to the same new state if they are in the
       same equivalence class as specified in state_equivalence_relation.
     */
+    void apply_abstraction(
+        const Labels& labels,
+        const StateEquivalenceRelation& state_equivalence_relation,
+        const std::vector<int>& abstraction_mapping);
+
     void apply_abstraction(
         const Labels& labels,
         const StateEquivalenceRelation& state_equivalence_relation,

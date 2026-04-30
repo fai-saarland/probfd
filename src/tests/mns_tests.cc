@@ -127,8 +127,6 @@ TEST(MnSTests, test_atomic_fts3)
 
 TEST(MnSTests, test_merge1)
 {
-    utils::LogProxy log = utils::get_silent_log();
-
     std::ifstream labels_file("resources/mns_tests/bw3_labels.json");
     std::ifstream file1("resources/mns_tests/bw3_ts_0.json");
     std::ifstream file2("resources/mns_tests/bw3_ts_1.json");
@@ -137,7 +135,7 @@ TEST(MnSTests, test_merge1)
     auto ts1 = json::read<TransitionSystem>(file1);
     auto ts2 = json::read<TransitionSystem>(file2);
 
-    auto ts = merge_transition_systems(ts1, ts2, labels, log);
+    auto ts = merge_transition_systems(ts1, ts2, labels);
 
     std::ifstream e_file("resources/mns_tests/bw3_ts_01.json");
     auto expected_ts = json::read<TransitionSystem>(e_file);
@@ -159,7 +157,6 @@ TEST(MnSTests, test_merge2)
 
     const auto& variables = get_shared_variables(task);
 
-    utils::LogProxy log = utils::get_silent_log();
     FactoredTransitionSystem fts =
         create_factored_transition_system(to_refs(task));
 
@@ -169,38 +166,32 @@ TEST(MnSTests, test_merge2)
     auto ts56 = merge_transition_systems(
         fts.get_transition_system(5),
         fts.get_transition_system(6),
-        fts.get_labels(),
-        log);
+        fts.get_labels());
 
     auto ts456 = merge_transition_systems(
         fts.get_transition_system(4),
         *ts56,
-        fts.get_labels(),
-        log);
+        fts.get_labels());
 
     auto ts3456 = merge_transition_systems(
         fts.get_transition_system(3),
         *ts456,
-        fts.get_labels(),
-        log);
+        fts.get_labels());
 
     auto ts23456 = merge_transition_systems(
         fts.get_transition_system(2),
         *ts3456,
-        fts.get_labels(),
-        log);
+        fts.get_labels());
 
     auto ts123456 = merge_transition_systems(
         fts.get_transition_system(1),
         *ts23456,
-        fts.get_labels(),
-        log);
+        fts.get_labels());
 
     auto ts = merge_transition_systems(
         fts.get_transition_system(0),
         *ts123456,
-        fts.get_labels(),
-        log);
+        fts.get_labels());
 
     std::ifstream e_file("resources/mns_tests/bw3_ts_0123456.json");
     auto expected_ts = json::read<TransitionSystem>(e_file);
@@ -211,8 +202,6 @@ TEST(MnSTests, test_merge2)
 
 TEST(MnSTests, test_shrink_all)
 {
-    utils::LogProxy log = utils::get_silent_log();
-
     std::ifstream labels_file("resources/mns_tests/bw3_labels.json");
     std::ifstream ts_file("resources/mns_tests/bw3_ts_0.json");
 
@@ -223,7 +212,7 @@ TEST(MnSTests, test_shrink_all)
         std::views::iota(0, ts.num_states()) |
         std::ranges::to<std::forward_list>()};
     std::vector state_mapping(ts.num_states(), 0);
-    ts.apply_abstraction(labels, eq_rel, state_mapping, log);
+    ts.apply_abstraction(labels, eq_rel, state_mapping);
 
     std::ifstream e_file("resources/mns_tests/bw3_ts_0_shrink_all.json");
     auto expected_ts = json::read<TransitionSystem>(e_file);
@@ -234,8 +223,6 @@ TEST(MnSTests, test_shrink_all)
 
 TEST(MnSTests, test_projection_distances)
 {
-    utils::LogProxy log = utils::get_silent_log();
-
     std::ifstream labels_file("resources/mns_tests/bw3_labels.json");
     const auto labels = json::read<Labels>(labels_file);
 
@@ -263,8 +250,6 @@ TEST(MnSTests, test_projection_distances)
 
 TEST(MnSTests, test_projection_distances2)
 {
-    utils::LogProxy log = utils::get_silent_log();
-
     std::ifstream labels_file("resources/mns_tests/bw2_labels.json");
     const auto labels = json::read<Labels>(labels_file);
 
@@ -302,8 +287,6 @@ TEST(MnSTests, test_projection_distances2)
 
 TEST(MnSTests, test_projection_distances3)
 {
-    utils::LogProxy log = utils::get_silent_log();
-
     std::ifstream labels_file("resources/mns_tests/bw3_labels.json");
     const auto labels = json::read<Labels>(labels_file);
 
@@ -336,7 +319,7 @@ TEST(MnSTests, test_bisimulation_distance_preserved)
     auto ts = json::read<TransitionSystem>(ts_file);
 
     Distances distances;
-    distances.compute_distances(labels, ts, false, log);
+    distances.compute_distances(labels, ts, false);
 
     ShrinkStrategyBisimulation bisimulation(
         ShrinkStrategyBisimulation::AtLimit::RETURN,
@@ -356,7 +339,7 @@ TEST(MnSTests, test_bisimulation_distance_preserved)
         }
     }
 
-    ts.apply_abstraction(labels, eq_relation, abs_mapping, log);
+    ts.apply_abstraction(labels, eq_relation, abs_mapping);
 
     std::vector new_distances(ts.num_states(), -INFINITE_VALUE);
     compute_goal_distances(labels, ts, new_distances);
@@ -383,7 +366,7 @@ TEST(MnSTests, test_prune_solvable)
     auto ts = json::read<TransitionSystem>(e_file);
 
     Distances distances;
-    distances.compute_distances(labels, ts, false, log);
+    distances.compute_distances(labels, ts, false);
 
     PruneStrategySolvable prune;
     auto eq_relation = prune.compute_pruning_abstraction(ts, distances, log);
@@ -395,7 +378,7 @@ TEST(MnSTests, test_prune_solvable)
         }
     }
 
-    ts.apply_abstraction(labels, eq_relation, abs_mapping, log);
+    ts.apply_abstraction(labels, eq_relation, abs_mapping);
 
     std::vector new_distances(ts.num_states(), -INFINITE_VALUE);
     compute_goal_distances(labels, ts, new_distances);
@@ -425,7 +408,7 @@ TEST(MnSTests, test_prune_alive)
     auto ts = json::read<TransitionSystem>(e_file);
 
     Distances distances;
-    distances.compute_distances(labels, ts, true, log);
+    distances.compute_distances(labels, ts, true);
 
     PruneStrategyAlive prune;
     auto eq_relation = prune.compute_pruning_abstraction(ts, distances, log);
@@ -437,7 +420,7 @@ TEST(MnSTests, test_prune_alive)
         }
     }
 
-    ts.apply_abstraction(labels, eq_relation, abs_mapping, log);
+    ts.apply_abstraction(labels, eq_relation, abs_mapping);
 
     std::vector new_distances(ts.num_states(), -INFINITE_VALUE);
     compute_goal_distances(labels, ts, new_distances);

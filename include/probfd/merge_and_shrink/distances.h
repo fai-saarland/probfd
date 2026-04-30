@@ -79,6 +79,17 @@ public:
         downward::utils::LogProxy& log,
         const Heuristic<int>& heuristic);
 
+    void compute_distances(
+        const Labels& labels,
+        const TransitionSystem& transition_system,
+        bool compute_liveness);
+
+    void compute_distances(
+        const Labels& labels,
+        const TransitionSystem& transition_system,
+        bool compute_liveness,
+        const Heuristic<int>& heuristic);
+
     /*
       Update distances according to the given abstraction. If the abstraction
       is not f-preserving, distances are directly recomputed.
