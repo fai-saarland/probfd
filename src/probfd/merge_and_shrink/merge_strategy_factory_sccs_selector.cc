@@ -43,7 +43,7 @@ MergeStrategyFactorySCCsSelector::MergeStrategyFactorySCCsSelector(
 unique_ptr<MergeStrategy>
 MergeStrategyFactorySCCsSelector::compute_merge_strategy(
     const SharedProbabilisticTask& task,
-    const FactoredTransitionSystem& fts,
+    const FactoredTransitionSystem&,
     utils::LogProxy& log)
 {
     const auto& variables = get_variables(task);
@@ -53,7 +53,7 @@ MergeStrategyFactorySCCsSelector::compute_merge_strategy(
     const auto& cgraph =
         causal_graph::get_causal_graph(variables, axioms, operators);
 
-    int num_vars = variables.size();
+    const int num_vars = variables.size();
 
     // Compute SCCs of the causal graph.
     vector<vector<int>> cg;
@@ -62,7 +62,7 @@ MergeStrategyFactorySCCsSelector::compute_merge_strategy(
         const vector<int>& successors = cgraph.get_successors(var.get_id());
         cg.push_back(successors);
     }
-    vector<vector<int>> sccs(sccs::compute_maximal_sccs(cg));
+    vector<vector<int>> sccs = sccs::compute_maximal_sccs(cg);
 
     // Put the SCCs in the desired order.
     switch (order_of_sccs) {
@@ -71,13 +71,13 @@ MergeStrategyFactorySCCsSelector::compute_merge_strategy(
         break;
     case OrderOfSCCs::REVERSE_TOPOLOGICAL:
         // SCCs are computed in topological order.
-        reverse(sccs.begin(), sccs.end());
+        ranges::reverse(sccs);
         break;
     case OrderOfSCCs::DECREASING:
-        sort(sccs.begin(), sccs.end(), compare_sccs_decreasing);
+        ranges::sort(sccs, compare_sccs_decreasing);
         break;
     case OrderOfSCCs::INCREASING:
-        sort(sccs.begin(), sccs.end(), compare_sccs_increasing);
+        ranges::sort(sccs, compare_sccs_increasing);
         break;
     }
 
@@ -88,8 +88,9 @@ MergeStrategyFactorySCCsSelector::compute_merge_strategy(
     indices_of_merged_sccs.reserve(sccs.size());
     for (const vector<int>& scc : sccs) {
         if (log.is_at_least_normal()) { log.println("{}", scc); }
-        int scc_size = scc.size();
-        if (scc_size != 1) { non_singleton_cg_sccs.push_back(scc); }
+        if (const int scc_size = scc.size(); scc_size != 1) {
+            non_singleton_cg_sccs.push_back(scc);
+        }
     }
     if (log.is_at_least_normal() && sccs.size() == 1) {
         log.println("Only one single SCC");
@@ -102,8 +103,6 @@ MergeStrategyFactorySCCsSelector::compute_merge_strategy(
     auto ms = merge_selector->create(task);
 
     return std::make_unique<MergeStrategySCCsSelector>(
-        fts,
-        task,
         std::move(ms),
         std::move(non_singleton_cg_sccs));
 }

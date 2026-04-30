@@ -17,11 +17,11 @@ MergeStrategyFactoryStateless::MergeStrategyFactoryStateless(
 
 unique_ptr<MergeStrategy> MergeStrategyFactoryStateless::compute_merge_strategy(
     const SharedProbabilisticTask& task,
-    const FactoredTransitionSystem& fts,
+    const FactoredTransitionSystem&,
     utils::LogProxy&)
 {
     auto ms = merge_selector->create(task);
-    return std::make_unique<MergeStrategyStateless>(fts, std::move(ms));
+    return std::make_unique<MergeStrategyStateless>(std::move(ms));
 }
 
 string MergeStrategyFactoryStateless::name() const

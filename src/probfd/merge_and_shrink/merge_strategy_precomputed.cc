@@ -11,16 +11,15 @@ using namespace downward;
 namespace probfd::merge_and_shrink {
 
 MergeStrategyPrecomputed::MergeStrategyPrecomputed(
-    const FactoredTransitionSystem& fts,
     unique_ptr<MergeTree> merge_tree)
-    : MergeStrategy(fts)
-    , merge_tree(std::move(merge_tree))
+    : merge_tree(std::move(merge_tree))
 {
 }
 
 MergeStrategyPrecomputed::~MergeStrategyPrecomputed() = default;
 
-pair<int, int> MergeStrategyPrecomputed::get_next()
+pair<int, int>
+MergeStrategyPrecomputed::get_next(const FactoredTransitionSystem& fts)
 {
     assert(!merge_tree->done());
     const int next_merge_index = fts.get_size();
@@ -30,13 +29,9 @@ pair<int, int> MergeStrategyPrecomputed::get_next()
 }
 
 bool MergeStrategyPrecomputed::requires_liveness() const
-{
-    return false;
-}
+{ return false; }
 
 bool MergeStrategyPrecomputed::requires_goal_distances() const
-{
-    return false;
-}
+{ return false; }
 
 } // namespace probfd::merge_and_shrink

@@ -14,12 +14,11 @@ class MergeStrategyPrecomputed : public MergeStrategy {
     std::unique_ptr<MergeTree> merge_tree;
 
 public:
-    MergeStrategyPrecomputed(
-        const FactoredTransitionSystem& fts,
-        std::unique_ptr<MergeTree> merge_tree);
+    explicit MergeStrategyPrecomputed(std::unique_ptr<MergeTree> merge_tree);
+
     ~MergeStrategyPrecomputed() override;
 
-    std::pair<int, int> get_next() override;
+    std::pair<int, int> get_next(const FactoredTransitionSystem& fts) override;
 
     bool requires_liveness() const override;
     bool requires_goal_distances() const override;

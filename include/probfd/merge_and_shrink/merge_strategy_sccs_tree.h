@@ -26,14 +26,13 @@ class MergeStrategySCCsTree : public MergeStrategy {
 
 public:
     MergeStrategySCCsTree(
-        const FactoredTransitionSystem& fts,
         SharedProbabilisticTask task,
         const std::shared_ptr<MergeTreeFactory>& merge_tree_factory,
         std::vector<std::vector<int>>&& non_singleton_cg_sccs);
 
     ~MergeStrategySCCsTree() override;
 
-    std::pair<int, int> get_next() override;
+    std::pair<int, int> get_next(const FactoredTransitionSystem& fts) override;
 
     bool requires_liveness() const override;
     bool requires_goal_distances() const override;

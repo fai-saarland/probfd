@@ -15,11 +15,10 @@ class MergeStrategyStateless : public MergeStrategy {
     const std::shared_ptr<MergeSelector> merge_selector;
 
 public:
-    MergeStrategyStateless(
-        const FactoredTransitionSystem& fts,
+    explicit MergeStrategyStateless(
         const std::shared_ptr<MergeSelector>& merge_selector);
 
-    std::pair<int, int> get_next() override;
+    std::pair<int, int> get_next(const FactoredTransitionSystem& fts) override;
 
     bool requires_liveness() const override;
     bool requires_goal_distances() const override;

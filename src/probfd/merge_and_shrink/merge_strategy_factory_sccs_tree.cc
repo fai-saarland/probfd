@@ -41,7 +41,7 @@ MergeStrategyFactorySCCsTree::MergeStrategyFactorySCCsTree(
 
 unique_ptr<MergeStrategy> MergeStrategyFactorySCCsTree::compute_merge_strategy(
     const SharedProbabilisticTask& task,
-    const FactoredTransitionSystem& fts,
+    const FactoredTransitionSystem&,
     utils::LogProxy& log)
 {
     const auto& variables = get_variables(task);
@@ -98,7 +98,6 @@ unique_ptr<MergeStrategy> MergeStrategyFactorySCCsTree::compute_merge_strategy(
     }
 
     return std::make_unique<MergeStrategySCCsTree>(
-        fts,
         task,
         merge_tree_factory,
         std::move(non_singleton_cg_sccs));
