@@ -22,10 +22,7 @@ MergeScoringFunctionTotalOrder::MergeScoringFunctionTotalOrder(
     ProductTSOrder product_ts_order,
     bool atomic_before_product,
     std::shared_ptr<utils::RandomNumberGenerator> rng)
-    : atomic_ts_order(atomic_ts_order)
-    , product_ts_order(product_ts_order)
-    , atomic_before_product(atomic_before_product)
-    , rng(std::move(rng))
+    : rng(std::move(rng))
 {
     const auto& variables = get_variables(task);
 
