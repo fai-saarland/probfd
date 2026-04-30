@@ -680,6 +680,31 @@ unique_ptr<TransitionSystem> merge_transition_systems(
     return merge_transition_systems(ts1, ts2, labels, enumerator, log);
 }
 
+static dynamic_bitset::DynamicBitset<uint64_t> merge_sets(
+    const dynamic_bitset::DynamicBitset<uint64_t>& lhs,
+    const dynamic_bitset::DynamicBitset<uint64_t>& rhs,
+    const enumeration::PairEnumerator& enumerator)
+{
+    const auto lhs_size = lhs.size();
+    const auto rhs_size = rhs.size();
+
+    dynamic_bitset::DynamicBitset<uint64_t> merged_set(
+        lhs_size * rhs_size,
+        dynamic_bitset::construct_all_zeros);
+
+    for (std::size_t s1 = 0; s1 != lhs_size; ++s1) {
+        if (!lhs[s1]) continue;
+        for (std::size_t s2 = 0; s2 != rhs_size; ++s2) {
+            if (rhs[s2]) {
+                const std::size_t state = enumerator.to_index(s1, s2);
+                merged_set.set(state);
+            }
+        }
+    }
+
+    return merged_set;
+}
+
 unique_ptr<TransitionSystem> merge_transition_systems(
     const TransitionSystem& ts1,
     const TransitionSystem& ts2,
@@ -705,50 +730,47 @@ unique_ptr<TransitionSystem> merge_transition_systems(
         ts2.incorporated_variables,
         std::back_inserter(incorporated_variables));
 
-    const int ts1_size = ts1.num_states();
-    const int ts2_size = ts2.num_states();
-
-    // Compute merged initial states
-    dynamic_bitset::DynamicBitset<uint64_t> init_states(
-        ts1_size * ts2_size,
-        dynamic_bitset::construct_all_zeros);
-
-    for (int s1 = 0; s1 < ts1_size; ++s1) {
-        if (!ts1.init_states[s1]) continue;
-        for (int s2 = 0; s2 < ts2_size; ++s2) {
-            if (ts2.init_states[s2]) {
-                const int state = enumerator.to_index(s1, s2);
-                init_states.set(state);
-            }
-        }
-    }
-
-    // Compute merged goal states
-    dynamic_bitset::DynamicBitset<uint64_t> goal_states(
-        ts1_size * ts2_size,
-        dynamic_bitset::construct_all_zeros);
-
-    for (int s1 = 0; s1 < ts1_size; ++s1) {
-        if (!ts1.goal_states[s1]) continue;
-        for (int s2 = 0; s2 < ts2_size; ++s2) {
-            if (ts2.goal_states[s2]) {
-                const int state = enumerator.to_index(s1, s2);
-                goal_states.set(state);
-            }
-        }
-    }
-
+    // Compute merged transition relation
     TransitionRelation sync_prod = merge_transition_relations(
         ts1.get_transition_relation(),
         ts2.get_transition_relation(),
         labels,
         enumerator);
 
+    // Compute merged initial states
+    dynamic_bitset::DynamicBitset<uint64_t> init_states =
+        merge_sets(ts1.init_states, ts2.init_states, enumerator);
+
+    // Compute merged goal states
+    dynamic_bitset::DynamicBitset<uint64_t> goal_states =
+        merge_sets(ts1.goal_states, ts2.goal_states, enumerator);
+
     return std::make_unique<TransitionSystem>(
         std::move(incorporated_variables),
         std::move(sync_prod),
         std::move(init_states),
         std::move(goal_states));
+}
+
+static dynamic_bitset::DynamicBitset<uint64_t> compute_image(
+    const dynamic_bitset::DynamicBitset<uint64_t> set,
+    const StateEquivalenceRelation& state_equivalence_relation)
+{
+    const int new_num_states = state_equivalence_relation.size();
+
+    dynamic_bitset::DynamicBitset<uint64_t> new_set(
+        new_num_states,
+        dynamic_bitset::construct_all_zeros);
+
+    for (int new_state = 0; new_state != new_num_states; ++new_state) {
+        const auto& state_eqv_class = state_equivalence_relation[new_state];
+        assert(!state_eqv_class.empty());
+
+        auto is_member = [&](int old_state) { return set[old_state]; };
+        new_set[new_state] = std::ranges::any_of(state_eqv_class, is_member);
+    }
+
+    return new_set;
 }
 
 void TransitionSystem::apply_abstraction(
@@ -767,40 +789,14 @@ void TransitionSystem::apply_abstraction(
             new_num_states);
     }
 
-    // Compute abstract initial states
-    dynamic_bitset::DynamicBitset<uint64_t> new_init_states(
-        new_num_states,
-        dynamic_bitset::construct_all_zeros);
-
-    for (int new_state = 0; new_state != new_num_states; ++new_state) {
-        const auto& state_eqv_class = state_equivalence_relation[new_state];
-        assert(!state_eqv_class.empty());
-
-        auto is_initial = [&](int old_state) { return init_states[old_state]; };
-        new_init_states[new_state] =
-            std::ranges::any_of(state_eqv_class, is_initial);
-    }
-
-    init_states = std::move(new_init_states);
-
-    // Compute abstract goal states
-    dynamic_bitset::DynamicBitset<uint64_t> new_goal_states(
-        new_num_states,
-        dynamic_bitset::construct_all_zeros);
-
-    for (int new_state = 0; new_state != new_num_states; ++new_state) {
-        const auto& state_eqv_class = state_equivalence_relation[new_state];
-        assert(!state_eqv_class.empty());
-
-        auto is_goal = [&](int old_state) { return goal_states[old_state]; };
-        new_goal_states[new_state] =
-            std::ranges::any_of(state_eqv_class, is_goal);
-    }
-
-    goal_states = std::move(new_goal_states);
-
     // Update all transitions.
     transition_relation.apply_abstraction(labels, abstraction_mapping);
+
+    // Compute abstract initial states
+    init_states = compute_image(init_states, state_equivalence_relation);
+
+    // Compute abstract goal states
+    goal_states = compute_image(goal_states, state_equivalence_relation);
 }
 
 void TransitionSystem::apply_label_reduction(

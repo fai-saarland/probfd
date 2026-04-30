@@ -27,17 +27,17 @@ template <std::size_t N>
     requires(N > 0)
 class TupleEnumerator {
     struct VariableInfo {
-        int multiplier;
-        int domain;
+        unsigned int multiplier;
+        unsigned int domain;
     };
 
     std::array<VariableInfo, N> infos;
-    int product_size;
+    unsigned int product_size;
 
 public:
     /// Constructs the object from the given cardinalities \f$C_i\f$ of the
     /// consecutive index sets involved in the Cartesian product.
-    explicit TupleEnumerator(std::array<int, N> sizes)
+    explicit TupleEnumerator(std::array<unsigned int, N> sizes)
         : TupleEnumerator(sizes, std::make_index_sequence<N>{})
     {
     }
@@ -45,10 +45,11 @@ public:
     /// Constructs the object from the given cardinalities \f$C_i\f$ of the
     /// consecutive index sets involved in the Cartesian product.
     template <typename... T>
-        requires(std::convertible_to<T, int> && ...) && (sizeof...(T) == N)
+        requires(std::convertible_to<T, unsigned int> && ...) &&
+                (sizeof...(T) == N)
     explicit TupleEnumerator(T... sizes)
         : TupleEnumerator(
-              std::array<int, N>{sizes...},
+              std::array<unsigned int, N>{static_cast<unsigned int>(sizes)...},
               std::make_index_sequence<N>{})
     {
     }
@@ -58,7 +59,7 @@ public:
      *
      * This method has time complexity linear in N.
      */
-    int to_index(std::array<int, N> state) const
+    int to_index(std::array<unsigned int, N> state) const
     { return to_index(state, std::make_index_sequence<N>{}); }
 
     /**
@@ -67,23 +68,28 @@ public:
      * This method has time complexity linear in N.
      */
     template <typename... T>
-        requires(std::convertible_to<T, int> && ...) && (sizeof...(T) == N)
-    int to_index(T... local_state) const
-    { return to_index(std::array<int, N>{local_state...}); }
+        requires(std::convertible_to<T, unsigned int> && ...) &&
+                (sizeof...(T) == N)
+    unsigned int to_index(T... local_state) const
+    {
+        return to_index(
+            std::array<unsigned int, N>{
+                static_cast<unsigned int>(local_state)...});
+    }
 
     /**
      * @brief Computes the inverse of to_index .
      *
      * This method has time complexity linear in N.
      */
-    std::array<int, N> to_tuple(int index) const
+    std::array<unsigned int, N> to_tuple(unsigned int index) const
     { return to_tuple(index, std::make_index_sequence<N>{}); }
 
     /// Gets the cardinality \f$C_i\f$ of the I-th consecutive index set
     /// involved in the Cartesian product.
     template <std::size_t I>
         requires(I < N)
-    int get_size() const
+    unsigned int get_size() const
     { return infos[I].domain; }
 
     /**
@@ -92,21 +98,22 @@ public:
      *
      * This method has constant time complexity independent of N.
      */
-    int get_product_size() const { return product_size; }
+    unsigned int get_product_size() const { return product_size; }
 
 private:
     template <std::size_t... I>
     explicit TupleEnumerator(
-        std::array<int, N> sizes,
+        std::array<unsigned int, N> sizes,
         std::index_sequence<I...>)
     {
-        int last_multiplier = 1;
+        unsigned int last_multiplier = 1;
 
-        const auto work = [&last_multiplier](VariableInfo& info, int size) {
-            info.domain = size;
-            info.multiplier = last_multiplier;
-            last_multiplier *= size;
-        };
+        const auto work =
+            [&last_multiplier](VariableInfo& info, unsigned int size) {
+                info.domain = size;
+                info.multiplier = last_multiplier;
+                last_multiplier *= size;
+            };
 
         (..., work(infos[I], sizes[I]));
 
@@ -114,12 +121,13 @@ private:
     }
 
     template <std::size_t... I>
-    std::array<int, sizeof...(I)>
-    to_tuple(int index, std::index_sequence<I...>) const
+    std::array<unsigned int, sizeof...(I)>
+    to_tuple(unsigned int index, std::index_sequence<I...>) const
     { return {index / infos[I].multiplier % infos[I].domain...}; }
 
     template <std::size_t... I>
-    int to_index(std::array<int, N> state, std::index_sequence<I...>) const
+    unsigned int
+    to_index(std::array<unsigned int, N> state, std::index_sequence<I...>) const
     { return (... + (infos[I].multiplier * state[I])); }
 };
 
