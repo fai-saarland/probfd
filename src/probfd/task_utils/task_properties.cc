@@ -64,7 +64,7 @@ value_t get_adjusted_action_cost(
             return 1_vt;
         else
             return cost_function.get_operator_cost(op_index) + 1_vt;
-    default: ABORT("Unknown cost type");
+    default: throw utils::CriticalError("Unknown cost type");
     }
 }
 
@@ -101,12 +101,10 @@ void verify_no_conditional_effects(const ProbabilisticOperatorSpace& operators)
 {
     int op_id = get_first_conditional_effects_op_id(operators);
     if (op_id != -1) {
-        println(
-            cerr,
-            "This configuration does not support conditional effects (operator "
-            "{})! Terminating.",
+        throw utils::UnsupportedError(
+            "This configuration does not support conditional effects "
+            "(operator {})!",
             operators[op_id].get_name());
-        utils::exit_with(ExitCode::SEARCH_UNSUPPORTED);
     }
 }
 

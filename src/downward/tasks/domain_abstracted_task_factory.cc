@@ -46,11 +46,13 @@ DomainAbstractedTaskFactory::DomainAbstractedTaskFactory(
         parent;
 
     if (task_properties::has_axioms(*axioms)) {
-        ABORT("DomainAbstractedTask doesn't support axioms.");
+        throw utils::UnsupportedError(
+            "DomainAbstractedTask doesn't support axioms.");
     }
 
     if (task_properties::has_conditional_effects(*operators)) {
-        ABORT("DomainAbstractedTask doesn't support conditional effects.");
+        throw utils::UnsupportedError(
+            "DomainAbstractedTask doesn't support conditional effects.");
     }
 
     initialize(to_refs(parent));

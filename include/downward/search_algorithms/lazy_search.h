@@ -56,7 +56,7 @@ public:
 private:
     friend class IterativeSearchAlgorithm;
 
-    void initialize();
+    SearchStatus initialize();
     SearchStatus step();
 
     void generate_successors();

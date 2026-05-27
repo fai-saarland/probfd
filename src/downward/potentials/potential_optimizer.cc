@@ -31,8 +31,7 @@ PotentialOptimizer::PotentialOptimizer(
     , num_lp_vars(0)
 {
     task_properties::verify_no_axioms(get_axioms(task));
-    task_properties::verify_no_conditional_effects(
-        get_operators(task));
+    task_properties::verify_no_conditional_effects(get_operators(task));
     initialize();
 }
 
@@ -73,12 +72,12 @@ int PotentialOptimizer::get_lp_var_id(const FactPair& fact) const
 void PotentialOptimizer::optimize_for_all_states()
 {
     if (!potentials_are_bounded()) {
-        cerr << "Potentials must be bounded for all-states LP." << endl;
-        utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
+        throw utils::CriticalError(
+            "Potentials must be bounded for all-states LP.");
     }
 
     const auto& variables = get_variables(task);
-    
+
     vector<double> coefficients(num_lp_vars, 0.0);
     for (FactProxy fact : variables.get_facts()) {
         coefficients[get_lp_var_id(fact.get_pair())] =
@@ -87,7 +86,8 @@ void PotentialOptimizer::optimize_for_all_states()
     lp_solver.set_objective_coefficients(coefficients);
     solve_and_extract();
     if (!has_optimal_solution()) {
-        ABORT("all-states LP unbounded even though potentials are bounded.");
+        throw utils::CriticalError(
+            "all-states LP unbounded even though potentials are bounded.");
     }
 }
 

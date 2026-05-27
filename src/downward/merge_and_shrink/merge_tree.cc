@@ -234,7 +234,7 @@ void MergeTree::update(pair<int, int> merge, int new_index)
             surviving_node = (random == 0 ? first_parent : second_parent);
             removed_node = (random == 0 ? second_parent : first_parent);
         } else {
-            ABORT("Unknown merge tree update option");
+            throw utils::CriticalError("Unknown merge tree update option");
         }
 
         // Update the leaf node corresponding to one of the indices to

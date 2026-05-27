@@ -53,12 +53,10 @@ pair<int, int> MergeSelectorScoreBasedFiltering::select_merge(
     }
 
     if (merge_candidates.size() > 1) {
-        std::println(
-            cerr,
+        throw utils::CriticalError(
             "More than one merge candidate remained after computing all "
             "scores! Did you forget to include a uniquely tie-breaking "
             "scoring function, e.g. total_order or single_random?");
-        exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
     }
 
     return merge_candidates.front();

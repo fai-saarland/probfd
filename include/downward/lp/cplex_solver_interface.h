@@ -232,7 +232,7 @@ class CplexSolverInterface : public SolverInterface {
 
 public:
     CplexSolverInterface();
-    virtual ~CplexSolverInterface() override;
+    virtual ~CplexSolverInterface() noexcept(false) override;
 
     virtual void load_problem(const LinearProgram& lp) override;
     virtual void add_temporary_constraints(

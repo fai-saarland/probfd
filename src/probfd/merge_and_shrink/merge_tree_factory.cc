@@ -40,11 +40,9 @@ unique_ptr<MergeTree> MergeTreeFactory::compute_merge_tree(
     const FactoredTransitionSystem&,
     const vector<int>&)
 {
-    std::println(
-        cerr,
+    throw utils::CriticalError(
         "This merge tree does not support being computed on a subset "
         "of indices for a given factored transition system!");
-    exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
 }
 
 } // namespace probfd::merge_and_shrink

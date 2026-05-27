@@ -183,22 +183,6 @@ CEGAR::CEGAR(
     , blacklisted_variables(std::move(blacklisted_variables))
     , collection_size(0)
 {
-#ifndef NDEBUG
-    const auto& goals = get_goal(this->task);
-    for (const FactPair& goal : goals) {
-        bool is_goal = false;
-        for (FactPair task_goal : goals) {
-            if (goal == task_goal) {
-                is_goal = true;
-                break;
-            }
-        }
-        if (!is_goal) {
-            cerr << "given goal is not a goal of the task." << endl;
-            utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
-        }
-    }
-#endif
 }
 
 void CEGAR::print_collection() const
@@ -381,7 +365,7 @@ bool CEGAR::get_flaws_for_pattern(
     PatternInfo& pattern_info = *pattern_collection[collection_index];
     if (pattern_info.is_unsolvable()) {
         log << "task is unsolvable." << endl;
-        utils::exit_with(utils::ExitCode::SEARCH_UNSOLVABLE);
+        return true;
     }
 
     vector<int> current_state = concrete_init.get_unpacked_values();
@@ -414,9 +398,8 @@ bool CEGAR::get_flaws_for_pattern(
                 log << "plan did not lead to a goal state: ";
             }
             bool raise_goal_flaw = false;
-            for (const FactPair& goal : goal_facts) {
-                int goal_var_id = goal.var;
-                if (final_state[goal_var_id] != goal.value &&
+            for (const auto& [goal_var_id, goal_value] : goal_facts) {
+                if (final_state[goal_var_id] != goal_value &&
                     !blacklisted_variables.contains(goal_var_id)) {
                     flaws.emplace_back(collection_index, goal_var_id);
                     raise_goal_flaw = true;
@@ -436,10 +419,7 @@ bool CEGAR::get_flaws_for_pattern(
             }
         }
     } else {
-        flaws.insert(
-            flaws.end(),
-            make_move_iterator(new_flaws.begin()),
-            make_move_iterator(new_flaws.end()));
+        flaws.append_range(std::move(new_flaws));
     }
     return false;
 }
@@ -621,8 +601,7 @@ PatternCollectionInformation CEGAR::compute_pattern_collection()
     }
 
     utils::CountdownTimer timer(max_time);
-    const State concrete_init =
-        get_init(task).get_initial_state();
+    const State concrete_init = get_init(task).get_initial_state();
     concrete_init.unpack();
 
     compute_initial_collection(concrete_init);
@@ -749,11 +728,8 @@ PatternInformation generate_pattern_with_cegar(
     PatternCollectionInformation collection_info =
         cegar.compute_pattern_collection();
     shared_ptr<PatternCollection> new_patterns = collection_info.get_patterns();
-    if (new_patterns->size() > 1) {
-        cerr << "CEGAR limited to one goal computed more than one pattern"
-             << endl;
-        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
-    }
+
+    assert(new_patterns->size() == 1);
 
     Pattern& pattern = new_patterns->front();
     shared_ptr<PDBCollection> new_pdbs = collection_info.get_pdbs();

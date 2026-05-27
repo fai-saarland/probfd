@@ -36,10 +36,9 @@ unique_ptr<MergeTree> MergeTreeFactory::compute_merge_tree(
     const FactoredTransitionSystem&,
     const vector<int>&)
 {
-    cerr << "This merge tree does not support being computed on a subset "
-            "of indices for a given factored transition system!"
-         << endl;
-    utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+    throw utils::CriticalError(
+        "This merge tree does not support being computed on a subset "
+        "of indices for a given factored transition system!");
 }
 
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

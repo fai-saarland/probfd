@@ -19,14 +19,8 @@
 #include "downward/utils/byte_units.h"
 
 #include <iostream>
+#include <source_location>
 #include <stdlib.h>
-
-#define ABORT(msg)                                                             \
-    ((std::cerr << "Critical error in file " << __FILE__ << ", line "          \
-                << __LINE__ << ": " << std::endl                               \
-                << (msg) << std::endl),                                        \
-     (abort()),                                                                \
-     (void)0)
 
 namespace downward::utils {
 enum class ExitCode {
@@ -52,8 +46,61 @@ enum class ExitCode {
     SEARCH_UNIMPLEMENTED = 35
 };
 
-[[noreturn]]
-extern void exit_with(ExitCode returncode);
+class CriticalError : public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+
+    template <class... Args>
+    explicit CriticalError(std::format_string<Args...> fmt, Args&&... args)
+        : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
+    {
+    }
+};
+
+class InputError : public std::domain_error {
+public:
+    using std::domain_error::domain_error;
+
+    template <class... Args>
+    explicit InputError(std::format_string<Args...> fmt, Args&&... args)
+        : std::domain_error(std::format(fmt, std::forward<Args>(args)...))
+    {
+    }
+};
+
+class UnsupportedError : public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+
+    template <class... Args>
+    explicit UnsupportedError(std::format_string<Args...> fmt, Args&&... args)
+        : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
+    {
+    }
+};
+
+class UnimplementedError : public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+
+    template <class... Args>
+    explicit UnimplementedError(std::format_string<Args...> fmt, Args&&... args)
+        : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
+    {
+    }
+};
+
+class OverflowError : public std::overflow_error {
+public:
+    using std::overflow_error::overflow_error;
+
+    template <class... Args>
+    explicit OverflowError(std::format_string<Args...> fmt, Args&&... args)
+        : std::overflow_error(std::format(fmt, std::forward<Args>(args)...))
+    {
+    }
+};
+
 [[noreturn]]
 extern void exit_with_reentrant(ExitCode returncode);
 
@@ -63,6 +110,6 @@ bool is_exit_code_error_reentrant(ExitCode exitcode);
 void register_event_handlers();
 void report_exit_code_reentrant(ExitCode exitcode);
 int get_process_id();
-} // namespace utils
+} // namespace downward::utils
 
 #endif

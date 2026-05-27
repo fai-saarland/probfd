@@ -83,7 +83,8 @@ bool Evaluator::is_estimate_cached(const State&) const
 
 int Evaluator::get_cached_estimate(const State&) const
 {
-    ABORT("Called get_cached_estimate when estimate is not cached.");
+    throw utils::CriticalError(
+        "Called get_cached_estimate when estimate is not cached.");
 }
 
 } // namespace downward

@@ -191,7 +191,7 @@ FactPair StubbornSetsAtomCentric::select_fact(
             }
         }
     } else {
-        ABORT("Unknown atom selection strategy");
+        throw utils::CriticalError("Unknown atom selection strategy");
     }
     assert(fact != FactPair::no_fact);
     return fact;

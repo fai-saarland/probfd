@@ -20,7 +20,10 @@ get_adjusted_action_cost(int cost, OperatorCost cost_type, bool is_unit_cost)
             return 1;
         else
             return cost + 1;
-    default: ABORT("Unknown cost type");
+    default:
+        throw utils::CriticalError(
+            "Unknown cost type: {}",
+            std::to_underlying(cost_type));
     }
 }
 

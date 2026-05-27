@@ -68,10 +68,10 @@ void LandmarkHeuristic::initialize(
             ClassicalOperatorSpace,
             GoalFactList,
             InitialStateValues>(transformed_task)) {
-        cerr << "The landmark heuristics currently only support "
-             << "task transformations that modify the operator costs. "
-             << "See issues 845 and 686 for details." << endl;
-        utils::exit_with(utils::ExitCode::SEARCH_UNSUPPORTED);
+        throw utils::UnsupportedError(
+            "The landmark heuristics currently only support task "
+            "transformations that modify the operator costs. See issues 845 "
+            "and 686 for details.");
     }
 
     compute_landmark_graph(lm_factory);
@@ -215,8 +215,7 @@ void LandmarkHeuristic::generate_preferred_operators(
     vector<OperatorID> applicable_operators;
     successor_generator->generate_applicable_ops(state, applicable_operators);
 
-    const auto& operators =
-        get_operators(transformed_task);
+    const auto& operators = get_operators(transformed_task);
 
     for (const OperatorID op_id : applicable_operators) {
         const OperatorProxy& op = operators[op_id];

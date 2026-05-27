@@ -1,6 +1,7 @@
 #ifndef UTILS_EXCEPTIONS_H
 #define UTILS_EXCEPTIONS_H
 
+#include <stdexcept>
 #include <string>
 
 namespace downward::utils {
@@ -18,6 +19,11 @@ public:
 };
 
 struct TimeoutException {};
+
+struct OutOfMemoryException : std::runtime_error {
+    using runtime_error::runtime_error;
+};
+
 } // namespace downward::utils
 
 #endif

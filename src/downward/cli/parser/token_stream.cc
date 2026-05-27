@@ -116,7 +116,7 @@ string token_type_name(TokenType token_type)
     case TokenType::INTEGER: return "Integer";
     case TokenType::FLOAT: return "Float";
     case TokenType::IDENTIFIER: return "Identifier";
-    default: ABORT("Unknown token type.");
+    default: throw utils::CriticalError("Unknown token type.");
     }
 }
 

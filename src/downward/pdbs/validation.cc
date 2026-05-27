@@ -23,24 +23,22 @@ void validate_and_normalize_pattern(
       - Warn if duplicate variables exist.
       - Error if patterns contain out-of-range variable numbers.
     */
-    sort(pattern.begin(), pattern.end());
-    auto it = unique(pattern.begin(), pattern.end());
-    if (it != pattern.end()) {
+    ranges::sort(pattern);
+
+    if (const auto [it, end] = ranges::unique(pattern); it != end) {
         pattern.erase(it, pattern.end());
         if (log.is_warning()) {
             log << "Warning: duplicate variables in pattern have been removed"
                 << endl;
         }
     }
+
     if (!pattern.empty()) {
         if (pattern.front() < 0) {
-            cerr << "Variable number too low in pattern" << endl;
-            utils::exit_with(ExitCode::SEARCH_CRITICAL_ERROR);
+            throw utils::CriticalError("Variable number too low in pattern");
         }
-        int num_variables = variables.size();
-        if (pattern.back() >= num_variables) {
-            cerr << "Variable number too high in pattern" << endl;
-            utils::exit_with(ExitCode::SEARCH_CRITICAL_ERROR);
+        if (const int num_vars = variables.size(); pattern.back() >= num_vars) {
+            throw utils::CriticalError("Variable number too high in pattern");
         }
     }
 }
@@ -56,13 +54,14 @@ void validate_and_normalize_patterns(
     */
     for (Pattern& pattern : patterns)
         validate_and_normalize_pattern(variables, pattern, log);
+
     PatternCollection sorted_patterns(patterns);
-    sort(sorted_patterns.begin(), sorted_patterns.end());
-    auto it = unique(sorted_patterns.begin(), sorted_patterns.end());
-    if (it != sorted_patterns.end()) {
+    ranges::sort(sorted_patterns);
+
+    if (auto [it, end] = ranges::unique(sorted_patterns); it != end) {
         if (log.is_warning()) {
             log << "Warning: duplicate patterns have been detected" << endl;
         }
     }
 }
-} // namespace pdbs
+} // namespace downward::pdbs
