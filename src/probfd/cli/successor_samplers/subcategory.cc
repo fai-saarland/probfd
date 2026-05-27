@@ -172,23 +172,25 @@ public:
 
 namespace probfd::cli::successor_samplers {
 
-void add_successor_sampler_category(Registry& raw_registry)
+void add_successor_sampler_category(Registry& registry)
 {
-    raw_registry.insert_shared_category_plugins<SuccessorSampler>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_shared_category_plugins<SuccessorSampler>(
         []<bool Fret> {
             return add_mdp_type_to_category<false, Fret>("SuccessorSampler");
         },
         []<bool> { return ""; });
 }
 
-void add_successor_sampler_features(Registry& raw_registry)
+void add_successor_sampler_features(Registry& registry)
 {
-    raw_registry.insert_feature_plugins<ArbitrarySuccessorSamplerFeature>();
-    raw_registry.insert_feature_plugins<MostLikelySuccessorSamplerFeature>();
-    raw_registry.insert_feature_plugins<RandomSuccessorSamplerFeature>();
-    raw_registry.insert_feature_plugins<UniformSuccessorSamplerFeature>();
-    raw_registry.insert_feature_plugins<VBiasedSuccessorSamplerFeature>();
-    raw_registry.insert_feature_plugins<VDiffSuccessorSamplerFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugins<ArbitrarySuccessorSamplerFeature>();
+    n.insert_feature_plugins<MostLikelySuccessorSamplerFeature>();
+    n.insert_feature_plugins<RandomSuccessorSamplerFeature>();
+    n.insert_feature_plugins<UniformSuccessorSamplerFeature>();
+    n.insert_feature_plugins<VBiasedSuccessorSamplerFeature>();
+    n.insert_feature_plugins<VDiffSuccessorSamplerFeature>();
 }
 
 } // namespace probfd::cli::successor_samplers

@@ -104,9 +104,10 @@ protected:
 
 namespace probfd::cli::solvers {
 
-void add_acyclic_value_iteration_feature(Registry& raw_registry)
+void add_acyclic_value_iteration_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<AcyclicVISolverFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<AcyclicVISolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

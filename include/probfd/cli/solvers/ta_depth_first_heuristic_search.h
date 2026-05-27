@@ -8,7 +8,7 @@ class Registry;
 namespace probfd::cli::solvers {
 
 void add_ta_depth_first_heuristic_search_feature(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

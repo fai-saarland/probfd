@@ -158,10 +158,11 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_single_potential_heuristics_features(Registry& raw_registry)
+void add_single_potential_heuristics_features(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<InitialStatePotentialHeuristicFeature>();
-    raw_registry.insert_feature_plugin<AllStatesPotentialHeuristicFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<InitialStatePotentialHeuristicFeature>();
+    n.insert_feature_plugin<AllStatesPotentialHeuristicFeature>();
 }
 
 } // namespace downward::cli::heuristics

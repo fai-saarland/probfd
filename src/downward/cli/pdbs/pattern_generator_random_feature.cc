@@ -70,9 +70,10 @@ public:
 
 namespace downward::cli::pdbs {
 
-void add_pattern_generator_random_feature(Registry& raw_registry)
+void add_pattern_generator_random_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<PatternGeneratorRandomFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<PatternGeneratorRandomFeature>();
 }
 
 } // namespace downward::cli::pdbs

@@ -111,15 +111,16 @@ protected:
 
 namespace probfd::cli::solvers {
 
-void add_ta_lrtdp_feature(Registry& raw_registry)
+void add_ta_lrtdp_feature(Registry& registry)
 {
-    raw_registry.insert_enum_plugin<TrialTerminationCondition>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_enum_plugin<TrialTerminationCondition>(
         {{"terminal", "Stop trials at terminal states"},
          {"consistent", "Stop trials at epsilon consistent states"},
          {"inconsistent", "Stop trials at epsilon inconsistent states"},
          {"revisited", "Stop trials upon revisiting a state"}});
 
-    raw_registry.insert_feature_plugin<TrapAwareLRTDPSolverFeature>();
+    n.insert_feature_plugin<TrapAwareLRTDPSolverFeature>();
 }
 
 } // namespace

@@ -61,10 +61,10 @@ public:
 
 namespace probfd::cli::heuristics {
 
-void add_pdb_heuristic_feature(Registry& raw_registry)
+void add_pdb_heuristic_feature(Registry& registry)
 {
-    raw_registry
-        .insert_feature_plugin<ProbabilityAwarePDBHeuristicFactoryFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<ProbabilityAwarePDBHeuristicFactoryFeature>();
 }
 
 } // namespace probfd::cli::heuristics

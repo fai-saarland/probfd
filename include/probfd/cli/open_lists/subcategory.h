@@ -8,10 +8,10 @@ class Registry;
 namespace probfd::cli::open_lists {
 
 void add_open_list_categories(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 void add_open_list_features(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

@@ -10,9 +10,10 @@ using namespace probfd::merge_and_shrink;
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_merge_strategy_factory_category(Registry& raw_registry)
+void add_merge_strategy_factory_category(Registry& registry)
 {
-    raw_registry.insert_shared_category_plugin<MergeStrategyFactory>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_shared_category_plugin<MergeStrategyFactory>(
         "PMergeStrategy",
         "This page describes the various merge strategies supported "
         "by the planner.");

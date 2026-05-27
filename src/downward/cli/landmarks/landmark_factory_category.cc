@@ -11,9 +11,10 @@ using namespace downward::cli::plugins;
 
 namespace downward::cli::landmarks {
 
-void add_landmark_factory_category(Registry& raw_registry)
+void add_landmark_factory_category(Registry& registry)
 {
-    raw_registry.insert_shared_category_plugin<LandmarkFactory>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_shared_category_plugin<LandmarkFactory>(
         "LandmarkFactory",
         "A landmark factory specification is either a newly created "
         "instance or a landmark factory that has been defined previously. "

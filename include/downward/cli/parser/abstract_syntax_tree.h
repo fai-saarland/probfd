@@ -160,14 +160,30 @@ public:
     void dump(std::string indent) const override;
 };
 
+class IdentifierNode : public ASTNode {
+    std::vector<std::string> qualification;
+    std::string name;
+
+public:
+    IdentifierNode(std::vector<std::string> qualification, std::string name);
+
+    TypedDecoratedAstNodePtr
+    decorate(utils::Context& context, VariableEnvironment& env) const override;
+
+    void dump(std::string indent) const override;
+};
+
 class LiteralNode : public ASTNode {
     Token value;
 
 public:
     explicit LiteralNode(const Token& value);
+
     TypedDecoratedAstNodePtr
     decorate(utils::Context& context, VariableEnvironment& env) const override;
+
     void dump(std::string indent) const override;
 };
+
 } // namespace downward::cli::parser
 #endif

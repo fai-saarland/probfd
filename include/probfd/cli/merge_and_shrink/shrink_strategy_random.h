@@ -8,7 +8,7 @@ class Registry;
 namespace probfd::cli::merge_and_shrink {
 
 void add_shrink_strategy_random_feature(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

@@ -57,9 +57,10 @@ public:
 
 namespace probfd::cli::heuristics {
 
-void add_ucp_heuristic_feature(Registry& raw_registry)
+void add_ucp_heuristic_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<UCPHeuristicFactoryFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<UCPHeuristicFactoryFeature>();
 }
 
 } // namespace probfd::cli::heuristics

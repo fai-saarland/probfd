@@ -8,7 +8,7 @@ class Registry;
 namespace probfd::cli::pdbs {
 
 void add_subcollection_finder_factory_category(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

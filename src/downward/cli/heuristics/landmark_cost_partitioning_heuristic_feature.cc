@@ -197,10 +197,10 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_landmark_cost_partitioning_heuristic_categories(
-    Registry& raw_registry)
+void add_landmark_cost_partitioning_heuristic_categories(Registry& registry)
 {
-    raw_registry.insert_enum_plugin<CostPartitioningMethod>({
+    Namespace& n = registry.get_global_name_space();
+    n.insert_enum_plugin<CostPartitioningMethod>({
         {"optimal", "use optimal (LP-based) cost partitioning"},
         {"uniform",
          "partition operator costs uniformly among all landmarks "
@@ -208,10 +208,10 @@ void add_landmark_cost_partitioning_heuristic_categories(
     });
 }
 
-void add_landmark_cost_partitioning_heuristic_feature(Registry& raw_registry)
+void add_landmark_cost_partitioning_heuristic_feature(Registry& registry)
 {
-    raw_registry
-        .insert_feature_plugin<LandmarkCostPartitioningHeuristicFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<LandmarkCostPartitioningHeuristicFeature>();
 }
 
 } // namespace downward::cli::heuristics

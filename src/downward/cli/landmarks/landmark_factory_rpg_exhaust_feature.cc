@@ -57,9 +57,10 @@ public:
 
 namespace downward::cli::landmarks {
 
-void add_landmark_factory_rpg_exhaust_feature(Registry& raw_registry)
+void add_landmark_factory_rpg_exhaust_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<LandmarkFactoryRpgExhaustFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<LandmarkFactoryRpgExhaustFeature>();
 }
 
 } // namespace downward::cli::landmarks

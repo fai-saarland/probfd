@@ -107,11 +107,12 @@ public:
 
 namespace downward::cli::cartesian_abstractions {
 
-void add_subtask_generators_features(Registry& raw_registry)
+void add_subtask_generators_features(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<TaskDuplicatorFeature>();
-    raw_registry.insert_feature_plugin<GoalDecompositionFeature>();
-    raw_registry.insert_feature_plugin<LandmarkDecompositionFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<TaskDuplicatorFeature>();
+    n.insert_feature_plugin<GoalDecompositionFeature>();
+    n.insert_feature_plugin<LandmarkDecompositionFeature>();
 }
 
 } // namespace downward::cli::cartesian_abstractions

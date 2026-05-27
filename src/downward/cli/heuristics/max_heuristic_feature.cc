@@ -87,9 +87,10 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_max_heuristic_feature(Registry& raw_registry)
+void add_max_heuristic_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<HSPMaxHeuristicFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<HSPMaxHeuristicFeature>();
 }
 
 } // namespace downward::cli::heuristics

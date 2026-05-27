@@ -8,7 +8,7 @@ class Registry;
 namespace probfd::cli::pdbs {
 
 void add_pattern_collection_generator_multiple_cegar_feature(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

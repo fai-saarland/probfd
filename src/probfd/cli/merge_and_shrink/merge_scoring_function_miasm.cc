@@ -137,9 +137,10 @@ public:
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_merge_scoring_function_miasm_feature(Registry& raw_registry)
+void add_merge_scoring_function_miasm_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<MergeScoringFunctionMIASMFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<MergeScoringFunctionMIASMFeature>();
 }
 
 } // namespace probfd::cli::merge_and_shrink

@@ -8,7 +8,7 @@ class Registry;
 namespace probfd::cli::pdbs {
 
 void add_max_orthogonal_finder_factory_feature(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

@@ -11,9 +11,10 @@ using namespace downward::cli::plugins;
 
 namespace downward::cli::merge_and_shrink {
 
-void add_merge_scoring_function_category(Registry& raw_registry)
+void add_merge_scoring_function_category(Registry& registry)
 {
-    raw_registry.insert_shared_category_plugin<MergeScoringFunction>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_shared_category_plugin<MergeScoringFunction>(
         "MergeScoringFunction",
         "This page describes various merge scoring functions. A scoring "
         "function, "

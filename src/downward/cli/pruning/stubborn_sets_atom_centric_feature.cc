@@ -76,9 +76,10 @@ public:
 
 namespace downward::cli::pruning {
 
-void add_stubborn_sets_atom_centric_feature(Registry& raw_registry)
+void add_stubborn_sets_atom_centric_feature(Registry& registry)
 {
-    raw_registry.insert_enum_plugin<AtomSelectionStrategy>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_enum_plugin<AtomSelectionStrategy>(
         {{"fast_downward",
           "select the atom (v, d) with the variable v that comes first in the "
           "Fast "
@@ -93,7 +94,7 @@ void add_stubborn_sets_atom_centric_feature(Registry& raw_registry)
           "not "
           "yet part of the stubborn set"}});
 
-    raw_registry.insert_feature_plugin<StubbornSetsAtomCentricFeature>();
+    n.insert_feature_plugin<StubbornSetsAtomCentricFeature>();
 }
 
 } // namespace downward::cli::pruning

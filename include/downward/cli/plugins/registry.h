@@ -1,9 +1,10 @@
-#ifndef PLUGINS_RAW_REGISTRY_H
-#define PLUGINS_RAW_REGISTRY_H
+#ifndef PLUGINS_registry_H
+#define PLUGINS_registry_H
 
 #include "downward/cli/plugins/plugin.h"
 #include "downward/cli/plugins/registry_types.h"
 
+#include <map>
 #include <set>
 #include <vector>
 
@@ -102,13 +103,69 @@ struct FeatureComparator {
         const;
 };
 
+class Namespace;
+
 class Registry {
+    std::unique_ptr<Namespace> global_namespace;
+
+public:
+    Registry();
+
+    Namespace& get_global_name_space();
+    const Namespace& get_global_name_space() const;
+
+    Namespace& get_or_create_namespace(const std::vector<std::string>& name);
+
+    Namespace& create_namespace(const std::vector<std::string>& name);
+
+    Namespace& get_namespace(const std::vector<std::string>& name);
+    const Namespace& get_namespace(const std::vector<std::string>& name) const;
+
+    template <typename... Args>
+        requires(std::convertible_to<Args, std::string> && ...)
+    Namespace& get_or_create_namespace(Args&&... name_parts)
+    {
+        return get_or_create_namespace(std::vector<std::string>{name_parts...});
+    }
+
+    template <typename... Args>
+        requires(std::convertible_to<Args, std::string> && ...)
+    Namespace& create_namespace(Args&&... name_parts)
+    {
+        return create_namespace(std::vector<std::string>{name_parts...});
+    }
+
+    template <typename... Args>
+        requires(std::convertible_to<Args, std::string> && ...)
+    Namespace& get_namespace(Args&&... name_parts)
+    {
+        return get_namespace(std::vector<std::string>{name_parts...});
+    }
+
+    template <typename... Args>
+        requires(std::convertible_to<Args, std::string> && ...)
+    const Namespace& get_namespace(Args&&... name_parts) const
+    {
+        return get_namespace(std::vector<std::string>{name_parts...});
+    }
+};
+
+class Namespace {
+    std::map<std::string, std::unique_ptr<Namespace>> children;
+
     std::set<CategoryPlugin, CategoryComparator> category_plugins;
     std::vector<EnumPlugin> enum_plugins;
     std::set<SubcategoryPlugin, SubCategoryComparator> subcategory_plugins;
     std::set<std::unique_ptr<Feature>, FeatureComparator> features;
 
 public:
+    Namespace& get_or_create_nested_namespace(const std::string& name);
+
+    Namespace& create_nested_namespace(const std::string& name);
+
+    Namespace& get_nested_namespace(const std::string& name);
+    const Namespace& get_nested_namespace(const std::string& name) const;
+
     template <std::derived_from<SubcategoryPlugin> T>
     void insert_subcategory_plugin()
     {

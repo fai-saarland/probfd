@@ -8,7 +8,7 @@ class Registry;
 namespace probfd::cli::heuristics {
 
 void add_blind_heuristic_factory_feature(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

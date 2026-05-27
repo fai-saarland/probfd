@@ -8,10 +8,10 @@ class Registry;
 namespace probfd::cli::merge_and_shrink {
 
 void add_label_reduction_category(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 void add_label_reduction_features(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

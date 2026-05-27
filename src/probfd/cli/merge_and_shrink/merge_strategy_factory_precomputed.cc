@@ -65,10 +65,10 @@ protected:
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_merge_strategy_factory_precomputed_feature(Registry& raw_registry)
+void add_merge_strategy_factory_precomputed_feature(Registry& registry)
 {
-    raw_registry
-        .insert_feature_plugin<MergeStrategyFactoryPrecomputedFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<MergeStrategyFactoryPrecomputedFeature>();
 }
 
 } // namespace probfd::cli::merge_and_shrink

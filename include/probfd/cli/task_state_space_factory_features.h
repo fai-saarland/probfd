@@ -8,7 +8,7 @@ class Registry;
 namespace probfd::cli {
 
 void add_task_state_space_factory_features(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

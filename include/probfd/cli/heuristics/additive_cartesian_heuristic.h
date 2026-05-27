@@ -8,7 +8,7 @@ class Registry;
 namespace probfd::cli::heuristics {
 
 void add_additive_cartesian_heuristic_feature(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

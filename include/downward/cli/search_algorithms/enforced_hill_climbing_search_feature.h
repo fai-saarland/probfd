@@ -8,7 +8,7 @@ class Registry;
 namespace downward::cli::search_algorithms {
 
 void add_enforce_hill_climbing_search_feature(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

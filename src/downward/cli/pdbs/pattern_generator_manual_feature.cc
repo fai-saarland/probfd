@@ -39,9 +39,10 @@ public:
 
 namespace downward::cli::pdbs {
 
-void add_pattern_generator_manual_feature(Registry& raw_registry)
+void add_pattern_generator_manual_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<PatternGeneratorManualFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<PatternGeneratorManualFeature>();
 }
 
 } // namespace downward::cli::pdbs

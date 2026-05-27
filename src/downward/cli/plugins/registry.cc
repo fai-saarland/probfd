@@ -73,7 +73,108 @@ bool FeatureComparator::operator()(
     return lhs->get_key() < rhs;
 }
 
-const Feature& Registry::get_feature(const string& name) const
+Registry::Registry()
+    : global_namespace(std::make_unique<Namespace>())
+{
+}
+
+Namespace& Registry::get_global_name_space()
+{
+    return *global_namespace;
+}
+
+const Namespace& Registry::get_global_name_space() const
+{
+    return *global_namespace;
+}
+
+Namespace&
+Registry::get_or_create_namespace(const std::vector<std::string>& name)
+{
+    Namespace* n = global_namespace.get();
+
+    for (const std::string& part : name) {
+        n = &n->get_or_create_nested_namespace(part);
+    }
+
+    return *n;
+}
+
+Namespace& Registry::create_namespace(const std::vector<std::string>& name)
+{
+    if (name.empty()) {
+        throw std::domain_error(
+            "Global namespace always exists and cannot be created.");
+    }
+
+    Namespace* n = global_namespace.get();
+
+    for (const std::string& part : name) {
+        n = &n->create_nested_namespace(part);
+    }
+
+    return *n;
+}
+
+Namespace& Registry::get_namespace(const std::vector<std::string>& name)
+{
+    Namespace* n = global_namespace.get();
+
+    for (const std::string& part : name) { n = &n->get_nested_namespace(part); }
+
+    return *n;
+}
+
+const Namespace&
+Registry::get_namespace(const std::vector<std::string>& name) const
+{
+    Namespace* n = global_namespace.get();
+
+    for (const std::string& part : name) { n = &n->get_nested_namespace(part); }
+
+    return *n;
+}
+
+Namespace& Namespace::get_or_create_nested_namespace(const std::string& name)
+{
+    return *children.emplace(name, std::make_unique<Namespace>()).first->second;
+}
+
+Namespace& Namespace::create_nested_namespace(const std::string& name)
+{
+    auto [it, inserted] = children.emplace(
+        std::piecewise_construct,
+        std::forward_as_tuple(name),
+        std::forward_as_tuple());
+
+    if (!inserted) {
+        throw std::domain_error("Nested namespace already exists.");
+    }
+
+    return *it->second;
+}
+
+Namespace& Namespace::get_nested_namespace(const std::string& name)
+{
+    if (const auto it = children.find(name); it != children.end()) {
+        return *it->second;
+    }
+
+    throw std::domain_error(
+        std::format("Nested namespace {} does not exist.", name));
+}
+
+const Namespace& Namespace::get_nested_namespace(const std::string& name) const
+{
+    if (const auto it = children.find(name); it != children.end()) {
+        return *it->second;
+    }
+
+    throw std::domain_error(
+        std::format("Nested namespace {} does not exist.", name));
+}
+
+const Feature& Namespace::get_feature(const string& name) const
 {
     if (const auto it = features.find(name); it != features.end()) {
         return **it;
@@ -84,7 +185,7 @@ const Feature& Registry::get_feature(const string& name) const
 }
 
 const SubcategoryPlugin&
-Registry::get_subcategory_plugin(const string& subcategory) const
+Namespace::get_subcategory_plugin(const string& subcategory) const
 {
     if (const auto it = subcategory_plugins.find(subcategory);
         it != subcategory_plugins.end()) {
@@ -96,7 +197,7 @@ Registry::get_subcategory_plugin(const string& subcategory) const
         subcategory);
 }
 
-bool Registry::has_feature(const string& name) const
+bool Namespace::has_feature(const string& name) const
 {
     return features.contains(name);
 }

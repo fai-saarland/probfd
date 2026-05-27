@@ -8,7 +8,7 @@ class Registry;
 namespace probfd::cli::cartesian_abstractions {
 
 void add_policy_based_flaw_generator_feature(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

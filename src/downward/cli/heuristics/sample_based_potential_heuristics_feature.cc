@@ -161,10 +161,10 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_sample_based_potential_heuristics_feature(Registry& raw_registry)
+void add_sample_based_potential_heuristics_feature(Registry& registry)
 {
-    raw_registry
-        .insert_feature_plugin<SampleBasedPotentialMaxHeuristicFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<SampleBasedPotentialMaxHeuristicFeature>();
 }
 
 } // namespace downward::cli::heuristics

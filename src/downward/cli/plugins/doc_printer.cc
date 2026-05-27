@@ -20,7 +20,9 @@ DocPrinter::DocPrinter(ostream& out, Registry& registry)
 
 void DocPrinter::print_all() const
 {
-    for (const auto categories = registry.get_categories();
+    const Namespace& n = registry.get_global_name_space();
+
+    for (const auto categories = n.get_categories();
          const auto& category : categories) {
         print_category(category, true);
     }
@@ -28,7 +30,8 @@ void DocPrinter::print_all() const
 
 void DocPrinter::print_category(const string& name, bool recursive) const
 {
-    const auto categories = registry.get_categories();
+    const Namespace& n = registry.get_global_name_space();
+    const auto categories = n.get_categories();
     const auto it = std::ranges::lower_bound(
         categories,
         name,
@@ -47,14 +50,17 @@ void DocPrinter::print_category(const string& name, bool recursive) const
 
 void DocPrinter::print_feature(const string& name) const
 {
-    print_feature(registry.get_feature(name));
+    const Namespace& n = registry.get_global_name_space();
+    print_feature(n.get_feature(name));
 }
 
 void DocPrinter::print_category(const CategoryPlugin& category, bool recursive)
     const
 {
+    const Namespace& n = registry.get_global_name_space();
+
     map<string, vector<const Feature*>> subcategories;
-    for (const auto& feature : registry.get_features()) {
+    for (const auto& feature : n.get_features()) {
         if (const Type& type = feature->get_type();
             type.is_feature_type() &&
             static_cast<const FeatureType&>(type).get_type_index() ==
@@ -100,9 +106,11 @@ void DocPrinter::print_subcategory(
     const string& subcategory_name,
     const vector<const Feature*>& features) const
 {
+    const Namespace& n = registry.get_global_name_space();
+
     if (!subcategory_name.empty()) {
         const SubcategoryPlugin& subcategory_plugin =
-            registry.get_subcategory_plugin(subcategory_name);
+            n.get_subcategory_plugin(subcategory_name);
         os << endl << "= " << subcategory_plugin.get_title() << " =" << endl;
         if (!subcategory_plugin.get_synopsis().empty()) {
             os << subcategory_plugin.get_synopsis() << endl;

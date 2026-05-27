@@ -57,10 +57,10 @@ public:
 namespace downward::cli::pdbs {
 
 void add_pattern_collection_generator_multiple_cegar_feature(
-    Registry& raw_registry)
+    Registry& registry)
 {
-    raw_registry.insert_feature_plugin<
-        PatternCollectionGeneratorMultipleCegarFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<PatternCollectionGeneratorMultipleCegarFeature>();
 }
 
 } // namespace downward::cli::pdbs

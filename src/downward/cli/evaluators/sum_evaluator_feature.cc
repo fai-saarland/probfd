@@ -86,9 +86,10 @@ public:
 
 namespace downward::cli::evaluators {
 
-void add_sum_evaluator_feature(Registry& raw_registry)
+void add_sum_evaluator_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<SumEvaluatorFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<SumEvaluatorFeature>();
 }
 
 } // namespace downward::cli::evaluators

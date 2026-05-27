@@ -39,9 +39,10 @@ protected:
 
 namespace probfd::cli::cartesian_abstractions {
 
-void add_adaptive_flaw_generator_feature(Registry& raw_registry)
+void add_adaptive_flaw_generator_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<AdaptiveFlawGeneratorFactoryFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<AdaptiveFlawGeneratorFactoryFeature>();
 }
 
 } // namespace probfd::cli::cartesian_abstractions

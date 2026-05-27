@@ -10,9 +10,10 @@ using namespace downward::cli::plugins;
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_prune_strategy_category(Registry& raw_registry)
+void add_prune_strategy_category(Registry& registry)
 {
-    raw_registry.insert_shared_category_plugin<PruneStrategy>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_shared_category_plugin<PruneStrategy>(
         "PruneStrategy",
         "This page describes the various pruning strategies "
         "supported by the planner.");

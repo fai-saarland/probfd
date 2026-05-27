@@ -96,13 +96,14 @@ public:
 
 namespace downward::cli::merge_and_shrink {
 
-void add_shrink_fh_feature(Registry& raw_registry)
+void add_shrink_fh_feature(Registry& registry)
 {
-    raw_registry.insert_enum_plugin<ShrinkFH::HighLow>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_enum_plugin<ShrinkFH::HighLow>(
         {{"high", "prefer shrinking states with high value"},
          {"low", "prefer shrinking states with low value"}});
 
-    raw_registry.insert_feature_plugin<ShrinkFHFeature>();
+    n.insert_feature_plugin<ShrinkFHFeature>();
 }
 
 } // namespace downward::cli::merge_and_shrink

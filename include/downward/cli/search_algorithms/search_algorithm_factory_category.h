@@ -8,7 +8,7 @@ class Registry;
 namespace downward::cli::search_algorithms {
 
 void add_search_algorithm_factory_category(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

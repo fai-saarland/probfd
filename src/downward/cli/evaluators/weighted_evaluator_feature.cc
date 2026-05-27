@@ -85,9 +85,10 @@ public:
 
 namespace downward::cli::evaluators {
 
-void add_weighted_evaluator_feature(Registry& raw_registry)
+void add_weighted_evaluator_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<WeightedEvaluatorFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<WeightedEvaluatorFeature>();
 }
 
 } // namespace downward::cli::evaluators

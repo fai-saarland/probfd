@@ -8,7 +8,7 @@ class Registry;
 namespace probfd::cli::heuristics {
 
 void add_task_heuristic_factory_category(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

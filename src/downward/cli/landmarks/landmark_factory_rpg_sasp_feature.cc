@@ -54,9 +54,10 @@ public:
 
 namespace downward::cli::landmarks {
 
-void add_landmark_factory_rpg_sasp_feature(Registry& raw_registry)
+void add_landmark_factory_rpg_sasp_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<LandmarkFactoryRpgSaspFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<LandmarkFactoryRpgSaspFeature>();
 }
 
 } // namespace downward::cli::landmarks

@@ -8,10 +8,10 @@ class Registry;
 namespace probfd::cli::cartesian_abstractions {
 
 void add_split_selector_category(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 void add_split_selector_features(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 } // namespace probfd::cli::cartesian_abstractions
 

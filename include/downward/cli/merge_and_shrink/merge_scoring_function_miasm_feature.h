@@ -8,7 +8,7 @@ class Registry;
 namespace downward::cli::merge_and_shrink {
 
 void add_merge_scoring_function_miasm_feature(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

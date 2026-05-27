@@ -11,13 +11,14 @@ using namespace downward::cli::plugins;
 
 namespace downward::cli::cartesian_abstractions {
 
-void add_subtask_generator_category(Registry& raw_registry)
+void add_subtask_generator_category(Registry& registry)
 {
-    raw_registry.insert_shared_category_plugin<SubtaskGenerator>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_shared_category_plugin<SubtaskGenerator>(
         "SubtaskGenerator",
         "Subtask generator (used by the CEGAR heuristic).");
 
-    raw_registry.insert_enum_plugin<FactOrder>(
+    n.insert_enum_plugin<FactOrder>(
         {{"original", "according to their (internal) variable index"},
          {"random", "according to a random permutation"},
          {"hadd_up", "according to their h^add value, lowest first"},

@@ -116,11 +116,11 @@ static auto construct_solver(argparse::ArgumentParser& parser)
     }
 
     // Register internal pre-definitions
-    Registry raw_registry;
-    register_definitions(raw_registry);
+    Registry registry;
+    register_definitions(registry);
 
     // Type check
-    const DecoratedASTNodePtr decorated = parsed->decorate(raw_registry);
+    const DecoratedASTNodePtr decorated = parsed->decorate(registry);
 
     // Remove unused definitions if enabled
     if (parser.get<bool>("--ignore-unused-definitions")) {

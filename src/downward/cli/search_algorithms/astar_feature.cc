@@ -134,9 +134,10 @@ public:
 
 namespace downward::cli::search_algorithms {
 
-void add_astar_feature(Registry& raw_registry)
+void add_astar_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<AStarSearchFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<AStarSearchFeature>();
 }
 
 } // namespace downward::cli::search_algorithms

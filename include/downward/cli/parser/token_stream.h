@@ -20,6 +20,7 @@ enum class TokenType {
     OPENING_BRACKET,
     CLOSING_BRACKET,
     COMMA,
+    DOT,
     COLON,
     EQUALS,
     PLUS,

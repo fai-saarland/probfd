@@ -102,9 +102,10 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_cg_heuristic_feature(Registry& raw_registry)
+void add_cg_heuristic_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<CGHeuristicFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<CGHeuristicFeature>();
 }
 
 } // namespace downward::cli::heuristics

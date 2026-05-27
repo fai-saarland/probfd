@@ -45,9 +45,10 @@ public:
 
 namespace probfd::cli::pdbs::cegar {
 
-void add_sampling_flaw_finder_feature(Registry& raw_registry)
+void add_sampling_flaw_finder_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<SamplingFlawFinderFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<SamplingFlawFinderFeature>();
 }
 
 } // namespace probfd::cli::pdbs::cegar

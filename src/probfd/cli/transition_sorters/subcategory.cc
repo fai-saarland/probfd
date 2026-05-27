@@ -34,16 +34,18 @@ public:
 
 namespace probfd::cli::transiton_sorters {
 
-void add_transition_sorter_category(Registry& raw_registry)
+void add_transition_sorter_category(Registry& registry)
 {
-    raw_registry.insert_shared_category_plugin<FDRTransitionSorter>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_shared_category_plugin<FDRTransitionSorter>(
         "FDRTransitionSorter",
         "");
 }
 
-void add_transition_sorter_features(Registry& raw_registry)
+void add_transition_sorter_features(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<VDiffSorterFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<VDiffSorterFeature>();
 }
 
 } // namespace probfd::cli::transiton_sorters

@@ -101,9 +101,10 @@ protected:
 
 namespace probfd::cli::solvers {
 
-void add_i2dual_feature(Registry& raw_registry)
+void add_i2dual_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<I2DualSolverFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<I2DualSolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

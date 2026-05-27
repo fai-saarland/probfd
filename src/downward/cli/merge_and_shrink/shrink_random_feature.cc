@@ -39,9 +39,10 @@ public:
 
 namespace downward::cli::merge_and_shrink {
 
-void add_shrink_random_feature(Registry& raw_registry)
+void add_shrink_random_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<ShrinkRandomFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<ShrinkRandomFeature>();
 }
 
 } // namespace downward::cli::merge_and_shrink

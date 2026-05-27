@@ -8,7 +8,7 @@ class Registry;
 namespace downward::cli::pruning {
 
 void add_stubborn_sets_simple_feature(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

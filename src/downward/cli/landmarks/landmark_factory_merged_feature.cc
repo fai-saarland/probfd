@@ -61,9 +61,10 @@ public:
 
 namespace downward::cli::landmarks {
 
-void add_landmark_factory_merged_feature(Registry& raw_registry)
+void add_landmark_factory_merged_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<LandmarkFactoryMergedFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<LandmarkFactoryMergedFeature>();
 }
 
 } // namespace downward::cli::landmarks

@@ -93,9 +93,10 @@ public:
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_merge_strategy_factory_sccs_feature(Registry& raw_registry)
+void add_merge_strategy_factory_sccs_feature(Registry& registry)
 {
-    raw_registry.insert_enum_plugin<OrderOfSCCs>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_enum_plugin<OrderOfSCCs>(
         {{"topological",
           "according to the topological ordering of the directed graph "
           "where each obtained SCC is a 'supervertex'"},
@@ -107,7 +108,7 @@ void add_merge_strategy_factory_sccs_feature(Registry& raw_registry)
          {"increasing",
           "smallest SCCs first, using 'topological' as tie-breaker"}});
 
-    raw_registry.insert_feature_plugin<MergeStrategyFactorySCCsFeature>();
+    n.insert_feature_plugin<MergeStrategyFactorySCCsFeature>();
 }
 
 } // namespace probfd::cli::merge_and_shrink

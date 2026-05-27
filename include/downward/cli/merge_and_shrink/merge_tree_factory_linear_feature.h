@@ -8,7 +8,7 @@ class Registry;
 namespace downward::cli::merge_and_shrink {
 
 void add_merge_tree_factory_linear_feature(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

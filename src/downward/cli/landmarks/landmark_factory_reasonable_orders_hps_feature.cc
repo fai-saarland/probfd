@@ -79,11 +79,10 @@ public:
 
 namespace downward::cli::landmarks {
 
-void add_landmark_factory_reasonable_orders_hps_feature(
-    Registry& raw_registry)
+void add_landmark_factory_reasonable_orders_hps_feature(Registry& registry)
 {
-    raw_registry
-        .insert_feature_plugin<LandmarkFactoryReasonableOrdersHPSFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<LandmarkFactoryReasonableOrdersHPSFeature>();
 }
 
 } // namespace downward::cli::landmarks

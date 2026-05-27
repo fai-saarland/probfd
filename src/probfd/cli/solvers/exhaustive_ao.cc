@@ -93,9 +93,10 @@ protected:
 
 namespace probfd::cli::solvers {
 
-void add_exhaustive_ao_solver_features(Registry& raw_registry)
+void add_exhaustive_ao_solver_features(Registry& registry)
 {
-    raw_registry.insert_feature_plugins<ExhaustiveAOSolverFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugins<ExhaustiveAOSolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

@@ -51,9 +51,10 @@ public:
 
 namespace downward::cli::landmarks {
 
-void add_landmark_factory_zhu_givan_feature(Registry& raw_registry)
+void add_landmark_factory_zhu_givan_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<LandmarkFactoryZhuGivanFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<LandmarkFactoryZhuGivanFeature>();
 }
 
 } // namespace downward::cli::landmarks

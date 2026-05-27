@@ -11,9 +11,10 @@ using namespace probfd::cartesian_abstractions;
 
 namespace probfd::cli::cartesian_abstractions {
 
-void add_flaw_generator_category(Registry& raw_registry)
+void add_flaw_generator_category(Registry& registry)
 {
-    raw_registry.insert_shared_category_plugin<FlawGeneratorFactory>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_shared_category_plugin<FlawGeneratorFactory>(
         "FlawGeneratorFactory",
         "Factory for flaw generation algorithms used in the "
         "cartesian abstraction "

@@ -11,9 +11,10 @@ using namespace downward::cli::plugins;
 
 namespace downward::cli::pdbs {
 
-void add_pattern_generator_category(Registry& raw_registry)
+void add_pattern_generator_category(Registry& registry)
 {
-    raw_registry.insert_shared_category_plugin<PatternGenerator>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_shared_category_plugin<PatternGenerator>(
         "PatternGenerator",
         "Factory for single patterns");
 }

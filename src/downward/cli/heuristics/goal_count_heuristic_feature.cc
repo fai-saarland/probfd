@@ -85,9 +85,10 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_goal_count_heuristic_features(Registry& raw_registry)
+void add_goal_count_heuristic_features(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<GoalCountHeuristicFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<GoalCountHeuristicFeature>();
 }
 
 } // namespace downward::cli::heuristics

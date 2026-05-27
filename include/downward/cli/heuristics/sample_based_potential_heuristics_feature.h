@@ -8,7 +8,7 @@ class Registry;
 namespace downward::cli::heuristics {
 
 void add_sample_based_potential_heuristics_feature(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

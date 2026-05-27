@@ -93,9 +93,10 @@ public:
 
 namespace downward::cli::operator_counting {
 
-void add_delete_relaxation_rr_constraints_feature(Registry& raw_registry)
+void add_delete_relaxation_rr_constraints_feature(Registry& registry)
 {
-    raw_registry.insert_enum_plugin<AcyclicityType>(
+    Namespace& n = registry.get_global_name_space();
+    n.insert_enum_plugin<AcyclicityType>(
         {{"time_labels",
           "introduces MIP variables that encode the time at which each fact is "
           "reached. Acyclicity is enforced with constraints that ensure that "
@@ -112,7 +113,7 @@ void add_delete_relaxation_rr_constraints_feature(Registry& raw_registry)
           "No acyclicity is enforced. The resulting heuristic is a relaxation "
           "of the delete-relaxation heuristic."}});
 
-    raw_registry.insert_feature_plugin<DeleteRelaxationRRConstraintsFeature>();
+    n.insert_feature_plugin<DeleteRelaxationRRConstraintsFeature>();
 }
 
 } // namespace downward::cli::operator_counting

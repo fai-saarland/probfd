@@ -43,9 +43,10 @@ public:
 
 namespace downward::cli::mutexes {
 
-void add_from_file_mutex_factory_feature(Registry& raw_registry)
+void add_from_file_mutex_factory_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<FromFileMutexFactoryFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<FromFileMutexFactoryFeature>();
 }
 
 } // namespace downward::cli::mutexes

@@ -203,12 +203,13 @@ public:
 
 namespace probfd::cli::occupation_measures {
 
-void add_occupation_measure_heuristics_features(Registry& raw_registry)
+void add_occupation_measure_heuristics_features(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<HROCFactoryFeature>();
-    raw_registry.insert_feature_plugin<HPOMFactoryFeature>();
-    raw_registry.insert_feature_plugin<HOHPOMFactoryFeature>();
-    raw_registry.insert_feature_plugin<HPHOFactoryFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<HROCFactoryFeature>();
+    n.insert_feature_plugin<HPOMFactoryFeature>();
+    n.insert_feature_plugin<HOHPOMFactoryFeature>();
+    n.insert_feature_plugin<HPHOFactoryFeature>();
 }
 
 } // namespace probfd::cli::occupation_measures

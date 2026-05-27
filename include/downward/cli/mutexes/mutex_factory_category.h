@@ -8,7 +8,7 @@ class Registry;
 namespace downward::cli::mutexes {
 
 void add_mutex_factory_category(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

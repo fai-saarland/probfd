@@ -8,7 +8,7 @@ class Registry;
 namespace downward::cli::heuristics {
 
 void add_goal_count_heuristic_features(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

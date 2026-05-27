@@ -29,12 +29,14 @@ public:
     PatternCollectionGeneratorHillclimbingFeature()
         : TypedFeature("hillclimbing_probabilistic")
     {
-        add_optional_argument_with_default<std::shared_ptr<PatternCollectionGenerator>>(
+        add_optional_argument_with_default<
+            std::shared_ptr<PatternCollectionGenerator>>(
             "initial_generator",
             "psystematic(pattern_max_size=1)",
             "generator for the initial pattern database");
 
-        add_optional_argument_with_default<std::shared_ptr<SubCollectionFinderFactory>>(
+        add_optional_argument_with_default<
+            std::shared_ptr<SubCollectionFinderFactory>>(
             "subcollection_finder_factory",
             "finder_trivial_factory()",
             "The subcollection finder factory.");
@@ -86,8 +88,7 @@ public:
 
         return make_shared_from_arg_tuples<
             PatternCollectionGeneratorHillclimbing>(
-            opts.get_shared<PatternCollectionGenerator>(
-                "initial_generator"),
+            opts.get_shared<PatternCollectionGenerator>("initial_generator"),
             opts.get_shared<SubCollectionFinderFactory>(
                 "subcollection_finder_factory"),
             opts.get<int>("pdb_max_size"),
@@ -105,10 +106,10 @@ public:
 namespace probfd::cli::pdbs {
 
 void add_pattern_collection_generator_hillclimbing_feature(
-    Registry& raw_registry)
+    Registry& registry)
 {
-    raw_registry
-        .insert_feature_plugin<PatternCollectionGeneratorHillclimbingFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<PatternCollectionGeneratorHillclimbingFeature>();
 }
 
 } // namespace probfd::cli::pdbs

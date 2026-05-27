@@ -47,9 +47,10 @@ protected:
 
 namespace probfd::cli::heuristics {
 
-void add_dead_end_pruning_heuristic_feature(Registry& raw_registry)
+void add_dead_end_pruning_heuristic_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<DeadEndPruningHeuristicFactoryFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<DeadEndPruningHeuristicFactoryFeature>();
 }
 
 } // namespace probfd::cli::heuristics

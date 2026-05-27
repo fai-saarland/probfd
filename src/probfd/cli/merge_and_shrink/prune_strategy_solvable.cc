@@ -29,9 +29,10 @@ public:
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_prune_strategy_solvable_feature(Registry& raw_registry)
+void add_prune_strategy_solvable_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<PruneStrategySolvableFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<PruneStrategySolvableFeature>();
 }
 
 } // namespace probfd::cli::merge_and_shrink

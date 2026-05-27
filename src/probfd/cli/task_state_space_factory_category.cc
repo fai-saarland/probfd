@@ -9,10 +9,12 @@ using namespace downward::cli::plugins;
 
 namespace probfd::cli {
 
-void add_task_state_space_factory_category(Registry& raw_registry)
+void add_task_state_space_factory_category(Registry& registry)
 {
-    raw_registry.insert_shared_category_plugin<TaskStateSpaceFactory>(
-        "TaskStateSpaceFactory", "");
+    Namespace& n = registry.get_global_name_space();
+    n.insert_shared_category_plugin<TaskStateSpaceFactory>(
+        "TaskStateSpaceFactory",
+        "");
 }
 
 } // namespace probfd::cli

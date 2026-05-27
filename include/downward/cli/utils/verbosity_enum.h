@@ -8,7 +8,7 @@ class Registry;
 namespace downward::cli::utils {
 
 void add_verbosity_enum(
-    downward::cli::plugins::Registry& raw_registry);
+    downward::cli::plugins::Registry& registry);
 
 }
 

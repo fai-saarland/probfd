@@ -162,9 +162,10 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_operator_counting_heuristic_feature(Registry& raw_registry)
+void add_operator_counting_heuristic_feature(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<OperatorCountingHeuristicFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<OperatorCountingHeuristicFeature>();
 }
 
 } // namespace downward::cli::heuristics

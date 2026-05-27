@@ -11,7 +11,7 @@ class Registry;
 }
 
 namespace probfd {
-void register_definitions(downward::cli::plugins::Registry& raw_registry);
+void register_definitions(downward::cli::plugins::Registry& registry);
 }
 
 #endif

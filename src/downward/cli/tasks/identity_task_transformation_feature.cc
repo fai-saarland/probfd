@@ -29,9 +29,10 @@ public:
 
 namespace downward::cli::tasks {
 
-void add_identity_task_transformation_features(Registry& raw_registry)
+void add_identity_task_transformation_features(Registry& registry)
 {
-    raw_registry.insert_feature_plugin<IdentityTaskTransformationFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<IdentityTaskTransformationFeature>();
 }
 
 } // namespace downward::cli::tasks

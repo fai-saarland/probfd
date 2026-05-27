@@ -43,10 +43,10 @@ protected:
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_merge_scoring_function_single_random_feature(Registry& raw_registry)
+void add_merge_scoring_function_single_random_feature(Registry& registry)
 {
-    raw_registry
-        .insert_feature_plugin<MergeScoringFunctionSingleRandomFeature>();
+    Namespace& n = registry.get_global_name_space();
+    n.insert_feature_plugin<MergeScoringFunctionSingleRandomFeature>();
 }
 
 } // namespace probfd::cli::merge_and_shrink
