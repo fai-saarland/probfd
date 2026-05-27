@@ -40,8 +40,8 @@ public:
     {
         if (!line_has_started) {
             line_has_started = true;
-            stream << "[t=" << g_timer << ", " << get_peak_memory_in_kb()
-                   << " KB] ";
+            stream << "[t=" << g_timer << ", " << get_peak_memory_in_kib()
+                   << "] ";
         }
 
         stream << elem;

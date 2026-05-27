@@ -100,7 +100,7 @@ static void print_peak_memory_reentrant()
 #if OPERATING_SYSTEM == OSX
     // TODO: Write print_peak_memory_reentrant() for OS X.
     write_reentrant_str(STDOUT_FILENO, "Peak memory: ");
-    write_reentrant_int(STDOUT_FILENO, get_peak_memory_in_kb());
+    write_reentrant_int(STDOUT_FILENO, get_peak_memory_in_kib().count());
     write_reentrant_str(STDOUT_FILENO, " KB\n");
 #else
 
@@ -137,8 +137,7 @@ static void print_peak_memory_reentrant()
     write_reentrant_str(STDOUT_FILENO, "Peak memory: ");
 
     // Skip over whitespace.
-    while (read_char_reentrant(proc_file_descr, &c) && isspace(c))
-        ;
+    while (read_char_reentrant(proc_file_descr, &c) && isspace(c));
 
     do {
         write_reentrant_char(STDOUT_FILENO, c);
@@ -193,7 +192,7 @@ static void signal_handler(int signal_number)
         print_peak_memory_in_kb_reentrant() is used in signal handlers.
         The latter is slower but guarantees reentrancy.
 */
-int get_peak_memory_in_kb()
+Kibibytes get_peak_memory_in_kib()
 {
     // On error, produces a warning on cerr and returns -1.
     int memory_in_kb = -1;
@@ -228,7 +227,7 @@ int get_peak_memory_in_kb()
 
     if (memory_in_kb == -1)
         cerr << "warning: could not determine peak memory" << endl;
-    return memory_in_kb;
+    return Kibibytes(memory_in_kb);
 }
 
 void register_event_handlers()
@@ -282,6 +281,6 @@ int get_process_id()
 {
     return getpid();
 }
-} // namespace utils
+} // namespace downward::utils
 
 #endif

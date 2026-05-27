@@ -70,9 +70,9 @@ void ProgressReport::print_progress()
     }
     println(
         out_,
-        ", t={}, memory={} KB]",
+        ", t={}, memory={}]",
         utils::g_timer(),
-        utils::get_peak_memory_in_kb());
+        utils::get_peak_memory_in_kib());
 }
 
 bool ProgressReport::advance_values(bool force)

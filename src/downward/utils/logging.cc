@@ -118,7 +118,7 @@ string MemoryContext::decorate_block_name(const string& msg) const
 {
     ostringstream decorated_msg;
     decorated_msg << "[TRACE] " << setw(TIME_FIELD_WIDTH) << g_timer << " "
-                  << setw(MEM_FIELD_WIDTH) << get_peak_memory_in_kb() << " KB";
+                  << setw(MEM_FIELD_WIDTH) << get_peak_memory_in_kib();
     for (size_t i = 0; i < block_stack.size(); ++i) decorated_msg << INDENT;
     decorated_msg << ' ' << msg << endl;
     return decorated_msg.str();
