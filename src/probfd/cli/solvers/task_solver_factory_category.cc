@@ -11,7 +11,7 @@ namespace probfd::cli::solvers {
 
 void add_task_solver_factory_category(RawRegistry& raw_registry)
 {
-    auto& category = raw_registry.insert_category_plugin<TaskSolverFactory>(
+    auto& category = raw_registry.insert_shared_category_plugin<TaskSolverFactory>(
         "TaskSolverFactory");
     category.document_synopsis(
         "Represents a factory that produces a generic planning problem "

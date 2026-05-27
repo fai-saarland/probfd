@@ -39,30 +39,26 @@ static vector<pair<TokenType, regex>> construct_token_type_expressions()
         {TokenType::TYPE_STRING, R"(string)"},
         {TokenType::TYPE_INTEGER, R"(int)"},
         {TokenType::TYPE_FLOAT, R"(float)"},
-        {TokenType::BOOLEAN, R"(true|false)"},
+        {TokenType::TRUE, R"(true)"},
+        {TokenType::FALSE, R"(false)"},
         {TokenType::STRING, R"("(\\\\|\\"|\\n|[^"\\])*")"},
         /*
-          Floats have to be parsed before integers, so tokens like '1.2' are
-          parsed as one float token rather than an integer token '1' followed
-          by a float token '.2'.
-        */
-        {TokenType::DURATION,
-         R"((\d+([.]\d*)?(e[+-]?\d+)?|[.]\d+(e[+-]?\d+)?)(ns|us|ms|s|min|h)|infinite)"},
-        {TokenType::FLOAT,
-         R"((((\d*[.]\d+|\d+[.])(e[+-]?\d+)?)|\d+e[+-]?\d+)([kmg]\b)?)"},
-        /*
-         * Integers may have a user-defined literal suffix, e.g. '4k'.
-         * this will be translated to a call to __literal_k__(4)
+         * Integers and floats may have a user-defined literal suffix, e.g.
+         * '4k' or 4.e-2k.
+         * this will be translated to a call to __operator_int_k__(4) or
+         * __operator_float_k__(4.e-2).
          */
-        {TokenType::INTEGER, R"((infinity|\d+([A-Za-z_][A-Za-z_0-9]*)?))"},
+        {TokenType::FLOAT,
+         R"((((\d*[.]\d+|\d+[.])(e[+-]?\d+)?)|\d+e[+-]?\d+)([A-Za-z_][A-Za-z_0-9]*)?)"},
+        {TokenType::INTEGER, R"([1-9]\d*([A-Za-z_][A-Za-z_0-9]*)?)"},
         {TokenType::IN, R"(in\b)"},
         {TokenType::AS, R"(as\b)"},
         /*
           Identifiers have to be parsed last to prevent reserved words (
-          'infinity', 'true', 'false', and 'let') from being recognized as
+          'true', 'false', and 'let') from being recognized as
           identifiers.
         */
-        {TokenType::IDENTIFIER, R"([a-zA-Z_]\w*)"}};
+        {TokenType::IDENTIFIER, R"([a-zA-Z_0-9]\w*)"}};
     vector<pair<TokenType, regex>> token_type_expression;
     token_type_expression.reserve(token_type_str_expression.size());
     for (const auto& [token_type, regex_str] : token_type_str_expression) {
@@ -107,16 +103,11 @@ TokenStream split_tokens(const string& text)
 
     vector<Token> tokens;
     auto start = text.begin();
-    auto end = text.end();
+    const auto end = text.end();
 
     while (start != end) {
-        bool has_match = false;
-        smatch match;
-
-        for (const auto& type_and_expression : token_type_expressions) {
-            TokenType token_type = type_and_expression.first;
-            const regex& expression = type_and_expression.second;
-            if (regex_search(
+        for (const auto& [token_type, expression] : token_type_expressions) {
+            if (smatch match; regex_search(
                     start,
                     end,
                     match,
@@ -124,15 +115,15 @@ TokenStream split_tokens(const string& text)
                     regex_constants::match_continuous)) {
                 tokens.push_back({match[1], token_type});
                 start += match[0].length();
-                has_match = true;
-                break;
+                goto continue_outer;
             }
         }
-        if (!has_match) {
-            context.error(
-                "Unable to recognize next token:\n" +
-                highlight_position(text, start));
-        }
+
+        context.error(
+            "Unable to recognize next token:\n" +
+            highlight_position(text, start));
+
+    continue_outer:;
     }
     return TokenStream(move(tokens));
 }

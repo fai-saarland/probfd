@@ -13,7 +13,7 @@ namespace probfd::cli::occupation_measures {
 
 void add_constraint_generator_factory_category(RawRegistry& raw_registry)
 {
-    raw_registry.insert_category_plugin<ConstraintGenerator>(
+    raw_registry.insert_shared_category_plugin<ConstraintGenerator>(
         "OMConstraintGeneratorFactory");
 }
 

@@ -11,9 +11,9 @@ namespace downward::cli::pdbs {
 
 void add_canonical_pdbs_options_to_feature(plugins::Feature& feature)
 {
-    feature.add_optional_argument_with_default<double>(
+    feature.add_optional_argument_with_default<utils::FSeconds>(
         "max_time_dominance_pruning",
-        "infinity",
+        "seconds_max()",
         "The maximum time in seconds spent on dominance pruning. Using 0.0 "
         "turns off dominance pruning. Dominance pruning excludes patterns "
         "and additive subsets that will never contribute to the heuristic "

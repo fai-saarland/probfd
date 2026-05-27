@@ -242,17 +242,6 @@ public:
         const override;
 };
 
-class DurationLiteralNode : public DecoratedASTNode {
-    utils::DynamicDuration value;
-
-public:
-    explicit DurationLiteralNode(utils::DynamicDuration value);
-
-    std::any construct(ConstructContext& context) const override;
-    void print(std::ostream& out, std::size_t indent, bool print_default_args)
-        const override;
-};
-
 class SymbolNode : public DecoratedASTNode {
     std::string value;
 

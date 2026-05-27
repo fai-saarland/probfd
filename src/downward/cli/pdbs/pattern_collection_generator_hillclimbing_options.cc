@@ -95,9 +95,9 @@ void add_hillclimbing_options_to_feature(Feature& feature)
         "minimum number of samples on which a candidate pattern "
         "collection must improve on the current one to be considered "
         "as the next pattern collection");
-    feature.add_optional_argument_with_default<double>(
+    feature.add_optional_argument_with_default<FSeconds>(
         "max_time",
-        "infinity",
+        "seconds_max()",
         "maximum time in seconds for improving the initial pattern "
         "collection via hill climbing. If set to 0, no hill climbing "
         "is performed at all. Note that this limit only affects hill "

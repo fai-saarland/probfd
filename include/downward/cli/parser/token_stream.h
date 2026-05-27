@@ -32,11 +32,11 @@ enum class TokenType {
     TYPE_STRING,
     TYPE_INTEGER,
     TYPE_FLOAT,
-    BOOLEAN,
+    TRUE,
+    FALSE,
     STRING,
     INTEGER,
     FLOAT,
-    DURATION,
     IDENTIFIER
 };
 

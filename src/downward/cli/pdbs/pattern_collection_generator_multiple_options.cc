@@ -65,20 +65,20 @@ void add_multiple_options_to_feature(plugins::Feature& feature)
         "10M",
         "maximum number of states in all pattern databases of the "
         "collection (possibly ignored, see max_pdb_size)");
-    feature.add_optional_argument_with_default<double>(
+    feature.add_optional_argument_with_default<downward::utils::FSeconds>(
         "pattern_generation_max_time",
-        "infinity",
+        "seconds_max()",
         "maximum time in seconds for each call to the algorithm for "
         "computing a single pattern");
-    feature.add_optional_argument_with_default<double>(
+    feature.add_optional_argument_with_default<downward::utils::FSeconds>(
         "total_max_time",
-        "100.0",
+        "100.0s",
         "maximum time in seconds for this pattern collection generator. "
         "It will always execute at least one iteration, i.e., call the "
         "algorithm for computing a single pattern at least once.");
-    feature.add_optional_argument_with_default<double>(
+    feature.add_optional_argument_with_default<downward::utils::FSeconds>(
         "stagnation_limit",
-        "20.0",
+        "20.0s",
         "maximum time in seconds this pattern generator is allowed to run "
         "without generating a new pattern. It terminates prematurely if this "
         "limit is hit unless enable_blacklist_on_stagnation is enabled.");

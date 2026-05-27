@@ -333,11 +333,11 @@ static ASTNodePtr parse_function(
 }
 
 static constexpr std::array literal_tokens{
-    TokenType::BOOLEAN,
+    TokenType::TRUE,
+    TokenType::FALSE,
     TokenType::STRING,
     TokenType::INTEGER,
     TokenType::FLOAT,
-    TokenType::DURATION,
     TokenType::IDENTIFIER};
 
 static ASTNodePtr
@@ -422,11 +422,11 @@ parse_node(TokenStream& tokens, SyntaxAnalyzerContext& context)
             parse_node(tokens, context),
             token.type);
     }
-    case TokenType::BOOLEAN:
+    case TokenType::TRUE:
+    case TokenType::FALSE:
     case TokenType::STRING:
     case TokenType::INTEGER:
-    case TokenType::FLOAT:
-    case TokenType::DURATION: return parse_literal(tokens, context);
+    case TokenType::FLOAT: return parse_literal(tokens, context);
     case TokenType::IDENTIFIER:
         return parse_non_prefix_op_expression(tokens, context);
     default:
@@ -439,11 +439,11 @@ parse_node(TokenStream& tokens, SyntaxAnalyzerContext& context)
                 TokenType::OPENING_BRACKET,
                 TokenType::LET,
                 TokenType::LAMBDA,
-                TokenType::BOOLEAN,
+                TokenType::TRUE,
+                TokenType::FALSE,
                 TokenType::STRING,
                 TokenType::INTEGER,
                 TokenType::FLOAT,
-                TokenType::DURATION,
                 TokenType::IDENTIFIER});
     }
 }

@@ -33,15 +33,6 @@ struct OptionsAnyCaster {
     }
 };
 
-template <typename Rep, typename Period>
-struct OptionsAnyCaster<std::chrono::duration<Rep, Period>> {
-    static std::chrono::duration<Rep, Period> cast(const std::any& operand)
-    {
-        return static_cast<std::chrono::duration<Rep, Period>>(
-            std::any_cast<downward::utils::DynamicDuration>(operand));
-    }
-};
-
 template <typename ValueType>
     requires std::is_enum_v<ValueType>
 struct OptionsAnyCaster<ValueType> {

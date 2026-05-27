@@ -62,9 +62,9 @@ public:
             "minimum number of samples on which a candidate pattern "
             "collection must improve on the current one to be considered "
             "as the next pattern collection");
-        add_optional_duration_argument_with_default(
+        add_optional_argument_with_default<downward::utils::FSeconds>(
             "max_time",
-            "infinite",
+            "seconds_max()",
             "maximum time in seconds for improving the initial pattern "
             "collection via hill climbing. If set to 0, no hill climbing "
             "is performed at all. Note that this limit only affects hill "

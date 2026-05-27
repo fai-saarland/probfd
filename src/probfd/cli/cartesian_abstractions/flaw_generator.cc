@@ -13,7 +13,7 @@ namespace probfd::cli::cartesian_abstractions {
 
 void add_flaw_generator_category(RawRegistry& raw_registry)
 {
-    auto& category = raw_registry.insert_category_plugin<FlawGeneratorFactory>(
+    auto& category = raw_registry.insert_shared_category_plugin<FlawGeneratorFactory>(
         "FlawGeneratorFactory");
     category.document_synopsis(
         "Factory for flaw generation algorithms used in the "

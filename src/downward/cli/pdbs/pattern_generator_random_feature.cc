@@ -43,9 +43,9 @@ public:
             "maximum number of states in the final pattern database (possibly "
             "ignored by a singleton pattern consisting of a single goal "
             "variable)");
-        add_optional_duration_argument_with_default(
+        add_optional_argument_with_default<downward::utils::FSeconds>(
             "max_time",
-            "infinite",
+            "seconds_max()",
             "maximum time in seconds for the pattern generation");
         add_random_pattern_bidirectional_option_to_feature(*this);
         add_rng_options_to_feature(*this);

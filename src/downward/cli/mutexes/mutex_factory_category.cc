@@ -16,7 +16,7 @@ void add_mutex_factory_category(plugins::RawRegistry& raw_registry)
 {
     auto& category =
         raw_registry
-            .insert_category_plugin<TaskDependentFactory<MutexInformation>>(
+            .insert_shared_category_plugin<TaskDependentFactory<MutexInformation>>(
                 "MutexFactory");
 
     category.document_synopsis(

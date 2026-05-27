@@ -224,50 +224,191 @@ using namespace downward::cli;
 
 namespace {
 
-template <std::size_t F, auto S>
-class LiteralFeature : public plugins::TypedFeature<int> {
+class InfinityFeature : public plugins::TypedFeature<int> {
 public:
-    LiteralFeature()
-        : TypedFeature(
-              static_cast<std::string>(static_cast<std::string_view>(S)))
+    InfinityFeature()
+        : TypedFeature("infinity")
     {
-        add_required_argument<int>("value");
     }
 
-    int create_component(
+    int
+    create_component(const plugins::Options&, const downward::utils::Context&)
+        const override
+    {
+        return std::numeric_limits<int>::max();
+    }
+};
+
+template <typename T, T F, auto S>
+class LiteralFeature : public plugins::TypedFeature<T> {
+public:
+    LiteralFeature()
+        : LiteralFeature::TypedFeature(
+              static_cast<std::string>(static_cast<std::string_view>(S)))
+    {
+        this->template add_required_argument<T>("value");
+    }
+
+    T create_component(
         const plugins::Options& opts,
         const downward::utils::Context& context) const override
     {
-        const int v = opts.get<int>("value");
-        if (!downward::utils::is_product_within_limits(
-                v,
-                F,
-                std::numeric_limits<int>::min(),
-                std::numeric_limits<int>::max() - 1)) {
-            context.error("Integer would be out of range!");
+        const T v = opts.get<T>("value");
+        if constexpr (std::same_as<T, int>) {
+            if (!downward::utils::is_product_within_limits(
+                    v,
+                    F,
+                    std::numeric_limits<T>::min(),
+                    std::numeric_limits<T>::max() - 1)) {
+                context.error("Integer would be out of range!");
+            }
         }
         return F * v;
     }
 };
 
+template <typename R, typename T, auto S>
+class CastFromLiteralFeature : public plugins::TypedFeature<R> {
+public:
+    CastFromLiteralFeature()
+        : CastFromLiteralFeature::TypedFeature(
+              static_cast<std::string>(static_cast<std::string_view>(S)))
+    {
+        this->template add_required_argument<T>("value");
+    }
+
+    R create_component(
+        const plugins::Options& opts,
+        const downward::utils::Context&) const override
+    {
+        const T v = opts.get<T>("value");
+        return R{v};
+    }
+};
+
+template <typename R, auto S>
+class ConstructInfiniteFeature : public plugins::TypedFeature<R> {
+public:
+    ConstructInfiniteFeature()
+        : ConstructInfiniteFeature::TypedFeature(
+              static_cast<std::string>(static_cast<std::string_view>(S)))
+    {
+    }
+
+    R create_component(const plugins::Options&, const downward::utils::Context&)
+        const override
+    {
+        return R::max();
+    }
+};
+
 } // namespace
 
-namespace probfd
-
-{
+namespace probfd {
 
 static void
 register_fast_downward_definitions(plugins::RawRegistry& raw_registry)
 {
     using namespace downward::utils::string_literals;
 
-    // Literal suffixes
-    raw_registry
-        .insert_feature_plugin<LiteralFeature<1'000, "__operator_k__"_sl>>();
+    // Infinity
+    raw_registry.insert_feature_plugin<InfinityFeature>();
+
+    // Generic literal suffixes
     raw_registry.insert_feature_plugin<
-        LiteralFeature<1'000'000, "__operator_m__"_sl>>();
+        LiteralFeature<int, 1'000, "__operator_int_k__"_sl>>();
     raw_registry.insert_feature_plugin<
-        LiteralFeature<1'000'000'000, "__operator_g__"_sl>>();
+        LiteralFeature<int, 1'000'000, "__operator_int_m__"_sl>>();
+    raw_registry.insert_feature_plugin<
+        LiteralFeature<int, 1'000'000'000, "__operator_int_g__"_sl>>();
+
+    raw_registry.insert_feature_plugin<
+        LiteralFeature<double, 1'000., "__operator_float_k__"_sl>>();
+    raw_registry.insert_feature_plugin<
+        LiteralFeature<double, 1'000'000., "__operator_float_m__"_sl>>();
+    raw_registry.insert_feature_plugin<
+        LiteralFeature<double, 1'000'000'000., "__operator_float_g__"_sl>>();
+
+    // Duration types
+    raw_registry.insert_category_plugin<downward::utils::FNanoSeconds>(
+        "nanoseconds");
+    raw_registry.insert_category_plugin<downward::utils::FMicroSeconds>(
+        "microseconds");
+    raw_registry.insert_category_plugin<downward::utils::FMilliSeconds>(
+        "milliseconds");
+    raw_registry.insert_category_plugin<downward::utils::FSeconds>("seconds");
+    raw_registry.insert_category_plugin<downward::utils::FMinutes>("minutes");
+    raw_registry.insert_category_plugin<downward::utils::FHours>("hours");
+
+    // Duration literals
+    raw_registry.insert_feature_plugin<CastFromLiteralFeature<
+        downward::utils::FNanoSeconds,
+        int,
+        "__operator_int_ns__"_sl>>();
+    raw_registry.insert_feature_plugin<CastFromLiteralFeature<
+        downward::utils::FMicroSeconds,
+        int,
+        "__operator_int_us__"_sl>>();
+    raw_registry.insert_feature_plugin<CastFromLiteralFeature<
+        downward::utils::FMilliSeconds,
+        int,
+        "__operator_int_ms__"_sl>>();
+    raw_registry.insert_feature_plugin<CastFromLiteralFeature<
+        downward::utils::FSeconds,
+        int,
+        "__operator_int_s__"_sl>>();
+    raw_registry.insert_feature_plugin<CastFromLiteralFeature<
+        downward::utils::FMinutes,
+        int,
+        "__operator_int_min__"_sl>>();
+    raw_registry.insert_feature_plugin<CastFromLiteralFeature<
+        downward::utils::FHours,
+        int,
+        "__operator_int_h__"_sl>>();
+
+    raw_registry.insert_feature_plugin<CastFromLiteralFeature<
+        downward::utils::FNanoSeconds,
+        double,
+        "__operator_float_ns__"_sl>>();
+    raw_registry.insert_feature_plugin<CastFromLiteralFeature<
+        downward::utils::FMicroSeconds,
+        double,
+        "__operator_float_us__"_sl>>();
+    raw_registry.insert_feature_plugin<CastFromLiteralFeature<
+        downward::utils::FMilliSeconds,
+        double,
+        "__operator_float_ms__"_sl>>();
+    raw_registry.insert_feature_plugin<CastFromLiteralFeature<
+        downward::utils::FSeconds,
+        double,
+        "__operator_float_s__"_sl>>();
+    raw_registry.insert_feature_plugin<CastFromLiteralFeature<
+        downward::utils::FMinutes,
+        double,
+        "__operator_float_min__"_sl>>();
+    raw_registry.insert_feature_plugin<CastFromLiteralFeature<
+        downward::utils::FHours,
+        double,
+        "__operator_float_h__"_sl>>();
+
+    // Infinite durations
+    raw_registry.insert_feature_plugin<ConstructInfiniteFeature<
+        downward::utils::FNanoSeconds,
+        "nanoseconds_max"_sl>>();
+    raw_registry.insert_feature_plugin<ConstructInfiniteFeature<
+        downward::utils::FMicroSeconds,
+        "microseconds_max"_sl>>();
+    raw_registry.insert_feature_plugin<ConstructInfiniteFeature<
+        downward::utils::FMilliSeconds,
+        "milliseconds_max"_sl>>();
+    raw_registry.insert_feature_plugin<ConstructInfiniteFeature<
+        downward::utils::FSeconds,
+        "seconds_max"_sl>>();
+    raw_registry.insert_feature_plugin<ConstructInfiniteFeature<
+        downward::utils::FMinutes,
+        "minutes_max"_sl>>();
+    raw_registry.insert_feature_plugin<
+        ConstructInfiniteFeature<downward::utils::FHours, "hours_max"_sl>>();
 
     // Cartesian abstractions
     cartesian_abstractions::add_subtask_generator_category(raw_registry);

@@ -114,7 +114,7 @@ public:
             "Number of states to sample");
         add_optional_argument_with_default<int>(
             "max_num_heuristics",
-            "infinity",
+            "infinity()",
             "maximum number of potential heuristics");
         add_admissible_potentials_options_to_feature(
             *this,

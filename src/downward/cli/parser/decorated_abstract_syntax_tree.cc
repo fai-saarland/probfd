@@ -565,30 +565,6 @@ void FloatLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
     std::print(out, "{}", value);
 }
 
-DurationLiteralNode::DurationLiteralNode(utils::DynamicDuration value)
-    : value(std::move(value))
-{
-}
-
-std::any DurationLiteralNode::construct(ConstructContext& context) const
-{
-    utils::TraceBlock block(
-        context,
-        "Constructing duration value from '{{{}, {}, {}}}'",
-        value.num,
-        value.denom,
-        value.value);
-
-    return value;
-}
-
-void DurationLiteralNode::print(std::ostream& out, std::size_t indent, bool)
-    const
-{
-    std::print(out, "{}", std::string(indent, ' '));
-    std::print(out, "{{{}, {}, {}}}", value.num, value.denom, value.value);
-}
-
 SymbolNode::SymbolNode(const string& value)
     : value(value)
 {

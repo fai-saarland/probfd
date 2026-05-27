@@ -13,7 +13,7 @@ namespace probfd::cli::merge_and_shrink {
 void add_merge_selector_category(RawRegistry& raw_registry)
 {
     auto& category =
-        raw_registry.insert_category_plugin<MergeSelector>("PMergeSelector");
+        raw_registry.insert_shared_category_plugin<MergeSelector>("PMergeSelector");
     category.document_synopsis(
         "This page describes the available merge selectors. They are used "
         "to "

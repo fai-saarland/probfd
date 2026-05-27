@@ -13,7 +13,7 @@ namespace downward::cli::evaluators {
 void add_evaluator_category(plugins::RawRegistry& raw_registry)
 {
     auto& category =
-        raw_registry.insert_category_plugin<TaskDependentFactory<Evaluator>>(
+        raw_registry.insert_shared_category_plugin<TaskDependentFactory<Evaluator>>(
             "Heuristic");
 
     category.document_synopsis(

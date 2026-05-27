@@ -52,10 +52,17 @@ public:
     }
 
     template <typename T>
-    CategoryPlugin& insert_category_plugin(std::string name)
+    CategoryPlugin& insert_shared_category_plugin(std::string name)
     {
         return *category_plugins.emplace_back(
             std::make_unique<SharedTypedCategoryPlugin<T>>(std::move(name)));
+    }
+
+    template <typename T>
+    CategoryPlugin& insert_category_plugin(std::string name)
+    {
+        return *category_plugins.emplace_back(
+            std::make_unique<TypedCategoryPlugin<T>>(std::move(name)));
     }
 
     template <template <bool...> typename T, bool... b>
