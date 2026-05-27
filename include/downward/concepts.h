@@ -3,6 +3,7 @@
 
 #include <array>
 #include <complex>
+#include <concepts>
 #include <ranges>
 #include <tuple>
 #include <type_traits>
@@ -48,20 +49,67 @@ concept TupleLike = detail::IsTupleLikeHelper<T>::value;
 template <typename T>
 concept PairLike = TupleLike<T> && std::tuple_size_v<T> == 2;
 
+template <typename T>
+concept ArithmeticType = std::is_arithmetic_v<T>;
+
 namespace detail {
 template <typename T, template <typename...> typename U>
 struct SpecializationHelper : std::false_type {};
 
 template <typename... T, template <typename...> typename U>
 struct SpecializationHelper<U<T...>, U> : std::true_type {};
+
+template <typename T, template <auto...> typename U>
+struct SpecializationHelperCTP : std::false_type {};
+
+template <auto... T, template <auto...> typename U>
+struct SpecializationHelperCTP<U<T...>, U> : std::true_type {};
+
+template <typename T, template <typename...> typename U>
+struct DerivedFromSpecializationHelper : std::false_type {};
+
+template <
+    typename... T,
+    template <typename...> typename U,
+    template <typename...> typename V>
+struct DerivedFromSpecializationHelper<U<T...>, V>
+    : std::bool_constant<std::derived_from<U<T...>, V<T...>>> {};
+
+template <typename T, template <auto...> typename U>
+struct DerivedFromSpecializationHelperCTP : std::false_type {};
+
+template <
+    auto... T,
+    template <auto...> typename U,
+    template <auto...> typename V>
+struct DerivedFromSpecializationHelperCTP<U<T...>, V>
+    : std::bool_constant<std::derived_from<U<T...>, V<T...>>> {};
 } // namespace detail
 
 /// This concept is satisfied if T is a specialization of the template U.
 template <typename T, template <typename...> typename U>
 concept Specialization = detail::SpecializationHelper<T, U>::value;
 
+/// This concept is satisfied if T is a specialization of the template U.
+template <typename T, template <auto...> typename U>
+concept SpecializationCTP = detail::SpecializationHelperCTP<T, U>::value;
+
+/// This concept is satisfied if T is a specialization of a template V with the
+/// same template arguments as U that derived from U with the same template
+/// arguments.
+template <typename T, template <typename...> typename U>
+concept DerivedFromSpecialization =
+    detail::DerivedFromSpecializationHelper<T, U>::value;
+
+/// This concept is satisfied if T is a specialization of a template V with the
+/// same template arguments as U that derived from U with the same template
+/// arguments.
+template <typename T, template <auto...> typename U>
+concept DerivedFromSpecializationCTP =
+    detail::DerivedFromSpecializationHelperCTP<T, U>::value;
+
 template <typename T, typename... List>
-concept MemberOf = (std::is_same_v<T, List> || ...);
+concept MemberOf = (std::same_as<T, List> || ...);
 
 namespace detail {
 template <typename... List>
@@ -120,6 +168,6 @@ concept AnyOf = (TypePredicate<Types>::value || ...);
 template <template <typename> typename TypePredicate, typename... Types>
 concept AllOf = (TypePredicate<Types>::value && ...);
 
-} // namespace probfd
+} // namespace downward
 
 #endif
