@@ -26,7 +26,7 @@ add_merge_strategy_sccs_tree_to_namespace(Namespace& nspace)
         &language::plugins::construct_shared<
             MergeStrategyFactory,
             MergeStrategyFactorySCCsTree,
-            OrderOfSCCs,
+            MergeStrategyFactorySCCsTree::OrderOfSCCs,
             std::shared_ptr<MergeTreeFactory>>);
 
     f.document_title("Merge strategy SSCs");
@@ -74,7 +74,7 @@ namespace probfd::cli::merge_and_shrink {
 
 void add_merge_strategy_factory_sccs_tree_feature(Namespace& nspace)
 {
-    nspace.insert_enum_declaration<OrderOfSCCs>(
+    nspace.insert_enum_declaration<MergeStrategyFactorySCCsTree::OrderOfSCCs>(
         {{"topological",
           "according to the topological ordering of the directed graph "
           "where each obtained SCC is a 'supervertex'"},

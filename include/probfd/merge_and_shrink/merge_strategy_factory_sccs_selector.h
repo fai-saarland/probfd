@@ -9,14 +9,16 @@ class MergeSelectorFactory;
 
 namespace probfd::merge_and_shrink {
 
-enum class OrderOfSCCs {
-    TOPOLOGICAL,
-    REVERSE_TOPOLOGICAL,
-    DECREASING,
-    INCREASING
-};
-
 class MergeStrategyFactorySCCsSelector : public MergeStrategyFactory {
+public:
+    enum class OrderOfSCCs {
+        TOPOLOGICAL,
+        REVERSE_TOPOLOGICAL,
+        DECREASING,
+        INCREASING
+    };
+
+private:
     OrderOfSCCs order_of_sccs;
     std::shared_ptr<MergeSelectorFactory> merge_selector;
 

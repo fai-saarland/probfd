@@ -26,7 +26,7 @@ add_merge_strategy_sccs_selector_to_namespace(Namespace& nspace)
         &language::plugins::construct_shared<
             MergeStrategyFactory,
             MergeStrategyFactorySCCsSelector,
-            OrderOfSCCs,
+            MergeStrategyFactorySCCsSelector::OrderOfSCCs,
             std::shared_ptr<MergeSelectorFactory>>);
 
     f.document_title("Merge strategy SSCs");
@@ -74,17 +74,18 @@ namespace probfd::cli::merge_and_shrink {
 
 void add_merge_strategy_factory_sccs_selector_feature(Namespace& nspace)
 {
-    nspace.insert_enum_declaration<OrderOfSCCs>(
-        {{"topological",
-          "according to the topological ordering of the directed graph "
-          "where each obtained SCC is a 'supervertex'"},
-         {"reverse_topological",
-          "according to the reverse topological ordering of the directed "
-          "graph where each obtained SCC is a 'supervertex'"},
-         {"decreasing",
-          "biggest SCCs first, using 'topological' as tie-breaker"},
-         {"increasing",
-          "smallest SCCs first, using 'topological' as tie-breaker"}});
+    nspace
+        .insert_enum_declaration<MergeStrategyFactorySCCsSelector::OrderOfSCCs>(
+            {{"topological",
+              "according to the topological ordering of the directed graph "
+              "where each obtained SCC is a 'supervertex'"},
+             {"reverse_topological",
+              "according to the reverse topological ordering of the directed "
+              "graph where each obtained SCC is a 'supervertex'"},
+             {"decreasing",
+              "biggest SCCs first, using 'topological' as tie-breaker"},
+             {"increasing",
+              "smallest SCCs first, using 'topological' as tie-breaker"}});
 
     add_merge_strategy_sccs_selector_to_namespace(nspace);
 }
