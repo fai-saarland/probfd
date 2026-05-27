@@ -47,30 +47,48 @@ std::any ConstructContext::get_variable(const string& name) const
     return variable;
 }
 
+VariableDeclaration::VariableDeclaration(std::string variable_name)
+    : variable_name(std::move(variable_name))
+{
+}
+
+VariableDeclaration::VariableDeclaration(VariableDeclaration&& other) noexcept
+    : variable_name(std::move(other.variable_name))
+    , usages(std::move(other.usages))
+{
+    for (VariableNode* u : usages) { u->declaration = this; }
+}
+
+VariableDeclaration&
+VariableDeclaration::operator=(VariableDeclaration&& other) noexcept
+{
+    variable_name = std::move(other.variable_name);
+    usages = std::move(other.usages);
+
+    for (VariableNode* u : usages) { u->declaration = this; }
+
+    return *this;
+}
+
 VariableDefinition::VariableDefinition(
     std::string variable_name,
     DecoratedASTNodePtr variable_expression)
-    : variable_name(std::move(variable_name))
+    : VariableDeclaration(std::move(variable_name))
     , variable_expression(std::move(variable_expression))
 {
 }
 
 VariableDefinition::VariableDefinition(VariableDefinition&& other) noexcept
-    : variable_name(std::move(other.variable_name))
+    : VariableDeclaration(std::move(other))
     , variable_expression(std::move(other.variable_expression))
-    , usages(std::move(other.usages))
 {
-    for (VariableNode* u : usages) { u->definition = this; }
 }
 
 VariableDefinition&
 VariableDefinition::operator=(VariableDefinition&& other) noexcept
 {
-    variable_name = std::move(other.variable_name);
+    VariableDeclaration::operator=(std::move(other));
     variable_expression = std::move(other.variable_expression);
-    usages = std::move(other.usages);
-
-    for (VariableNode* u : usages) { u->definition = this; }
 
     return *this;
 }
@@ -156,13 +174,12 @@ void DecoratedLetNode::remove_variable_usages()
 std::any DecoratedLetNode::construct(ConstructContext& context) const
 {
     utils::TraceBlock block(context, "Constructing let-expression");
-    for (const auto& [variable_name, variable_definition, _] :
-         decorated_variable_definitions) {
+    for (const auto& def : decorated_variable_definitions) {
         utils::TraceBlock block(
             context,
-            "Constructing variable '" + variable_name + "'");
-        std::any variable_value = variable_definition->construct(context);
-        context.set_variable(variable_name, variable_value);
+            "Constructing variable '" + def.variable_name + "'");
+        std::any variable_value = def.variable_expression->construct(context);
+        context.set_variable(def.variable_name, variable_value);
     }
 
     std::any result;
@@ -171,9 +188,8 @@ std::any DecoratedLetNode::construct(ConstructContext& context) const
         result = nested_value->construct(context);
     }
 
-    for (const auto& [variable_name, variable_definition, _] :
-         decorated_variable_definitions) {
-        context.remove_variable(variable_name);
+    for (const auto& def : decorated_variable_definitions) {
+        context.remove_variable(def.variable_name);
     }
 
     return result;
@@ -184,26 +200,26 @@ void DecoratedLetNode::print(
     std::size_t indent,
     bool print_default_args) const
 {
-    std::println(out, "{:>{}}", "let", indent + 3);
+    std::print(out, "{:{}}", "", indent);
+    std::println(out, "let");
 
     if (!decorated_variable_definitions.empty()) {
         {
-            const auto& [variable_name, variable_definition, _] =
-                decorated_variable_definitions.front();
-            variable_definition->print(out, indent + 4, print_default_args);
-            std::print(out, " as {}", variable_name);
+            const auto& def = decorated_variable_definitions.front();
+            def.variable_expression->print(out, indent + 4, print_default_args);
+            std::println(out, " as {}", def.variable_name);
         }
 
-        for (const auto& [variable_name, variable_definition, _] :
+        for (const auto& def :
              decorated_variable_definitions | std::views::drop(1)) {
             std::println(out, ",");
-            variable_definition->print(out, indent + 4, print_default_args);
-            std::print(out, " as {}", variable_name);
+            def.variable_expression->print(out, indent + 4, print_default_args);
+            std::println(out, " as {}", def.variable_name);
         }
     }
 
-    std::println(out);
-    std::println(out, "{:>{}}", "in", indent + 2);
+    std::print(out, "{:{}}", "", indent);
+    std::println(out, "in");
 
     nested_value->print(out, indent + 4, print_default_args);
 }
@@ -212,20 +228,74 @@ void DecoratedLetNode::dump(std::ostream& out, string indent) const
 {
     out << indent << "LET:";
     indent = "| " + indent;
-    for (const auto& [variable_name, variable_definition, _] :
-         decorated_variable_definitions) {
-        out << variable_name << " = " << endl;
-        variable_definition->dump(out, indent);
+    for (const auto& def : decorated_variable_definitions) {
+        out << def.variable_name << " = " << endl;
+        def.variable_expression->dump(out, indent);
     }
     out << indent << "IN:" << endl;
     nested_value->dump(out, "| " + indent);
 }
 
+DecoratedLambdaNode::DecoratedLambdaNode(
+    const plugins::FunctionType& type,
+    std::vector<VariableDeclaration> decorated_variable_declarations,
+    DecoratedASTNodePtr nested_value)
+    : type(type)
+    , decorated_variable_declarations(
+          std::move(decorated_variable_declarations))
+    , nested_value(std::move(nested_value))
+{
+}
+
+void DecoratedLambdaNode::prune_unused_definitions(
+    std::vector<VariableDefinition>&)
+{
+}
+
+void DecoratedLambdaNode::remove_variable_usages()
+{
+}
+
+std::any DecoratedLambdaNode::construct(ConstructContext&) const
+{
+    std::function f = [&](const plugins::Options& opts,
+                          const utils::Context&) -> std::any {
+        ConstructContext nested_context;
+
+        for (const auto& arg_info : type.get_argument_infos()) {
+            nested_context.set_variable(
+                arg_info.key,
+                opts.get_raw(arg_info.key));
+        }
+
+        return nested_value->construct(nested_context);
+    };
+
+    return f;
+}
+
+void DecoratedLambdaNode::print(
+    std::ostream& out,
+    std::size_t indent,
+    bool print_default_args) const
+{
+    std::print(out, "{}", std::string(indent, ' '));
+    std::print(
+        out,
+        "fun({:n:t}): ",
+        type.get_argument_infos());
+    nested_value->print(out, 0, print_default_args);
+}
+
+void DecoratedLambdaNode::dump(std::ostream&, std::string) const
+{
+}
+
 DecoratedFunctionCallNode::DecoratedFunctionCallNode(
-    const shared_ptr<const plugins::Feature>& feature,
+    DecoratedASTNodePtr callee,
     vector<std::pair<std::string, FunctionArgument>>&& arguments,
     const string& unparsed_config)
-    : feature(feature)
+    : callee(std::move(callee))
     , arguments(move(arguments))
     , unparsed_config(unparsed_config)
 {
@@ -238,19 +308,21 @@ void DecoratedFunctionCallNode::remove_variable_usages()
     }
 }
 
+using FType =
+    std::function<std::any(const plugins::Options&, const utils::Context&)>;
+
 std::any DecoratedFunctionCallNode::construct(ConstructContext& context) const
 {
-    utils::TraceBlock block(
-        context,
-        "Constructing feature '" + feature->get_key() +
-            "': " + unparsed_config);
+    utils::TraceBlock block(context, "Constructing callee");
+    auto calleef = std::any_cast<FType>(callee->construct(context));
+
     plugins::Options opts;
     opts.set_unparsed_config(unparsed_config);
     for (const auto& [key, arg] : arguments) {
         utils::TraceBlock block(context, "Constructing argument '" + key + "'");
         opts.set(key, arg.get_value().construct(context));
     }
-    return feature->construct(opts, context);
+    return calleef(opts, context);
 }
 
 void DecoratedFunctionCallNode::print(
@@ -258,11 +330,9 @@ void DecoratedFunctionCallNode::print(
     std::size_t indent,
     bool print_default_args) const
 {
-    std::print(
-        out,
-        "{:>{}}(",
-        feature->get_key(),
-        indent + feature->get_key().size());
+    std::print(out, "{}", std::string(indent, ' '));
+    callee->print(out, 0, print_default_args);
+    std::print(out, "(");
 
     auto filter =
         print_default_args
@@ -289,8 +359,9 @@ void DecoratedFunctionCallNode::print(
 
 void DecoratedFunctionCallNode::dump(std::ostream& out, string indent) const
 {
-    out << indent << "FUNC:" << feature->get_title() << " (returns "
-        << feature->get_type().name() << ")" << endl;
+    out << indent << "FUNC:";
+    callee->dump(out);
+    out << endl;
     indent = "| " + indent;
     out << indent << "ARGUMENTS:" << endl;
     for (const auto& [key, arg] : arguments) {
@@ -355,28 +426,28 @@ void DecoratedListNode::dump(std::ostream& out, string indent) const
     }
 }
 
-VariableNode::VariableNode(VariableDefinition& definition)
-    : definition(&definition)
+VariableNode::VariableNode(VariableDeclaration& declaration)
+    : declaration(&declaration)
 {
 }
 
 void VariableNode::remove_variable_usages()
 {
-    const auto it = std::ranges::find(definition->usages, this);
-    assert(it != definition->usages.end());
-    definition->usages.erase(it);
+    const auto it = std::ranges::find(declaration->usages, this);
+    assert(it != declaration->usages.end());
+    declaration->usages.erase(it);
 }
 
 std::any VariableNode::construct(ConstructContext& context) const
 {
     utils::TraceBlock block(
         context,
-        "Looking up variable '" + definition->variable_name + "'");
-    if (!context.has_variable(definition->variable_name)) {
+        "Looking up variable '" + declaration->variable_name + "'");
+    if (!context.has_variable(declaration->variable_name)) {
         context.error(
-            "Variable '" + definition->variable_name + "' is not defined.");
+            "Variable '" + declaration->variable_name + "' is not defined.");
     }
-    return context.get_variable(definition->variable_name);
+    return context.get_variable(declaration->variable_name);
 }
 
 void VariableNode::print(std::ostream& out, std::size_t indent, bool) const
@@ -384,13 +455,43 @@ void VariableNode::print(std::ostream& out, std::size_t indent, bool) const
     std::print(
         out,
         "{:>{}}",
-        definition->variable_name,
-        indent + definition->variable_name.size());
+        declaration->variable_name,
+        indent + declaration->variable_name.size());
 }
 
 void VariableNode::dump(std::ostream& out, string indent) const
 {
-    out << indent << "VAR: " << definition->variable_name << endl;
+    out << indent << "VAR: " << declaration->variable_name << endl;
+}
+
+FeatureLiteralNode::FeatureLiteralNode(
+    std::shared_ptr<const plugins::Feature> feature)
+    : feature(std::move(feature))
+{
+}
+
+std::any FeatureLiteralNode::construct(ConstructContext& context) const
+{
+    utils::TraceBlock block(
+        context,
+        "Constructing feature '" + feature->get_key() + "'");
+    std::function f = [f = this->feature](
+                          const plugins::Options& opts,
+                          const utils::Context& ncontext) {
+        return f->construct(opts, ncontext);
+    };
+    return f;
+}
+
+void FeatureLiteralNode::print(std::ostream& out, std::size_t indent, bool)
+    const
+{
+    std::print(out, "{}{}", std::string(indent, ' '), feature->get_key());
+}
+
+void FeatureLiteralNode::dump(std::ostream& out, string indent) const
+{
+    out << indent << "FEATURE: " << feature->get_key() << endl;
 }
 
 BoolLiteralNode::BoolLiteralNode(const string& value)

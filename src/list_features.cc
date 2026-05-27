@@ -203,12 +203,14 @@ protected:
 
         int remaining_width = std::max(10, MAX_LINE_WIDTH - max_width + 4);
 
-        for (const auto& [s, arg_info] :
-             std::views::zip(arg_strings, feature.get_arguments())) {
+        for (const auto& [s, arg_info, arg_help] : std::views::zip(
+                 arg_strings,
+                 feature.get_arguments(),
+                 feature.get_argument_docs())) {
             std::stringstream ss;
-            ss << arg_info.help;
+            ss << arg_help;
 
-            if (!arg_info.help.empty() && arg_info.help.back() != '\n')
+            if (!arg_help.empty() && arg_help.back() != '\n')
                 ss << " ";
 
             if (arg_info.has_default()) {

@@ -42,9 +42,51 @@ bool Type::is_symbol_type() const
     return false;
 }
 
+bool Type::is_function_type() const
+{
+    return false;
+}
+
 bool Type::can_convert_into(const Type& other) const
 {
     return *this == other;
+}
+
+FunctionType::FunctionType(
+    const Type& return_type,
+    std::vector<ArgumentInfo> arguments)
+    : return_type(return_type)
+    , arguments(std::move(arguments))
+{
+}
+
+bool FunctionType::operator==(const Type& other) const
+{
+    return this == &other;
+}
+
+std::string FunctionType::name() const
+{
+    return std::format(
+        "{} ({:n:s})",
+        return_type.name(),
+        arguments | std::views::transform([](const ArgumentInfo& info) {
+            return info.type.name();
+        }));
+}
+
+size_t FunctionType::get_hash() const
+{
+    // https://stackoverflow.com/questions/20511347/a-good-hash-function-for-a-vector
+    std::size_t seed = arguments.size() + 1;
+
+    seed ^= return_type.get_hash() + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+
+    for (const auto& info : arguments) {
+        seed ^= info.type.get_hash() + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    }
+
+    return seed;
 }
 
 BasicType::BasicType(type_index type, const string& class_name)
@@ -436,6 +478,15 @@ const ListType& TypeRegistry::create_list_type(const Type& element_type)
             {key, std::make_unique<ListType>(element_type)});
     }
     return *registered_list_types[key];
+}
+
+const FunctionType& TypeRegistry::create_function_type(
+    const Type& return_type,
+    std::vector<ArgumentInfo> arg_types)
+{
+    return **registered_function_types
+                 .insert(std::make_unique<FunctionType>(return_type, arg_types))
+                 .first;
 }
 
 const Type& TypeRegistry::get_nonlist_type(type_index type) const

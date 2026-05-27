@@ -17,10 +17,12 @@ class Context;
 }
 
 namespace downward::cli::plugins {
+
 class Feature {
     const Type& type;
     std::vector<ArgumentInfo> arguments;
 
+    std::vector<std::string> argument_docs;
     std::string key;
     std::string title;
     std::string synopsis;
@@ -77,6 +79,7 @@ public:
     std::string get_synopsis() const;
     std::string get_subcategory() const;
     const std::vector<ArgumentInfo>& get_arguments() const;
+    const std::vector<std::string>& get_argument_docs() const;
     const std::vector<PropertyInfo>& get_properties() const;
     const std::vector<LanguageSupportInfo>& get_language_support() const;
     const std::vector<NoteInfo>& get_notes() const;
@@ -250,10 +253,10 @@ void Feature::add_option(
 {
     arguments.emplace_back(
         key,
-        help,
         TypeRegistry::instance()->get_type<T>(),
         default_value,
         bounds);
+    argument_docs.emplace_back(help);
 }
 
 template <typename T>

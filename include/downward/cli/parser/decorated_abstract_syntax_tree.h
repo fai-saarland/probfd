@@ -23,10 +23,18 @@ using DecoratedASTNodePtr = std::unique_ptr<DecoratedASTNode>;
 
 class VariableNode;
 
-struct VariableDefinition {
+struct VariableDeclaration {
     std::string variable_name;
-    DecoratedASTNodePtr variable_expression;
     std::vector<VariableNode*> usages;
+
+    explicit VariableDeclaration(std::string variable_name);
+
+    VariableDeclaration(VariableDeclaration&& other) noexcept;
+    VariableDeclaration& operator=(VariableDeclaration&& other) noexcept;
+};
+
+struct VariableDefinition : VariableDeclaration {
+    DecoratedASTNodePtr variable_expression;
 
     VariableDefinition(
         std::string variable_name,
@@ -86,14 +94,35 @@ public:
     void dump(std::ostream& out, std::string indent) const override;
 };
 
+class DecoratedLambdaNode : public DecoratedASTNode {
+    const plugins::FunctionType& type;
+    std::vector<VariableDeclaration> decorated_variable_declarations;
+    DecoratedASTNodePtr nested_value;
+
+public:
+    DecoratedLambdaNode(
+        const plugins::FunctionType& type,
+        std::vector<VariableDeclaration> decorated_variable_declarations,
+        DecoratedASTNodePtr nested_value);
+
+    void
+    prune_unused_definitions(std::vector<VariableDefinition>& defs) override;
+    void remove_variable_usages() override;
+
+    std::any construct(ConstructContext& context) const override;
+    void print(std::ostream& out, std::size_t indent, bool print_default_args)
+        const override;
+    void dump(std::ostream& out, std::string indent) const override;
+};
+
 class DecoratedFunctionCallNode : public DecoratedASTNode {
-    std::shared_ptr<const plugins::Feature> feature;
+    DecoratedASTNodePtr callee;
     std::vector<std::pair<std::string, FunctionArgument>> arguments;
     std::string unparsed_config;
 
 public:
     DecoratedFunctionCallNode(
-        const std::shared_ptr<const plugins::Feature>& feature,
+        DecoratedASTNodePtr callee,
         std::vector<std::pair<std::string, FunctionArgument>>&& arguments,
         const std::string& unparsed_config);
 
@@ -125,14 +154,28 @@ public:
 };
 
 class VariableNode : public DecoratedASTNode {
-    friend VariableDefinition;
+    friend VariableDeclaration;
 
-    VariableDefinition* definition;
+    VariableDeclaration* declaration;
 
 public:
-    explicit VariableNode(VariableDefinition& definition);
+    explicit VariableNode(VariableDeclaration& declaration);
 
     void remove_variable_usages() override;
+
+    std::any construct(ConstructContext& context) const override;
+    void print(std::ostream& out, std::size_t indent, bool print_default_args)
+        const override;
+    void dump(std::ostream& out, std::string indent) const override;
+};
+
+class FeatureLiteralNode : public DecoratedASTNode {
+    std::shared_ptr<const plugins::Feature> feature;
+
+public:
+    explicit FeatureLiteralNode(std::shared_ptr<const plugins::Feature> feature);
+
+    void remove_variable_usages() override {}
 
     std::any construct(ConstructContext& context) const override;
     void print(std::ostream& out, std::size_t indent, bool print_default_args)

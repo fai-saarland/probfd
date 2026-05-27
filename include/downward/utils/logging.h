@@ -181,13 +181,13 @@ public:
     template <typename... Args>
     void error(std::format_string<Args...> text, Args&&... args) const
     {
-        error(std::format(std::move(text), std::forward<Args...>(args...)));
+        error(std::format(std::move(text), std::forward<Args>(args)...));
     }
 
     template <typename... Args>
     void warn(std::format_string<Args...> text, Args&&... args) const
     {
-        warn(std::format(std::move(text), std::forward<Args...>(args...)));
+        warn(std::format(std::move(text), std::forward<Args>(args)...));
     }
 };
 

@@ -10,12 +10,10 @@ const string ArgumentInfo::NO_DEFAULT = "<none>";
 
 ArgumentInfo::ArgumentInfo(
     const string& key,
-    const string& help,
     const Type& type,
     const string& default_value,
     const Bounds& bounds)
     : key(key)
-    , help(help)
     , type(type)
     , default_value(default_value)
     , bounds(bounds)

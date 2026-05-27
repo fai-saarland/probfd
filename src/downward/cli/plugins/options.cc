@@ -4,6 +4,18 @@ using namespace std;
 
 namespace downward::cli::plugins {
 
+std::any Options::get_raw(const std::string& key) const
+{
+    const auto it = storage.find(key);
+    if (it == storage.end()) {
+        throw downward::utils::CriticalError(
+            "Attempt to retrieve non-existing object of name {}",
+            key);
+    }
+
+    return it->second;
+}
+
 bool Options::contains(const string& key) const
 {
     return storage.contains(key);

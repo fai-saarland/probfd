@@ -85,6 +85,11 @@ const vector<ArgumentInfo>& Feature::get_arguments() const
     return arguments;
 }
 
+const vector<std::string>& Feature::get_argument_docs() const
+{
+    return argument_docs;
+}
+
 const vector<PropertyInfo>& Feature::get_properties() const
 {
     return properties;
