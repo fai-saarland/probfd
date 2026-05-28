@@ -85,10 +85,10 @@ public:
     }
 };
 
-class TrapAwareDFHSSolverFeature : public TypedFeature<TaskSolverFactory> {
+class TrapAwareDFHSSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     TrapAwareDFHSSolverFeature()
-        : TypedFeature("tadfhs")
+        : SharedTypedFeature("tadfhs")
     {
         document_title("Trap-aware depth-first heuristic search family");
         document_synopsis(
@@ -145,10 +145,10 @@ protected:
     }
 };
 
-class TrapAwareILAOSolverFeature : public TypedFeature<TaskSolverFactory> {
+class TrapAwareILAOSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     TrapAwareILAOSolverFeature()
-        : TypedFeature("tailao")
+        : SharedTypedFeature("tailao")
     {
         document_title(
             "iLAO* variant of trap-aware depth-first heuristic search");
@@ -185,10 +185,10 @@ public:
     }
 };
 
-class TrapAwareLILAOSolverFeature : public TypedFeature<TaskSolverFactory> {
+class TrapAwareLILAOSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     TrapAwareLILAOSolverFeature()
-        : TypedFeature("talilao")
+        : SharedTypedFeature("talilao")
     {
         document_title(
             "Labelled iLAO* variant of trap-aware depth-first "
@@ -228,10 +228,10 @@ public:
     }
 };
 
-class TrapAwareHDPSolverFeature : public TypedFeature<TaskSolverFactory> {
+class TrapAwareHDPSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     TrapAwareHDPSolverFeature()
-        : TypedFeature("tahdp")
+        : SharedTypedFeature("tahdp")
     {
         document_title(
             "HDP variant of trap-aware depth-first heuristic search");

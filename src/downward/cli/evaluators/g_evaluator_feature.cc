@@ -38,10 +38,10 @@ public:
     }
 };
 
-class GEvaluatorFeature : public TypedFeature<TaskDependentFactory<Evaluator>> {
+class GEvaluatorFeature : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     GEvaluatorFeature()
-        : TypedFeature("g")
+        : SharedTypedFeature("g")
     {
         document_subcategory("evaluators_basic");
         document_title("g-value evaluator");

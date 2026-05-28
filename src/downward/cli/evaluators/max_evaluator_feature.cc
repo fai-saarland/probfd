@@ -60,10 +60,10 @@ public:
 };
 
 class MaxEvaluatorFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     MaxEvaluatorFeature()
-        : TypedFeature("max")
+        : SharedTypedFeature("max")
     {
         document_subcategory("evaluators_basic");
         document_title("Max evaluator");

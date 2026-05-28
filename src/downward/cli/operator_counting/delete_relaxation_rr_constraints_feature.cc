@@ -17,10 +17,10 @@ using namespace downward::cli::plugins;
 
 namespace {
 class DeleteRelaxationRRConstraintsFeature
-    : public TypedFeature<ConstraintGenerator> {
+    : public SharedTypedFeature<ConstraintGenerator> {
 public:
     DeleteRelaxationRRConstraintsFeature()
-        : TypedFeature("delete_relaxation_rr_constraints")
+        : SharedTypedFeature("delete_relaxation_rr_constraints")
     {
         document_title(
             "Delete relaxation constraints from Rankooh and Rintanen");

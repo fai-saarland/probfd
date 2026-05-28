@@ -59,10 +59,10 @@ std::string paper_references()
 }
 
 class PatternCollectionGeneratorHillclimbingFeature
-    : public TypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorHillclimbingFeature()
-        : TypedFeature("hillclimbing")
+        : SharedTypedFeature("hillclimbing")
     {
         document_title("Hill climbing");
         document_synopsis(

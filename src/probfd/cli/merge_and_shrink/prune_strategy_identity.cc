@@ -10,10 +10,10 @@ using namespace downward;
 using namespace downward::cli::plugins;
 
 namespace {
-class PruneStrategyIdentityFeature : public TypedFeature<PruneStrategy> {
+class PruneStrategyIdentityFeature : public SharedTypedFeature<PruneStrategy> {
 public:
     PruneStrategyIdentityFeature()
-        : TypedFeature("prune_identity")
+        : SharedTypedFeature("prune_identity")
     {
         document_title("Identity prune strategy");
         document_synopsis("This prune strategy leaves the TS unchanged.");

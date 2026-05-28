@@ -168,10 +168,10 @@ std::unique_ptr<FDRHeuristic> MergeAndShrinkHeuristicFactory::create_object(
 }
 
 class MergeAndShrinkHeuristicFactoryFeature final
-    : public TypedFeature<TaskHeuristicFactory> {
+    : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     MergeAndShrinkHeuristicFactoryFeature()
-        : TypedFeature("pa_merge_and_shrink")
+        : SharedTypedFeature("pa_merge_and_shrink")
     {
         document_title("Merge-and-shrink heuristic");
         document_synopsis("TODO add a description");

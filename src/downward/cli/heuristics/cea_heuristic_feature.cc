@@ -56,10 +56,10 @@ public:
 };
 
 class ContextEnhancedAdditiveHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     ContextEnhancedAdditiveHeuristicFeature()
-        : TypedFeature("cea")
+        : SharedTypedFeature("cea")
     {
         document_title("Context-enhanced additive heuristic");
 

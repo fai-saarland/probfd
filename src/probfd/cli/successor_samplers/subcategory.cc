@@ -58,10 +58,10 @@ public:
 
 template <bool Fret>
 class ArbitrarySuccessorSamplerFeature
-    : public TypedFeature<SuccessorSampler<Fret>> {
+    : public SharedTypedFeature<SuccessorSampler<Fret>> {
 public:
     ArbitrarySuccessorSamplerFeature()
-        : ArbitrarySuccessorSamplerFeature::TypedFeature(
+        : ArbitrarySuccessorSamplerFeature::SharedTypedFeature(
               add_mdp_type_to_option<false, Fret>(
                   "arbitrary_successor_sampler"))
     {
@@ -77,10 +77,10 @@ public:
 
 template <bool Fret>
 class MostLikelySuccessorSamplerFeature
-    : public TypedFeature<SuccessorSampler<Fret>> {
+    : public SharedTypedFeature<SuccessorSampler<Fret>> {
 public:
     MostLikelySuccessorSamplerFeature()
-        : MostLikelySuccessorSamplerFeature::TypedFeature(
+        : MostLikelySuccessorSamplerFeature::SharedTypedFeature(
               add_mdp_type_to_option<false, Fret>(
                   "most_likely_successor_Sampler"))
     {
@@ -96,10 +96,10 @@ public:
 
 template <bool Fret>
 class UniformSuccessorSamplerFeature
-    : public TypedFeature<SuccessorSampler<Fret>> {
+    : public SharedTypedFeature<SuccessorSampler<Fret>> {
 public:
     UniformSuccessorSamplerFeature()
-        : UniformSuccessorSamplerFeature::TypedFeature(
+        : UniformSuccessorSamplerFeature::SharedTypedFeature(
               add_mdp_type_to_option<false, Fret>(
                   "uniform_random_successor_sampler"))
     {
@@ -117,10 +117,10 @@ public:
 
 template <bool Fret>
 class RandomSuccessorSamplerFeature
-    : public TypedFeature<SuccessorSampler<Fret>> {
+    : public SharedTypedFeature<SuccessorSampler<Fret>> {
 public:
     RandomSuccessorSamplerFeature()
-        : RandomSuccessorSamplerFeature::TypedFeature(
+        : RandomSuccessorSamplerFeature::SharedTypedFeature(
               add_mdp_type_to_option<false, Fret>("random_successor_sampler"))
     {
         add_rng_options_to_feature(*this);
@@ -137,10 +137,10 @@ public:
 
 template <bool Fret>
 class VBiasedSuccessorSamplerFeature
-    : public TypedFeature<SuccessorSampler<Fret>> {
+    : public SharedTypedFeature<SuccessorSampler<Fret>> {
 public:
     VBiasedSuccessorSamplerFeature()
-        : VBiasedSuccessorSamplerFeature::TypedFeature(
+        : VBiasedSuccessorSamplerFeature::SharedTypedFeature(
               add_mdp_type_to_option<false, Fret>("vbiased_successor_sampler"))
     {
         add_rng_options_to_feature(*this);
@@ -157,10 +157,10 @@ public:
 
 template <bool Fret>
 class VDiffSuccessorSamplerFeature
-    : public TypedFeature<SuccessorSampler<Fret>> {
+    : public SharedTypedFeature<SuccessorSampler<Fret>> {
 public:
     VDiffSuccessorSamplerFeature()
-        : VDiffSuccessorSamplerFeature::TypedFeature(
+        : VDiffSuccessorSamplerFeature::SharedTypedFeature(
               add_mdp_type_to_option<false, Fret>(
                   "value_gap_successor_sampler"))
     {

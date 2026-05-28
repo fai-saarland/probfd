@@ -17,10 +17,10 @@ using namespace downward::cli::plugins;
 
 namespace {
 class PatternCollectionGeneratorMultipleRandomFeature
-    : public TypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorMultipleRandomFeature()
-        : TypedFeature("random_patterns")
+        : SharedTypedFeature("random_patterns")
     {
         document_title("Multiple Random Patterns");
         document_synopsis(

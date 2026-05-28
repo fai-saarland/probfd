@@ -14,10 +14,10 @@ using namespace probfd::merge_and_shrink;
 
 namespace {
 class MergeScoringFunctionGoalRelevanceFeature
-    : public TypedFeature<MergeScoringFunction> {
+    : public SharedTypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionGoalRelevanceFeature()
-        : TypedFeature("pgoal_relevance")
+        : SharedTypedFeature("pgoal_relevance")
     {
         document_title("Goal relevance scoring");
         document_synopsis(

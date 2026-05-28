@@ -47,10 +47,10 @@ public:
 };
 
 class CostAdaptedTaskTransformationFeature
-    : public TypedFeature<TaskTransformation> {
+    : public SharedTypedFeature<TaskTransformation> {
 public:
     CostAdaptedTaskTransformationFeature()
-        : TypedFeature("adapt_costs")
+        : SharedTypedFeature("adapt_costs")
     {
         document_title("Cost-adapted task");
         document_synopsis("A cost-adapting transformation of the root task.");

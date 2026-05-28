@@ -18,10 +18,10 @@ using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
 
 namespace {
-class ShrinkStrategyEqualDistanceFeature : public TypedFeature<ShrinkStrategy> {
+class ShrinkStrategyEqualDistanceFeature : public SharedTypedFeature<ShrinkStrategy> {
 public:
     ShrinkStrategyEqualDistanceFeature()
-        : TypedFeature("shrink_equal_distance")
+        : SharedTypedFeature("shrink_equal_distance")
     {
         document_title("distance-preserving shrink strategy");
 

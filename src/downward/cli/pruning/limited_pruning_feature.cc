@@ -18,10 +18,10 @@ using namespace downward::cli::plugins;
 
 namespace {
 class LimitedPruningFeature
-    : public TypedFeature<downward::PruningMethod> {
+    : public SharedTypedFeature<downward::PruningMethod> {
 public:
     LimitedPruningFeature()
-        : TypedFeature("limited_pruning")
+        : SharedTypedFeature("limited_pruning")
     {
         document_title("Limited pruning");
         document_synopsis(

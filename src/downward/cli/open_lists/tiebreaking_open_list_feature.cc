@@ -21,12 +21,12 @@ using downward::cli::get_open_list_arguments_from_options;
 namespace {
 template <typename T>
 class TieBreakingOpenListFeature
-    : public TypedFeature<
+    : public SharedTypedFeature<
           downward::TaskDependentFactory<downward::OpenList<T>>> {
 public:
     TieBreakingOpenListFeature()
         requires(std::same_as<T, downward::StateOpenListEntry>)
-        : TieBreakingOpenListFeature::TypedFeature("state_tiebreaking")
+        : TieBreakingOpenListFeature::SharedTypedFeature("state_tiebreaking")
     {
         this->document_title("Tie-breaking state open list");
         this->document_synopsis("");
@@ -44,7 +44,7 @@ public:
 
     TieBreakingOpenListFeature()
         requires(std::same_as<T, downward::EdgeOpenListEntry>)
-        : TieBreakingOpenListFeature::TypedFeature("edge_tiebreaking")
+        : TieBreakingOpenListFeature::SharedTypedFeature("edge_tiebreaking")
     {
         this->document_title("Tie-breaking edge open list");
         this->document_synopsis("");

@@ -72,12 +72,12 @@ public:
 
 template <bool Bisimulation, bool Fret>
 class ArbitraryTieBreakerFeature
-    : public TypedFeature<PolicyPicker<Bisimulation, Fret>> {
+    : public SharedTypedFeature<PolicyPicker<Bisimulation, Fret>> {
     using R = Wrapper<ArbitraryTiebreaker, Bisimulation, Fret>;
 
 public:
     ArbitraryTieBreakerFeature()
-        : ArbitraryTieBreakerFeature::TypedFeature(
+        : ArbitraryTieBreakerFeature::SharedTypedFeature(
               add_mdp_type_to_option<Bisimulation, Fret>(
                   "arbitrary_policy_tiebreaker"))
     {
@@ -91,10 +91,10 @@ public:
     }
 };
 
-class OperatorIDTieBreakerFeature : public TypedFeature<FDRPolicyPicker> {
+class OperatorIDTieBreakerFeature : public SharedTypedFeature<FDRPolicyPicker> {
 public:
     OperatorIDTieBreakerFeature()
-        : TypedFeature("operator_id_policy_tiebreaker")
+        : SharedTypedFeature("operator_id_policy_tiebreaker")
     {
         add_option<bool>("stable_policy", "", "true");
         add_option<bool>("prefer_smaller", "", "true");
@@ -111,13 +111,13 @@ public:
 
 template <bool Bisimulation, bool Fret>
 class RandomTieBreakerFeature
-    : public TypedFeature<PolicyPicker<Bisimulation, Fret>> {
+    : public SharedTypedFeature<PolicyPicker<Bisimulation, Fret>> {
 
     using R = Wrapper<RandomTiebreaker, Bisimulation, Fret>;
 
 public:
     RandomTieBreakerFeature()
-        : RandomTieBreakerFeature::TypedFeature(
+        : RandomTieBreakerFeature::SharedTypedFeature(
               add_mdp_type_to_option<Bisimulation, Fret>(
                   "random_policy_tiebreaker"))
     {
@@ -136,12 +136,12 @@ public:
 
 template <bool Bisimulation, bool Fret>
 class ValueGapTieBreakerFeature
-    : public TypedFeature<PolicyPicker<Bisimulation, Fret>> {
+    : public SharedTypedFeature<PolicyPicker<Bisimulation, Fret>> {
     using R = Wrapper<VDiffTiebreaker, Bisimulation, Fret>;
 
 public:
     ValueGapTieBreakerFeature()
-        : ValueGapTieBreakerFeature::TypedFeature(
+        : ValueGapTieBreakerFeature::SharedTypedFeature(
               add_mdp_type_to_option<Bisimulation, Fret>(
                   "value_gap_policy_tiebreaker"))
     {

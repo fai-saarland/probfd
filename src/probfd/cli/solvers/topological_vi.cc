@@ -52,10 +52,10 @@ public:
     }
 };
 
-class TopologicalVISolverFeature : public TypedFeature<TaskSolverFactory> {
+class TopologicalVISolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     TopologicalVISolverFeature()
-        : TypedFeature("topological_value_iteration")
+        : SharedTypedFeature("topological_value_iteration")
     {
         document_title("Topological Value Iteration");
         add_base_solver_options_except_algorithm_to_feature(*this);

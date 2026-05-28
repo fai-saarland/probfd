@@ -82,10 +82,10 @@ public:
     }
 };
 
-class AcyclicVISolverFeature : public TypedFeature<TaskSolverFactory> {
+class AcyclicVISolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     AcyclicVISolverFeature()
-        : TypedFeature("acyclic_value_iteration")
+        : SharedTypedFeature("acyclic_value_iteration")
     {
         document_title("Acyclic Value Iteration");
         add_base_solver_options_except_algorithm_to_feature(*this);

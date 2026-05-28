@@ -16,10 +16,10 @@ using namespace probfd::merge_and_shrink;
 
 namespace {
 class MergeScoringFunctionSingleRandomFeature
-    : public TypedFeature<MergeScoringFunction> {
+    : public SharedTypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionSingleRandomFeature()
-        : TypedFeature("psingle_random")
+        : SharedTypedFeature("psingle_random")
     {
         document_title("Single random");
         document_synopsis(

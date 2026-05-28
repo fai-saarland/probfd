@@ -19,10 +19,10 @@ using downward::cli::merge_and_shrink::
 
 namespace {
 class MergeStrategyFactoryPrecomputedFeature
-    : public TypedFeature<MergeStrategyFactory> {
+    : public SharedTypedFeature<MergeStrategyFactory> {
 public:
     MergeStrategyFactoryPrecomputedFeature()
-        : TypedFeature("merge_precomputed")
+        : SharedTypedFeature("merge_precomputed")
     {
         document_title("Precomputed merge strategy");
         document_synopsis(

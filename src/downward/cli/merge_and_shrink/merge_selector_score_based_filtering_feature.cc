@@ -13,10 +13,10 @@ using namespace downward::cli::plugins;
 
 namespace {
 class MergeSelectorScoreBasedFilteringFeature
-    : public TypedFeature<MergeSelector> {
+    : public SharedTypedFeature<MergeSelector> {
 public:
     MergeSelectorScoreBasedFilteringFeature()
-        : TypedFeature("score_based_filtering")
+        : SharedTypedFeature("score_based_filtering")
     {
         document_title("Score based filtering merge selector");
         document_synopsis(

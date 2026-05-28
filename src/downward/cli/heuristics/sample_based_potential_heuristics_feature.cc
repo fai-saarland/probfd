@@ -106,10 +106,10 @@ public:
 };
 
 class SampleBasedPotentialMaxHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     SampleBasedPotentialMaxHeuristicFeature()
-        : TypedFeature("sample_based_potentials")
+        : SharedTypedFeature("sample_based_potentials")
     {
         document_subcategory("heuristics_potentials");
         document_title("Sample-based potential heuristics");

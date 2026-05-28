@@ -17,10 +17,10 @@ using namespace downward::cli::plugins;
 
 namespace {
 class DeterminizationHeuristicFactoryFeature
-    : public TypedFeature<TaskHeuristicFactory> {
+    : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     DeterminizationHeuristicFactoryFeature()
-        : TypedFeature("det")
+        : SharedTypedFeature("det")
     {
         document_title("Determinization-based Heuristic");
         document_synopsis(

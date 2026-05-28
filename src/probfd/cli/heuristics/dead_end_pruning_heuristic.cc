@@ -15,10 +15,10 @@ using namespace downward::cli::plugins;
 
 namespace {
 class DeadEndPruningHeuristicFactoryFeature
-    : public TypedFeature<TaskHeuristicFactory> {
+    : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     DeadEndPruningHeuristicFactoryFeature()
-        : TypedFeature("prune_dead_ends")
+        : SharedTypedFeature("prune_dead_ends")
     {
         document_title("Dead-End Pruning Heuristic");
         document_synopsis(

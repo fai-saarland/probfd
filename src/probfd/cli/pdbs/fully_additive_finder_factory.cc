@@ -14,10 +14,10 @@ using namespace downward::cli::plugins;
 
 namespace {
 class FullyAdditiveFinderFactoryFeature
-    : public TypedFeature<SubCollectionFinderFactory> {
+    : public SharedTypedFeature<SubCollectionFinderFactory> {
 public:
     FullyAdditiveFinderFactoryFeature()
-        : TypedFeature("fully_additive_factory")
+        : SharedTypedFeature("fully_additive_factory")
     {
     }
 

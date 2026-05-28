@@ -20,10 +20,10 @@ using downward::cli::merge_and_shrink::add_shrink_bucket_options_to_feature;
 using downward::cli::merge_and_shrink::get_shrink_bucket_arguments_from_options;
 
 namespace {
-class ShrinkFHFeature : public TypedFeature<ShrinkStrategy> {
+class ShrinkFHFeature : public SharedTypedFeature<ShrinkStrategy> {
 public:
     ShrinkFHFeature()
-        : TypedFeature("shrink_fh")
+        : SharedTypedFeature("shrink_fh")
     {
         document_title("f-preserving shrink strategy");
         document_synopsis(

@@ -24,10 +24,10 @@ using downward::cli::landmarks::get_landmark_factory_arguments_from_options;
 
 namespace {
 class LandmarkFactoryReasonableOrdersHPSFeature
-    : public TypedFeature<LandmarkFactory> {
+    : public SharedTypedFeature<LandmarkFactory> {
 public:
     LandmarkFactoryReasonableOrdersHPSFeature()
-        : TypedFeature("lm_reasonable_orders_hps")
+        : SharedTypedFeature("lm_reasonable_orders_hps")
     {
         document_title("HPS Orders");
         document_synopsis(

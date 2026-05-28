@@ -59,10 +59,10 @@ public:
 };
 
 class CGHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     CGHeuristicFeature()
-        : TypedFeature("cg")
+        : SharedTypedFeature("cg")
     {
         document_title("Causal graph heuristic");
 

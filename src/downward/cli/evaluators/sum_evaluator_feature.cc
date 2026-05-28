@@ -58,10 +58,10 @@ public:
 };
 
 class SumEvaluatorFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     SumEvaluatorFeature()
-        : TypedFeature("sum")
+        : SharedTypedFeature("sum")
     {
         document_subcategory("evaluators_basic");
         document_title("Sum evaluator");
