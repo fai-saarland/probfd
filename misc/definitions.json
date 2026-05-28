@@ -1,3 +1,9 @@
 {
-  "foo": "lrtdp(heuristic=ppdbs())"
+  "pgen": "psystematic()",
+  "search_hroc": "tailao(heuristic=hroc())",
+  "search_hpom": "tailao(heuristic=hpom())",
+  "search_hpho": "tailao(heuristic=hpho(patterns=pgen))",
+  "search_scp": "tailao(heuristic=scp_heuristic(patterns=pgen))",
+  "search_ucp": "tailao(heuristic=ucp_heuristic(patterns=pgen))",
+  "search_can": "tailao(heuristic=ppdbs(patterns=pgen))"
 }
