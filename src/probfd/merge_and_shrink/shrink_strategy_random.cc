@@ -9,8 +9,9 @@ using namespace std;
 
 namespace probfd::merge_and_shrink {
 
-ShrinkStrategyRandom::ShrinkStrategyRandom(int random_seed)
-    : ShrinkStrategyBucketBased(random_seed)
+ShrinkStrategyRandom::ShrinkStrategyRandom(
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng)
+    : ShrinkStrategyBucketBased(std::move(rng))
 {
 }
 

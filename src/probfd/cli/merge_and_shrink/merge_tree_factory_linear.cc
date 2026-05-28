@@ -28,7 +28,7 @@ Feature& add_merge_strategy_linear_to_namespace(Namespace& nspace)
         &downward::cli::plugins::make_shared<
             MergeTreeFactory,
             MergeTreeFactoryLinear,
-            int,
+            std::shared_ptr<utils::RandomNumberGenerator>,
             UpdateOption,
             variable_order_finder::VariableOrderType>);
 

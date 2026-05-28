@@ -17,8 +17,6 @@ class RandomSuccessorSampler : public algorithms::SuccessorSampler<Action> {
     std::shared_ptr<downward::utils::RandomNumberGenerator> rng_;
 
 public:
-    explicit RandomSuccessorSampler(int random_seed);
-
     explicit RandomSuccessorSampler(
         std::shared_ptr<downward::utils::RandomNumberGenerator> rng);
 

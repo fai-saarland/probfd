@@ -69,8 +69,9 @@ add_pattern_collection_generator_hillclimbing_to_namespace(Namespace& nspace)
             int,
             int,
             FSeconds,
-            int,
+            std::shared_ptr<RandomNumberGenerator>,
             Verbosity>);
+
     f.document_title("Hill climbing");
     f.document_synopsis(
         "This algorithm uses hill climbing to generate patterns "

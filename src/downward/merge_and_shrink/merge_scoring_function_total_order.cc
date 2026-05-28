@@ -6,7 +6,6 @@
 #include "downward/utils/logging.h"
 
 #include "downward/utils/rng.h"
-#include "downward/utils/rng_options.h"
 
 #include "downward/abstract_task.h"
 #include "downward/state.h"
@@ -20,12 +19,11 @@ MergeScoringFunctionTotalOrder::MergeScoringFunctionTotalOrder(
     AtomicTSOrder atomic_ts_order,
     ProductTSOrder product_ts_order,
     bool atomic_before_product,
-    int random_seed)
+    std::shared_ptr<utils::RandomNumberGenerator> rng)
     : atomic_ts_order(atomic_ts_order)
     , product_ts_order(product_ts_order)
     , atomic_before_product(atomic_before_product)
-    , random_seed(random_seed)
-    , rng(utils::get_rng(random_seed))
+    , rng(std::move(rng))
 {
 }
 
@@ -150,7 +148,6 @@ void MergeScoringFunctionTotalOrder::dump_function_specific_options(
             << (atomic_before_product ? "atomic before product"
                                       : "product before atomic")
             << " transition systems" << endl;
-        log << "Random seed: " << random_seed << endl;
     }
 }
 

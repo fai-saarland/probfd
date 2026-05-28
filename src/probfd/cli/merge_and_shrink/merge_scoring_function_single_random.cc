@@ -24,7 +24,7 @@ add_merge_scoring_function_single_random_to_namespace(Namespace& nspace)
         &downward::cli::plugins::make_shared<
             MergeScoringFunction,
             MergeScoringFunctionSingleRandom,
-            int>);
+            std::shared_ptr<utils::RandomNumberGenerator>>);
 
     f.document_title("Single random");
     f.document_synopsis(

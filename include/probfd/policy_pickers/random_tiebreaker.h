@@ -21,7 +21,6 @@ class RandomTiebreaker
     std::shared_ptr<downward::utils::RandomNumberGenerator> rng_;
 
 public:
-    explicit RandomTiebreaker(bool stable_policy, int random_seed);
     explicit RandomTiebreaker(
         bool stable_policy,
         std::shared_ptr<downward::utils::RandomNumberGenerator> rng);

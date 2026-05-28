@@ -36,7 +36,7 @@ Feature& add_pareto_open_list_to_namespace(Namespace& nspace, std::string name)
             const std::vector<std::shared_ptr<
                 downward::TaskDependentFactory<downward::Evaluator>>>&,
             bool,
-            int,
+            std::shared_ptr<RandomNumberGenerator>,
             bool>);
 
     if constexpr (std::same_as<T, downward::StateOpenListEntry>) {

@@ -60,7 +60,7 @@ public:
         bool before_merging,
         LabelReductionMethod method,
         LabelReductionSystemOrder system_order,
-        int random_seed);
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng);
 
     void initialize(const ProbabilisticTaskTuple& task);
 

@@ -23,8 +23,6 @@
 #include "downward/state.h"
 #include "downward/tuple_utils.h"
 
-#include "downward/utils/rng_options.h"
-
 using namespace downward;
 using namespace utils;
 
@@ -96,7 +94,7 @@ Feature& add_random_tiebreaker_policy_picker_to_namespace(Namespace& nspace)
             PolicyPicker<Bisimulation, Fret>,
             Wrapper<RandomTiebreaker, Bisimulation, Fret>,
             bool,
-            int>);
+            std::shared_ptr<downward::utils::RandomNumberGenerator>>);
 
     f.make_optional_argument_with_default(0, "stable_policy", "true");
     add_rng_options_to_feature(f, 1);

@@ -37,7 +37,7 @@ add_epsilon_greedy_open_list_to_namespace(Namespace& nspace, std::string name)
             const std::shared_ptr<
                 downward::TaskDependentFactory<downward::Evaluator>>&,
             double,
-            int,
+            std::shared_ptr<RandomNumberGenerator>,
             bool>);
 
     if constexpr (std::same_as<T, downward::StateOpenListEntry>) {

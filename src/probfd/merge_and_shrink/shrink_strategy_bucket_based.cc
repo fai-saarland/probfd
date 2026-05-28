@@ -2,7 +2,6 @@
 
 #include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
-#include "downward/utils/rng_options.h"
 
 #include <cassert>
 #include <iostream>
@@ -13,8 +12,9 @@ using namespace downward;
 
 namespace probfd::merge_and_shrink {
 
-ShrinkStrategyBucketBased::ShrinkStrategyBucketBased(int random_seed)
-    : rng(utils::get_rng(random_seed))
+ShrinkStrategyBucketBased::ShrinkStrategyBucketBased(
+    std::shared_ptr<utils::RandomNumberGenerator> rng)
+    : rng(std::move(rng))
 {
 }
 

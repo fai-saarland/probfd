@@ -28,7 +28,7 @@ public:
         utils::FSeconds stagnation_limit,
         double blacklist_trigger_percentage,
         bool enable_blacklist_on_stagnation,
-        int random_seed,
+        std::shared_ptr<utils::RandomNumberGenerator> rng,
         utils::Verbosity verbosity);
 };
 } // namespace pdbs

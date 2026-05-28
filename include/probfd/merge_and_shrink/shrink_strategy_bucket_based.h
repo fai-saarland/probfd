@@ -38,7 +38,8 @@ protected:
     std::shared_ptr<downward::utils::RandomNumberGenerator> rng;
 
 public:
-    explicit ShrinkStrategyBucketBased(int random_seed);
+    explicit ShrinkStrategyBucketBased(
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng);
 
     StateEquivalenceRelation compute_equivalence_relation(
         const Labels& labels,

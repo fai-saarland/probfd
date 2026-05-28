@@ -7,7 +7,6 @@
 
 #include "downward/utils/collections.h"
 #include "downward/utils/rng.h"
-#include "downward/utils/rng_options.h"
 
 #include <memory>
 #include <set>
@@ -52,7 +51,7 @@ protected:
 public:
     explicit TypeBasedOpenList(
         const std::vector<std::shared_ptr<Evaluator>>& evaluators,
-        int random_seed);
+        std::shared_ptr<utils::RandomNumberGenerator> rng);
 
     virtual Entry remove_min() override;
     virtual bool empty() const override;
@@ -90,9 +89,9 @@ void TypeBasedOpenList<Entry>::do_insertion(
 template <class Entry>
 TypeBasedOpenList<Entry>::TypeBasedOpenList(
     const std::vector<std::shared_ptr<Evaluator>>& evaluators,
-    int random_seed)
+    std::shared_ptr<utils::RandomNumberGenerator> rng)
     : evaluators(evaluators)
-    , rng(utils::get_rng(random_seed))
+    , rng(std::move(rng))
 {
 }
 
@@ -166,14 +165,14 @@ void TypeBasedOpenList<Entry>::get_path_dependent_evaluators(
 template <typename T>
 class TypeBasedOpenListFactory : public TaskDependentFactory<OpenList<T>> {
     std::vector<std::shared_ptr<TaskDependentFactory<Evaluator>>> factories;
-    int random_seed;
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng;
 
 public:
     TypeBasedOpenListFactory(
         std::vector<std::shared_ptr<TaskDependentFactory<Evaluator>>> factories,
-        int random_seed)
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng)
         : factories(std::move(factories))
-        , random_seed(random_seed)
+        , rng(std::move(rng))
     {
         if (this->factories.empty()) {
             throw std::domain_error("List of evaluators may not be empty.");
@@ -190,7 +189,7 @@ public:
         return std::make_unique<TypeBasedOpenList<T>>(
             factories | std::views::transform(f) |
                 std::ranges::to<std::vector>(),
-            random_seed);
+            rng);
     }
 };
 } // namespace downward::type_based_open_list

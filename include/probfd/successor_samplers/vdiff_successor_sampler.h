@@ -22,8 +22,6 @@ class VDiffSuccessorSampler : public algorithms::SuccessorSampler<Action> {
     Distribution<StateID> biased_;
 
 public:
-    explicit VDiffSuccessorSampler(int random_seed, bool prefer_large_gaps);
-
     explicit VDiffSuccessorSampler(
         std::shared_ptr<downward::utils::RandomNumberGenerator> rng,
         bool prefer_large_gaps);

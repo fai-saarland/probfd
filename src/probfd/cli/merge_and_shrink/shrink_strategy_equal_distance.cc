@@ -26,7 +26,7 @@ Feature& add_shrink_strategy_equal_distance_to_namespace(Namespace& nspace)
         &downward::cli::plugins::make_shared<
             ShrinkStrategy,
             ShrinkStrategyEqualDistance,
-            int,
+            std::shared_ptr<utils::RandomNumberGenerator>,
             ShrinkStrategyEqualDistance::Priority>);
 
     f.document_title("distance-preserving shrink strategy");

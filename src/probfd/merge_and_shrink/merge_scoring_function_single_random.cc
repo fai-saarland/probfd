@@ -4,7 +4,6 @@
 
 #include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
-#include "downward/utils/rng_options.h"
 
 using namespace std;
 using namespace downward;
@@ -12,9 +11,8 @@ using namespace downward;
 namespace probfd::merge_and_shrink {
 
 MergeScoringFunctionSingleRandom::MergeScoringFunctionSingleRandom(
-    int random_seed)
-    : random_seed(random_seed)
-    , rng(utils::get_rng(random_seed))
+    std::shared_ptr<utils::RandomNumberGenerator> rng)
+    : rng(std::move(rng))
 {
 }
 
@@ -44,11 +42,8 @@ string MergeScoringFunctionSingleRandom::name() const
 }
 
 void MergeScoringFunctionSingleRandom::dump_function_specific_options(
-    utils::LogProxy& log) const
+    utils::LogProxy&) const
 {
-    if (log.is_at_least_normal()) {
-        log.println("Random seed: {}", random_seed);
-    }
 }
 
 } // namespace probfd::merge_and_shrink

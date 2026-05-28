@@ -7,8 +7,6 @@
 
 #include "probfd/cartesian_abstractions/split_selector.h"
 
-#include "downward/utils/rng_options.h"
-
 using namespace downward;
 using namespace downward::utils;
 
@@ -20,18 +18,14 @@ using downward::cli::utils::add_rng_options_to_feature;
 
 namespace {
 
-std::shared_ptr<SplitSelectorFactory>
-create_split_selector_random(int random_seed)
-{
-    return make_shared_from_arg_tuples<SplitSelectorRandomFactory>(
-        get_rng(random_seed));
-}
-
 Feature& add_split_selector_random_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_typed_feature_plugin(
         "random",
-        create_split_selector_random);
+        &cli::plugins::make_shared<
+            SplitSelectorFactory,
+            SplitSelectorRandomFactory,
+            std::shared_ptr<RandomNumberGenerator>>);
 
     f.document_synopsis(
         "select a random variable (among all eligible variables)");

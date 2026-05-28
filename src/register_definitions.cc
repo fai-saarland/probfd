@@ -128,6 +128,7 @@
 
 #include "downward/cli/operator_cost_category.h"
 #include "downward/cli/plugins/registry.h"
+#include "downward/cli/utils/rng_options.h"
 #include "downward/utils/math.h"
 
 #include "probfd/cli/cartesian_abstractions/adaptive_flaw_generator.h"
@@ -368,6 +369,7 @@ static void register_fast_downward_types(plugins::Registry& registry)
     tasks::add_task_transformation_category(registry);
 
     // Utils
+    utils::add_rng_type(registry);
     utils::add_verbosity_enum(registry);
 
     // Operator Cost Enum
@@ -575,6 +577,10 @@ static void register_fast_downward_definitions(plugins::Registry& registry)
     // Task Transformations
     tasks::add_cost_task_transformation_features(registry);
     tasks::add_identity_task_transformation_features(registry);
+
+    // Utils
+    utils::add_default_rng_function(registry);
+    utils::add_seeded_rng_function(registry);
 }
 
 static void register_probfd_types(plugins::Registry& registry)

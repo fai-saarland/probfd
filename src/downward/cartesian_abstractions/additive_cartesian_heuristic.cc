@@ -7,7 +7,6 @@
 
 #include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
-#include "downward/utils/rng_options.h"
 
 #include "downward/task_transformation.h"
 
@@ -23,14 +22,13 @@ static vector<CartesianHeuristicFunction> generate_heuristic_functions(
     utils::FSeconds max_time,
     PickSplit pick,
     bool use_general_costs,
-    int random_seed,
+    utils::RandomNumberGenerator& rng,
     const SharedAbstractTask& transform,
     utils::LogProxy& log)
 {
     if (log.is_at_least_normal()) {
         log << "Initializing additive Cartesian heuristic..." << endl;
     }
-    shared_ptr<utils::RandomNumberGenerator> rng = utils::get_rng(random_seed);
     CostSaturation cost_saturation(
         subtask_generators,
         max_states,
@@ -38,7 +36,7 @@ static vector<CartesianHeuristicFunction> generate_heuristic_functions(
         max_time,
         pick,
         use_general_costs,
-        *rng,
+        rng,
         log);
     return cost_saturation.generate_heuristic_functions(transform);
 }
@@ -50,7 +48,7 @@ AdditiveCartesianHeuristic::AdditiveCartesianHeuristic(
     utils::FSeconds max_time,
     PickSplit pick,
     bool use_general_costs,
-    int random_seed,
+    utils::RandomNumberGenerator& rng,
     SharedAbstractTask original_task,
     TaskTransformationResult transformation_result,
     bool cache_estimates,
@@ -69,7 +67,7 @@ AdditiveCartesianHeuristic::AdditiveCartesianHeuristic(
           max_time,
           pick,
           use_general_costs,
-          random_seed,
+          rng,
           transformed_task,
           log))
 {
@@ -82,7 +80,7 @@ AdditiveCartesianHeuristic::AdditiveCartesianHeuristic(
     utils::FSeconds max_time,
     PickSplit pick,
     bool use_general_costs,
-    int random_seed,
+    utils::RandomNumberGenerator& rng,
     SharedAbstractTask original_task,
     const std::shared_ptr<TaskTransformation>& transformation,
     bool cache_estimates,
@@ -95,7 +93,7 @@ AdditiveCartesianHeuristic::AdditiveCartesianHeuristic(
           max_time,
           pick,
           use_general_costs,
-          random_seed,
+          rng,
           original_task,
           transformation->transform(original_task),
           cache_estimates,

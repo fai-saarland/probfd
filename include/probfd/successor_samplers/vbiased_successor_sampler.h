@@ -20,8 +20,6 @@ class VBiasedSuccessorSampler : public algorithms::SuccessorSampler<Action> {
     std::shared_ptr<downward::utils::RandomNumberGenerator> rng_;
 
 public:
-    explicit VBiasedSuccessorSampler(int random_seed);
-
     explicit VBiasedSuccessorSampler(
         std::shared_ptr<downward::utils::RandomNumberGenerator> rng);
 

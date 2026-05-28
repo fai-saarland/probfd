@@ -9,8 +9,6 @@
 
 #include "probfd/pdbs/pattern_collection_generator_hillclimbing.h"
 
-#include "downward/utils/rng_options.h"
-
 using namespace downward;
 using namespace utils;
 

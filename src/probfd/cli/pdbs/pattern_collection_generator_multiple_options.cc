@@ -6,8 +6,6 @@
 
 #include "probfd/cli/pdbs/pattern_collection_generator_options.h"
 
-#include "downward/utils/rng_options.h"
-
 using namespace std;
 using namespace downward;
 

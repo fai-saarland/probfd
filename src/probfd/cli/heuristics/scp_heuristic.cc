@@ -34,7 +34,7 @@ add_saturated_cost_partitioning_heuristic_to_namespace(Namespace& nspace)
             SCPHeuristicFactory,
             std::shared_ptr<PatternCollectionGenerator>,
             SCPHeuristicFactory::OrderingStrategy,
-            int>);
+            std::shared_ptr<RandomNumberGenerator>>);
 
     f.document_title("Saturated Cost Partitioning Heuristic");
     f.document_synopsis(

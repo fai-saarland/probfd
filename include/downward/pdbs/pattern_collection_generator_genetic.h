@@ -119,7 +119,7 @@ public:
         int num_episodes,
         double mutation_probability,
         bool disjoint,
-        int random_seed,
+        std::shared_ptr<utils::RandomNumberGenerator> rng,
         utils::Verbosity verbosity);
 };
 } // namespace downward::pdbs

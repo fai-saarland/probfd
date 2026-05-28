@@ -13,7 +13,6 @@
 
 #include "downward/utils/logging.h"
 #include "downward/utils/markup.h"
-#include "downward/utils/rng_options.h"
 
 #include "downward/task_dependent_factory.h"
 #include "downward/task_transformation.h"
@@ -41,7 +40,7 @@ class AdditiveCartesianHeuristicFactory
     FSeconds max_time;
     PickSplit pick;
     bool use_general_costs;
-    int random_seed;
+    std::shared_ptr<RandomNumberGenerator> rng;
 
 public:
     AdditiveCartesianHeuristicFactory(
@@ -55,7 +54,7 @@ public:
         FSeconds max_time,
         PickSplit pick,
         bool use_general_costs,
-        int random_seed)
+        std::shared_ptr<RandomNumberGenerator> rng)
         : transformation(std::move(transformation))
         , cache_estimates(cache_estimates)
         , description(std::move(description))
@@ -66,7 +65,7 @@ public:
         , max_time(max_time)
         , pick(pick)
         , use_general_costs(use_general_costs)
-        , random_seed(random_seed)
+        , rng(std::move(rng))
     {
         if (max_states < 1) {
             throw std::domain_error("max_states must be >= 1.");
@@ -87,7 +86,7 @@ public:
             max_time,
             pick,
             use_general_costs,
-            random_seed,
+            *rng,
             task,
             std::move(transformation_result),
             cache_estimates,
@@ -113,7 +112,7 @@ Feature& add_additive_cartesian_heuristic_to_namespace(Namespace& nspace)
             FSeconds,
             PickSplit,
             bool,
-            int>);
+            std::shared_ptr<RandomNumberGenerator>>);
 
     f.document_title("Additive CEGAR heuristic");
     f.document_synopsis(
@@ -160,39 +159,40 @@ Feature& add_additive_cartesian_heuristic_to_namespace(Namespace& nspace)
     f.document_property("safe", "yes");
     f.document_property("preferred operators", "no");
 
+    const auto n = add_heuristic_options_to_feature(f, "cegar", 0);
+
     f.make_optional_argument_with_default(
-        0,
+        n,
         "subtasks",
         "[landmarks(),goals()]",
         "subtask generators");
     f.make_optional_argument_with_default(
-        1,
+        n + 1,
         "max_states",
         "infinity()",
         "maximum sum of abstract states over all abstractions");
     f.make_optional_argument_with_default(
-        2,
+        n + 2,
         "max_transitions",
         "1M",
         "maximum sum of real transitions (excluding self-loops) over "
         " all abstractions");
     f.make_optional_argument_with_default(
-        3,
+        n + 3,
         "max_time",
         "seconds_max()",
         "maximum time in seconds for building abstractions");
     f.make_optional_argument_with_default(
-        4,
+        n + 4,
         "pick",
         "max_refined",
         "how to choose on which variable to split the flaw state");
     f.make_optional_argument_with_default(
-        5,
+        n + 5,
         "use_general_costs",
         "true",
         "allow negative costs in cost partitioning");
-    const auto n = add_rng_options_to_feature(f, 6);
-    add_heuristic_options_to_feature(f, "cegar", n + 6);
+    add_rng_options_to_feature(f, n + 6);
 
     return f;
 }

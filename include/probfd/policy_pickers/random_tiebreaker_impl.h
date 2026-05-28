@@ -7,16 +7,6 @@ namespace probfd::policy_pickers {
 template <typename State, typename Action>
 RandomTiebreaker<State, Action>::RandomTiebreaker(
     bool stable_policy,
-    int random_seed)
-    : RandomTiebreaker(
-          stable_policy,
-          std::make_shared<downward::utils::RandomNumberGenerator>(random_seed))
-{
-}
-
-template <typename State, typename Action>
-RandomTiebreaker<State, Action>::RandomTiebreaker(
-    bool stable_policy,
     std::shared_ptr<downward::utils::RandomNumberGenerator> rng)
     : RandomTiebreaker::StablePolicyPicker(stable_policy)
     , rng_(std::move(rng))

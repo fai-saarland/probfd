@@ -35,8 +35,9 @@ add_pattern_collection_generator_multiple_cegar_to_namespace(Namespace& nspace)
             FSeconds,
             double,
             bool,
-            int,
+            std::shared_ptr<RandomNumberGenerator>,
             Verbosity>);
+
     f.document_title("Multiple CEGAR");
     f.document_synopsis(
         "This pattern collection generator implements the multiple CEGAR "

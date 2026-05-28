@@ -11,8 +11,6 @@
 
 #include "probfd/pdbs/pattern_collection_generator_disjoint_cegar.h"
 
-#include "downward/utils/rng_options.h"
-
 using namespace std;
 
 using namespace downward;

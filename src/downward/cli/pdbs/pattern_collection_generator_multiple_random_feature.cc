@@ -32,8 +32,9 @@ Feature& add_pattern_collection_generator_random_to_namespace(Namespace& nspace)
             FSeconds,
             double,
             bool,
-            int,
+            std::shared_ptr<RandomNumberGenerator>,
             Verbosity>);
+
     f.document_title("Multiple Random Patterns");
     f.document_synopsis(
         "This pattern collection generator implements the 'multiple "

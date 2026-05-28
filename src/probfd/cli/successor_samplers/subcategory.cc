@@ -91,7 +91,7 @@ Feature& add_random_successor_sampler_to_namespace(Namespace& nspace)
         &downward::cli::plugins::make_shared<
             SuccessorSampler<Fret>,
             Wrapper<RandomSuccessorSampler, Fret>,
-            int>);
+            std::shared_ptr<RandomNumberGenerator>>);
 
     add_rng_options_to_feature(f, 0);
 
@@ -106,7 +106,7 @@ Feature& add_vbiased_successor_sampler_to_namespace(Namespace& nspace)
         &downward::cli::plugins::make_shared<
             SuccessorSampler<Fret>,
             Wrapper<VBiasedSuccessorSampler, Fret>,
-            int>);
+            std::shared_ptr<RandomNumberGenerator>>);
 
     add_rng_options_to_feature(f, 0);
 
@@ -121,7 +121,7 @@ Feature& add_vdiff_successor_sampler_to_namespace(Namespace& nspace)
         &downward::cli::plugins::make_shared<
             SuccessorSampler<Fret>,
             Wrapper<VDiffSuccessorSampler, Fret>,
-            int,
+            std::shared_ptr<RandomNumberGenerator>,
             bool>);
 
     const auto n = add_rng_options_to_feature(f, 0);

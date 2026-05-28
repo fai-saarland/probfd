@@ -30,7 +30,7 @@ class LazyGreedySearchFactory : public TaskDependentFactory<SearchAlgorithm> {
     bool reopen_closed;
     bool randomize_successors;
     bool preferred_successors_first;
-    int random_seed;
+    std::shared_ptr<utils::RandomNumberGenerator> rng;
     vector<shared_ptr<TaskDependentFactory<Evaluator>>> eval_factories;
     vector<shared_ptr<TaskDependentFactory<Evaluator>>> preferred_factories;
     int boost;
@@ -45,7 +45,7 @@ public:
         bool reopen_closed,
         bool randomize_successors,
         bool preferred_successors_first,
-        int random_seed,
+        std::shared_ptr<utils::RandomNumberGenerator> rng,
         vector<shared_ptr<TaskDependentFactory<Evaluator>>> eval_factories,
         vector<shared_ptr<TaskDependentFactory<Evaluator>>> preferred_factories,
         int boost)
@@ -57,7 +57,7 @@ public:
         , reopen_closed(reopen_closed)
         , randomize_successors(randomize_successors)
         , preferred_successors_first(preferred_successors_first)
-        , random_seed(random_seed)
+        , rng(std::move(rng))
         , eval_factories(std::move(eval_factories))
         , preferred_factories(std::move(preferred_factories))
         , boost(boost)
@@ -90,7 +90,7 @@ public:
             std::move(preferred),
             randomize_successors,
             preferred_successors_first,
-            random_seed,
+            rng,
             task,
             cost_type,
             bound,
@@ -115,7 +115,7 @@ Feature& add_lazy_greedy_search_to_namespace(Namespace& nspace)
             bool,
             bool,
             bool,
-            int,
+            std::shared_ptr<utils::RandomNumberGenerator>,
             vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
             vector<shared_ptr<TaskDependentFactory<Evaluator>>>,
             int>);

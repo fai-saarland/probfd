@@ -70,7 +70,6 @@ create_library(
         downward/utils/math
         downward/utils/memory
         downward/utils/rng
-        downward/utils/rng_options
         downward/utils/strings
         downward/utils/system
         downward/utils/system_unix

@@ -11,7 +11,6 @@
 #include "downward/utils/logging.h"
 #include "downward/utils/math.h"
 #include "downward/utils/rng.h"
-#include "downward/utils/rng_options.h"
 
 #include <algorithm>
 #include <cassert>
@@ -28,7 +27,7 @@ PatternCollectionGeneratorGenetic::PatternCollectionGeneratorGenetic(
     int num_episodes,
     double mutation_probability,
     bool disjoint,
-    int random_seed,
+    std::shared_ptr<utils::RandomNumberGenerator> rng,
     utils::Verbosity verbosity)
     : PatternCollectionGenerator(verbosity)
     , pdb_max_size(pdb_max_size)
@@ -36,7 +35,7 @@ PatternCollectionGeneratorGenetic::PatternCollectionGeneratorGenetic(
     , num_episodes(num_episodes)
     , mutation_probability(mutation_probability)
     , disjoint_patterns(disjoint)
-    , rng(utils::get_rng(random_seed))
+    , rng(std::move(rng))
 {
     if (pdb_max_size < 1) {
         throw std::domain_error("pdb_max_size must be >= 1.");
