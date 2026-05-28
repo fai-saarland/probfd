@@ -1,5 +1,5 @@
 {
-  "pgen": "psystematic()",
+  "pgen": "psystematic(pattern_max_size=2)",
   "search_hroc": "tailao(heuristic=hroc())",
   "search_hpom": "tailao(heuristic=hpom())",
   "search_hpho": "tailao(heuristic=hpho(patterns=pgen))",
