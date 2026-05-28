@@ -268,7 +268,7 @@ std::unique_ptr<ConstraintGenerator>
 HPOMGeneratorFactory::construct_constraint_generator(
     const SharedProbabilisticTask&)
 {
-    return std::unique_ptr<HPOMGenerator>();
+    return std::make_unique<HPOMGenerator>();
 }
 
 } // namespace probfd::occupation_measures
