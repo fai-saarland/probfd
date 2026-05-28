@@ -47,4 +47,3 @@ SpaceBeforeCtorInitializerColon: true
 SpaceBeforeInheritanceColon: true
 SpaceBeforeRangeBasedForLoopColon: true
 UseTab: Never
-WrapNamespaceBodyWithEmptyLines: Leave

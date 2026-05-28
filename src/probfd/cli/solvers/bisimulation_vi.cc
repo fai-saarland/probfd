@@ -3,7 +3,7 @@
 #include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
-#include "probfd/solver_interface.h"
+#include "probfd/probabilistic_task_solver.h"
 
 #include "probfd/bisimulation/bisimilar_state_space.h"
 
@@ -53,26 +53,24 @@ void print_bisimulation_stats(
     std::println(out, "  Transitions in bisimulation: {}", transitions);
 }
 
-class BisimulationSolver : public SolverInterface {
+class BisimulationSolver : public ProbabilisticTaskSolver {
     using QState = bisimulation::QuotientState;
     using QAction = OperatorID;
 
-    SharedProbabilisticTask task;
     std::unique_ptr<MDPAlgorithm<QState, QAction>> solver;
     std::string algorithm_name;
 
 public:
     BisimulationSolver(
-        SharedProbabilisticTask task,
         std::unique_ptr<MDPAlgorithm<QState, QAction>> solver,
         std::string algorithm_name)
-        : task(std::move(task))
-        , solver(std::move(solver))
+        : solver(std::move(solver))
         , algorithm_name(std::move(algorithm_name))
     {
     }
 
-    bool solve(downward::utils::FSeconds max_time) override
+    bool solve(const SharedProbabilisticTask& task, utils::FSeconds max_time)
+        override
     {
         auto determinization = tasks::create_determinization_task(task);
 
@@ -184,59 +182,17 @@ public:
     }
 };
 
-class BisimulationIterationFactory : public TaskSolverFactory {
+class BisimulationVISolverFeature
+    : public InternalFunctionDefinition<
+          std::shared_ptr<ProbabilisticTaskSolver>(value_t)> {
     using QState = bisimulation::QuotientState;
     using QAction = OperatorID;
 
-    const bool convergence_epsilon_;
-    const bool interval_iteration_;
-
-public:
-    BisimulationIterationFactory(bool convergence_epsilon, bool interval)
-        : convergence_epsilon_(convergence_epsilon)
-        , interval_iteration_(interval)
-    {
-    }
-
-    std::string get_algorithm_name() const
-    {
-        return (
-            interval_iteration_ ? "bisimulation interval iteration"
-                                : "bisimulation value iteration");
-    }
-
-    std::unique_ptr<SolverInterface>
-    create(const SharedProbabilisticTask& task) override
-    {
-        using namespace algorithms::interval_iteration;
-        using namespace algorithms::topological_vi;
-
-        std::unique_ptr<MDPAlgorithm<QState, QAction>> solver;
-
-        if (interval_iteration_) {
-            solver = std::make_unique<IntervalIteration<QState, QAction>>(
-                convergence_epsilon_,
-                false,
-                false);
-        } else {
-            solver =
-                std::make_unique<TopologicalValueIteration<QState, QAction>>(
-                    convergence_epsilon_,
-                    false);
-        }
-
-        return std::make_unique<BisimulationSolver>(
-            task,
-            std::move(solver),
-            get_algorithm_name());
-    }
-};
-
-class BisimulationVISolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(value_t)> {
 public:
     BisimulationVISolverFeature()
-        : InternalFunctionDefinition("bisimulation_vi", &BisimulationVISolverFeature::func)
+        : InternalFunctionDefinition(
+              "bisimulation_vi",
+              &BisimulationVISolverFeature::func)
     {
         document_title("Bisimulation Value Iteration");
 
@@ -248,19 +204,29 @@ public:
     }
 
 protected:
-    static std::shared_ptr<TaskSolverFactory> func(value_t convergence_epsilon)
+    static std::shared_ptr<ProbabilisticTaskSolver>
+    func(value_t convergence_epsilon)
     {
-        return std::make_shared<BisimulationIterationFactory>(
-            convergence_epsilon,
-            false);
+        return std::make_shared<BisimulationSolver>(
+            std::make_unique<algorithms::topological_vi::
+                                 TopologicalValueIteration<QState, QAction>>(
+                convergence_epsilon,
+                false),
+            "bisimulation value iteration");
     }
 };
 
 class BisimulationIISolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(value_t)> {
+    : public InternalFunctionDefinition<
+          std::shared_ptr<ProbabilisticTaskSolver>(value_t)> {
+    using QState = bisimulation::QuotientState;
+    using QAction = OperatorID;
+
 public:
     BisimulationIISolverFeature()
-        : InternalFunctionDefinition("bisimulation_ii", &BisimulationIISolverFeature::func)
+        : InternalFunctionDefinition(
+              "bisimulation_ii",
+              &BisimulationIISolverFeature::func)
     {
         document_title("Bisimulation Interval Iteration");
 
@@ -272,11 +238,16 @@ public:
     }
 
 protected:
-    static std::shared_ptr<TaskSolverFactory> func(value_t convergence_epsilon)
+    static std::shared_ptr<ProbabilisticTaskSolver>
+    func(value_t convergence_epsilon)
     {
-        return std::make_shared<BisimulationIterationFactory>(
-            convergence_epsilon,
-            true);
+        return std::make_shared<BisimulationSolver>(
+            std::make_unique<algorithms::interval_iteration::
+                                 IntervalIteration<QState, QAction>>(
+                convergence_epsilon,
+                false,
+                false),
+            "bisimulation interval iteration");
     }
 };
 } // namespace

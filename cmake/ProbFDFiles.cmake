@@ -42,7 +42,7 @@ create_library(
         probfd/utils/guards
         probfd/utils/not_implemented
 
-        probfd/solver_interface
+    probfd/probabilistic_task_solver
 
         probfd/solvers/mdp_solver
         probfd/solvers/statistical_mdp_algorithm

@@ -1,4 +1,4 @@
-#include "probfd/solver_interface.h"
+#include "probfd/probabilistic_task_solver.h"
 
 #include "probfd/interval.h"
 

@@ -97,7 +97,7 @@ public:
 
 template <bool Bisimulation>
 class DFHSSolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
+    : public InternalFunctionDefinition<std::shared_ptr<ProbabilisticTaskSolver>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -134,7 +134,7 @@ public:
     }
 
 protected:
-    static std::shared_ptr<TaskSolverFactory> func(
+    static std::shared_ptr<ProbabilisticTaskSolver> func(
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,
@@ -174,7 +174,7 @@ protected:
 
 template <bool Bisimulation>
 class ILAOSolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
+    : public InternalFunctionDefinition<std::shared_ptr<ProbabilisticTaskSolver>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -199,7 +199,7 @@ public:
         add_mdp_hs_options_to_feature<Bisimulation, false>(*this, n);
     }
 
-    static std::shared_ptr<TaskSolverFactory> func(
+    static std::shared_ptr<ProbabilisticTaskSolver> func(
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,
@@ -234,7 +234,7 @@ public:
 
 template <bool Bisimulation>
 class LILAOSolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
+    : public InternalFunctionDefinition<std::shared_ptr<ProbabilisticTaskSolver>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -258,7 +258,7 @@ public:
         add_mdp_hs_options_to_feature<Bisimulation, false>(*this, n);
     }
 
-    static std::shared_ptr<TaskSolverFactory> func(
+    static std::shared_ptr<ProbabilisticTaskSolver> func(
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,
@@ -293,7 +293,7 @@ public:
 
 template <bool Bisimulation>
 class HDPSolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
+    : public InternalFunctionDefinition<std::shared_ptr<ProbabilisticTaskSolver>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -317,7 +317,7 @@ public:
         add_mdp_hs_options_to_feature<Bisimulation, false>(*this, n);
     }
 
-    static std::shared_ptr<TaskSolverFactory> func(
+    static std::shared_ptr<ProbabilisticTaskSolver> func(
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,
@@ -352,7 +352,7 @@ public:
 
 template <bool Bisimulation>
 class DFHSFretSolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
+    : public InternalFunctionDefinition<std::shared_ptr<ProbabilisticTaskSolver>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -390,7 +390,7 @@ public:
     }
 
 protected:
-    static std::shared_ptr<TaskSolverFactory> func(
+    static std::shared_ptr<ProbabilisticTaskSolver> func(
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,
@@ -432,7 +432,7 @@ protected:
 
 template <bool Bisimulation>
 class ILAOFretSolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
+    : public InternalFunctionDefinition<std::shared_ptr<ProbabilisticTaskSolver>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -457,7 +457,7 @@ public:
         add_mdp_hs_options_to_feature<Bisimulation, true>(*this, n);
     }
 
-    static std::shared_ptr<TaskSolverFactory> func(
+    static std::shared_ptr<ProbabilisticTaskSolver> func(
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,
@@ -494,7 +494,7 @@ public:
 
 template <bool Bisimulation>
 class LILAOFretSolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
+    : public InternalFunctionDefinition<std::shared_ptr<ProbabilisticTaskSolver>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -519,7 +519,7 @@ public:
         add_mdp_hs_options_to_feature<Bisimulation, true>(*this, n);
     }
 
-    static std::shared_ptr<TaskSolverFactory> func(
+    static std::shared_ptr<ProbabilisticTaskSolver> func(
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,
@@ -556,7 +556,7 @@ public:
 
 template <bool Bisimulation>
 class HDPFretSolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
+    : public InternalFunctionDefinition<std::shared_ptr<ProbabilisticTaskSolver>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -581,7 +581,7 @@ public:
         add_mdp_hs_options_to_feature<Bisimulation, true>(*this, n);
     }
 
-    static std::shared_ptr<TaskSolverFactory> func(
+    static std::shared_ptr<ProbabilisticTaskSolver> func(
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,

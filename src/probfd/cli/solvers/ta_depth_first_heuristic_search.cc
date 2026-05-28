@@ -86,7 +86,7 @@ public:
 };
 
 class TrapAwareDFHSSolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
+    : public InternalFunctionDefinition<std::shared_ptr<ProbabilisticTaskSolver>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -158,7 +158,7 @@ public:
     }
 
 protected:
-    static std::shared_ptr<TaskSolverFactory> func(
+    static std::shared_ptr<ProbabilisticTaskSolver> func(
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,
@@ -200,7 +200,7 @@ protected:
 };
 
 class TrapAwareILAOSolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
+    : public InternalFunctionDefinition<std::shared_ptr<ProbabilisticTaskSolver>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -240,7 +240,7 @@ public:
             "Immediately re-expand the collapsed trap state.");
     }
 
-    static std::shared_ptr<TaskSolverFactory> func(
+    static std::shared_ptr<ProbabilisticTaskSolver> func(
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,
@@ -278,7 +278,7 @@ public:
 };
 
 class TrapAwareLILAOSolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
+    : public InternalFunctionDefinition<std::shared_ptr<ProbabilisticTaskSolver>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -316,7 +316,7 @@ public:
         add_base_solver_options_except_algorithm_to_feature(*this, n + 2);
     }
 
-    static std::shared_ptr<TaskSolverFactory> func(
+    static std::shared_ptr<ProbabilisticTaskSolver> func(
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,
@@ -353,7 +353,7 @@ public:
 };
 
 class TrapAwareHDPSolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
+    : public InternalFunctionDefinition<std::shared_ptr<ProbabilisticTaskSolver>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -390,7 +390,7 @@ public:
         add_base_solver_options_except_algorithm_to_feature(*this, n + 2);
     }
 
-    static std::shared_ptr<TaskSolverFactory> func(
+    static std::shared_ptr<ProbabilisticTaskSolver> func(
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,

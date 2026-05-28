@@ -53,7 +53,7 @@ public:
 };
 
 class TopologicalVISolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
+    : public InternalFunctionDefinition<std::shared_ptr<ProbabilisticTaskSolver>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -80,7 +80,7 @@ public:
     }
 
 protected:
-    static std::shared_ptr<TaskSolverFactory> func(
+    static std::shared_ptr<ProbabilisticTaskSolver> func(
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,

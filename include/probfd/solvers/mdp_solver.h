@@ -1,7 +1,7 @@
 #ifndef PROBFD_SOLVERS_MDP_SOLVER_H
 #define PROBFD_SOLVERS_MDP_SOLVER_H
 
-#include "probfd/solver_interface.h" // IWYU pragma: export
+#include "probfd/probabilistic_task_solver.h" // IWYU pragma: export
 
 #include "probfd/fdr_types.h"
 #include "probfd/progress_report.h"
@@ -31,7 +31,7 @@ namespace probfd::solvers {
 /**
  * @brief Base interface for MDP solvers.
  */
-class MDPSolver : public TaskSolverFactory {
+class MDPSolver : public ProbabilisticTaskSolver {
     const std::shared_ptr<StatisticalMDPAlgorithmFactory> algorithm_factory_;
     const std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory_;
     const std::shared_ptr<TaskHeuristicFactory> heuristic_factory_;
@@ -60,8 +60,9 @@ public:
 
     ~MDPSolver() override;
 
-    std::unique_ptr<SolverInterface>
-    create(const SharedProbabilisticTask& task) override;
+    bool solve(
+        const SharedProbabilisticTask& task,
+        downward::utils::FSeconds max_time) override;
 };
 
 } // namespace probfd::solvers

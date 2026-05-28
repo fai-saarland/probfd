@@ -89,7 +89,7 @@ public:
 };
 
 class ExhaustiveDFSSolverFeature
-    : public InternalFunctionDefinition<std::shared_ptr<TaskSolverFactory>(
+    : public InternalFunctionDefinition<std::shared_ptr<ProbabilisticTaskSolver>(
           std::shared_ptr<TaskStateSpaceFactory>,
           std::shared_ptr<TaskHeuristicFactory>,
           std::string,
@@ -104,7 +104,9 @@ class ExhaustiveDFSSolverFeature
           bool)> {
 public:
     ExhaustiveDFSSolverFeature()
-        : InternalFunctionDefinition("exhaustive_dfs", &ExhaustiveDFSSolverFeature::func)
+        : InternalFunctionDefinition(
+              "exhaustive_dfs",
+              &ExhaustiveDFSSolverFeature::func)
     {
         document_title("Exhaustive Depth-First Search");
 
@@ -131,7 +133,7 @@ public:
     }
 
 protected:
-    static std::shared_ptr<TaskSolverFactory> func(
+    static std::shared_ptr<ProbabilisticTaskSolver> func(
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,

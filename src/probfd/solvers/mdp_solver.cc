@@ -77,6 +77,8 @@ void print_policy(
 }
 } // namespace
 
+static constexpr int precision = 3;
+
 MDPSolver::MDPSolver(
     std::shared_ptr<StatisticalMDPAlgorithmFactory> algorithm_factory,
     std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
@@ -99,174 +101,7 @@ MDPSolver::MDPSolver(
 
 MDPSolver::~MDPSolver() = default;
 
-class Solver : public SolverInterface {
-    SharedProbabilisticTask task;
-
-    std::unique_ptr<StatisticalMDPAlgorithm> algorithm;
-    std::unique_ptr<TaskStateSpace> state_space;
-    const std::shared_ptr<FDRHeuristic> heuristic;
-    std::string algorithm_name;
-    std::string policy_filename;
-    bool print_fact_names;
-
-    ProgressReport progress;
-
-    static constexpr int precision = 3;
-
-public:
-    Solver(
-        SharedProbabilisticTask task,
-        std::unique_ptr<StatisticalMDPAlgorithm> algorithm,
-        std::unique_ptr<TaskStateSpace> state_space,
-        std::shared_ptr<FDRHeuristic> heuristic,
-        std::string algorithm_name,
-        std::string policy_filename,
-        bool print_fact_names,
-        value_t report_epsilon,
-        bool report_enabled)
-        : task(std::move(task))
-        , algorithm(std::move(algorithm))
-        , state_space(std::move(state_space))
-        , heuristic(std::move(heuristic))
-        , algorithm_name(std::move(algorithm_name))
-        , policy_filename(std::move(policy_filename))
-        , print_fact_names(print_fact_names)
-        , progress(report_epsilon, std::cout, report_enabled)
-    {
-    }
-
-    bool solve(FSeconds max_time) override
-    {
-        print(std::cout, "Running MDP algorithm {}", algorithm_name);
-
-        if (max_time != FSeconds::max()) {
-            println(
-                std::cout,
-                " with a time limit of {:.{}f} seconds.",
-                max_time.count(),
-                precision);
-        }
-
-        println(std::cout, " without a time limit.");
-
-        try {
-            Timer total_timer;
-
-            const State& initial_state = state_space->get_initial_state();
-
-            TaskActionCostFunction action_cost_function(
-                get_shared_cost_function(task));
-
-            TaskTerminationCostFunction term_cost_function(
-                get_shared_goal(task),
-                get_shared_termination_costs(task));
-
-            CompositeMDP mdp{
-                *state_space,
-                action_cost_function,
-                term_cost_function};
-
-            Timer search_timer;
-
-            progress.register_print([&](std::ostream& out) {
-                std::print(
-                    out,
-                    "t={:.{}f}s",
-                    search_timer().count(),
-                    precision);
-            });
-
-            progress.register_print([&](std::ostream& out) {
-                std::print(out, "memory={}", get_peak_memory_in_kib());
-            });
-
-            std::unique_ptr<Policy<State, OperatorID>> policy =
-                algorithm->compute_policy(
-                    mdp,
-                    *heuristic,
-                    initial_state,
-                    progress,
-                    max_time);
-
-            total_timer.stop();
-
-            println(
-                std::cout,
-                "Finished after {:.{}f} seconds.\n",
-                total_timer().count(),
-                precision);
-
-            if (policy) {
-                using namespace std;
-
-                Interval value;
-
-                if (const auto d = policy->get_decision(initial_state)) {
-                    value = d->q_value_interval;
-                } else {
-                    value = Interval(INFINITE_VALUE);
-                }
-
-                print_analysis_result(value);
-
-                const auto& variables = get_variables(task);
-                const auto& operators = get_operators(task);
-
-                if (!policy_filename.empty()) {
-                    std::ofstream out(policy_filename);
-                    auto print_state = [this, &variables](const State& state) {
-                        const auto fact_set = as_fact_pair_set(state);
-
-                        if (print_fact_names) {
-                            auto get_fact_name = std::bind_front(
-                                &VariableSpace::get_fact_name,
-                                std::ref(variables));
-                            return std::format(
-                                "{:n}",
-                                fact_set |
-                                    std::views::transform(get_fact_name));
-                        } else {
-                            return std::format("{::a}", fact_set);
-                        }
-                    };
-
-                    auto print_action = [&operators](const OperatorID& op_id) {
-                        return operators.get_operator_name(op_id.get_index());
-                    };
-
-                    print_policy(
-                        out,
-                        print_state,
-                        print_action,
-                        *policy,
-                        mdp,
-                        initial_state);
-                }
-            }
-
-            println(std::cout, "\nState space interface statistics:");
-            state_space->print_statistics(std::cout);
-
-            println(std::cout, "\nAlgorithm {} statistics:", algorithm_name);
-            println(
-                std::cout,
-                "  Actual solver time: {:.{}}",
-                total_timer(),
-                precision);
-            algorithm->print_statistics(std::cout);
-            heuristic->print_statistics();
-
-            return policy != nullptr;
-        } catch (const TimeoutException&) {
-            println(std::cout, "Time limit reached. Analysis was aborted.");
-        }
-
-        return false;
-    }
-};
-
-std::unique_ptr<SolverInterface>
-MDPSolver::create(const SharedProbabilisticTask& task)
+bool MDPSolver::solve(const SharedProbabilisticTask& task, FSeconds max_time)
 {
     std::print(std::cout, "Constructing MDP algorithm... ");
     std::unique_ptr<StatisticalMDPAlgorithm> algorithm = run_log_time(
@@ -289,16 +124,130 @@ MDPSolver::create(const SharedProbabilisticTask& task)
         *heuristic_factory_,
         task);
 
-    return std::make_unique<Solver>(
-        task,
-        std::move(algorithm),
-        std::move(state_space),
-        std::move(heuristic),
-        algorithm_factory_->get_algorithm_name(),
-        policy_filename,
-        print_fact_names,
-        report_epsilon,
-        report_enabled);
+    auto algorithm_name = algorithm_factory_->get_algorithm_name();
+
+    print(std::cout, "Running MDP algorithm {}", algorithm_name);
+
+    if (max_time != FSeconds::max()) {
+        println(
+            std::cout,
+            " with a time limit of {:.{}f} seconds.",
+            max_time.count(),
+            precision);
+    }
+
+    println(std::cout, " without a time limit.");
+
+    try {
+        Timer total_timer;
+
+        const State& initial_state = state_space->get_initial_state();
+
+        TaskActionCostFunction action_cost_function(
+            get_shared_cost_function(task));
+
+        TaskTerminationCostFunction term_cost_function(
+            get_shared_goal(task),
+            get_shared_termination_costs(task));
+
+        CompositeMDP mdp{
+            *state_space,
+            action_cost_function,
+            term_cost_function};
+
+        Timer search_timer;
+
+        ProgressReport progress(report_epsilon, std::cout, report_enabled);
+
+        progress.register_print([&](std::ostream& out) {
+            std::print(out, "t={:.{}f}s", search_timer().count(), precision);
+        });
+
+        progress.register_print([&](std::ostream& out) {
+            std::print(out, "memory={}", get_peak_memory_in_kib());
+        });
+
+        std::unique_ptr<Policy<State, OperatorID>> policy =
+            algorithm->compute_policy(
+                mdp,
+                *heuristic,
+                initial_state,
+                progress,
+                max_time);
+
+        total_timer.stop();
+
+        println(
+            std::cout,
+            "Finished after {:.{}f} seconds.\n",
+            total_timer().count(),
+            precision);
+
+        if (policy) {
+            using namespace std;
+
+            Interval value;
+
+            if (const auto d = policy->get_decision(initial_state)) {
+                value = d->q_value_interval;
+            } else {
+                value = Interval(INFINITE_VALUE);
+            }
+
+            print_analysis_result(value);
+
+            const auto& variables = get_variables(task);
+            const auto& operators = get_operators(task);
+
+            if (!policy_filename.empty()) {
+                std::ofstream out(policy_filename);
+                auto print_state = [this, &variables](const State& state) {
+                    const auto fact_set = as_fact_pair_set(state);
+
+                    if (print_fact_names) {
+                        auto get_fact_name = std::bind_front(
+                            &VariableSpace::get_fact_name,
+                            std::ref(variables));
+                        return std::format(
+                            "{:n}",
+                            fact_set | std::views::transform(get_fact_name));
+                    } else {
+                        return std::format("{::a}", fact_set);
+                    }
+                };
+
+                auto print_action = [&operators](const OperatorID& op_id) {
+                    return operators.get_operator_name(op_id.get_index());
+                };
+
+                print_policy(
+                    out,
+                    print_state,
+                    print_action,
+                    *policy,
+                    mdp,
+                    initial_state);
+            }
+        }
+
+        println(std::cout, "\nState space interface statistics:");
+        state_space->print_statistics(std::cout);
+
+        println(std::cout, "\nAlgorithm {} statistics:", algorithm_name);
+        println(
+            std::cout,
+            "  Actual solver time: {:.{}}",
+            total_timer(),
+            precision);
+        algorithm->print_statistics(std::cout);
+        heuristic->print_statistics();
+
+        return policy != nullptr;
+    } catch (const TimeoutException&) {
+        println(std::cout, "Time limit reached. Analysis was aborted.");
+    }
+
+    return false;
 }
 
 } // namespace probfd::solvers

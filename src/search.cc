@@ -17,7 +17,7 @@
 
 #include "probfd/probabilistic_operator_space.h"
 #include "probfd/probabilistic_task.h"
-#include "probfd/solver_interface.h"
+#include "probfd/probabilistic_task_solver.h"
 #include "probfd/termination_costs.h"
 
 #include "downward/axiom_space.h"
@@ -90,7 +90,7 @@ static std::unique_ptr<ASTNode> insert_definitions(
     return parsed;
 }
 
-static shared_ptr<TaskSolverFactory>
+static shared_ptr<ProbabilisticTaskSolver>
 construct_solver(const DecoratedASTNode& decorated)
 {
     std::cout << "Constructing solver from feature expression:\n";
@@ -100,7 +100,7 @@ construct_solver(const DecoratedASTNode& decorated)
     std::any constructed = decorated.construct();
 
     try {
-        return std::any_cast<shared_ptr<TaskSolverFactory>>(constructed);
+        return std::any_cast<shared_ptr<ProbabilisticTaskSolver>>(constructed);
     } catch (const std::bad_any_cast&) {
         throw InputError(
             "Expression is of type {}, not TaskSolverFactory.",
@@ -127,7 +127,8 @@ static auto construct_solver(argparse::ArgumentParser& parser)
     register_definitions(registry);
 
     // Type check
-    const std::unique_ptr<DecoratedASTNode> decorated = parsed->static_analysis(registry);
+    const std::unique_ptr<DecoratedASTNode> decorated =
+        parsed->static_analysis(registry);
 
     // Remove unused definitions if enabled
     if (parser.get<bool>("--ignore-unused-definitions")) {
@@ -140,18 +141,8 @@ static auto construct_solver(argparse::ArgumentParser& parser)
         }
     }
 
-    // Construct solver factory.
-    const auto solver_factory = construct_solver(*decorated);
-
-    // Read the input task.
-    std::print(std::cout, "Reading input task... ");
-    const SharedProbabilisticTask input_task = run_log_time(
-        std::cout,
-        probfd::tasks::read_sas_task_from_file,
-        parser.get("problem_file"));
-
-    // Create the solver from the input task and return it.
-    return solver_factory->create(input_task);
+    // Construct solver.
+    return construct_solver(*decorated);
 }
 
 static int search(argparse::ArgumentParser& parser)
@@ -160,12 +151,21 @@ static int search(argparse::ArgumentParser& parser)
 
     try {
         try {
+            // Read the input task.
+            std::print(std::cout, "Reading input task... ");
+            const SharedProbabilisticTask input_task = run_log_time(
+                std::cout,
+                probfd::tasks::read_sas_task_from_file,
+                parser.get("problem_file"));
+
             const auto solver = construct_solver(parser);
+
             const bool found_solution = run_log_when_done(
                 std::cout,
                 "Search time: {:.3f}s\n",
-                &SolverInterface::solve,
-                solver,
+                &ProbabilisticTaskSolver::solve,
+                *solver,
+                input_task,
                 static_cast<FSeconds>(parser.get<double>("--max-search-time")));
 
             solver->print_statistics();
