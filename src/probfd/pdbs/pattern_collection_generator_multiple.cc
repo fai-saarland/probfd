@@ -1,5 +1,6 @@
 #include "probfd/pdbs/pattern_collection_generator_multiple.h"
 
+#include "downward/initial_state_values.h"
 #include "probfd/pdbs/fully_additive_finder.h"
 #include "probfd/pdbs/pattern_collection_information.h"
 #include "probfd/pdbs/probability_aware_pattern_database.h"
@@ -131,8 +132,16 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
 
     const auto& variables = get_variables(task);
     const auto& operators = get_operators(task);
+    const auto& init_values = get_init(task);
     const auto& goals = get_goal(task);
     const auto& cost_function = get_cost_function(task);
+    const auto& term_costs = get_termination_costs(task);
+
+    const State& init_state = init_values.get_initial_state();
+    const value_t term_cost =
+        downward::task_properties::is_goal_state(goals, init_state)
+            ? term_costs.get_goal_termination_cost()
+            : term_costs.get_non_goal_termination_cost();
 
     std::vector<value_t> costs(operators.get_num_operators());
 
@@ -230,6 +239,23 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
             const Pattern& pattern = pdb.get_pattern();
             if (log_.is_at_least_debug()) {
                 log_.println("generated PDB with pattern {}", pattern);
+            }
+
+            if (pdb.lookup_estimate(init_state) == term_cost) {
+                if (log_.is_at_least_normal()) {
+                    log_.println(
+                        "Termination optimal for abstract initial state of "
+                        "pattern {}",
+                        pattern);
+                }
+
+                generated_pdbs.clear();
+
+                generated_pdbs.emplace_back(
+                    std::make_unique<ProbabilityAwarePatternDatabase>(
+                        std::move(pdb)));
+
+                break;
             }
 
             if (generated_patterns.insert(pattern).second) {

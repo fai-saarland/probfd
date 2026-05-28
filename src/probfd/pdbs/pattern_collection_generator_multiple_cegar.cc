@@ -90,7 +90,7 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
         timer.get_remaining_time(),
         convergence_epsilon_);
 
-    auto policy = run_cegar_loop(
+    run_cegar_loop(
         transformation,
         task,
         initial_state,
@@ -102,15 +102,6 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
         use_wildcard_policies_,
         max_time,
         log_);
-
-    // Unsolvability check
-    if (policy && policy->get_decisions(pdb_init_state).empty()) {
-        log_.println("SingleCEGAR: Problem unsolvable");
-        log_.println(
-            "SingleCEGAR: Unsolvable pattern: {}",
-            transformation.pdb.get_pattern());
-        utils::exit_with(utils::ExitCode::SEARCH_UNSOLVABLE);
-    }
 
     return transformation;
 }
