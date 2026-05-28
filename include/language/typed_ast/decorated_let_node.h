@@ -4,6 +4,7 @@
 #include "language/typed_ast/decorated_ast_node.h"
 
 #include <any>
+#include <memory>
 #include <vector>
 
 namespace language::parser {

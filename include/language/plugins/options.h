@@ -4,6 +4,7 @@
 #include "language/context.h"
 
 #include <any>
+#include <memory>
 #include <string>
 #include <typeinfo>
 #include <vector>

@@ -4,6 +4,7 @@
 #include "downward/concepts.h"
 
 #include <concepts>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <utility>

@@ -12,16 +12,14 @@ namespace probfd {
 
 class PrintingTimer {
     std::ostream& out;
-    std::format_string<double> on_fail;
-    std::format_string<double> on_success;
+    std::format_string<double> on_fail = "Failed after {:.3f} seconds";
+    std::format_string<double> on_success = "Finished after {:.3f} seconds";
 
     downward::utils::Timer timer;
 
 public:
     explicit PrintingTimer(std::ostream& out)
         : out(out)
-        , on_fail("Failed after {:.3f} seconds.")
-        , on_success("Finished after {:.3f} seconds.")
     {
     }
 

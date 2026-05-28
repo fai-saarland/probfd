@@ -60,7 +60,7 @@ struct std::formatter<downward::FactPair, Char> {
     template <class ParseContext>
     constexpr typename ParseContext::iterator parse(ParseContext& ctx)
     {
-        if (*ctx.begin() == 'a') {
+        if (ctx.begin() != ctx.end() && *ctx.begin() == 'a') {
             underlying_.set_brackets("", "");
             underlying_.set_separator(" -> ");
 

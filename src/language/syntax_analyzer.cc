@@ -48,7 +48,7 @@ public:
     }
 
     [[noreturn]]
-    void error(const string& message) const override
+    void error(const string& message) const final override
     {
         ostringstream message_with_tokens;
         const string all_tokens = tokens.str(0, tokens.size());

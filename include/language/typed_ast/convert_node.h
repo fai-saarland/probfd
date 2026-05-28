@@ -3,6 +3,8 @@
 
 #include "language/typed_ast/decorated_ast_node.h"
 
+#include <memory>
+
 namespace language::plugins {
 class Type;
 }
