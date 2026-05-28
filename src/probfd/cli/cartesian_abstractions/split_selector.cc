@@ -21,7 +21,7 @@ namespace {
 InternalFunctionDefinitionBase& add_split_selector_random_to_namespace(Namespace& nspace)
 {
     auto& f = nspace.insert_function_definition(
-        "random",
+        "random_selector",
         &language::plugins::construct_shared<
             SplitSelectorFactory,
             SplitSelectorRandomFactory,
