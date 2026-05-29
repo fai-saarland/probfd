@@ -21,14 +21,14 @@ add_multiple_options_to_feature(InternalFunctionDefinitionBase& feature, std::si
     feature.make_optional_argument_with_default(
         start_index,
         "max_pdb_size",
-        "1M",
+        "1000000",
         "maximum number of states for each pattern database, computed "
         "by compute_pattern (possibly ignored by singleton patterns consisting "
         "of a goal variable)");
     feature.make_optional_argument_with_default(
         start_index + 1,
         "max_collection_size",
-        "10M",
+        "10000000",
         "maximum number of states in all pattern databases of the "
         "collection (possibly ignored, see max_pdb_size)");
     feature.make_optional_argument_with_default(

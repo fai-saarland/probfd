@@ -33,7 +33,7 @@ add_sampling_flaw_finder_to_namespace(Namespace& nspace)
     f.make_optional_argument_with_default(
         n,
         "max_search_states",
-        "20M",
+        "20000000",
         "Maximal number of generated states after which the flaw search is "
         "aborted.");
 

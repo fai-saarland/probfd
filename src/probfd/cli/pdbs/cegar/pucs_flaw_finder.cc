@@ -22,7 +22,7 @@ InternalFunctionDefinitionBase& add_pucs_flaw_finder_to_namespace(Namespace& nsp
     f.make_optional_argument_with_default(
             0,
             "max_search_states",
-            "20M",
+            "20000000",
             "Maximal number of generated states after which the flaw search is "
             "aborted.");
 
