@@ -1,6 +1,5 @@
 #include "probfd/heuristics/ucp_heuristic.h"
 
-#include "downward/initial_state_values.h"
 #include "probfd/pdbs/pattern_collection_generator.h"
 #include "probfd/pdbs/pattern_collection_information.h"
 #include "probfd/pdbs/probability_aware_pattern_database.h"
@@ -12,7 +11,10 @@
 #include "probfd/value_type.h"
 
 #include "downward/task_utils/task_properties.h"
+#include "probfd/heuristics/additive_pdb_heuristic.h"
 #include "probfd/probabilistic_operator_space.h"
+
+#include "downward/initial_state_values.h"
 
 #include <utility>
 
@@ -20,31 +22,6 @@ using namespace downward;
 using namespace probfd::pdbs;
 
 namespace probfd::heuristics {
-
-UCPHeuristic::UCPHeuristic(
-    value_t termination_cost,
-    std::vector<ProbabilityAwarePatternDatabase> pdbs)
-    : termination_cost_(termination_cost)
-    , pdbs_(std::move(pdbs))
-{
-}
-
-UCPHeuristic::~UCPHeuristic() = default;
-
-value_t UCPHeuristic::evaluate(const State& state) const
-{
-    value_t value = 0.0_vt;
-
-    for (const auto& pdb : pdbs_) {
-        const value_t estimate = pdb.lookup_estimate(state);
-
-        if (estimate == termination_cost_) { return estimate; }
-
-        value += estimate;
-    }
-
-    return value;
-}
 
 UCPHeuristicFactory::UCPHeuristicFactory(
     std::shared_ptr<PatternCollectionGenerator> generator)
@@ -84,7 +61,7 @@ UCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
         std::make_shared<extra_tasks::VectorProbabilisticOperatorCostFunction>(
             std::move(costs));
 
-    auto adapted = replace(task, uniform_cost_function);
+    const auto adapted = replace(task, uniform_cost_function);
 
     const State& initial_state = init_vals.get_initial_state();
 
@@ -99,9 +76,7 @@ UCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
         compute_distances(pdb, adapted, init_rank, h);
     }
 
-    return std::make_unique<UCPHeuristic>(
-        term_costs.get_non_goal_termination_cost(),
-        std::move(pdbs));
+    return std::make_unique<AdditivePDBHeuristic>(std::move(pdbs));
 }
 
 } // namespace probfd::heuristics

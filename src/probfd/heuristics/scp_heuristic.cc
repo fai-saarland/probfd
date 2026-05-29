@@ -1,20 +1,24 @@
 #include "probfd/heuristics/scp_heuristic.h"
 
-#include "downward/initial_state_values.h"
+#include "probfd/heuristics/additive_pdb_heuristic.h"
+
 #include "probfd/pdbs/pattern_collection_generator.h"
 #include "probfd/pdbs/pattern_collection_information.h"
 #include "probfd/pdbs/probability_aware_pattern_database.h"
 #include "probfd/pdbs/projection_state_space.h"
 #include "probfd/pdbs/saturation.h"
 
+#include "probfd/tasks/range_operator_cost_function.h"
+
+#include "probfd/probabilistic_operator_space.h"
 #include "probfd/probabilistic_task.h"
 #include "probfd/value_type.h"
 
+#include "downward/task_utils/task_properties.h"
+
 #include "downward/utils/rng.h"
 
-#include "downward/task_utils/task_properties.h"
-#include "probfd/probabilistic_operator_space.h"
-#include "probfd/tasks/range_operator_cost_function.h"
+#include "downward/initial_state_values.h"
 
 #include <algorithm>
 #include <cassert>
@@ -115,34 +119,7 @@ SCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
         }
     }
 
-    return std::make_unique<SCPHeuristic>(
-        term_costs.get_non_goal_termination_cost(),
-        std::move(pdbs));
-}
-
-SCPHeuristic::SCPHeuristic(
-    value_t termination_cost,
-    std::vector<ProbabilityAwarePatternDatabase> pdbs)
-    : termination_cost_(termination_cost)
-    , pdbs_(std::move(pdbs))
-{
-}
-
-SCPHeuristic::~SCPHeuristic() = default;
-
-value_t SCPHeuristic::evaluate(const State& state) const
-{
-    value_t value = 0.0_vt;
-
-    for (const auto& pdb : pdbs_) {
-        const value_t estimate = pdb.lookup_estimate(state);
-
-        if (estimate == termination_cost_) { return estimate; }
-
-        value += estimate;
-    }
-
-    return value;
+    return std::make_unique<AdditivePDBHeuristic>(std::move(pdbs));
 }
 
 } // namespace probfd::heuristics

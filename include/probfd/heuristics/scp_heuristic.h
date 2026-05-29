@@ -13,30 +13,13 @@
 // Forward Declarations
 namespace downward::utils {
 class RandomNumberGenerator;
-class LogProxy;
 } // namespace downward::utils
 
 namespace probfd::pdbs {
-struct ProbabilityAwarePatternDatabase;
 class PatternCollectionGenerator;
 } // namespace probfd::pdbs
 
 namespace probfd::heuristics {
-
-class SCPHeuristic final : public FDRHeuristic {
-    const value_t termination_cost_;
-    const std::vector<pdbs::ProbabilityAwarePatternDatabase> pdbs_;
-
-public:
-    explicit SCPHeuristic(
-        value_t termination_cost,
-        std::vector<pdbs::ProbabilityAwarePatternDatabase> pdbs);
-
-    ~SCPHeuristic() override;
-
-protected:
-    value_t evaluate(const downward::State& state) const override;
-};
 
 class SCPHeuristicFactory final : public TaskHeuristicFactory {
 public:

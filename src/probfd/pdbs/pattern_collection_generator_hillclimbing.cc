@@ -786,8 +786,6 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
 PatternCollectionInformation PatternCollectionGeneratorHillclimbing::generate(
     const SharedProbabilisticTask& task)
 {
-    Timer timer;
-
     if (log_.is_at_least_normal()) {
         log_.println(
             "Generating patterns using the hill climbing generator...");
