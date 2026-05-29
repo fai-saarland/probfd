@@ -27,8 +27,8 @@ create_library(
         # Cost Functions
         probfd/task_cost_function
 
-        # Constant heuristic (default)
-        probfd/heuristics/constant_heuristic
+    # Blind heuristic
+    probfd/heuristics/blind_heuristic
 
         # Task Utils
         probfd/task_utils/causal_graph

@@ -7,6 +7,8 @@
 
 #include "probfd/abstractions/distances.h"
 
+#include "probfd/heuristics/blind_heuristic.h"
+
 #include "probfd/probabilistic_task.h"
 
 #include "downward/abstract_task.h"

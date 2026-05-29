@@ -142,7 +142,7 @@
 #include "probfd/cli/cartesian_abstractions/trace_based_flaw_generator.h"
 
 #include "probfd/cli/heuristics/additive_cartesian_heuristic.h"
-#include "probfd/cli/heuristics/constant_heuristic.h"
+#include "probfd/cli/heuristics/blind_heuristic.h"
 #include "probfd/cli/heuristics/dead_end_pruning_heuristic.h"
 #include "probfd/cli/heuristics/determinization_cost_heuristic.h"
 #include "probfd/cli/heuristics/gzocp_heuristic.h"

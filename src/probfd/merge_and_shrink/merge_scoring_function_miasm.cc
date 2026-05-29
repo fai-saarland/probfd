@@ -10,6 +10,8 @@
 
 #include "downward/utils/logging.h"
 
+#include "downward/variable_space.h"
+
 using namespace std;
 using namespace downward;
 

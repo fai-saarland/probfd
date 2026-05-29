@@ -5,6 +5,8 @@
 
 #include "downward/utils/logging.h"
 
+#include "downward/state.h"
+
 #include <algorithm>
 #include <cassert>
 #include <numeric>

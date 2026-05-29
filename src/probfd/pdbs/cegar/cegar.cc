@@ -7,6 +7,8 @@
 #include "probfd/pdbs/projection_state_space.h"
 #include "probfd/pdbs/utils.h"
 
+#include "probfd/heuristics/blind_heuristic.h"
+
 #include "probfd/abstractions/policy_extraction.h"
 
 #include "probfd/multi_policy.h"

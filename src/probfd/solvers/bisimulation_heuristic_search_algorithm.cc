@@ -3,7 +3,7 @@
 #include "downward/initial_state_values.h"
 #include "probfd/algorithms/open_list.h"
 
-#include "probfd/heuristics/constant_heuristic.h"
+#include "probfd/heuristics/blind_heuristic.h"
 
 #include "probfd/bisimulation/bisimilar_state_space.h"
 

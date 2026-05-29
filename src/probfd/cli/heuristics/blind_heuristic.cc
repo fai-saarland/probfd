@@ -1,9 +1,9 @@
-#include "probfd/cli/heuristics/constant_heuristic.h"
+#include "probfd/cli/heuristics/blind_heuristic.h"
 
 #include "language/plugins/internal_function_definition.h"
 #include "language/plugins/registry.h"
 
-#include "probfd/heuristics/constant_heuristic.h"
+#include "probfd/heuristics/blind_heuristic.h"
 
 using namespace downward;
 using namespace utils;

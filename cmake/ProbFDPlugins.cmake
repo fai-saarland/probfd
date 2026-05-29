@@ -436,9 +436,9 @@ create_library(
 
 create_library(
     NAME constant_heuristic_plugin
-    HELP "Enables the constant heuristic plugin"
+    HELP "Enables the blind heuristic plugin"
     SOURCES
-        probfd/cli/heuristics/constant_heuristic
+    probfd/cli/heuristics/blind_heuristic
     DEPENDS
         evaluator_category
         probfd_core

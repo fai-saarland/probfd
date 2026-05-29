@@ -3,9 +3,10 @@
 
 #include "probfd/pdbs/types.h"
 
-#include "probfd/heuristics/constant_heuristic.h"
+#include "probfd/heuristics/blind_heuristic.h"
 
 #include "probfd/fdr_types.h"
+#include "probfd/probabilistic_task.h"
 
 #include <memory>
 

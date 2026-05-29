@@ -5,9 +5,8 @@
 #include "probfd/pdbs/state_ranking_function.h"
 #include "probfd/pdbs/types.h"
 
-#include "probfd/heuristics/constant_heuristic.h"
-
 #include "probfd/fdr_types.h"
+#include "probfd/probabilistic_task.h"
 
 #include "downward/utils/timer.h"
 
