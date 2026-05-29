@@ -49,36 +49,30 @@ add_pattern_collection_generator_hill_climbing_to_namespace(Namespace& nspace)
     f.make_optional_argument_with_default(
         1,
         "subcollection_finder_factory",
-        "finder_trivial_factory()",
+        "additive_max_orthogonality_factory()",
         "The subcollection finder factory.");
 
     f.make_optional_argument_with_default(
         2,
         "pdb_max_size",
-        "2M",
+        "2m",
         "maximal number of states per pattern database");
 
     f.make_optional_argument_with_default(
         3,
         "collection_max_size",
-        "10M",
+        "10m",
         "maximal number of states in the pattern collection");
 
     f.make_optional_argument_with_default(
         4,
-        "search_space_max_size",
-        "30M",
-        "maximal number of states in the pattern search space");
-
-    f.make_optional_argument_with_default(
-        5,
         "num_samples",
         "1000",
         "number of samples (random states) on which to evaluate each "
         "candidate pattern collection");
 
     f.make_optional_argument_with_default(
-        6,
+        5,
         "min_improvement",
         "10",
         "minimum number of samples on which a candidate pattern "
@@ -86,7 +80,7 @@ add_pattern_collection_generator_hill_climbing_to_namespace(Namespace& nspace)
         "as the next pattern collection");
 
     f.make_optional_argument_with_default(
-        7,
+        6,
         "max_time",
         "seconds_max()",
         "maximum time in seconds for improving the initial pattern "
@@ -95,8 +89,14 @@ add_pattern_collection_generator_hill_climbing_to_namespace(Namespace& nspace)
         "climbing. Use max_time_dominance_pruning to limit the time "
         "spent for pruning dominated patterns.");
 
-    const auto n = add_rng_options_to_feature(f, 7);
-    add_pattern_collection_generator_options_to_feature(f, n);
+    f.make_optional_argument_with_default(
+        7,
+        "search_space_max_size",
+        "30m",
+        "maximal number of states in the pattern search space");
+
+    const auto n = add_rng_options_to_feature(f, 8);
+    add_pattern_collection_generator_options_to_feature(f, n + 8);
 
     return f;
 }
