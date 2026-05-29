@@ -57,22 +57,23 @@ std::size_t add_pattern_collection_generator_cegar_options_to_feature(
         "maximum time in seconds for CEGAR pattern generation. "
         "This includes the creation of the initial PDB collection"
         " as well as the creation of the correlation matrix.");
+
+    const auto n = add_rng_options_to_feature(feature, start_index + 4);
+
     feature.make_optional_argument_with_default(
-        start_index + 4,
+        n + start_index + 4,
         "subcollection_finder_factory",
         "finder_trivial_factory()",
         "The subcollection finder factory.");
     feature.make_optional_argument_with_default(
-        start_index + 5,
+        n + start_index + 5,
         "flaw_strategy",
         "pucs_flaw_finder()",
         "strategy used to find flaws in a policy");
 
-    const auto n = add_pattern_collection_generator_options_to_feature(
+    const auto n2 = add_pattern_collection_generator_options_to_feature(
         feature,
-        start_index + 6);
-    const auto n2 =
-        add_cegar_wildcard_option_to_feature(feature, n + start_index + 6);
+        n + start_index + 6);
 
     return n + n2 + 6;
 }
@@ -102,9 +103,9 @@ add_pattern_collection_generator_disjoint_cegar_to_namespace(Namespace& nspace)
         "10e-4",
         "The tolerance for convergence checks.");
 
-    const auto n =
-        add_pattern_collection_generator_cegar_options_to_feature(f, 1);
-    add_rng_options_to_feature(f, n + 1);
+    const auto n = add_cegar_wildcard_option_to_feature(f, 1);
+
+    add_pattern_collection_generator_cegar_options_to_feature(f, n + 1);
 
     return f;
 }
