@@ -44,7 +44,6 @@ class PatternCollectionGeneratorHillclimbing final
 
     class IncrementalPPDBs;
 
-    std::shared_ptr<PatternCollectionGenerator> initial_generator_;
     std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory_;
 
     // maximum number of states for each pdb
@@ -139,7 +138,6 @@ class PatternCollectionGeneratorHillclimbing final
 
 public:
     explicit PatternCollectionGeneratorHillclimbing(
-        std::shared_ptr<PatternCollectionGenerator> initial_generator,
         std::shared_ptr<SubCollectionFinderFactory>
             subcollection_finder_factory,
         int pdb_max_size,

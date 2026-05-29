@@ -46,15 +46,6 @@ static std::vector<int> get_goal_variables(const GoalFactList& goals)
     return goal_vars;
 }
 
-static unsigned long long compute_total_pdb_size(const PPDBCollection& pdbs)
-{
-    unsigned long long size = 0;
-
-    for (const auto& pdb : pdbs) { size += pdb->num_states(); }
-
-    return size;
-}
-
 /*
   When growing a pattern, we only want to consider successor patterns
   that are *interesting*. A pattern is interesting if the subgraph of
@@ -143,11 +134,6 @@ public:
         std::shared_ptr<SubCollectionFinder> subcollection_finder,
         const State& initial_state);
 
-    IncrementalPPDBs(
-        SharedProbabilisticTask task,
-        PatternCollectionInformation& initial_patterns,
-        std::shared_ptr<SubCollectionFinder> subcollection_finder);
-
     // Adds a new PDB to the collection and recomputes pattern_subcollections.
     void add_pdb(const std::shared_ptr<ProbabilityAwarePatternDatabase>& pdb);
 
@@ -214,19 +200,6 @@ PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::IncrementalPPDBs(
         add_pdb_for_pattern(pattern, initial_state, h);
 
     recompute_pattern_subcollections();
-}
-
-PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::IncrementalPPDBs(
-    SharedProbabilisticTask task,
-    PatternCollectionInformation& initial_patterns,
-    std::shared_ptr<SubCollectionFinder> subcollection_finder)
-    : task(std::move(task))
-    , patterns(initial_patterns.get_patterns())
-    , pattern_databases(initial_patterns.get_pdbs())
-    , pattern_subcollections(initial_patterns.get_subcollections())
-    , subcollection_finder(std::move(subcollection_finder))
-    , size(compute_total_pdb_size(pattern_databases))
-{
 }
 
 void PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::add_pdb(
@@ -381,7 +354,6 @@ void PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::
 }
 
 PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(
-    std::shared_ptr<PatternCollectionGenerator> initial_generator,
     std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory,
     int pdb_max_size,
     int collection_max_size,
@@ -392,7 +364,6 @@ PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(
     std::shared_ptr<utils::RandomNumberGenerator> rng,
     utils::Verbosity verbosity)
     : PatternCollectionGenerator(verbosity)
-    , initial_generator_(std::move(initial_generator))
     , subcollection_finder_factory_(std::move(subcollection_finder_factory))
     , pdb_max_size_(pdb_max_size)
     , collection_max_size_(collection_max_size)
@@ -822,25 +793,22 @@ PatternCollectionInformation PatternCollectionGeneratorHillclimbing::generate(
             "Generating patterns using the hill climbing generator...");
     }
 
-    // Generate an initial collection
-    assert(initial_generator_);
-
-    auto collection = initial_generator_->generate(task);
     const std::shared_ptr subcollection_finder =
         subcollection_finder_factory_->create_subcollection_finder(task);
 
-    if (log_.is_at_least_normal()) {
-        log_.println(
-            "Done calculating initial pattern collection: {}",
-            timer());
-    }
-
-    IncrementalPPDBs current_pdbs(task, collection, subcollection_finder);
-
+    const auto& goals = get_goal(task);
     const auto& init_vals = get_init(task);
 
     const State initial_state = init_vals.get_initial_state();
     initial_state.unpack();
+
+    IncrementalPPDBs current_pdbs(
+        task,
+        goals | std::views::transform([](const FactPair goal_fact) -> Pattern {
+            return {goal_fact.var};
+        }) | std::ranges::to<std::vector>(),
+        subcollection_finder,
+        initial_state);
 
     hill_climbing(task, initial_state, current_pdbs);
 
