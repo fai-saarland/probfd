@@ -32,7 +32,7 @@ static State sample_state_with_random_walk(
     assert(init_h != INFINITE_VALUE);
 
     int n;
-    if (init_h == 0) {
+    if (init_h <= 0) {
         n = 10;
     } else {
         /*

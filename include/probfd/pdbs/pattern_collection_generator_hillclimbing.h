@@ -94,7 +94,6 @@ class PatternCollectionGeneratorHillclimbing final
         IncrementalPPDBs& current_pdbs,
         const sampling::RandomWalkSampler& sampler,
         value_t init_h,
-        value_t cost_lower_bound,
         value_t termination_cost,
         std::vector<Sample>& samples) const;
 
@@ -135,8 +134,7 @@ class PatternCollectionGeneratorHillclimbing final
     void hill_climbing(
         const SharedProbabilisticTask& task,
         const downward::State& initial_state,
-        IncrementalPPDBs& current_pdbs,
-        value_t cost_lower_bound);
+        IncrementalPPDBs& current_pdbs);
 
 public:
     explicit PatternCollectionGeneratorHillclimbing(

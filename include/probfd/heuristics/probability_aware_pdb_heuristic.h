@@ -32,7 +32,6 @@ class ProbabilityAwarePDBHeuristic final : public FDRHeuristic {
     const std::vector<pdbs::PatternSubCollection> subcollections_;
     const std::shared_ptr<pdbs::SubCollectionFinder> subcollection_finder_;
 
-    const value_t cost_lower_bound_;
     const value_t termination_cost_;
 
 public:
@@ -40,7 +39,6 @@ public:
         pdbs::PPDBCollection pdbs,
         std::vector<pdbs::PatternSubCollection> subcollections,
         std::shared_ptr<pdbs::SubCollectionFinder> subcollection_finder,
-        value_t cost_lower_bound,
         value_t termination_cost);
 
     value_t evaluate(const downward::State& state) const override;

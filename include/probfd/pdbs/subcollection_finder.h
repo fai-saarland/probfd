@@ -40,7 +40,6 @@ public:
         const PPDBCollection& database,
         const std::vector<PatternSubCollection>& subcollections,
         const downward::State& state,
-        value_t cost_lower_bound,
         value_t termination_cost);
 };
 

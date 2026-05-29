@@ -171,10 +171,7 @@ public:
         value_t termination_cost) const;
 
     [[nodiscard]]
-    value_t evaluate(
-        const State& state,
-        value_t cost_lower_bound,
-        value_t termination_cost) const;
+    value_t evaluate(const State& state, value_t termination_cost) const;
 
     /*
       The following method offers a quick dead-end check for the sampling
@@ -293,14 +290,12 @@ int PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::
 
 value_t PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::evaluate(
     const State& state,
-    value_t cost_lower_bound,
     value_t termination_cost) const
 {
     return subcollection_finder->evaluate(
         pattern_databases,
         pattern_subcollections,
         state,
-        cost_lower_bound,
         termination_cost);
 }
 
@@ -553,7 +548,6 @@ void PatternCollectionGeneratorHillclimbing::sample_states(
     IncrementalPPDBs& current_pdbs,
     const sampling::RandomWalkSampler& sampler,
     value_t init_h,
-    value_t cost_lower_bound,
     value_t termination_cost,
     std::vector<Sample>& samples) const
 {
@@ -569,8 +563,7 @@ void PatternCollectionGeneratorHillclimbing::sample_states(
 
         hill_climbing_timer.throw_if_expired();
 
-        value_t h =
-            current_pdbs.evaluate(sample, cost_lower_bound, termination_cost);
+        value_t h = current_pdbs.evaluate(sample, termination_cost);
         samples.emplace_back(std::move(sample), h);
 
         hill_climbing_timer.throw_if_expired();
@@ -648,8 +641,7 @@ PatternCollectionGeneratorHillclimbing::find_best_improving_pdb(
 void PatternCollectionGeneratorHillclimbing::hill_climbing(
     const SharedProbabilisticTask& task,
     const State& initial_state,
-    IncrementalPPDBs& current_pdbs,
-    value_t cost_lower_bound)
+    IncrementalPPDBs& current_pdbs)
 {
     const auto& variables = get_variables(task);
     const auto& axioms = get_axioms(task);
@@ -713,10 +705,8 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
 
         while (true) {
             ++num_iterations;
-            value_t init_h = current_pdbs.evaluate(
-                initial_state,
-                cost_lower_bound,
-                termination_cost);
+            value_t init_h =
+                current_pdbs.evaluate(initial_state, termination_cost);
             const bool initial_dead = init_h == termination_cost;
 
             if (log_.is_at_least_verbose()) {
@@ -742,7 +732,6 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
                 current_pdbs,
                 sampler,
                 init_h,
-                cost_lower_bound,
                 termination_cost,
                 samples);
 
@@ -847,27 +836,18 @@ PatternCollectionInformation PatternCollectionGeneratorHillclimbing::generate(
             timer());
     }
 
-    const auto& operators = get_operators(task);
-    const auto& cost_function = get_cost_function(task);
     const auto& init_vals = get_init(task);
     const auto& term_costs = get_termination_costs(task);
 
     const State initial_state = init_vals.get_initial_state();
     initial_state.unpack();
 
-    const value_t cost_lower_bound = task_properties::get_cost_lower_bound(
-        operators,
-        cost_function,
-        term_costs);
     const value_t termination_cost = term_costs.get_non_goal_termination_cost();
 
-    value_t init_h = current_pdbs.evaluate(
-        initial_state,
-        cost_lower_bound,
-        termination_cost);
+    value_t init_h = current_pdbs.evaluate(initial_state, termination_cost);
 
     if (init_h != termination_cost) {
-        hill_climbing(task, initial_state, current_pdbs, cost_lower_bound);
+        hill_climbing(task, initial_state, current_pdbs);
     }
 
     PatternCollectionInformation pci =
