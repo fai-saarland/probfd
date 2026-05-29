@@ -866,7 +866,7 @@ PatternCollectionInformation PatternCollectionGeneratorHillclimbing::generate(
         cost_lower_bound,
         termination_cost);
 
-    if (init_h != termination_cost && max_time_ != FSeconds::max()) {
+    if (init_h != termination_cost) {
         hill_climbing(task, initial_state, current_pdbs, cost_lower_bound);
     }
 
