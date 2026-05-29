@@ -13,6 +13,10 @@
 #include <vector>
 
 // Forward Declarations
+namespace downward {
+class State;
+}
+
 namespace downward::utils {
 class CountdownTimer;
 class RandomNumberGenerator;
@@ -38,7 +42,6 @@ class PatternCollectionGeneratorHillclimbing final
     : public PatternCollectionGenerator {
     using DynamicBitset = downward::dynamic_bitset::DynamicBitset<uint64_t>;
 
-    struct Sample;
     class IncrementalPPDBs;
 
     std::shared_ptr<PatternCollectionGenerator> initial_generator_;
@@ -94,8 +97,7 @@ class PatternCollectionGeneratorHillclimbing final
         IncrementalPPDBs& current_pdbs,
         const sampling::RandomWalkSampler& sampler,
         value_t init_h,
-        value_t termination_cost,
-        std::vector<Sample>& samples) const;
+        std::vector<downward::State>& samples) const;
 
     /*
       Searches for the best improving pdb in candidate_pdbs according to the
@@ -104,10 +106,9 @@ class PatternCollectionGeneratorHillclimbing final
     */
     std::pair<int, int> find_best_improving_pdb(
         downward::utils::CountdownTimer& hill_climbing_timer,
-        IncrementalPPDBs& current_pdbs,
-        const std::vector<Sample>& samples,
-        PPDBCollection& candidate_pdbs,
-        value_t termination_cost) const;
+        const IncrementalPPDBs& current_pdbs,
+        const std::vector<downward::State>& samples,
+        PPDBCollection& candidate_pdbs) const;
 
     /*
       This is the core algorithm of this class. The initial PDB collection
