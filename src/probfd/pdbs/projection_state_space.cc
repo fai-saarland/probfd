@@ -348,6 +348,56 @@ void ProjectionStateSpace::generate_all_transitions(
     match_tree_.generate_all_transitions(state, transitions, *this);
 }
 
+StateID ProjectionStateSpace::get_state_id(StateRank state) const
+{
+    return state;
+}
+
+StateRank ProjectionStateSpace::get_state(StateID id) const
+{
+    return StateRank(id);
+}
+
+void ProjectionStateSpace::generate_applicable_actions(
+    StateRank state,
+    std::vector<const ProjectionOperator*>& aops) const
+{
+    match_tree_.get_applicable_operators(state, aops);
+}
+
+void ProjectionStateSpace::generate_action_transitions(
+    StateRank state,
+    const ProjectionOperator* op,
+    SuccessorDistribution& successor_dist) const
+{
+    successor_dist.non_source_probability = 0_vt;
+
+    for (const auto& [offset, probability] : op->outcome_offsets_) {
+        const auto successor = state + offset;
+        if (successor == state) continue;
+        successor_dist.add_non_source_probability(successor, probability);
+    }
+}
+
+void ProjectionStateSpace::generate_all_transitions(
+    StateRank state,
+    std::vector<const ProjectionOperator*>& aops,
+    std::vector<SuccessorDistribution>& successor_dist) const
+{
+    generate_applicable_actions(state, aops);
+    successor_dist.reserve(aops.size());
+    for (const ProjectionOperator* op : aops) {
+        generate_action_transitions(state, op, successor_dist.emplace_back());
+    }
+}
+
+void ProjectionStateSpace::generate_all_transitions(
+    StateRank state,
+    std::vector<TransitionTailType>& transitions) const
+{
+    match_tree_.generate_all_transitions(state, transitions, *this);
+}
+
 bool ProjectionStateSpace::is_goal(StateRank state) const
 {
     return goal_state_flags_[state];

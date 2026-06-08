@@ -42,27 +42,49 @@ public:
         bool operator_pruning = true,
         downward::utils::FSeconds max_time = downward::utils::FSeconds::max());
 
-    StateID get_state_id(StateRank state) override;
+    StateID get_state_id(StateRank state) final;
 
-    StateRank get_state(StateID id) override;
+    StateRank get_state(StateID id) final;
 
     void generate_applicable_actions(
         StateRank state,
-        std::vector<const ProjectionOperator*>& aops) override;
+        std::vector<const ProjectionOperator*>& aops) final;
 
     void generate_action_transitions(
         StateRank state,
         const ProjectionOperator* op,
-        SuccessorDistribution& successor_dist) override;
+        SuccessorDistribution& successor_dist) final;
 
     void generate_all_transitions(
         StateRank state,
         std::vector<const ProjectionOperator*>& aops,
-        std::vector<SuccessorDistribution>& successor_dist) override;
+        std::vector<SuccessorDistribution>& successor_dist) final;
 
     void generate_all_transitions(
         StateRank state,
-        std::vector<TransitionTailType>& transitions) override;
+        std::vector<TransitionTailType>& transitions) final;
+
+    StateID get_state_id(StateRank state) const;
+
+    StateRank get_state(StateID id) const;
+
+    void generate_applicable_actions(
+        StateRank state,
+        std::vector<const ProjectionOperator*>& aops) const;
+
+    void generate_action_transitions(
+        StateRank state,
+        const ProjectionOperator* op,
+        SuccessorDistribution& successor_dist) const;
+
+    void generate_all_transitions(
+        StateRank state,
+        std::vector<const ProjectionOperator*>& aops,
+        std::vector<SuccessorDistribution>& successor_dist) const;
+
+    void generate_all_transitions(
+        StateRank state,
+        std::vector<TransitionTailType>& transitions) const;
 
     [[nodiscard]]
     bool is_goal(StateRank state) const override;

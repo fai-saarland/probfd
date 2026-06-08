@@ -44,6 +44,12 @@ class MatchTree {
 public:
     explicit MatchTree(size_t hint_num_operators = 0);
 
+    MatchTree(const MatchTree&) = delete;
+    MatchTree& operator=(const MatchTree&) = delete;
+
+    MatchTree(MatchTree&&) noexcept;
+    MatchTree& operator=(MatchTree&&) noexcept;
+
     ~MatchTree();
 
     /**
@@ -71,7 +77,7 @@ public:
     void generate_all_transitions(
         StateRank abstract_state,
         std::vector<TransitionTail<const ProjectionOperator*>>& transitions,
-        ProjectionStateSpace& state_space) const;
+        const ProjectionStateSpace& state_space) const;
 
     /**
      * @brief Dump the match tree to an output stream.

@@ -61,6 +61,9 @@ MatchTree::MatchTree(size_t hint_num_operators)
     projection_operators_.reserve(hint_num_operators);
 }
 
+MatchTree::MatchTree(MatchTree&&) noexcept = default;
+MatchTree& MatchTree::operator=(MatchTree&&) noexcept = default;
+
 MatchTree::~MatchTree() = default;
 
 void MatchTree::insert(
@@ -173,7 +176,7 @@ void MatchTree::get_applicable_operators(
 void MatchTree::generate_all_transitions(
     StateRank abstract_state_rank,
     std::vector<TransitionTail<const ProjectionOperator*>>& transitions,
-    ProjectionStateSpace& state_space) const
+    const ProjectionStateSpace& state_space) const
 {
     if (!root_) return;
 
