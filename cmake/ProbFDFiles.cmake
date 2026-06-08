@@ -274,6 +274,15 @@ create_library(
 )
 
 create_library(
+    NAME pdb_max_heuristic
+    SOURCES
+        probfd/heuristics/pdb_max_heuristic
+    DEPENDS
+        probability_aware_pdbs
+        padbs_pattern_generators
+)
+
+create_library(
     NAME additive_pdb_heuristic
     SOURCES
     probfd/heuristics/additive_pdb_heuristic

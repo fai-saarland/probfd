@@ -503,6 +503,19 @@ create_library(
 )
 
 create_library(
+    NAME pdb_max_heuristic_plugin
+    HELP "Enables the PDB max heuristic plugin"
+    SOURCES
+        probfd/cli/heuristics/pdb_max_heuristic
+    DEPENDS
+        pdb_max_heuristic
+        language
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
     NAME scp_heuristic_plugin
     HELP "Enables the PDB saturated cost-partitioning heuristic plugin"
     SOURCES
