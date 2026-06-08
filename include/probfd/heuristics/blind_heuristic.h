@@ -24,13 +24,9 @@ public:
     BlindHeuristic(
         const ProbabilisticOperatorSpace& operators,
         const downward::OperatorCostFunction<value_t>& cost_function,
-        const TerminationCosts& termination_costs)
-        : ConstantHeuristic<State>(task_properties::get_cost_lower_bound(
-              operators,
-              cost_function,
-              termination_costs))
-    {
-    }
+        const TerminationCosts& termination_costs);
+
+    explicit BlindHeuristic(const ProbabilisticTaskTuple& task);
 };
 
 class BlindHeuristicFactory : public TaskHeuristicFactory {
@@ -38,6 +34,31 @@ public:
     std::unique_ptr<FDRHeuristic>
     create_object(const SharedProbabilisticTask& task) override;
 };
+
+} // namespace probfd::heuristics
+
+namespace probfd::heuristics {
+
+template <typename State>
+BlindHeuristic<State>::BlindHeuristic(
+    const ProbabilisticOperatorSpace& operators,
+    const downward::OperatorCostFunction<value_t>& cost_function,
+    const TerminationCosts& termination_costs)
+    : ConstantHeuristic<State>(task_properties::get_cost_lower_bound(
+          operators,
+          cost_function,
+          termination_costs))
+{
+}
+
+template <typename State>
+BlindHeuristic<State>::BlindHeuristic(const ProbabilisticTaskTuple& task)
+    : BlindHeuristic(
+          get_operators(task),
+          get_cost_function(task),
+          get_termination_costs(task))
+{
+}
 
 } // namespace probfd::heuristics
 
