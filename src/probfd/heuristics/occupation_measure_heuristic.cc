@@ -17,7 +17,9 @@ OccupationMeasureHeuristic::OccupationMeasureHeuristic(
     utils::LogProxy log,
     lp::LPSolverType solver_type,
     std::shared_ptr<ConstraintGenerator> constraint_generator)
-    : LPHeuristic(std::move(task), std::move(log), solver_type)
+    : LPHeuristic(solver_type)
+    , task_(std::move(task))
+    , log_(std::move(log))
     , constraint_generator_(std::move(constraint_generator))
 {
     lp::LinearProgram lp(
@@ -32,14 +34,10 @@ OccupationMeasureHeuristic::OccupationMeasureHeuristic(
 }
 
 void OccupationMeasureHeuristic::update_constraints(const State& state) const
-{
-    constraint_generator_->update_constraints(state, lp_solver_);
-}
+{ constraint_generator_->update_constraints(state, lp_solver_); }
 
 void OccupationMeasureHeuristic::reset_constraints(const State& state) const
-{
-    constraint_generator_->reset_constraints(state, lp_solver_);
-}
+{ constraint_generator_->reset_constraints(state, lp_solver_); }
 
 OccupationMeasureHeuristicFactory::OccupationMeasureHeuristicFactory(
     utils::Verbosity verbosity,
@@ -52,13 +50,11 @@ OccupationMeasureHeuristicFactory::OccupationMeasureHeuristicFactory(
 {
 }
 
-std::unique_ptr<FDRHeuristic>
-OccupationMeasureHeuristicFactory::create_object(
+std::unique_ptr<FDRHeuristic> OccupationMeasureHeuristicFactory::create_object(
     const SharedProbabilisticTask& task)
 {
     auto constraints =
-        constraint_generator_factory_->construct_constraint_generator(
-            task);
+        constraint_generator_factory_->construct_constraint_generator(task);
 
     return std::make_unique<OccupationMeasureHeuristic>(
         task,

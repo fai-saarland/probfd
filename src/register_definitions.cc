@@ -130,9 +130,9 @@
 #include "downward/cli/utils/verbosity_enum.h"
 
 #include "downward/cli/operator_cost_category.h"
-#include "language/plugins/registry.h"
 #include "downward/cli/utils/rng_options.h"
 #include "downward/utils/math.h"
+#include "language/plugins/registry.h"
 
 #include "probfd/cli/cartesian_abstractions/adaptive_flaw_generator.h"
 #include "probfd/cli/cartesian_abstractions/flaw_generator_category.h"
@@ -147,8 +147,9 @@
 #include "probfd/cli/heuristics/determinization_cost_heuristic.h"
 #include "probfd/cli/heuristics/gzocp_heuristic.h"
 #include "probfd/cli/heuristics/merge_and_shrink_heuristic.h"
-#include "probfd/cli/heuristics/probability_aware_pdb_heuristic.h"
+#include "probfd/cli/heuristics/ocp_heuristic.h"
 #include "probfd/cli/heuristics/pdb_max_heuristic.h"
+#include "probfd/cli/heuristics/probability_aware_pdb_heuristic.h"
 #include "probfd/cli/heuristics/scp_heuristic.h"
 #include "probfd/cli/heuristics/task_heuristic_factory_category.h"
 #include "probfd/cli/heuristics/ucp_heuristic.h"
@@ -231,9 +232,7 @@ using namespace language;
 namespace {
 
 int make_infinite_value()
-{
-    return std::numeric_limits<int>::max();
-}
+{ return std::numeric_limits<int>::max(); }
 
 template <typename T, T F>
 T scale(T v)
@@ -253,36 +252,26 @@ T scale(T v)
 template <typename R, typename T>
     requires std::constructible_from<R, T>
 R cast(T v)
-{
-    return static_cast<R>(v);
-}
+{ return static_cast<R>(v); }
 
 template <typename T>
 T max_duration()
-{
-    return T::max();
-}
+{ return T::max(); }
 
 void add_infinity_feature_to_namespace(plugins::Namespace& nspace)
-{
-    nspace.insert_function_definition("infinity", make_infinite_value);
-}
+{ nspace.insert_function_definition("infinity", make_infinite_value); }
 
 template <typename T, T F>
 void add_scale_literal_feature_to_namespace(
     plugins::Namespace& nspace,
     std::string name)
-{
-    nspace.insert_function_definition(std::move(name), scale<T, F>);
-}
+{ nspace.insert_function_definition(std::move(name), scale<T, F>); }
 
 template <typename R, typename T>
 void add_cast_from_literal_to_namespace(
     plugins::Namespace& nspace,
     std::string name)
-{
-    nspace.insert_function_definition(std::move(name), cast<R, T>);
-}
+{ nspace.insert_function_definition(std::move(name), cast<R, T>); }
 
 template <typename T>
 void add_infinite_duration_feature_to_namespace(
@@ -391,7 +380,7 @@ static void register_fast_downward_definitions(plugins::Registry& registry)
     add_infinity_feature_to_namespace(n);
 
     // Generic literal suffixes
-    add_scale_literal_feature_to_namespace<int, 1'000>(n, "__operator_int_k__");
+    add_scale_literal_feature_to_namespace<int, 1000>(n, "__operator_int_k__");
     add_scale_literal_feature_to_namespace<int, 1'000'000>(
         n,
         "__operator_int_m__");
@@ -662,6 +651,7 @@ static void register_probfd_definitions(plugins::Registry& registry)
     probfd::cli::heuristics::add_blind_heuristic_factory_feature(registry);
     probfd::cli::heuristics::add_pdb_heuristic_feature(registry);
     probfd::cli::heuristics::add_pdb_max_heuristic_feature(registry);
+    probfd::cli::heuristics::add_ocp_heuristic_feature(registry);
     probfd::cli::heuristics::add_scp_heuristic_feature(registry);
     probfd::cli::heuristics::add_ucp_heuristic_feature(registry);
     probfd::cli::heuristics::add_determinization_cost_heuristic_feature(

@@ -4,6 +4,8 @@
 #include "probfd/heuristics/lp_heuristic.h"
 #include "probfd/task_heuristic_factory.h"
 
+#include "downward/utils/logging.h"
+
 #include <memory>
 
 // Forward Declarations
@@ -23,6 +25,9 @@ class OccupationMeasureHeuristic
     friend class LPHeuristic<OccupationMeasureHeuristic>;
 
 protected:
+    SharedProbabilisticTask task_;
+    mutable downward::utils::LogProxy log_;
+
     std::shared_ptr<occupation_measures::ConstraintGenerator>
         constraint_generator_;
 

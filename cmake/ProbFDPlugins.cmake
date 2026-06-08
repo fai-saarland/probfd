@@ -516,6 +516,19 @@ create_library(
 )
 
 create_library(
+    NAME ocp_heuristic_plugin
+    HELP "Enables the PDB optimal cost-partitioning heuristic plugin"
+    SOURCES
+        probfd/cli/heuristics/ocp_heuristic
+    DEPENDS
+        ocp_pdb_heuristic
+        language
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
     NAME scp_heuristic_plugin
     HELP "Enables the PDB saturated cost-partitioning heuristic plugin"
     SOURCES

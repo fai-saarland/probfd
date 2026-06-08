@@ -3,8 +3,10 @@
   "search_hroc": "tailao(heuristic=hroc())",
   "search_hpom": "tailao(heuristic=hpom())",
   "search_hpho": "tailao(heuristic=hpho(patterns=pgen))",
+  "search_ocp": "tailao(heuristic=ocp_heuristic(patterns=pgen))",
   "search_scp": "tailao(heuristic=scp_heuristic(patterns=pgen))",
   "search_ucp": "tailao(heuristic=ucp_heuristic(patterns=pgen))",
+  "search_gzocp": "tailao(heuristic=gzocp_heuristic(patterns=pgen))",
   "search_can": "tailao(heuristic=ppdbs(patterns=pgen))",
   "search_max": "tailao(heuristic=pdb_max(patterns=pgen))"
 }

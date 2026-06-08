@@ -1,7 +1,8 @@
 #ifndef PROBFD_HEURISTICS_LP_HEURISTIC_H
 #define PROBFD_HEURISTICS_LP_HEURISTIC_H
 
-#include "probfd/heuristics/task_dependent_heuristic.h"
+#include "probfd/fdr_types.h"
+#include "probfd/heuristic.h"
 
 #include "downward/lp/lp_solver.h"
 
@@ -21,17 +22,13 @@ namespace probfd::heuristics {
  * ```
  */
 template <typename Derived>
-class LPHeuristic : public TaskDependentHeuristic {
+class LPHeuristic : public FDRHeuristic {
 protected:
     mutable downward::lp::LPSolver lp_solver_;
 
 public:
-    LPHeuristic(
-        SharedProbabilisticTask task,
-        downward::utils::LogProxy log,
-        downward::lp::LPSolverType solver_type)
-        : TaskDependentHeuristic(std::move(task), std::move(log))
-        , lp_solver_(solver_type)
+    explicit LPHeuristic(downward::lp::LPSolverType solver_type)
+        : lp_solver_(solver_type)
     {
     }
 
