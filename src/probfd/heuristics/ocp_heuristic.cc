@@ -151,9 +151,7 @@ void OCPHeuristic::update_constraints(const State& state) const
 
         // Check if state is solvable
         if (is_unsolvable(init_abs_state)) {
-            // Clear all constraints, making the LP unbounded.
-            lp_solver_.clear_temporary_constraints();
-            return;
+            continue;
         }
 
         // Traverse alive-restricted projections and add constraints for each
