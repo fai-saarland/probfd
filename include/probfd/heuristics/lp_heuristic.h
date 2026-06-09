@@ -9,6 +9,7 @@
 #include "downward/utils/timer.h"
 
 #include <memory>
+#include <print>
 #include <vector>
 
 namespace probfd::heuristics {
