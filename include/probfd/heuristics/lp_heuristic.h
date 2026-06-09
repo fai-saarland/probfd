@@ -6,6 +6,8 @@
 
 #include "downward/lp/lp_solver.h"
 
+#include "downward/utils/timer.h"
+
 #include <memory>
 #include <vector>
 
@@ -26,6 +28,12 @@ class LPHeuristic : public FDRHeuristic {
 protected:
     mutable downward::lp::LPSolver lp_solver_;
 
+    mutable std::size_t evaluation_counter = 0;
+    mutable std::size_t frequency = 1;
+
+    static constexpr std::size_t next_frequency = 10;
+    static constexpr std::size_t frequency_factor = 10;
+
 public:
     explicit LPHeuristic(downward::lp::LPSolverType solver_type)
         : lp_solver_(solver_type)
@@ -35,6 +43,12 @@ public:
     value_t evaluate(const downward::State& state) const final
     {
         assert(!lp_solver_.has_temporary_constraints());
+
+        const bool print = evaluation_counter % frequency == 0;
+
+        downward::utils::Timer timer(false);
+
+        if (print) { timer.resume(); }
 
         static_cast<const Derived*>(this)->update_constraints(state);
 
@@ -46,6 +60,17 @@ public:
 
         lp_solver_.clear_temporary_constraints();
         static_cast<const Derived*>(this)->reset_constraints(state);
+
+        if (print) {
+            std::println(
+                "Evaluation #{} took {:.4f}s",
+                evaluation_counter,
+                timer.stop().count());
+        }
+
+        if (++evaluation_counter == frequency * next_frequency) {
+            frequency *= frequency_factor;
+        }
 
         return result;
     }
