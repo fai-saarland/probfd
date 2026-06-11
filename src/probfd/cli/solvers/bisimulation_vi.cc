@@ -29,6 +29,7 @@
 #include "downward/merge_and_shrink/transition_system.h"
 
 #include "downward/utils/timer.h"
+#include "downward/utils/system.h"
 
 #include "downward/initial_state_values.h"
 

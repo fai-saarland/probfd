@@ -2,8 +2,8 @@
 
 #include "downward/merge_and_shrink/merge_tree.h"
 
+#include "downward/utils/exceptions.h"
 #include "downward/utils/logging.h"
-#include "downward/utils/system.h"
 
 #include <iostream>
 

@@ -24,6 +24,7 @@
 #include "downward/goal_fact_list.h"
 #include "downward/initial_state_values.h"
 #include "downward/operator_cost_function.h"
+#include "downward/utils/exceptions.h"
 #include "downward/variable_space.h"
 
 #include "downward/utils/logging.h"
@@ -180,6 +181,8 @@ static int search(argparse::ArgumentParser& parser)
         exitcode = ExitCode::SEARCH_INPUT_ERROR;
     } catch (const downward::utils::InputError&) {
         exitcode = ExitCode::SEARCH_INPUT_ERROR;
+    } catch (const downward::utils::OutOfMemoryException&) {
+        exitcode = ExitCode::SEARCH_OUT_OF_MEMORY;
     } catch (const downward::utils::CriticalError&) {
         exitcode = ExitCode::SEARCH_CRITICAL_ERROR;
     } catch (const downward::utils::UnsupportedError&) {

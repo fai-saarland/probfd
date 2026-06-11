@@ -63,7 +63,6 @@ create_library(
     SOURCES
         downward/utils/collections
         downward/utils/countdown_timer
-        downward/utils/exceptions
         downward/utils/hash
         downward/utils/logging
         downward/utils/markup

@@ -7,8 +7,8 @@
 #include "downward/lp/soplex_solver_interface.h"
 #endif
 
+#include "downward/utils/exceptions.h"
 #include "downward/utils/logging.h"
-#include "downward/utils/system.h"
 
 using namespace std;
 

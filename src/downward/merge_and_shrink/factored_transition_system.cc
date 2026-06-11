@@ -7,9 +7,9 @@
 #include "downward/merge_and_shrink/utils.h"
 
 #include "downward/utils/collections.h"
+#include "downward/utils/exceptions.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/memory.h"
-#include "downward/utils/system.h"
 
 #include <cassert>
 

@@ -39,61 +39,6 @@ enum class ExitCode {
     SEARCH_UNIMPLEMENTED = 35
 };
 
-class CriticalError : public std::runtime_error {
-public:
-    using std::runtime_error::runtime_error;
-
-    template <class... Args>
-    explicit CriticalError(std::format_string<Args...> fmt, Args&&... args)
-        : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
-    {
-    }
-};
-
-class InputError : public std::domain_error {
-public:
-    using std::domain_error::domain_error;
-
-    template <class... Args>
-    explicit InputError(std::format_string<Args...> fmt, Args&&... args)
-        : std::domain_error(std::format(fmt, std::forward<Args>(args)...))
-    {
-    }
-};
-
-class UnsupportedError : public std::runtime_error {
-public:
-    using std::runtime_error::runtime_error;
-
-    template <class... Args>
-    explicit UnsupportedError(std::format_string<Args...> fmt, Args&&... args)
-        : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
-    {
-    }
-};
-
-class UnimplementedError : public std::runtime_error {
-public:
-    using std::runtime_error::runtime_error;
-
-    template <class... Args>
-    explicit UnimplementedError(std::format_string<Args...> fmt, Args&&... args)
-        : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
-    {
-    }
-};
-
-class OverflowError : public std::overflow_error {
-public:
-    using std::overflow_error::overflow_error;
-
-    template <class... Args>
-    explicit OverflowError(std::format_string<Args...> fmt, Args&&... args)
-        : std::overflow_error(std::format(fmt, std::forward<Args>(args)...))
-    {
-    }
-};
-
 [[noreturn]]
 extern void exit_with_reentrant(ExitCode returncode);
 

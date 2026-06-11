@@ -15,7 +15,9 @@
 
 #include "probfd/utils/timed.h"
 
+#include "downward/utils/exceptions.h"
 #include "downward/utils/timer.h"
+#include "downward/utils/system.h"
 
 #include "downward/utils/exceptions.h"
 #include "probfd/probabilistic_operator_space.h"

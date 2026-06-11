@@ -1,6 +1,6 @@
 #include "downward/algorithms/equivalence_relation.h"
 
-#include "downward/utils/system.h"
+#include "downward/utils/exceptions.h"
 
 #include <cassert>
 

@@ -9,6 +9,7 @@
 #include "probfd/utils/bind.h"
 
 #include "downward/utils/collections.h"
+#include "downward/utils/exceptions.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/system.h"
 
