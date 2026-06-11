@@ -1,0 +1,64 @@
+#include "downward_cli/operator_counting/pho_constraints_feature.h"
+
+#include "language/plugins/plugin.h"
+#include "language/plugins/raw_registry.h"
+
+#include "downward/operator_counting/pho_constraints.h"
+
+#include "downward/utils/markup.h"
+
+using namespace std;
+using namespace downward::pdbs;
+using namespace downward::utils;
+using namespace downward::operator_counting;
+
+using namespace language;
+using namespace language::plugins;
+
+namespace {
+class PhOConstraintsFeature : public TypedFeature<ConstraintGenerator> {
+public:
+    PhOConstraintsFeature()
+        : TypedFeature("pho_constraints")
+    {
+        document_title("Posthoc optimization constraints");
+        document_synopsis(
+            "The generator will compute a PDB for each pattern and add the"
+            " constraint h(s) <= sum_{o in relevant(h)} Count_o. For details,"
+            " see" +
+            format_conference_reference(
+                {"Florian Pommerening", "Gabriele Roeger", "Malte Helmert"},
+                "Getting the Most Out of Pattern Databases for Classical "
+                "Planning",
+                "https://ijcai.org/papers13/Papers/IJCAI13-347.pdf",
+                "Proceedings of the Twenty-Third International Joint"
+                " Conference on Artificial Intelligence (IJCAI 2013)",
+                "2357-2364",
+                "AAAI Press",
+                "2013"));
+
+        add_option<shared_ptr<PatternCollectionGenerator>>(
+            "patterns",
+            "pattern generation method",
+            "systematic(2)");
+    }
+
+    shared_ptr<ConstraintGenerator>
+    create_component(const Options& opts, const Context& context) const override
+    {
+        return make_shared_from_arg_tuples<PhOConstraints>(
+            opts.get<shared_ptr<PatternCollectionGenerator>>(
+                context,
+                "patterns"));
+    }
+};
+} // namespace
+
+namespace downward::cli::operator_counting {
+
+void add_pho_constraints_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<PhOConstraintsFeature>();
+}
+
+} // namespace downward::cli::operator_counting

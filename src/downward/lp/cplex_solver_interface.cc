@@ -2,6 +2,7 @@
 
 #include "downward/lp/lp_solver.h"
 
+#include "downward/utils/exceptions.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/system.h"
 

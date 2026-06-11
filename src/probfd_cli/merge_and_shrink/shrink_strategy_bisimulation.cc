@@ -1,0 +1,85 @@
+#include "probfd_cli/merge_and_shrink/shrink_strategy_bisimulation.h"
+
+#include "language/plugins/plugin.h"
+#include "language/plugins/raw_registry.h"
+
+#include "probfd/merge_and_shrink/shrink_strategy_bisimulation.h"
+
+#include "probfd/merge_and_shrink/distances.h"
+#include "probfd/merge_and_shrink/transition_system.h"
+
+#include "downward/utils/logging.h"
+#include "downward/utils/markup.h"
+
+#include <deque>
+#include <memory>
+
+using namespace std;
+using namespace downward;
+using namespace probfd::merge_and_shrink;
+
+using namespace language;
+using namespace language::plugins;
+
+namespace {
+class ShrinkBisimulationFeature : public TypedFeature<ShrinkStrategy> {
+public:
+    ShrinkBisimulationFeature()
+        : TypedFeature("pshrink_bisimulation")
+    {
+        document_title("Bismulation based shrink strategy");
+        document_synopsis(
+            "This shrink strategy implements the algorithm described in"
+            " the paper:" +
+            utils::format_conference_reference(
+                {"Raz Nissim", "Joerg Hoffmann", "Malte Helmert"},
+                "Computing Perfect Heuristics in Polynomial Time: On "
+                "Bisimulation"
+                " and Merge-and-Shrink Abstractions in Optimal Planning.",
+                "https://ai.dmi.unibas.ch/papers/nissim-et-al-ijcai2011.pdf",
+                "Proceedings of the Twenty-Second International Joint "
+                "Conference"
+                " on Artificial Intelligence (IJCAI 2011)",
+                "1983-1990",
+                "AAAI Press",
+                "2011"));
+
+        add_option<ShrinkStrategyBisimulation::AtLimit>(
+            "at_limit",
+            "what to do when the size limit is hit",
+            "return");
+
+        add_option<bool>(
+            "require_goal_distances",
+            "whether goal distances are required",
+            "true");
+    }
+
+protected:
+    shared_ptr<ShrinkStrategy>
+    create_component(const Options& options, const Context& context)
+        const override
+    {
+        return make_shared_from_arg_tuples<ShrinkStrategyBisimulation>(
+            options.get<ShrinkStrategyBisimulation::AtLimit>(
+                context,
+                "at_limit"),
+            options.get<bool>(context, "require_goal_distances"));
+    }
+};
+} // namespace
+
+namespace probfd::cli::merge_and_shrink {
+
+void add_shrink_strategy_bisimulation_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<ShrinkBisimulationFeature>();
+
+    raw_registry.insert_enum_plugin<ShrinkStrategyBisimulation::AtLimit>(
+        {{"return", "stop without refining the equivalence class further"},
+         {"use_up",
+          "continue refining the equivalence class until "
+          "the size limit is hit"}});
+}
+
+} // namespace probfd::cli::merge_and_shrink

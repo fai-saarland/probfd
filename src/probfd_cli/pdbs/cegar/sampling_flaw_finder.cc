@@ -1,0 +1,55 @@
+#include "probfd_cli/pdbs/cegar/sampling_flaw_finder.h"
+
+#include "language/plugins/plugin.h"
+#include "language/plugins/raw_registry.h"
+
+#include "downward_cli/utils/rng_options.h"
+
+#include "probfd/pdbs/cegar/sampling_flaw_finder.h"
+
+#include "downward/utils/rng_options.h"
+
+using namespace downward;
+using namespace utils;
+
+using namespace probfd::pdbs::cegar;
+
+using namespace language;
+using namespace language::plugins;
+
+using downward::cli::utils::add_rng_options_to_feature;
+using downward::cli::utils::get_rng_arguments_from_options;
+
+namespace {
+class SamplingFlawFinderFeature : public TypedFeature<FlawFindingStrategy> {
+public:
+    SamplingFlawFinderFeature()
+        : TypedFeature("sampling_flaw_finder")
+    {
+        add_rng_options_to_feature(*this);
+        add_option<int>(
+            "max_search_states",
+            "Maximal number of generated states after which the flaw search is "
+            "aborted.",
+            "20M",
+            Bounds("0", "infinity"));
+    }
+
+    std::shared_ptr<FlawFindingStrategy>
+    create_component(const Options& opts, const Context& context) const override
+    {
+        return make_shared_from_arg_tuples<SamplingFlawFinder>(
+            get_rng(std::get<0>(get_rng_arguments_from_options(context, opts))),
+            opts.get<int>(context, "max_search_states"));
+    }
+};
+} // namespace
+
+namespace probfd::cli::pdbs::cegar {
+
+void add_sampling_flaw_finder_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<SamplingFlawFinderFeature>();
+}
+
+} // namespace probfd::cli::pdbs::cegar

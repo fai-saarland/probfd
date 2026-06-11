@@ -62,6 +62,7 @@ endif ()
 include(DownwardFiles)
 include(ProbFDFiles)
 
+include(LanguageFiles)
 include(DownwardPlugins)
 include(ProbFDPlugins)
 

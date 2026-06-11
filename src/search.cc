@@ -1,11 +1,11 @@
 #include "search.h"
 
-#include "downward/cli/parser/lexical_analyzer.h"
-#include "downward/cli/parser/syntax_analyzer.h"
-#include "downward/cli/parser/token_stream.h"
+#include "language/parser/lexical_analyzer.h"
+#include "language/parser/syntax_analyzer.h"
+#include "language/parser/token_stream.h"
 #include "register_definitions.h"
 
-#include "downward/cli/plugins/raw_registry.h"
+#include "language/plugins/raw_registry.h"
 
 #include "probfd/tasks/root_task.h"
 
@@ -41,8 +41,8 @@
 
 using namespace std;
 using namespace downward::utils;
-using namespace downward::cli::parser;
-using namespace downward::cli::plugins;
+using namespace language::parser;
+using namespace language::plugins;
 
 using downward::utils::ExitCode;
 
@@ -169,7 +169,7 @@ static int search(argparse::ArgumentParser& parser)
             std::print(std::cerr, "{}", e.what());
             throw;
         }
-    } catch (const downward::utils::ContextError&) {
+    } catch (const language::ContextError&) {
         exitcode = ExitCode::SEARCH_INPUT_ERROR;
     } catch (const downward::utils::InputError&) {
         exitcode = ExitCode::SEARCH_INPUT_ERROR;

@@ -2,11 +2,11 @@
 
 #include "register_definitions.h"
 
-#include "downward/cli/parser/syntax_analyzer.h"
+#include "language/parser/syntax_analyzer.h"
 
-#include "downward/cli/plugins/doc_printer.h"
-#include "downward/cli/plugins/raw_registry.h"
-#include "downward/cli/plugins/registry.h"
+#include "language/plugins/doc_printer.h"
+#include "language/plugins/raw_registry.h"
+#include "language/plugins/registry.h"
 
 #include "downward/utils/system.h"
 
@@ -19,8 +19,8 @@
 #include <vector>
 
 using namespace std;
-using namespace downward::cli::parser;
-using namespace downward::cli::plugins;
+using namespace language::parser;
+using namespace language::plugins;
 
 using downward::utils::ExitCode;
 

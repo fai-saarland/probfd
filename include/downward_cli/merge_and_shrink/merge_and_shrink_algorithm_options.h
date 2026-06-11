@@ -1,0 +1,59 @@
+#ifndef DOWNWARD_PLUGINS_MERGE_AND_SHRINK_MERGE_AND_SHRINK_ALGORITHM_H
+#define DOWNWARD_PLUGINS_MERGE_AND_SHRINK_MERGE_AND_SHRINK_ALGORITHM_H
+
+#include "downward/utils/timer.h"
+
+#include <memory>
+#include <tuple>
+
+namespace language::plugins {
+class Feature;
+class Options;
+} // namespace language::plugins
+
+namespace downward::merge_and_shrink {
+class LabelReduction;
+class MergeStrategyFactory;
+class ShrinkStrategy;
+} // namespace downward::merge_and_shrink
+
+namespace language {
+class Context;
+}
+
+namespace downward::cli::merge_and_shrink {
+
+extern void add_merge_and_shrink_algorithm_options_to_feature(
+    language::plugins::Feature& feature);
+
+std::tuple<
+    std::shared_ptr<downward::merge_and_shrink::MergeStrategyFactory>,
+    std::shared_ptr<downward::merge_and_shrink::ShrinkStrategy>,
+    std::shared_ptr<downward::merge_and_shrink::LabelReduction>,
+    bool,
+    bool,
+    int,
+    int,
+    int,
+    downward::utils::Duration>
+get_merge_and_shrink_algorithm_arguments_from_options(
+    const language::Context& context,
+    const language::plugins::Options& opts);
+
+extern void add_transition_system_size_limit_options_to_feature(
+    language::plugins::Feature& feature);
+
+std::tuple<int, int, int>
+get_transition_system_size_limit_arguments_from_options(
+    const language::Context& context,
+    const language::plugins::Options& opts);
+
+extern void handle_shrink_limit_options_defaults(
+    int& max_states,
+    int& max_states_before_merge,
+    int& threshold_before_merge,
+    const language::Context& context);
+
+} // namespace downward::cli::merge_and_shrink
+
+#endif

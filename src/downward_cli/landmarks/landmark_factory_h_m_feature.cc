@@ -1,0 +1,81 @@
+#include "downward_cli/landmarks/landmark_factory_h_m_feature.h"
+
+#include "language/plugins/plugin.h"
+#include "language/plugins/raw_registry.h"
+
+#include "downward_cli/landmarks/landmark_factory_options.h"
+
+#include "downward/task_dependent_factory.h"
+
+#include "downward/landmarks/landmark_factory_h_m.h"
+
+#include "downward/utils/logging.h"
+
+using namespace std;
+using namespace downward;
+using namespace downward::landmarks;
+using namespace downward::utils;
+
+using namespace language;
+using namespace language::plugins;
+
+using downward::cli::landmarks::add_use_orders_option_to_feature;
+using downward::cli::landmarks::get_use_orders_arguments_from_options;
+
+using downward::cli::landmarks::add_landmark_factory_options_to_feature;
+using downward::cli::landmarks::get_landmark_factory_arguments_from_options;
+
+namespace {
+class LandmarkFactoryHMFeature : public TypedFeature<LandmarkFactory> {
+public:
+    LandmarkFactoryHMFeature()
+        : TypedFeature("lm_hm")
+    {
+        // document_group("");
+        document_title("h^m Landmarks");
+        document_synopsis(
+            "The landmark generation method introduced by "
+            "Keyder, Richter & Helmert (ECAI 2010).");
+
+        add_option<int>(
+            "m",
+            "subset size (if unsure, use the default of 2)",
+            "2");
+        add_option<std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
+            "mutexes",
+            "factory for mutexes");
+        add_option<bool>(
+            "conjunctive_landmarks",
+            "keep conjunctive landmarks",
+            "true");
+        add_use_orders_option_to_feature(*this);
+        add_landmark_factory_options_to_feature(*this);
+
+        document_language_support(
+            "conditional_effects",
+            "ignored, i.e. not supported");
+    }
+
+    shared_ptr<LandmarkFactory>
+    create_component(const Options& opts, const Context& context) const override
+    {
+        return make_shared_from_arg_tuples<LandmarkFactoryHM>(
+            opts.get<std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
+                context,
+                "mutexes"),
+            opts.get<int>(context, "m"),
+            opts.get<bool>(context, "conjunctive_landmarks"),
+            get_use_orders_arguments_from_options(context, opts),
+            get_landmark_factory_arguments_from_options(context, opts));
+    }
+};
+} // namespace
+
+namespace downward::cli::landmarks {
+
+void add_landmark_factory_hm_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<LandmarkFactoryHMFeature>();
+}
+
+} // namespace downward::cli::landmarks

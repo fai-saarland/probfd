@@ -6,12 +6,12 @@
 #ifndef PROBFD_REGISTER_DEFINITIONS_H
 #define PROBFD_REGISTER_DEFINITIONS_H
 
-namespace downward::cli::plugins {
+namespace language::plugins {
 class RawRegistry;
 }
 
 namespace probfd {
-void register_definitions(downward::cli::plugins::RawRegistry& raw_registry);
+void register_definitions(language::plugins::RawRegistry& raw_registry);
 }
 
 #endif

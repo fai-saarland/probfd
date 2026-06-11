@@ -1,4 +1,4 @@
-#include "probfd/cli/naming_conventions.h"
+#include "../../probfd_cli/naming_conventions.h"
 
 #include "probfd/solvers/mdp_heuristic_search.h"
 

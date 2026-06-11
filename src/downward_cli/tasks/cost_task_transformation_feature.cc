@@ -1,0 +1,78 @@
+#include "downward_cli/tasks/cost_task_transformation_feature.h"
+
+#include "language/plugins/plugin.h"
+#include "language/plugins/raw_registry.h"
+
+#include "downward_cli/operator_cost_options.h"
+
+#include "downward/tasks/cost_adapted_task.h"
+#include "downward/tasks/root_task.h"
+
+#include "downward/transformations/identity_transformation.h"
+
+#include "downward/task_transformation.h"
+
+using namespace std;
+using namespace downward;
+using namespace downward::tasks;
+
+using namespace language;
+using namespace language::plugins;
+
+using downward::cli::add_cost_type_options_to_feature;
+using downward::cli::get_cost_type_arguments_from_options;
+
+namespace {
+class CostAdaptedTaskTransformation : public TaskTransformation {
+    OperatorCost cost_type;
+
+public:
+    explicit CostAdaptedTaskTransformation(OperatorCost cost_type)
+        : cost_type(cost_type)
+    {
+    }
+
+    TaskTransformationResult
+    transform(const SharedAbstractTask& original_task) override
+    {
+        return {
+            replace(
+                original_task,
+                std::make_shared<AdaptedOperatorIntCostFunction>(
+                    get_operators(original_task),
+                    get_shared_cost_function(original_task),
+                    cost_type)),
+            std::make_shared<IdentityStateMapping>(),
+            std::make_shared<IdentityOperatorMapping>()};
+    }
+};
+
+class CostAdaptedTaskTransformationFeature
+    : public TypedFeature<TaskTransformation> {
+public:
+    CostAdaptedTaskTransformationFeature()
+        : TypedFeature("adapt_costs")
+    {
+        document_title("Cost-adapted task");
+        document_synopsis("A cost-adapting transformation of the root task.");
+
+        add_cost_type_options_to_feature(*this);
+    }
+
+    virtual shared_ptr<TaskTransformation>
+    create_component(const Options& opts, const Context& context) const override
+    {
+        return make_shared_from_arg_tuples<CostAdaptedTaskTransformation>(
+            get_cost_type_arguments_from_options(context, opts));
+    }
+};
+} // namespace
+
+namespace downward::cli::tasks {
+
+void add_cost_task_transformation_features(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<CostAdaptedTaskTransformationFeature>();
+}
+
+} // namespace downward::cli::tasks
