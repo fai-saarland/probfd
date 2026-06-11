@@ -2,8 +2,8 @@
 #define ALGORITHMS_INT_HASH_SET_H
 
 #include "downward/utils/collections.h"
+#include "downward/utils/exceptions.h"
 #include "downward/utils/logging.h"
-#include "downward/utils/system.h"
 
 #include <algorithm>
 #include <cassert>

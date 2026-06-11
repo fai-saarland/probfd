@@ -4,6 +4,7 @@
 #include "downward/landmarks/landmark_graph.h"
 
 #include "downward/utils/logging.h"
+#include "downward/utils/system.h"
 
 #include <algorithm>
 #include <set>

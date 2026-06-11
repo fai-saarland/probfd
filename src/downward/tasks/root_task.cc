@@ -5,6 +5,7 @@
 #include "downward/state_registry.h"
 
 #include "downward/utils/collections.h"
+#include "downward/utils/system.h"
 #include "downward/utils/timer.h"
 
 #include "downward/operator_cost_function.h"

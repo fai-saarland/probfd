@@ -1,5 +1,7 @@
 #include "search.h"
 
+#include "register_definitions.h"
+
 #include "language/parser/abstract_syntax_tree.h"
 #include "language/parser/declaration.h"
 #include "language/parser/decorated_abstract_syntax_tree.h"
@@ -7,12 +9,13 @@
 #include "language/parser/syntax_analyzer.h"
 #include "language/parser/token_stream.h"
 
-#include "register_definitions.h"
-
 #include "language/plugins/raw_registry.h"
 
 #include "probfd/tasks/root_task.h"
 
+#include "probfd/json/json.h"
+
+#include "probfd/utils/guards.h"
 #include "probfd/utils/timed.h"
 
 #include "probfd/probabilistic_operator_space.h"
@@ -20,17 +23,16 @@
 #include "probfd/solver_interface.h"
 #include "probfd/termination_costs.h"
 
+#include "downward/utils/exceptions.h"
+#include "downward/utils/logging.h"
+#include "downward/utils/strings.h"
+#include "downward/utils/system.h"
+
 #include "downward/axiom_space.h"
 #include "downward/goal_fact_list.h"
 #include "downward/initial_state_values.h"
 #include "downward/operator_cost_function.h"
 #include "downward/variable_space.h"
-
-#include "downward/utils/logging.h"
-#include "downward/utils/strings.h"
-#include "downward/utils/system.h"
-#include "probfd/json/json.h"
-#include "probfd/utils/guards.h"
 
 #include <any>
 #include <charconv>
@@ -63,6 +65,8 @@ construct_let(std::unique_ptr<Expression> parsed, R&& predefinitions)
 
     std::vector<std::pair<std::string, std::unique_ptr<Expression>>>
         variable_definitions;
+
+    variable_definitions.reserve(predefinitions.size());
 
     for (const auto& [key, definition] : predefinitions) {
         variable_definitions.emplace_back(key, tokenize_and_parse(definition));
@@ -109,7 +113,7 @@ construct_solver(const DecoratedExpression& decorated)
     }
 }
 
-static auto construct_solver(argparse::ArgumentParser& parser)
+static auto construct_solver(const argparse::ArgumentParser& parser)
 {
     // Signal handler setup
     register_event_handlers();
@@ -156,7 +160,7 @@ static auto construct_solver(argparse::ArgumentParser& parser)
     return solver_factory->create(input_task);
 }
 
-static int search(argparse::ArgumentParser& parser)
+static int search(const argparse::ArgumentParser& parser)
 {
     ExitCode exitcode;
 
@@ -182,6 +186,8 @@ static int search(argparse::ArgumentParser& parser)
         exitcode = ExitCode::SEARCH_INPUT_ERROR;
     } catch (const downward::utils::InputError&) {
         exitcode = ExitCode::SEARCH_INPUT_ERROR;
+    } catch (const downward::utils::OutOfMemoryException&) {
+        exitcode = ExitCode::SEARCH_OUT_OF_MEMORY;
     } catch (const downward::utils::CriticalError&) {
         exitcode = ExitCode::SEARCH_CRITICAL_ERROR;
     } catch (const downward::utils::UnsupportedError&) {

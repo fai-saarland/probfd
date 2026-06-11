@@ -1,9 +1,10 @@
 #include "downward/task_utils/variable_order.h"
 
-#include "downward/task_utils/causal_graph.h"
+#include "downward/utils/exceptions.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
-#include "downward/utils/system.h"
+
+#include "downward/task_utils/causal_graph.h"
 
 #include "downward/abstract_task.h"
 #include "downward/goal_fact_list.h"

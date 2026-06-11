@@ -4,6 +4,7 @@
 #include "probfd/merge_and_shrink/transition_system.h"
 
 #include "downward/utils/collections.h"
+#include "downward/utils/exceptions.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/markup.h"
 #include "downward/utils/system.h"
