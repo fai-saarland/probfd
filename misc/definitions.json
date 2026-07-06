@@ -1,12 +1,15 @@
 {
   "pgen": "psystematic(pattern_max_size=2)",
-  "search_hroc": "tailao(heuristic=hroc())",
-  "search_hpom": "tailao(heuristic=hpom())",
-  "search_hpho": "tailao(heuristic=hpho(patterns=pgen))",
-  "search_ocp": "tailao(heuristic=ocp_heuristic(patterns=pgen))",
-  "search_scp": "tailao(heuristic=scp_heuristic(patterns=pgen))",
-  "search_ucp": "tailao(heuristic=ucp_heuristic(patterns=pgen))",
-  "search_gzocp": "tailao(heuristic=gzocp_heuristic(patterns=pgen))",
-  "search_can": "tailao(heuristic=ppdbs(patterns=pgen))",
-  "search_max": "tailao(heuristic=pdb_max(patterns=pgen))"
+  "report_threshold": "500000",
+  "search_blind": "tailao(report_epsilon=report_threshold, heuristic=blind_heuristic())",
+  "search_hroc": "tailao(report_epsilon=report_threshold, heuristic=hroc())",
+  "search_hpom": "tailao(report_epsilon=report_threshold, heuristic=hpom())",
+  "search_hpho": "tailao(report_epsilon=report_threshold, heuristic=hpho(patterns=pgen))",
+  "search_ocp": "tailao(report_epsilon=report_threshold, heuristic=ocp_heuristic(patterns=pgen))",
+  "search_scp_desc": "tailao(report_epsilon=report_threshold, heuristic=scp_heuristic(patterns=pgen, order=size_desc))",
+  "search_scp_random": "fun (seed : int): tailao(report_epsilon=500000, heuristic=scp_heuristic(patterns=psystematic(pattern_max_size=2), rng=get_seeded_rng(seed)))",
+  "search_ucp": "tailao(report_epsilon=report_threshold, heuristic=ucp_heuristic(patterns=pgen))",
+  "search_gzocp": "tailao(report_epsilon=report_threshold, heuristic=gzocp_heuristic(patterns=pgen))",
+  "search_can": "tailao(report_epsilon=report_threshold, heuristic=ppdbs(patterns=pgen))",
+  "search_max": "tailao(report_epsilon=report_threshold, heuristic=pdb_max(patterns=pgen))"
 }
