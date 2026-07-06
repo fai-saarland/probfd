@@ -35,12 +35,12 @@ def set_time_limit(time_limit):
         raise NotImplementedError(CANNOT_LIMIT_TIME_MSG)
     # Reaching the soft time limit leads to a (catchable) SIGXCPU signal,
     # which we catch to gracefully exit. Reaching the hard limit leads to
-    # a SIGKILL, which is unpreventable. We set a hard limit one second
+    # a SIGKILL, which is unpreventable. We set a hard limit three seconds
     # higher than the soft limit to make sure we abort also in cases where
     # the graceful shutdown doesn't work, or doesn't work reasonably
     # quickly.
     try:
-        resource.setrlimit(resource.RLIMIT_CPU, (time_limit, time_limit + 1))
+        resource.setrlimit(resource.RLIMIT_CPU, (time_limit, time_limit + 3))
     except ValueError:
         # If the previous call failed, we try again without the extra second.
         # In particular, this is necessary if there already exists an external
