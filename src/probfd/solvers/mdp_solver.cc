@@ -126,6 +126,8 @@ bool MDPSolver::solve(const SharedProbabilisticTask& task, FSeconds max_time)
         *heuristic_factory_,
         task);
 
+    std::fflush(stdout);
+
     auto algorithm_name = algorithm_factory_->get_algorithm_name();
 
     print(std::cout, "Running MDP algorithm {}", algorithm_name);
