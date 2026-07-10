@@ -482,23 +482,15 @@ void VariableNode::dump(string indent) const
     cout << indent << "VAR: " << definition->variable_name << endl;
 }
 
-BoolLiteralNode::BoolLiteralNode(const string& value)
+BoolLiteralNode::BoolLiteralNode(bool value)
     : value(value)
 {
 }
 
 std::any BoolLiteralNode::construct(ConstructContext& context) const
 {
-    TraceBlock block(context, "Constructing bool value from '" + value + "'");
-    istringstream stream(value);
-    bool x;
-    if ((stream >> boolalpha >> x).fail()) {
-        context.error(
-            "Could not parse bool constant '{}'"
-            " (this should have been caught before constructing this node).",
-            value);
-    }
-    return x;
+    TraceBlock block(context, "Constructing bool value from '{}'", value);
+    return value;
 }
 
 void BoolLiteralNode::print(std::ostream& out, std::size_t indent, bool) const

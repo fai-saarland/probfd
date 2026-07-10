@@ -213,10 +213,10 @@ public:
 };
 
 class BoolLiteralNode : public DecoratedASTNode {
-    std::string value;
+    bool value;
 
 public:
-    explicit BoolLiteralNode(const std::string& value);
+    explicit BoolLiteralNode(bool value);
 
     std::any construct(ConstructContext& context) const override;
     void print(std::ostream& out, std::size_t indent, bool print_default_args)

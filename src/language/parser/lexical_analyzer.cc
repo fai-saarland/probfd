@@ -26,7 +26,8 @@ static vector<pair<TokenType, regex>> construct_token_type_expressions()
         {TokenType::COMMA, R"(,)"},
         {TokenType::EQUALS, R"(=)"},
         {TokenType::LET, R"(let)"},
-        {TokenType::BOOLEAN, R"(true|false)"},
+        {TokenType::TRUE, R"(true)"},
+        {TokenType::FALSE, R"(false)"},
         {TokenType::STRING, R"("(\\\\|\\"|\\n|[^"\\])*")"},
         /*
           Floats have to be parsed before integers, so tokens like '1.2' are

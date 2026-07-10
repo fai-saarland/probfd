@@ -97,7 +97,8 @@ string token_type_name(TokenType token_type)
     case TokenType::LET: return "Let";
     case TokenType::AS: return "As";
     case TokenType::IN: return "In";
-    case TokenType::BOOLEAN: return "Boolean";
+    case TokenType::TRUE: return "True";
+    case TokenType::FALSE: return "False";
     case TokenType::STRING: return "String";
     case TokenType::INTEGER: return "Integer";
     case TokenType::FLOAT: return "Float";

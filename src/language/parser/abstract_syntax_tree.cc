@@ -260,7 +260,7 @@ bool FunctionCallNode::collect_argument(
     bool is_default)
 {
     string key = arg_info.key;
-    if (arguments.count(key)) { return false; }
+    if (arguments.contains(key)) { return false; }
 
     DecoratedASTNodePtr decorated_arg =
         decorate_and_convert(arg, arg_info.type, context);
@@ -561,7 +561,7 @@ TypedDecoratedAstNodePtr LiteralNode::decorate(DecorateContext& context) const
             throw ContextError(
                 "A non-identifier token was defined as variable.");
         }
-        string variable_name = value.content;
+        const string& variable_name = value.content;
         auto& def = context.get_variable_definition(variable_name);
         auto n = std::make_unique<VariableNode>(def);
         def.usages.push_back(n.get());
@@ -569,9 +569,13 @@ TypedDecoratedAstNodePtr LiteralNode::decorate(DecorateContext& context) const
     }
 
     switch (value.type) {
-    case TokenType::BOOLEAN:
+    case TokenType::TRUE:
         return {
-            std::make_unique<BoolLiteralNode>(value.content),
+            std::make_unique<BoolLiteralNode>(true),
+            &plugins::TypeRegistry::instance()->get_type<bool>()};
+    case TokenType::FALSE:
+        return {
+            std::make_unique<BoolLiteralNode>(false),
             &plugins::TypeRegistry::instance()->get_type<bool>()};
     case TokenType::STRING:
         return {

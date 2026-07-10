@@ -65,11 +65,10 @@ static void parse_argument(
         tokens.peek(context, 1).type == TokenType::EQUALS) {
         string argument_name = tokens.pop(context).content;
         tokens.pop(context, TokenType::EQUALS);
-        if (keyword_arguments.count(argument_name)) {
+        if (keyword_arguments.contains(argument_name)) {
             context.error(
-                "Multiple definitions of the same keyword "
-                "argument '" +
-                argument_name + "'.");
+                "Multiple definitions of the same keyword argument '{}'.",
+                argument_name);
         }
         keyword_arguments[argument_name] = parse_node(tokens, context);
     } else {
@@ -119,10 +118,9 @@ static ASTNodePtr parse_let(TokenStream& tokens, SyntaxAnalyzerContext& context)
             } else if (next.type == TokenType::IN) {
                 break;
             } else {
-                ostringstream message;
-                message << "Got token " << next
-                        << ". Expected either comma or 'in'.";
-                context.error(message.str());
+                context.error(
+                    "Got token {}. Expected either comma or 'in'.",
+                    next);
             }
         }
     }
@@ -142,23 +140,21 @@ static void parse_sequence(
     TokenStream& tokens,
     SyntaxAnalyzerContext& context,
     TokenType terminal_token,
-    const function<void(void)>& func)
+    const function<void()>& func)
 {
     TraceBlock block(context, "Parsing sequence");
     int num_argument = 1;
     while (tokens.peek(context).type != terminal_token) {
         {
-            TraceBlock block(
-                context,
-                "Parsing " + to_string(num_argument) + ". argument");
+            TraceBlock block(context, "Parsing {}. argument", num_argument);
             func();
         }
         {
             TraceBlock block(
                 context,
-                "Parsing token after " + to_string(num_argument) +
-                    ". argument");
-            TokenType next_type = tokens.peek(context).type;
+                "Parsing token after {}. argument",
+                num_argument);
+            const TokenType next_type = tokens.peek(context).type;
             if (next_type == terminal_token) {
                 return;
             } else if (next_type == TokenType::COMMA) {
@@ -168,10 +164,11 @@ static void parse_sequence(
                 }
             } else {
                 context.error(
-                    "Read unexpected token type '" +
-                    token_type_name(next_type) + "'. Expected token types '" +
-                    token_type_name(terminal_token) + "' or '" +
-                    token_type_name(TokenType::COMMA));
+                    "Read unexpected token type '{}'. Expected token types "
+                    "'{}' or '{}'.",
+                    next_type,
+                    terminal_token,
+                    TokenType::COMMA);
             }
         }
         num_argument++;
@@ -218,7 +215,8 @@ parse_function(TokenStream& tokens, SyntaxAnalyzerContext& context)
 }
 
 static unordered_set<TokenType> literal_tokens{
-    TokenType::BOOLEAN,
+    TokenType::TRUE,
+    TokenType::FALSE,
     TokenType::STRING,
     TokenType::INTEGER,
     TokenType::FLOAT,
@@ -229,10 +227,8 @@ parse_literal(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
     TraceBlock block(context, "Parsing Literal");
     Token token = tokens.pop(context);
-    if (!literal_tokens.count(token.type)) {
-        ostringstream message;
-        message << "Token " << token << " cannot be parsed as literal";
-        context.error(message.str());
+    if (!literal_tokens.contains(token.type)) {
+        context.error("Token {} cannot be parsed as literal", token);
     }
     return std::make_unique<LiteralNode>(token);
 }
@@ -257,7 +253,8 @@ parse_list(TokenStream& tokens, SyntaxAnalyzerContext& context)
 static vector<TokenType> parse_node_token_types = {
     TokenType::OPENING_BRACKET,
     TokenType::LET,
-    TokenType::BOOLEAN,
+    TokenType::TRUE,
+    TokenType::FALSE,
     TokenType::STRING,
     TokenType::INTEGER,
     TokenType::FLOAT,
@@ -283,7 +280,8 @@ parse_node(TokenStream& tokens, SyntaxAnalyzerContext& context)
     switch (token.type) {
     case TokenType::OPENING_BRACKET: return parse_list(tokens, context);
     case TokenType::LET: return parse_let(tokens, context);
-    case TokenType::BOOLEAN:
+    case TokenType::TRUE:
+    case TokenType::FALSE:
     case TokenType::STRING:
     case TokenType::INTEGER:
     case TokenType::FLOAT: return parse_literal(tokens, context);
@@ -307,7 +305,7 @@ ASTNodePtr parse(TokenStream& tokens)
     ASTNodePtr node = parse_node(tokens, context);
     if (tokens.has_tokens(1)) {
         context.error(
-            "Syntax analysis terminated with unparsed tokens: " +
+            "Syntax analysis terminated with unparsed tokens: {}",
             tokens.str(tokens.get_position(), tokens.size()));
     }
     return node;
