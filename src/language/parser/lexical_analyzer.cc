@@ -1,5 +1,6 @@
 #include "language/parser/lexical_analyzer.h"
 
+#include "language/parser/token.h"
 #include "language/parser/token_stream.h"
 
 #include "language/context.h"

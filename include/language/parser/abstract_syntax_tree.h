@@ -2,7 +2,8 @@
 #define LANGUAGE_PARSER_ABSTRACT_SYNTAX_TREE_H
 
 #include "language/parser/decorated_abstract_syntax_tree.h"
-#include "language/parser/token_stream.h"
+#include "language/parser/token.h"
+
 #include "language/plugins/raw_registry.h"
 
 #include <cassert>

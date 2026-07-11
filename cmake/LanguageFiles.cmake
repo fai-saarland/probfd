@@ -32,6 +32,7 @@ create_library(
     language/parser/decorated_abstract_syntax_tree
     language/parser/lexical_analyzer
     language/parser/syntax_analyzer
+    language/parser/token
     language/parser/token_stream
     DEPENDS
     context
