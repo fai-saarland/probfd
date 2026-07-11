@@ -63,6 +63,17 @@ bool is_product_within_limits(
 } // namespace
 
 namespace language::parser {
+
+class ConstructContext : public Context {
+    std::unordered_map<std::string, std::any> variables;
+
+public:
+    void set_variable(const std::string& name, const std::any& value);
+    void remove_variable(const std::string& name);
+    bool has_variable(const std::string& name) const;
+    std::any get_variable(const std::string& name) const;
+};
+
 void ConstructContext::set_variable(const string& name, const std::any& value)
 {
     variables[name] = value;
@@ -75,56 +86,13 @@ void ConstructContext::remove_variable(const string& name)
 
 bool ConstructContext::has_variable(const string& name) const
 {
-    return variables.count(name);
+    return variables.contains(name);
 }
 
 std::any ConstructContext::get_variable(const string& name) const
 {
     std::any variable = variables.at(name);
     return variable;
-}
-
-LazyValue::LazyValue(
-    const DecoratedASTNode& node,
-    const ConstructContext& context)
-    : context(context)
-    , node(node.clone())
-{
-}
-
-LazyValue::LazyValue(const LazyValue& other)
-    : context(other.context)
-    , node(other.node->clone())
-{
-}
-
-std::any LazyValue::construct_any() const
-{
-    ConstructContext clean_context = context;
-    TraceBlock block(clean_context, "Delayed construction of LazyValue");
-    return node->construct(clean_context);
-}
-
-vector<LazyValue> LazyValue::construct_lazy_list()
-{
-    TraceBlock block(context, "Delayed construction of a list");
-    const auto list_node = dynamic_cast<const DecoratedListNode*>(node.get());
-    if (!list_node) {
-        context.error(
-            "Delayed construction of a list failed because the parsed element "
-            "was no list.");
-    }
-
-    vector<LazyValue> elements;
-    elements.reserve(list_node->get_elements().size());
-    for (const DecoratedASTNodePtr& element : list_node->get_elements()) {
-        TraceBlock(
-            context,
-            "Create LazyValue for {}. list element",
-            elements.size());
-        elements.emplace_back(*element, context);
-    }
-    return elements;
 }
 
 VariableDefinition::VariableDefinition(
@@ -169,13 +137,9 @@ std::any DecoratedASTNode::construct() const
     return construct(context);
 }
 
-FunctionArgument::FunctionArgument(
-    DecoratedASTNodePtr value,
-    bool is_default,
-    bool lazy_construction)
+FunctionArgument::FunctionArgument(DecoratedASTNodePtr value, bool is_default)
     : value(move(value))
     , is_default(is_default)
-    , lazy_construction(lazy_construction)
 {
 }
 
@@ -197,11 +161,6 @@ bool FunctionArgument::is_default_argument() const
 void FunctionArgument::dump(const string& indent) const
 {
     value->dump("| " + indent);
-}
-
-bool FunctionArgument::is_lazily_constructed() const
-{
-    return lazy_construction;
 }
 
 DecoratedLetNode::DecoratedLetNode(
@@ -329,17 +288,15 @@ std::any DecoratedFunctionCallNode::construct(ConstructContext& context) const
 {
     TraceBlock block(
         context,
-        "Constructing feature '" + feature->get_key() +
-            "': " + unparsed_config);
+        "Constructing feature '{}': {}",
+        feature->get_key(),
+        unparsed_config);
+
     plugins::Options opts;
     opts.set_unparsed_config(unparsed_config);
     for (const auto& [key, arg] : arguments) {
-        TraceBlock block(context, "Constructing argument '" + key + "'");
-        if (arg.is_lazily_constructed()) {
-            opts.set(key, LazyValue(arg.get_value(), context));
-        } else {
-            opts.set(key, arg.get_value().construct(context));
-        }
+        TraceBlock block(context, "Constructing argument '{}'", key);
+        opts.set(key, arg.get_value().construct(context));
     }
     return feature->construct(opts, context);
 }
@@ -406,7 +363,7 @@ std::any DecoratedListNode::construct(ConstructContext& context) const
     vector<std::any> result;
     int i = 0;
     for (const DecoratedASTNodePtr& element : elements) {
-        TraceBlock block(context, "Constructing element " + to_string(i));
+        TraceBlock block(context, "Constructing element {}", i);
         result.push_back(element->construct(context));
         ++i;
     }
@@ -460,11 +417,15 @@ std::any VariableNode::construct(ConstructContext& context) const
 {
     TraceBlock block(
         context,
-        "Looking up variable '" + definition->variable_name + "'");
+        "Looking up variable '{}'",
+        definition->variable_name);
+
     if (!context.has_variable(definition->variable_name)) {
         context.error(
-            "Variable '" + definition->variable_name + "' is not defined.");
+            "Variable '{}' is not defined.",
+            definition->variable_name);
     }
+
     return context.get_variable(definition->variable_name);
 }
 
@@ -511,7 +472,7 @@ StringLiteralNode::StringLiteralNode(const string& value)
 
 std::any StringLiteralNode::construct(ConstructContext& context) const
 {
-    TraceBlock block(context, "Constructing string value from '" + value + "'");
+    TraceBlock block(context, "Constructing string value from '{}'", value);
     if (!(value.starts_with('"') && value.ends_with('"'))) {
         context.error(
             "String literal value is not enclosed in quotation marks"
@@ -560,7 +521,7 @@ IntLiteralNode::IntLiteralNode(const string& value)
 
 std::any IntLiteralNode::construct(ConstructContext& context) const
 {
-    TraceBlock block(context, "Constructing int value from '" + value + "'");
+    TraceBlock block(context, "Constructing int value from '{}'", value);
     if (value.empty()) {
         context.error(
             "Empty value in int constant '{}'"
@@ -606,7 +567,8 @@ std::any IntLiteralNode::construct(ConstructContext& context) const
     int max_int = numeric_limits<int>::max() - 1;
     if (!is_product_within_limits(x, factor, min_int, max_int)) {
         context.error(
-            "Absolute value of integer constant too large: '" + value + "'");
+            "Absolute value of integer constant too large: '{}'",
+            value);
     }
     return x * factor;
 }
@@ -629,7 +591,7 @@ FloatLiteralNode::FloatLiteralNode(const string& value)
 
 std::any FloatLiteralNode::construct(ConstructContext& context) const
 {
-    TraceBlock block(context, "Constructing float value from '" + value + "'");
+    TraceBlock block(context, "Constructing float value from '{}'", value);
     if (value == "infinity") {
         return numeric_limits<double>::infinity();
     } else {
@@ -701,15 +663,18 @@ std::any ConvertNode::construct(ConstructContext& context) const
     {
         TraceBlock block(
             context,
-            "Constructing value of type '" + from_type.name() + "'");
+            "Constructing value of type '{}'",
+            from_type.name());
         constructed_value = value->construct(context);
     }
     std::any converted_value;
     {
         TraceBlock block(
             context,
-            "Converting constructed value from '" + from_type.name() +
-                "' to '" + to_type.name() + "'");
+            "Converting constructed value from '{}' to '{}'",
+            from_type.name(),
+            to_type.name());
+
         converted_value =
             plugins::convert(constructed_value, from_type, to_type, context);
     }
@@ -813,188 +778,4 @@ void CheckBoundsNode::dump(string indent) const
     max_value->dump("| " + indent);
 }
 
-// We are keeping all copy functionality together because it should be removed
-// soon.
-FunctionArgument::FunctionArgument(const FunctionArgument& other)
-    : value(other.value->clone())
-    , is_default(other.is_default)
-    , lazy_construction(other.lazy_construction)
-{
-}
-
-DecoratedLetNode::DecoratedLetNode(const DecoratedLetNode& other)
-    : nested_value(other.nested_value->clone())
-{
-    for (const auto& [name, nested_value, _] :
-         other.decorated_variable_definitions) {
-        decorated_variable_definitions.emplace_back(
-            name,
-            nested_value->clone());
-    }
-}
-
-shared_ptr<DecoratedASTNode> DecoratedLetNode::clone_shared() const
-{
-    return make_shared<DecoratedLetNode>(*this);
-}
-
-unique_ptr<DecoratedASTNode> DecoratedLetNode::clone() const
-{
-    return std::make_unique<DecoratedLetNode>(*this);
-}
-
-DecoratedFunctionCallNode::DecoratedFunctionCallNode(
-    const DecoratedFunctionCallNode& other)
-    : feature(other.feature)
-    , arguments(other.arguments)
-    , unparsed_config(other.unparsed_config)
-{
-}
-
-shared_ptr<DecoratedASTNode> DecoratedFunctionCallNode::clone_shared() const
-{
-    return make_shared<DecoratedFunctionCallNode>(*this);
-}
-
-unique_ptr<DecoratedASTNode> DecoratedFunctionCallNode::clone() const
-{
-    return std::make_unique<DecoratedFunctionCallNode>(*this);
-}
-
-DecoratedListNode::DecoratedListNode(const DecoratedListNode& other)
-{
-    elements.reserve(other.elements.size());
-    for (const DecoratedASTNodePtr& element : other.elements) {
-        elements.push_back(element->clone());
-    }
-}
-
-unique_ptr<DecoratedASTNode> DecoratedListNode::clone() const
-{
-    return std::make_unique<DecoratedListNode>(*this);
-}
-
-shared_ptr<DecoratedASTNode> DecoratedListNode::clone_shared() const
-{
-    return make_shared<DecoratedListNode>(*this);
-}
-
-unique_ptr<DecoratedASTNode> VariableNode::clone() const
-{
-    return std::make_unique<VariableNode>(*definition);
-}
-
-shared_ptr<DecoratedASTNode> VariableNode::clone_shared() const
-{
-    return make_shared<VariableNode>(*this);
-}
-
-BoolLiteralNode::BoolLiteralNode(const BoolLiteralNode& other)
-    : value(other.value)
-{
-}
-
-unique_ptr<DecoratedASTNode> BoolLiteralNode::clone() const
-{
-    return std::make_unique<BoolLiteralNode>(*this);
-}
-
-shared_ptr<DecoratedASTNode> BoolLiteralNode::clone_shared() const
-{
-    return make_shared<BoolLiteralNode>(*this);
-}
-
-StringLiteralNode::StringLiteralNode(const StringLiteralNode& other)
-    : value(other.value)
-{
-}
-
-unique_ptr<DecoratedASTNode> StringLiteralNode::clone() const
-{
-    return std::make_unique<StringLiteralNode>(*this);
-}
-
-shared_ptr<DecoratedASTNode> StringLiteralNode::clone_shared() const
-{
-    return make_shared<StringLiteralNode>(*this);
-}
-
-IntLiteralNode::IntLiteralNode(const IntLiteralNode& other)
-    : value(other.value)
-{
-}
-
-unique_ptr<DecoratedASTNode> IntLiteralNode::clone() const
-{
-    return std::make_unique<IntLiteralNode>(*this);
-}
-
-shared_ptr<DecoratedASTNode> IntLiteralNode::clone_shared() const
-{
-    return make_shared<IntLiteralNode>(*this);
-}
-
-FloatLiteralNode::FloatLiteralNode(const FloatLiteralNode& other)
-    : value(other.value)
-{
-}
-
-unique_ptr<DecoratedASTNode> FloatLiteralNode::clone() const
-{
-    return std::make_unique<FloatLiteralNode>(*this);
-}
-
-shared_ptr<DecoratedASTNode> FloatLiteralNode::clone_shared() const
-{
-    return make_shared<FloatLiteralNode>(*this);
-}
-
-SymbolNode::SymbolNode(const SymbolNode& other)
-    : value(other.value)
-{
-}
-
-unique_ptr<DecoratedASTNode> SymbolNode::clone() const
-{
-    return std::make_unique<SymbolNode>(*this);
-}
-
-shared_ptr<DecoratedASTNode> SymbolNode::clone_shared() const
-{
-    return make_shared<SymbolNode>(*this);
-}
-
-ConvertNode::ConvertNode(const ConvertNode& other)
-    : value(other.value->clone())
-    , from_type(other.from_type)
-    , to_type(other.to_type)
-{
-}
-
-unique_ptr<DecoratedASTNode> ConvertNode::clone() const
-{
-    return std::make_unique<ConvertNode>(*this);
-}
-
-shared_ptr<DecoratedASTNode> ConvertNode::clone_shared() const
-{
-    return make_shared<ConvertNode>(*this);
-}
-
-CheckBoundsNode::CheckBoundsNode(const CheckBoundsNode& other)
-    : value(other.value->clone())
-    , min_value(other.min_value->clone())
-    , max_value(other.max_value->clone())
-{
-}
-
-unique_ptr<DecoratedASTNode> CheckBoundsNode::clone() const
-{
-    return std::make_unique<CheckBoundsNode>(*this);
-}
-
-shared_ptr<DecoratedASTNode> CheckBoundsNode::clone_shared() const
-{
-    return make_shared<CheckBoundsNode>(*this);
-}
 } // namespace language::parser
