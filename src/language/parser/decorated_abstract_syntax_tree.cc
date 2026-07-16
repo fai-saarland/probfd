@@ -97,7 +97,7 @@ std::any ConstructContext::get_variable(const string& name) const
 
 VariableDefinition::VariableDefinition(
     std::string variable_name,
-    DecoratedASTNodePtr variable_expression)
+    std::unique_ptr<DecoratedExpression> variable_expression)
     : variable_name(std::move(variable_name))
     , variable_expression(std::move(variable_expression))
 {
@@ -123,32 +123,33 @@ VariableDefinition::operator=(VariableDefinition&& other) noexcept
     return *this;
 }
 
-std::vector<VariableDefinition> DecoratedASTNode::prune_unused_definitions()
+std::vector<VariableDefinition> DecoratedExpression::prune_unused_definitions()
 {
     std::vector<VariableDefinition> defs;
     prune_unused_definitions(defs);
     return defs;
 }
 
-std::any DecoratedASTNode::construct() const
+std::any DecoratedExpression::construct() const
 {
     ConstructContext context;
     TraceBlock block(context, "Constructing parsed object");
     return construct(context);
 }
 
-FunctionArgument::FunctionArgument(DecoratedASTNodePtr value, bool is_default)
+FunctionArgument::FunctionArgument(
+    std::unique_ptr<DecoratedExpression> value, bool is_default)
     : value(move(value))
     , is_default(is_default)
 {
 }
 
-DecoratedASTNode& FunctionArgument::get_value()
+DecoratedExpression& FunctionArgument::get_value()
 {
     return *value;
 }
 
-const DecoratedASTNode& FunctionArgument::get_value() const
+const DecoratedExpression& FunctionArgument::get_value() const
 {
     return *value;
 }
@@ -158,14 +159,9 @@ bool FunctionArgument::is_default_argument() const
     return is_default;
 }
 
-void FunctionArgument::dump(const string& indent) const
-{
-    value->dump("| " + indent);
-}
-
 DecoratedLetNode::DecoratedLetNode(
     std::vector<VariableDefinition> decorated_variable_definitions,
-    DecoratedASTNodePtr nested_value)
+    std::unique_ptr<DecoratedExpression> nested_value)
     : decorated_variable_definitions(move(decorated_variable_definitions))
     , nested_value(move(nested_value))
 {
@@ -254,19 +250,6 @@ void DecoratedLetNode::print(
     nested_value->print(out, indent + 4, print_default_args);
 }
 
-void DecoratedLetNode::dump(string indent) const
-{
-    cout << indent << "LET:";
-    indent = "| " + indent;
-    for (const auto& [variable_name, variable_definition, _] :
-         decorated_variable_definitions) {
-        cout << variable_name << " = " << endl;
-        variable_definition->dump(indent);
-    }
-    cout << indent << "IN:" << endl;
-    nested_value->dump("| " + indent);
-}
-
 DecoratedFunctionCallNode::DecoratedFunctionCallNode(
     const shared_ptr<const plugins::Feature>& feature,
     vector<std::pair<std::string, FunctionArgument>>&& arguments,
@@ -335,19 +318,7 @@ void DecoratedFunctionCallNode::print(
     std::print(out, ")");
 }
 
-void DecoratedFunctionCallNode::dump(string indent) const
-{
-    cout << indent << "FUNC:" << feature->get_title() << " (returns "
-         << feature->get_type().name() << ")" << endl;
-    indent = "| " + indent;
-    cout << indent << "ARGUMENTS:" << endl;
-    for (const auto& [key, arg] : arguments) {
-        cout << "| " << indent << key << " = " << endl;
-        arg.dump("| " + indent);
-    }
-}
-
-DecoratedListNode::DecoratedListNode(vector<DecoratedASTNodePtr>&& elements)
+DecoratedListNode::DecoratedListNode(vector<std::unique_ptr<DecoratedExpression>>&& elements)
     : elements(move(elements))
 {
 }
@@ -362,7 +333,7 @@ std::any DecoratedListNode::construct(ConstructContext& context) const
     TraceBlock block(context, "Constructing list");
     vector<std::any> result;
     int i = 0;
-    for (const DecoratedASTNodePtr& element : elements) {
+    for (const std::unique_ptr<DecoratedExpression>& element : elements) {
         TraceBlock block(context, "Constructing element {}", i);
         result.push_back(element->construct(context));
         ++i;
@@ -390,15 +361,6 @@ void DecoratedListNode::print(
     }
 
     std::print(out, "]");
-}
-
-void DecoratedListNode::dump(string indent) const
-{
-    cout << indent << "LIST:" << endl;
-    indent = "| " + indent;
-    for (const DecoratedASTNodePtr& element : elements) {
-        element->dump(indent);
-    }
 }
 
 VariableNode::VariableNode(VariableDefinition& definition)
@@ -438,11 +400,6 @@ void VariableNode::print(std::ostream& out, std::size_t indent, bool) const
         indent + definition->variable_name.size());
 }
 
-void VariableNode::dump(string indent) const
-{
-    cout << indent << "VAR: " << definition->variable_name << endl;
-}
-
 BoolLiteralNode::BoolLiteralNode(bool value)
     : value(value)
 {
@@ -458,11 +415,6 @@ void BoolLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
 {
     std::print(out, "{}", std::string(indent, ' '));
     std::print(out, "{}", value);
-}
-
-void BoolLiteralNode::dump(string indent) const
-{
-    cout << indent << "BOOL: " << value << endl;
 }
 
 StringLiteralNode::StringLiteralNode(const string& value)
@@ -507,11 +459,6 @@ std::any StringLiteralNode::construct(ConstructContext& context) const
 void StringLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
 {
     std::print(out, "{:>{}}", value, indent + value.size());
-}
-
-void StringLiteralNode::dump(string indent) const
-{
-    cout << indent << "STRING: " << value << endl;
 }
 
 IntLiteralNode::IntLiteralNode(const string& value)
@@ -579,11 +526,6 @@ void IntLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
     std::print(out, "{}", value);
 }
 
-void IntLiteralNode::dump(string indent) const
-{
-    cout << indent << "INT: " << value << endl;
-}
-
 FloatLiteralNode::FloatLiteralNode(const string& value)
     : value(value)
 {
@@ -615,11 +557,6 @@ void FloatLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
     std::print(out, "{}", value);
 }
 
-void FloatLiteralNode::dump(string indent) const
-{
-    cout << indent << "FLOAT: " << value << endl;
-}
-
 SymbolNode::SymbolNode(const string& value)
     : value(value)
 {
@@ -636,13 +573,8 @@ void SymbolNode::print(std::ostream& out, std::size_t indent, bool) const
     std::print(out, "{}", value);
 }
 
-void SymbolNode::dump(string indent) const
-{
-    cout << indent << "SYMBOL: " << value << endl;
-}
-
 ConvertNode::ConvertNode(
-    DecoratedASTNodePtr value,
+    std::unique_ptr<DecoratedExpression> value,
     const plugins::Type& from_type,
     const plugins::Type& to_type)
     : value(move(value))
@@ -689,17 +621,10 @@ void ConvertNode::print(
     value->print(out, indent, print_default_args);
 }
 
-void ConvertNode::dump(string indent) const
-{
-    cout << indent << "CONVERT: " << from_type.name() << " to "
-         << to_type.name() << endl;
-    value->dump("| " + indent);
-}
-
 CheckBoundsNode::CheckBoundsNode(
-    DecoratedASTNodePtr value,
-    DecoratedASTNodePtr min_value,
-    DecoratedASTNodePtr max_value)
+    std::unique_ptr<DecoratedExpression> value,
+    std::unique_ptr<DecoratedExpression> min_value,
+    std::unique_ptr<DecoratedExpression> max_value)
     : value(move(value))
     , min_value(move(min_value))
     , max_value(move(max_value))
@@ -768,14 +693,6 @@ void CheckBoundsNode::print(
     bool print_default_args) const
 {
     value->print(out, indent, print_default_args);
-}
-
-void CheckBoundsNode::dump(string indent) const
-{
-    cout << indent << "CHECK-BOUNDS: " << endl;
-    value->dump("| " + indent);
-    min_value->dump("| " + indent);
-    max_value->dump("| " + indent);
 }
 
 } // namespace language::parser

@@ -1,8 +1,11 @@
 #include "search.h"
 
+#include "language/parser/abstract_syntax_tree.h"
+#include "language/parser/decorated_abstract_syntax_tree.h"
 #include "language/parser/lexical_analyzer.h"
 #include "language/parser/syntax_analyzer.h"
 #include "language/parser/token_stream.h"
+
 #include "register_definitions.h"
 
 #include "language/plugins/raw_registry.h"
@@ -52,11 +55,13 @@ template <std::ranges::input_range R>
     requires std::convertible_to<
         std::ranges::range_value_t<R>,
         std::pair<std::string, std::string>>
-static ASTNodePtr construct_let(ASTNodePtr parsed, R&& predefinitions)
+static std::unique_ptr<Expression>
+construct_let(std::unique_ptr<Expression> parsed, R&& predefinitions)
 {
     if (std::ranges::empty(predefinitions)) return parsed;
 
-    std::vector<std::pair<std::string, ASTNodePtr>> variable_definitions;
+    std::vector<std::pair<std::string, std::unique_ptr<Expression>>>
+        variable_definitions;
 
     for (const auto& [key, definition] : predefinitions) {
         variable_definitions.emplace_back(key, tokenize_and_parse(definition));
@@ -67,8 +72,9 @@ static ASTNodePtr construct_let(ASTNodePtr parsed, R&& predefinitions)
         std::move(parsed));
 }
 
-static ASTNodePtr
-insert_definitions(ASTNodePtr parsed, const std::string& definitions_file)
+static std::unique_ptr<Expression> insert_definitions(
+    std::unique_ptr<Expression> parsed,
+    const std::string& definitions_file)
 {
     std::ifstream fs(definitions_file);
     try {
@@ -85,7 +91,7 @@ insert_definitions(ASTNodePtr parsed, const std::string& definitions_file)
 }
 
 static shared_ptr<TaskSolverFactory>
-construct_solver(const DecoratedASTNode& decorated)
+construct_solver(const DecoratedExpression& decorated)
 {
     std::cout << "Constructing solver from feature expression:\n";
     decorated.print(std::cout, 4, false);
@@ -108,7 +114,8 @@ static auto construct_solver(argparse::ArgumentParser& parser)
     register_event_handlers();
 
     // Parse search string
-    ASTNodePtr parsed = tokenize_and_parse(parser.get("algorithm"));
+    std::unique_ptr<Expression> parsed =
+        tokenize_and_parse(parser.get("algorithm"));
 
     // Insert user-defined pre-definitions, if given
     if (const auto definitions_file = parser.present("--definitions-file")) {
@@ -120,7 +127,8 @@ static auto construct_solver(argparse::ArgumentParser& parser)
     register_definitions(raw_registry);
 
     // Type check
-    const DecoratedASTNodePtr decorated = parsed->decorate(raw_registry);
+    const std::unique_ptr<DecoratedExpression> decorated =
+        parsed->decorate(raw_registry);
 
     // Remove unused definitions if enabled
     if (parser.get<bool>("--ignore-unused-definitions")) {

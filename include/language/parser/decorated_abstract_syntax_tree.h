@@ -3,83 +3,23 @@
 
 #include "language/plugins/plugin.h"
 
-#include "language/context.h"
+#include "language/parser/decorated_expression.h"
 
 #include <any>
 #include <memory>
 #include <string>
 #include <vector>
 
-namespace language::plugins {
-class Options;
-}
-
 namespace language::parser {
 
-class DecoratedASTNode;
-using DecoratedASTNodePtr = std::unique_ptr<DecoratedASTNode>;
-
-class ConstructContext;
-
-class VariableNode;
-
-struct VariableDefinition {
-    std::string variable_name;
-    DecoratedASTNodePtr variable_expression;
-    std::vector<VariableNode*> usages;
-
-    VariableDefinition(
-        std::string variable_name,
-        DecoratedASTNodePtr variable_expression);
-
-    VariableDefinition(VariableDefinition&& other) noexcept;
-    VariableDefinition& operator=(VariableDefinition&& other) noexcept;
-};
-
-class DecoratedASTNode {
-public:
-    virtual ~DecoratedASTNode() = default;
-
-    std::vector<VariableDefinition> prune_unused_definitions();
-    std::any construct() const;
-
-    virtual void prune_unused_definitions(std::vector<VariableDefinition>&) {}
-
-    virtual void remove_variable_usages() {}
-
-    virtual std::any construct(ConstructContext& context) const = 0;
-
-    virtual void
-    print(std::ostream& out, std::size_t indent, bool print_default_args)
-        const = 0;
-
-    virtual void dump(std::string indent = "+") const = 0;
-};
-
-class FunctionArgument {
-    DecoratedASTNodePtr value;
-    bool is_default;
-
-public:
-    FunctionArgument(DecoratedASTNodePtr value, bool is_default);
-
-    DecoratedASTNode& get_value();
-
-    const DecoratedASTNode& get_value() const;
-
-    bool is_default_argument() const;
-
-    void dump(const std::string& indent) const;
-};
-
-class DecoratedLetNode : public DecoratedASTNode {
+class DecoratedLetNode : public DecoratedExpression {
     std::vector<VariableDefinition> decorated_variable_definitions;
-    DecoratedASTNodePtr nested_value;
+    std::unique_ptr<DecoratedExpression> nested_value;
 
 public:
     DecoratedLetNode(
         std::vector<VariableDefinition> decorated_variable_definitions,
-        DecoratedASTNodePtr nested_value);
+        std::unique_ptr<DecoratedExpression> nested_value);
 
     void
     prune_unused_definitions(std::vector<VariableDefinition>& defs) override;
@@ -90,11 +30,25 @@ public:
 
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
         const override;
-
-    void dump(std::string indent) const override;
 };
 
-class DecoratedFunctionCallNode : public DecoratedASTNode {
+class FunctionArgument {
+    std::unique_ptr<DecoratedExpression> value;
+    bool is_default;
+
+public:
+    FunctionArgument(
+        std::unique_ptr<DecoratedExpression> value,
+        bool is_default);
+
+    DecoratedExpression& get_value();
+
+    const DecoratedExpression& get_value() const;
+
+    bool is_default_argument() const;
+};
+
+class DecoratedFunctionCallNode : public DecoratedExpression {
     std::shared_ptr<const plugins::Feature> feature;
     std::vector<std::pair<std::string, FunctionArgument>> arguments;
     std::string unparsed_config;
@@ -111,15 +65,14 @@ public:
 
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
         const override;
-
-    void dump(std::string indent) const override;
 };
 
-class DecoratedListNode : public DecoratedASTNode {
-    std::vector<DecoratedASTNodePtr> elements;
+class DecoratedListNode : public DecoratedExpression {
+    std::vector<std::unique_ptr<DecoratedExpression>> elements;
 
 public:
-    explicit DecoratedListNode(std::vector<DecoratedASTNodePtr>&& elements);
+    explicit DecoratedListNode(
+        std::vector<std::unique_ptr<DecoratedExpression>>&& elements);
 
     void remove_variable_usages() override;
 
@@ -128,15 +81,14 @@ public:
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
         const override;
 
-    void dump(std::string indent) const override;
-
-    const std::vector<DecoratedASTNodePtr>& get_elements() const
+    const std::vector<std::unique_ptr<DecoratedExpression>>&
+    get_elements() const
     {
         return elements;
     }
 };
 
-class VariableNode : public DecoratedASTNode {
+class VariableNode : public DecoratedExpression {
     friend VariableDefinition;
 
     VariableDefinition* definition;
@@ -150,11 +102,9 @@ public:
 
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
         const override;
-
-    void dump(std::string indent) const override;
 };
 
-class BoolLiteralNode : public DecoratedASTNode {
+class BoolLiteralNode : public DecoratedExpression {
     bool value;
 
 public:
@@ -164,11 +114,9 @@ public:
 
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
         const override;
-
-    void dump(std::string indent) const override;
 };
 
-class StringLiteralNode : public DecoratedASTNode {
+class StringLiteralNode : public DecoratedExpression {
     std::string value;
 
 public:
@@ -178,11 +126,9 @@ public:
 
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
         const override;
-
-    void dump(std::string indent) const override;
 };
 
-class IntLiteralNode : public DecoratedASTNode {
+class IntLiteralNode : public DecoratedExpression {
     std::string value;
 
 public:
@@ -192,11 +138,9 @@ public:
 
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
         const override;
-
-    void dump(std::string indent) const override;
 };
 
-class FloatLiteralNode : public DecoratedASTNode {
+class FloatLiteralNode : public DecoratedExpression {
     std::string value;
 
 public:
@@ -206,11 +150,9 @@ public:
 
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
         const override;
-
-    void dump(std::string indent) const override;
 };
 
-class SymbolNode : public DecoratedASTNode {
+class SymbolNode : public DecoratedExpression {
     std::string value;
 
 public:
@@ -220,18 +162,16 @@ public:
 
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
         const override;
-
-    void dump(std::string indent) const override;
 };
 
-class ConvertNode : public DecoratedASTNode {
-    DecoratedASTNodePtr value;
+class ConvertNode : public DecoratedExpression {
+    std::unique_ptr<DecoratedExpression> value;
     const plugins::Type& from_type;
     const plugins::Type& to_type;
 
 public:
     ConvertNode(
-        DecoratedASTNodePtr value,
+        std::unique_ptr<DecoratedExpression> value,
         const plugins::Type& from_type,
         const plugins::Type& to_type);
 
@@ -241,27 +181,23 @@ public:
 
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
         const override;
-
-    void dump(std::string indent) const override;
 };
 
-class CheckBoundsNode : public DecoratedASTNode {
-    DecoratedASTNodePtr value;
-    DecoratedASTNodePtr min_value;
-    DecoratedASTNodePtr max_value;
+class CheckBoundsNode : public DecoratedExpression {
+    std::unique_ptr<DecoratedExpression> value;
+    std::unique_ptr<DecoratedExpression> min_value;
+    std::unique_ptr<DecoratedExpression> max_value;
 
 public:
     CheckBoundsNode(
-        DecoratedASTNodePtr value,
-        DecoratedASTNodePtr min_value,
-        DecoratedASTNodePtr max_value);
+        std::unique_ptr<DecoratedExpression> value,
+        std::unique_ptr<DecoratedExpression> min_value,
+        std::unique_ptr<DecoratedExpression> max_value);
 
     std::any construct(ConstructContext& context) const override;
 
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
         const override;
-
-    void dump(std::string indent) const override;
 };
 
 } // namespace language::parser

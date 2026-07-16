@@ -1,5 +1,6 @@
 #include "language/parser/abstract_syntax_tree.h"
 
+#include "language/parser/decorated_abstract_syntax_tree.h"
 #include "language/parser/lexical_analyzer.h"
 #include "language/parser/syntax_analyzer.h"
 #include "language/parser/token_stream.h"
@@ -138,14 +139,15 @@ static vector<T> get_keys(const unordered_map<T, K>& map)
     return keys;
 }
 
-static ASTNodePtr parse_ast_node(const string& definition, DecorateContext&)
+static std::unique_ptr<Expression>
+parse_ast_node(const string& definition, DecorateContext&)
 {
     TokenStream tokens = split_tokens(definition);
     return parse(tokens);
 }
 
-DecoratedASTNodePtr
-ASTNode::decorate(const plugins::RawRegistry& raw_registry) const
+std::unique_ptr<DecoratedExpression>
+Expression::decorate(const plugins::RawRegistry& raw_registry) const
 {
     DecorateContext context(raw_registry);
     TraceBlock block(context, "Start semantic analysis");
@@ -153,14 +155,16 @@ ASTNode::decorate(const plugins::RawRegistry& raw_registry) const
 }
 
 LetNode::LetNode(
-    std::vector<std::pair<std::string, ASTNodePtr>> variable_definitions,
-    ASTNodePtr nested_value)
+    std::vector<std::pair<std::string, std::unique_ptr<Expression>>>
+        variable_definitions,
+    std::unique_ptr<Expression> nested_value)
     : variable_definitions(move(variable_definitions))
     , nested_value(move(nested_value))
 {
 }
 
-TypedDecoratedAstNodePtr LetNode::decorate(DecorateContext& context) const
+TypedDecoratedAstNodePtr
+LetNode::decorate(DecorateContext& context) const
 {
     TraceBlock _(
         context,
@@ -217,8 +221,8 @@ void LetNode::dump(string indent) const
 
 FunctionCallNode::FunctionCallNode(
     const string& name,
-    vector<ASTNodePtr>&& positional_arguments,
-    unordered_map<string, ASTNodePtr>&& keyword_arguments,
+    vector<std::unique_ptr<Expression>>&& positional_arguments,
+    unordered_map<string, std::unique_ptr<Expression>>&& keyword_arguments,
     const string& unparsed_config)
     : name(name)
     , positional_arguments(move(positional_arguments))
@@ -227,12 +231,13 @@ FunctionCallNode::FunctionCallNode(
 {
 }
 
-static DecoratedASTNodePtr decorate_and_convert(
-    ASTNode& node,
+static std::unique_ptr<DecoratedExpression> decorate_and_convert(
+    Expression& node,
     const plugins::Type& target_type,
     DecorateContext& context)
 {
-    TypedDecoratedAstNodePtr decorated_node = node.decorate(context);
+    TypedDecoratedAstNodePtr decorated_node =
+        node.decorate(context);
 
     if (*decorated_node.type != target_type) {
         TraceBlock block(context, "Adding casting node");
@@ -253,7 +258,7 @@ static DecoratedASTNodePtr decorate_and_convert(
 }
 
 bool FunctionCallNode::collect_argument(
-    ASTNode& arg,
+    Expression& arg,
     const plugins::ArgumentInfo& arg_info,
     DecorateContext& context,
     CollectedArguments& arguments,
@@ -262,21 +267,23 @@ bool FunctionCallNode::collect_argument(
     string key = arg_info.key;
     if (arguments.contains(key)) { return false; }
 
-    DecoratedASTNodePtr decorated_arg =
+    std::unique_ptr<DecoratedExpression> decorated_arg =
         decorate_and_convert(arg, arg_info.type, context);
 
     if (arg_info.bounds.has_bound()) {
-        DecoratedASTNodePtr decorated_min_node;
+        std::unique_ptr<DecoratedExpression> decorated_min_node;
         {
             TraceBlock block(context, "Handling lower bound");
-            ASTNodePtr min_node = parse_ast_node(arg_info.bounds.min, context);
+            std::unique_ptr<Expression> min_node =
+                parse_ast_node(arg_info.bounds.min, context);
             decorated_min_node =
                 decorate_and_convert(*min_node, arg_info.type, context);
         }
-        DecoratedASTNodePtr decorated_max_node;
+        std::unique_ptr<DecoratedExpression> decorated_max_node;
         {
             TraceBlock block(context, "Handling upper bound");
-            ASTNodePtr max_node = parse_ast_node(arg_info.bounds.max, context);
+            std::unique_ptr<Expression> max_node =
+                parse_ast_node(arg_info.bounds.max, context);
             decorated_max_node =
                 decorate_and_convert(*max_node, arg_info.type, context);
         }
@@ -365,7 +372,7 @@ void FunctionCallNode::collect_positional_arguments(
     }
 
     for (int i = 0; i < num_pos_args; ++i) {
-        ASTNode& arg = *positional_arguments[i];
+        Expression& arg = *positional_arguments[i];
         const plugins::ArgumentInfo& arg_info = argument_infos[i];
         TraceBlock block(
             context,
@@ -401,7 +408,7 @@ void FunctionCallNode::collect_default_values(
                 key);
 
             if (arg_info.has_default()) {
-                ASTNodePtr arg;
+                std::unique_ptr<Expression> arg;
                 {
                     TraceBlock block(context, "Parsing default value");
                     arg = parse_ast_node(arg_info.default_value, context);
@@ -457,7 +464,7 @@ void FunctionCallNode::dump(string indent) const
     cout << indent << "FUNC:" << name << endl;
     indent = "| " + indent;
     cout << indent << "POSITIONAL ARGS:" << endl;
-    for (const ASTNodePtr& node : positional_arguments) {
+    for (const std::unique_ptr<Expression>& node : positional_arguments) {
         node->dump("| " + indent);
     }
     cout << indent << "KEYWORD ARGS:" << endl;
@@ -467,7 +474,7 @@ void FunctionCallNode::dump(string indent) const
     }
 }
 
-ListNode::ListNode(vector<ASTNodePtr>&& elements)
+ListNode::ListNode(vector<std::unique_ptr<Expression>>&& elements)
     : elements(move(elements))
 {
 }
@@ -488,10 +495,11 @@ get_common_element_type(const std::vector<const plugins::Type*>& types)
     return common_element_type;
 }
 
-TypedDecoratedAstNodePtr ListNode::decorate(DecorateContext& context) const
+TypedDecoratedAstNodePtr
+ListNode::decorate(DecorateContext& context) const
 {
     TraceBlock block(context, "Checking list");
-    vector<DecoratedASTNodePtr> decorated_elements;
+    vector<std::unique_ptr<DecoratedExpression>> decorated_elements;
     vector<const plugins::Type*> types;
 
     if (elements.empty()) {
@@ -524,7 +532,8 @@ TypedDecoratedAstNodePtr ListNode::decorate(DecorateContext& context) const
         if (const plugins::Type* element_type = types[i];
             element_type != common_element_type) {
             assert(element_type->can_convert_into(*common_element_type));
-            DecoratedASTNodePtr& decorated_element_node = decorated_elements[i];
+            std::unique_ptr<DecoratedExpression>& decorated_element_node =
+                decorated_elements[i];
             decorated_element_node = std::make_unique<ConvertNode>(
                 move(decorated_element_node),
                 *element_type,
@@ -542,7 +551,9 @@ void ListNode::dump(string indent) const
 {
     cout << indent << "LIST:" << endl;
     indent = "| " + indent;
-    for (const ASTNodePtr& node : elements) { node->dump(indent); }
+    for (const std::unique_ptr<Expression>& node : elements) {
+        node->dump(indent);
+    }
 }
 
 LiteralNode::LiteralNode(const Token& value)
@@ -550,7 +561,8 @@ LiteralNode::LiteralNode(const Token& value)
 {
 }
 
-TypedDecoratedAstNodePtr LiteralNode::decorate(DecorateContext& context) const
+TypedDecoratedAstNodePtr
+LiteralNode::decorate(DecorateContext& context) const
 {
     TraceBlock block(context, "Checking Literal: {}", value.content);
     if (context.has_variable(value.content)) {
