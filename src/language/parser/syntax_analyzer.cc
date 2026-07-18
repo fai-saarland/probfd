@@ -8,6 +8,7 @@
 #include "language/context.h"
 
 #include <functional>
+#include <map>
 #include <ranges>
 #include <sstream>
 #include <unordered_set>
@@ -15,6 +16,8 @@
 using namespace std;
 
 namespace language::parser {
+
+namespace {
 
 class SyntaxAnalyzerContext : public Context {
     const TokenStream& tokens;
@@ -55,10 +58,15 @@ public:
     using Context::error;
 };
 
-static std::unique_ptr<Expression>
-parse_node(TokenStream& tokens, SyntaxAnalyzerContext&);
+std::unique_ptr<Expression>
+parse_expression(TokenStream& tokens, SyntaxAnalyzerContext&);
 
-static void parse_argument(
+std::unique_ptr<Expression> parse_expression(
+    TokenStream& tokens,
+    SyntaxAnalyzerContext& context,
+    int precedence);
+
+void parse_argument(
     TokenStream& tokens,
     vector<std::unique_ptr<Expression>>& positional_arguments,
     unordered_map<string, std::unique_ptr<Expression>>& keyword_arguments,
@@ -74,22 +82,22 @@ static void parse_argument(
                 "Multiple definitions of the same keyword argument '{}'.",
                 argument_name);
         }
-        keyword_arguments[argument_name] = parse_node(tokens, context);
+        keyword_arguments[argument_name] = parse_expression(tokens, context);
     } else {
         if (!keyword_arguments.empty()) {
             context.error(
                 "Positional arguments have to be defined before "
                 "any keyword arguments.");
         }
-        positional_arguments.push_back(parse_node(tokens, context));
+        positional_arguments.push_back(parse_expression(tokens, context));
     }
 }
 
-static std::unique_ptr<Expression>
+std::unique_ptr<Expression>
 parse_let(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
     TraceBlock block(context, "Parsing Let");
-    tokens.pop(context, TokenType::LET);
+    tokens.pop(context);
 
     std::vector<std::pair<std::string, std::unique_ptr<Expression>>>
         variable_definitions;
@@ -100,7 +108,7 @@ parse_let(TokenStream& tokens, SyntaxAnalyzerContext& context)
 
         {
             TraceBlock block(context, "Parsing variable definition");
-            variable_definition = parse_node(tokens, context);
+            variable_definition = parse_expression(tokens, context);
         }
         {
             TraceBlock block(
@@ -134,7 +142,7 @@ parse_let(TokenStream& tokens, SyntaxAnalyzerContext& context)
     std::unique_ptr<Expression> nested_value;
     {
         TraceBlock block(context, "Parsing nested expression of let");
-        nested_value = parse_node(tokens, context);
+        nested_value = parse_expression(tokens, context);
     }
 
     return std::make_unique<LetNode>(
@@ -142,7 +150,7 @@ parse_let(TokenStream& tokens, SyntaxAnalyzerContext& context)
         move(nested_value));
 }
 
-static void parse_sequence(
+void parse_sequence(
     TokenStream& tokens,
     SyntaxAnalyzerContext& context,
     TokenType terminal_token,
@@ -181,18 +189,69 @@ static void parse_sequence(
     }
 }
 
-static std::unique_ptr<Expression>
-parse_function(TokenStream& tokens, SyntaxAnalyzerContext& context)
+std::unique_ptr<Expression> parse_parenthesized_expression(
+    TokenStream& tokens,
+    SyntaxAnalyzerContext& context)
+{
+    TraceBlock block(context, "Parsing Literal");
+    tokens.pop(context);
+    auto expr = parse_expression(tokens, context, 0);
+    tokens.pop(context, TokenType::CLOSING_PARENTHESIS);
+    return expr;
+}
+
+std::unique_ptr<Expression>
+parse_literal(TokenStream& tokens, SyntaxAnalyzerContext& context)
+{
+    TraceBlock block(context, "Parsing Literal");
+    return std::make_unique<LiteralNode>(tokens.pop(context));
+}
+
+std::unique_ptr<Expression>
+parse_list(TokenStream& tokens, SyntaxAnalyzerContext& context)
+{
+    TraceBlock block(context, "Parsing List");
+    tokens.pop(context);
+
+    vector<std::unique_ptr<Expression>> elements;
+    {
+        TraceBlock block(context, "Parsing list arguments");
+        auto callback = [&]() -> void {
+            elements.push_back(parse_expression(tokens, context, 0));
+        };
+        parse_sequence(tokens, context, TokenType::CLOSING_BRACKET, callback);
+    }
+
+    tokens.pop(context, TokenType::CLOSING_BRACKET);
+
+    return std::make_unique<ListNode>(move(elements));
+}
+
+enum Precedence : int { PREFIX = 7, CALL = 8 };
+
+std::unique_ptr<Expression>
+identifier_parselet(TokenStream& tokens, SyntaxAnalyzerContext& context)
+{
+    return std::make_unique<IdentifierNode>(tokens.pop(context));
+}
+
+std::unique_ptr<Expression>
+prefix_parselet(TokenStream& tokens, SyntaxAnalyzerContext& context)
+{
+    return std::make_unique<PrefixNode>(
+        tokens.pop(context),
+        parse_expression(tokens, context, Precedence::PREFIX));
+}
+
+std::unique_ptr<Expression> function_call_parselet(
+    TokenStream& tokens,
+    SyntaxAnalyzerContext& context,
+    std::unique_ptr<Expression> left)
 {
     int initial_token_stream_index = tokens.get_position();
-    TraceBlock block(context, "Parsing plugin");
-    string plugin_name;
-    {
-        TraceBlock block(context, "Parsing plugin name");
-        Token name_token = tokens.pop(context, TokenType::IDENTIFIER);
-        plugin_name = name_token.content;
-    }
-    tokens.pop(context, TokenType::OPENING_PARENTHESIS);
+
+    tokens.pop(context);
+
     vector<std::unique_ptr<Expression>> positional_arguments;
     unordered_map<string, std::unique_ptr<Expression>> keyword_arguments;
     {
@@ -210,105 +269,93 @@ parse_function(TokenStream& tokens, SyntaxAnalyzerContext& context)
             TokenType::CLOSING_PARENTHESIS,
             callback);
     }
-    tokens.pop(context, TokenType::CLOSING_PARENTHESIS);
     string unparsed_config =
         tokens.str(initial_token_stream_index, tokens.get_position());
+    tokens.pop(context, TokenType::CLOSING_PARENTHESIS);
+
     return std::make_unique<FunctionCallNode>(
-        plugin_name,
+        std::move(left),
         move(positional_arguments),
         move(keyword_arguments),
         unparsed_config);
 }
 
-static unordered_set<TokenType> literal_tokens{
-    TokenType::TRUE,
-    TokenType::FALSE,
-    TokenType::STRING,
-    TokenType::INTEGER,
-    TokenType::FLOAT,
-    TokenType::IDENTIFIER};
+using PrefixParselet = std::unique_ptr<Expression> (*)(
+    TokenStream& tokens,
+    SyntaxAnalyzerContext& context);
 
-static std::unique_ptr<Expression>
-parse_literal(TokenStream& tokens, SyntaxAnalyzerContext& context)
+struct InfixParselet {
+    std::unique_ptr<Expression> (*parser)(
+        TokenStream& tokens,
+        SyntaxAnalyzerContext& context,
+        std::unique_ptr<Expression> left);
+
+    int precedence;
+};
+
+map<TokenType, PrefixParselet> prefix_parselets{
+    {TokenType::OPENING_BRACKET, parse_list},
+    {TokenType::OPENING_PARENTHESIS, parse_parenthesized_expression},
+    {TokenType::LET, parse_let},
+    {TokenType::TRUE, parse_literal},
+    {TokenType::FALSE, parse_literal},
+    {TokenType::STRING, parse_literal},
+    {TokenType::INTEGER, parse_literal},
+    {TokenType::FLOAT, parse_literal},
+    {TokenType::IDENTIFIER, identifier_parselet},
+    {TokenType::PLUS, prefix_parselet},
+    {TokenType::MINUS, prefix_parselet}};
+
+map<TokenType, InfixParselet> infix_parselets{
+    {TokenType::OPENING_PARENTHESIS,
+     {function_call_parselet, std::to_underlying(Precedence::CALL)}}};
+
+std::unique_ptr<Expression> parse_expression(
+    TokenStream& tokens,
+    SyntaxAnalyzerContext& context,
+    int precedence)
 {
-    TraceBlock block(context, "Parsing Literal");
-    Token token = tokens.pop(context);
-    if (!literal_tokens.contains(token.type)) {
-        context.error("Token {} cannot be parsed as literal", token);
-    }
-    return std::make_unique<LiteralNode>(token);
-}
+    TraceBlock block(
+        context,
+        "Parsing expression at precedence level {}",
+        precedence);
 
-static std::unique_ptr<Expression>
-parse_list(TokenStream& tokens, SyntaxAnalyzerContext& context)
-{
-    TraceBlock block(context, "Parsing List");
-    tokens.pop(context, TokenType::OPENING_BRACKET);
-    vector<std::unique_ptr<Expression>> elements;
-    {
-        TraceBlock block(context, "Parsing list arguments");
-        auto callback = [&]() -> void {
-            elements.push_back(parse_node(tokens, context));
-        };
-        parse_sequence(tokens, context, TokenType::CLOSING_BRACKET, callback);
-    }
-    tokens.pop(context, TokenType::CLOSING_BRACKET);
-    return std::make_unique<ListNode>(move(elements));
-}
-
-static vector<TokenType> parse_node_token_types = {
-    TokenType::OPENING_BRACKET,
-    TokenType::LET,
-    TokenType::TRUE,
-    TokenType::FALSE,
-    TokenType::STRING,
-    TokenType::INTEGER,
-    TokenType::FLOAT,
-    TokenType::IDENTIFIER};
-
-static std::unique_ptr<Expression>
-parse_node(TokenStream& tokens, SyntaxAnalyzerContext& context)
-{
-    TraceBlock block(context, "Identify node type");
     Token token = tokens.peek(context);
-    if (ranges::find(parse_node_token_types, token.type) ==
-        parse_node_token_types.end()) {
+    const auto prefix = prefix_parselets.find(token.type);
 
-        context.error(
-            "Unexpected token '{}'. "
-            "Expected any of the following token types: {:s}",
-            token,
-            std::views::join_with(
-                parse_node_token_types | std::views::transform(token_type_name),
-                ", "));
+    if (prefix == prefix_parselets.end()) {
+        context.error("Could not parse \"{}\".", token);
     }
 
-    switch (token.type) {
-    case TokenType::OPENING_BRACKET: return parse_list(tokens, context);
-    case TokenType::LET: return parse_let(tokens, context);
-    case TokenType::TRUE:
-    case TokenType::FALSE:
-    case TokenType::STRING:
-    case TokenType::INTEGER:
-    case TokenType::FLOAT: return parse_literal(tokens, context);
-    case TokenType::IDENTIFIER:
-        if (tokens.has_tokens(2) &&
-            tokens.peek(context, 1).type == TokenType::OPENING_PARENTHESIS) {
-            return parse_function(tokens, context);
-        } else {
-            return parse_literal(tokens, context);
+    std::unique_ptr<Expression> left = prefix->second(tokens, context);
+
+    while (tokens.has_tokens(1)) {
+        auto infix = infix_parselets.find(tokens.peek(context).type);
+
+        if (infix == infix_parselets.end() ||
+            infix->second.precedence <= precedence) {
+            break;
         }
-    default:
-        context.error("Unknown token type '{}'.", token_type_name(token.type));
+
+        left = infix->second.parser(tokens, context, std::move(left));
     }
+
+    return left;
 }
+
+std::unique_ptr<Expression>
+parse_expression(TokenStream& tokens, SyntaxAnalyzerContext& context)
+{
+    TraceBlock block(context, "Parsing top-level expression");
+    return parse_expression(tokens, context, 0);
+}
+} // namespace
 
 std::unique_ptr<Expression> parse(TokenStream& tokens)
 {
     SyntaxAnalyzerContext context(tokens, 10);
     TraceBlock block(context, "Start Syntactical Parsing");
-    if (!tokens.has_tokens(1)) { context.error("Input is empty"); }
-    std::unique_ptr<Expression> node = parse_node(tokens, context);
+    std::unique_ptr<Expression> node = parse_expression(tokens, context);
     if (tokens.has_tokens(1)) {
         context.error(
             "Syntax analysis terminated with unparsed tokens: {}",

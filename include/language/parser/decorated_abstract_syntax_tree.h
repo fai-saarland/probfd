@@ -2,6 +2,7 @@
 #define LANGUAGE_PARSER_DECORATED_ABSTRACT_SYNTAX_TREE_H
 
 #include "language/plugins/plugin.h"
+#include "token.h"
 
 #include "language/parser/decorated_expression.h"
 
@@ -86,6 +87,23 @@ public:
     {
         return elements;
     }
+};
+
+class DecoratedUnaryNode : public DecoratedExpression {
+    Token token;
+    std::unique_ptr<DecoratedExpression> operand;
+
+public:
+    explicit DecoratedUnaryNode(
+        Token token,
+        std::unique_ptr<DecoratedExpression> operand);
+
+    void remove_variable_usages() override;
+
+    std::any construct(ConstructContext& context) const override;
+
+    void print(std::ostream& out, std::size_t indent, bool print_default_args)
+        const override;
 };
 
 class VariableNode : public DecoratedExpression {

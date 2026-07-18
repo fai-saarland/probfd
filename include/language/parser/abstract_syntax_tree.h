@@ -25,7 +25,8 @@ class LetNode : public Expression {
 
 public:
     LetNode(
-        std::vector<std::pair<std::string, std::unique_ptr<Expression>>> variable_definitions,
+        std::vector<std::pair<std::string, std::unique_ptr<Expression>>>
+            variable_definitions,
         std::unique_ptr<Expression> nested_value);
 
     TypedDecoratedAstNodePtr decorate(DecorateContext& context) const override;
@@ -34,9 +35,10 @@ public:
 };
 
 class FunctionCallNode : public Expression {
-    std::string name;
+    std::unique_ptr<Expression> callee;
     std::vector<std::unique_ptr<Expression>> positional_arguments;
-    std::unordered_map<std::string, std::unique_ptr<Expression>> keyword_arguments;
+    std::unordered_map<std::string, std::unique_ptr<Expression>>
+        keyword_arguments;
     std::string unparsed_config;
 
     using CollectedArguments =
@@ -66,9 +68,10 @@ class FunctionCallNode : public Expression {
 
 public:
     FunctionCallNode(
-        const std::string& name,
+        std::unique_ptr<Expression> callee,
         std::vector<std::unique_ptr<Expression>>&& positional_arguments,
-        std::unordered_map<std::string, std::unique_ptr<Expression>>&& keyword_arguments,
+        std::unordered_map<std::string, std::unique_ptr<Expression>>&&
+            keyword_arguments,
         const std::string& unparsed_config);
 
     TypedDecoratedAstNodePtr decorate(DecorateContext& context) const override;
@@ -87,6 +90,19 @@ public:
     void dump(std::string indent) const override;
 };
 
+class IdentifierNode : public Expression {
+    Token identifier;
+
+public:
+    explicit IdentifierNode(const Token& identifier);
+
+    const Token& get_identifier() const;
+
+    TypedDecoratedAstNodePtr decorate(DecorateContext& context) const override;
+
+    void dump(std::string indent) const override;
+};
+
 class LiteralNode : public Expression {
     Token value;
 
@@ -97,5 +113,20 @@ public:
 
     void dump(std::string indent) const override;
 };
+
+class PrefixNode : public Expression {
+    Token expr_operator;
+    std::unique_ptr<Expression> operand;
+
+public:
+    explicit PrefixNode(
+        const Token& expr_operator,
+        std::unique_ptr<Expression> operand);
+
+    TypedDecoratedAstNodePtr decorate(DecorateContext& context) const override;
+
+    void dump(std::string indent) const override;
+};
+
 } // namespace language::parser
 #endif

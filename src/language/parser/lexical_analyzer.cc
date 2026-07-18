@@ -26,6 +26,8 @@ static vector<pair<TokenType, regex>> construct_token_type_expressions()
         {TokenType::CLOSING_BRACKET, R"(\])"},
         {TokenType::COMMA, R"(,)"},
         {TokenType::EQUALS, R"(=)"},
+        {TokenType::PLUS, R"([+])"},
+        {TokenType::MINUS, R"([-])"},
         {TokenType::LET, R"(let)"},
         {TokenType::TRUE, R"(true)"},
         {TokenType::FALSE, R"(false)"},
@@ -36,8 +38,8 @@ static vector<pair<TokenType, regex>> construct_token_type_expressions()
           by a float token '.2'.
         */
         {TokenType::FLOAT,
-         R"([+-]?(((\d*\.\d+|\d+\.)(e[+-]?\d+|[kmg]\b)?)|\d+e[+-]?\d+))"},
-        {TokenType::INTEGER, R"([+-]?(infinity|\d+([kmg]\b)?))"},
+         R"((((\d*\.\d+|\d+\.)(e[+-]?\d+|[kmg]\b)?)|\d+e[+-]?\d+))"},
+        {TokenType::INTEGER, R"((infinity|\d+([kmg]\b)?))"},
         {TokenType::IN, R"(in(?![a-z0-9]))"},
         {TokenType::AS, R"(as(?![a-z0-9]))"},
         /*

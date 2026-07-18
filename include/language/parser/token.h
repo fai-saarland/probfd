@@ -12,6 +12,8 @@ enum class TokenType {
     CLOSING_BRACKET,
     COMMA,
     EQUALS,
+    PLUS,
+    MINUS,
     LET,
     AS,
     IN,

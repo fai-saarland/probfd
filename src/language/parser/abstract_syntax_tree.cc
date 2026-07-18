@@ -163,8 +163,7 @@ LetNode::LetNode(
 {
 }
 
-TypedDecoratedAstNodePtr
-LetNode::decorate(DecorateContext& context) const
+TypedDecoratedAstNodePtr LetNode::decorate(DecorateContext& context) const
 {
     TraceBlock _(
         context,
@@ -220,11 +219,11 @@ void LetNode::dump(string indent) const
 }
 
 FunctionCallNode::FunctionCallNode(
-    const string& name,
+    std::unique_ptr<Expression> callee,
     vector<std::unique_ptr<Expression>>&& positional_arguments,
     unordered_map<string, std::unique_ptr<Expression>>&& keyword_arguments,
     const string& unparsed_config)
-    : name(name)
+    : callee(std::move(callee))
     , positional_arguments(move(positional_arguments))
     , keyword_arguments(move(keyword_arguments))
     , unparsed_config(unparsed_config)
@@ -236,8 +235,7 @@ static std::unique_ptr<DecoratedExpression> decorate_and_convert(
     const plugins::Type& target_type,
     DecorateContext& context)
 {
-    TypedDecoratedAstNodePtr decorated_node =
-        node.decorate(context);
+    TypedDecoratedAstNodePtr decorated_node = node.decorate(context);
 
     if (*decorated_node.type != target_type) {
         TraceBlock block(context, "Adding casting node");
@@ -431,7 +429,14 @@ void FunctionCallNode::collect_default_values(
 TypedDecoratedAstNodePtr
 FunctionCallNode::decorate(DecorateContext& context) const
 {
-    TraceBlock block(context, "Checking Plugin: {}", name);
+    TraceBlock block(context, "Checking Function Call");
+
+    const IdentifierNode* node = dynamic_cast<IdentifierNode*>(callee.get());
+
+    if (!node) { context.error("Callee is not a variable!"); }
+
+    const std::string& name = node->get_identifier().content;
+
     const plugins::Registry& registry = context.get_registry();
     if (!registry.has_feature(name)) {
         context.error("Plugin '{}' is not defined.", name);
@@ -461,7 +466,8 @@ FunctionCallNode::decorate(DecorateContext& context) const
 
 void FunctionCallNode::dump(string indent) const
 {
-    cout << indent << "FUNC:" << name << endl;
+    cout << indent << "FUNC:" << endl;
+    callee->dump("| " + indent);
     indent = "| " + indent;
     cout << indent << "POSITIONAL ARGS:" << endl;
     for (const std::unique_ptr<Expression>& node : positional_arguments) {
@@ -495,8 +501,7 @@ get_common_element_type(const std::vector<const plugins::Type*>& types)
     return common_element_type;
 }
 
-TypedDecoratedAstNodePtr
-ListNode::decorate(DecorateContext& context) const
+TypedDecoratedAstNodePtr ListNode::decorate(DecorateContext& context) const
 {
     TraceBlock block(context, "Checking list");
     vector<std::unique_ptr<DecoratedExpression>> decorated_elements;
@@ -556,13 +561,49 @@ void ListNode::dump(string indent) const
     }
 }
 
+IdentifierNode::IdentifierNode(const Token& identifier)
+    : identifier(identifier)
+{
+}
+
+const Token& IdentifierNode::get_identifier() const
+{
+    return identifier;
+}
+
+TypedDecoratedAstNodePtr
+IdentifierNode::decorate(DecorateContext& context) const
+{
+    TraceBlock block(context, "Checking Identifier: {}", identifier.content);
+    if (context.has_variable(identifier.content)) {
+        if (identifier.type != TokenType::IDENTIFIER) {
+            throw ContextError(
+                "A non-identifier token was defined as variable.");
+        }
+        const string& variable_name = identifier.content;
+        auto& def = context.get_variable_definition(variable_name);
+        auto n = std::make_unique<VariableNode>(def);
+        def.usages.push_back(n.get());
+        return {std::move(n), &context.get_variable_type(variable_name)};
+    }
+
+    return {
+        std::make_unique<SymbolNode>(identifier.content),
+        &plugins::TypeRegistry::SYMBOL_TYPE};
+}
+
+void IdentifierNode::dump(std::string indent) const
+{
+    cout << indent << token_type_name(identifier.type) << ": "
+         << identifier.content << endl;
+}
+
 LiteralNode::LiteralNode(const Token& value)
     : value(value)
 {
 }
 
-TypedDecoratedAstNodePtr
-LiteralNode::decorate(DecorateContext& context) const
+TypedDecoratedAstNodePtr LiteralNode::decorate(DecorateContext& context) const
 {
     TraceBlock block(context, "Checking Literal: {}", value.content);
     if (context.has_variable(value.content)) {
@@ -598,10 +639,6 @@ LiteralNode::decorate(DecorateContext& context) const
         return {
             std::make_unique<FloatLiteralNode>(value.content),
             &plugins::TypeRegistry::instance()->get_type<double>()};
-    case TokenType::IDENTIFIER:
-        return {
-            std::make_unique<SymbolNode>(value.content),
-            &plugins::TypeRegistry::SYMBOL_TYPE};
     default:
         throw ContextError(
             "LiteralNode has unexpected token type '{}'.",
@@ -613,6 +650,48 @@ void LiteralNode::dump(string indent) const
 {
     cout << indent << token_type_name(value.type) << ": " << value.content
          << endl;
+}
+
+PrefixNode::PrefixNode(
+    const Token& expr_operator,
+    std::unique_ptr<Expression> operand)
+    : expr_operator(expr_operator)
+    , operand(std::move(operand))
+{
+}
+
+TypedDecoratedAstNodePtr PrefixNode::decorate(DecorateContext& context) const
+{
+    TraceBlock block(
+        context,
+        "Checking Prefix Expression: {}",
+        expr_operator.content);
+
+    auto [node, type] = operand->decorate(context);
+
+    switch (expr_operator.type) {
+    case TokenType::PLUS:
+    case TokenType::MINUS:
+        if (type != &plugins::TypeRegistry::instance()->get_type<int>()) {
+            throw ContextError(
+                "Operand does not have type int.",
+                token_type_name(expr_operator.type));
+        }
+        return {
+            std::make_unique<DecoratedUnaryNode>(
+                expr_operator,
+                std::move(node)),
+            &plugins::TypeRegistry::instance()->get_type<int>()};
+    default:
+        throw ContextError(
+            "Unary expression node has unexpected token type '{}'.",
+            token_type_name(expr_operator.type));
+    }
+}
+
+void PrefixNode::dump(string indent) const
+{
+    cout << indent << "UNARY: " << expr_operator.content << endl;
 }
 
 } // namespace language::parser

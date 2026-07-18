@@ -138,7 +138,8 @@ std::any DecoratedExpression::construct() const
 }
 
 FunctionArgument::FunctionArgument(
-    std::unique_ptr<DecoratedExpression> value, bool is_default)
+    std::unique_ptr<DecoratedExpression> value,
+    bool is_default)
     : value(move(value))
     , is_default(is_default)
 {
@@ -318,7 +319,8 @@ void DecoratedFunctionCallNode::print(
     std::print(out, ")");
 }
 
-DecoratedListNode::DecoratedListNode(vector<std::unique_ptr<DecoratedExpression>>&& elements)
+DecoratedListNode::DecoratedListNode(
+    vector<std::unique_ptr<DecoratedExpression>>&& elements)
     : elements(move(elements))
 {
 }
@@ -361,6 +363,40 @@ void DecoratedListNode::print(
     }
 
     std::print(out, "]");
+}
+
+DecoratedUnaryNode::DecoratedUnaryNode(
+    Token token,
+    std::unique_ptr<DecoratedExpression> operand)
+    : token(std::move(token))
+    , operand(std::move(operand))
+{
+}
+
+void DecoratedUnaryNode::remove_variable_usages()
+{
+    operand->remove_variable_usages();
+}
+
+std::any DecoratedUnaryNode::construct(ConstructContext& context) const
+{
+    std::any operand_value = operand->construct(context);
+
+    switch (token.type) {
+    case TokenType::PLUS: return std::any_cast<int>(operand_value);
+    case TokenType::MINUS: return -std::any_cast<int>(operand_value);
+    default: context.error("Unknown unary expression operand: {}", token);
+    }
+}
+
+void DecoratedUnaryNode::print(
+    std::ostream& out,
+    std::size_t indent,
+    bool print_default_args) const
+{
+    for (std::size_t i = 0; i != indent; ++i) { out.put(' '); }
+    std::print(out, "{}", token.content);
+    operand->print(out, 0, print_default_args);
 }
 
 VariableNode::VariableNode(VariableDefinition& definition)
