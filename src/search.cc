@@ -174,7 +174,7 @@ static int search(argparse::ArgumentParser& parser)
             exitcode = found_solution ? ExitCode::SUCCESS
                                       : ExitCode::SEARCH_UNSOLVED_INCOMPLETE;
         } catch (const std::exception& e) {
-            std::print(std::cerr, "{}", e.what());
+            std::println(std::cerr, "{}", e.what());
             throw;
         }
     } catch (const language::ContextError&) {
