@@ -1,24 +1,27 @@
 #ifndef LANGUAGE_PARSER_DECORATED_ABSTRACT_SYNTAX_TREE_H
 #define LANGUAGE_PARSER_DECORATED_ABSTRACT_SYNTAX_TREE_H
 
-#include "language/plugins/plugin.h"
-#include "token.h"
-
 #include "language/parser/decorated_expression.h"
+#include "language/parser/token.h"
 
 #include <any>
 #include <memory>
 #include <string>
 #include <vector>
 
+namespace language::plugins {
+class Feature;
+class Type;
+} // namespace language::plugins
+
 namespace language::parser {
 
-class DecoratedLetNode : public DecoratedExpression {
+class DecoratedLetExpression : public DecoratedExpression {
     std::vector<VariableDefinition> decorated_variable_definitions;
     std::unique_ptr<DecoratedExpression> nested_value;
 
 public:
-    DecoratedLetNode(
+    DecoratedLetExpression(
         std::vector<VariableDefinition> decorated_variable_definitions,
         std::unique_ptr<DecoratedExpression> nested_value);
 
@@ -49,13 +52,13 @@ public:
     bool is_default_argument() const;
 };
 
-class DecoratedFunctionCallNode : public DecoratedExpression {
+class DecoratedFunctionCallExpression : public DecoratedExpression {
     std::shared_ptr<const plugins::Feature> feature;
     std::vector<std::pair<std::string, FunctionArgument>> arguments;
     std::string unparsed_config;
 
 public:
-    DecoratedFunctionCallNode(
+    DecoratedFunctionCallExpression(
         const std::shared_ptr<const plugins::Feature>& feature,
         std::vector<std::pair<std::string, FunctionArgument>>&& arguments,
         const std::string& unparsed_config);
@@ -68,11 +71,11 @@ public:
         const override;
 };
 
-class DecoratedListNode : public DecoratedExpression {
+class DecoratedListExpression : public DecoratedExpression {
     std::vector<std::unique_ptr<DecoratedExpression>> elements;
 
 public:
-    explicit DecoratedListNode(
+    explicit DecoratedListExpression(
         std::vector<std::unique_ptr<DecoratedExpression>>&& elements);
 
     void remove_variable_usages() override;
@@ -89,12 +92,12 @@ public:
     }
 };
 
-class DecoratedUnaryNode : public DecoratedExpression {
+class DecoratedUnaryExpression : public DecoratedExpression {
     Token token;
     std::unique_ptr<DecoratedExpression> operand;
 
 public:
-    explicit DecoratedUnaryNode(
+    explicit DecoratedUnaryExpression(
         Token token,
         std::unique_ptr<DecoratedExpression> operand);
 
@@ -106,13 +109,13 @@ public:
         const override;
 };
 
-class VariableNode : public DecoratedExpression {
+class DecoratedIdentifierExpression : public DecoratedExpression {
     friend VariableDefinition;
 
     VariableDefinition* definition;
 
 public:
-    explicit VariableNode(VariableDefinition& definition);
+    explicit DecoratedIdentifierExpression(VariableDefinition& definition);
 
     void remove_variable_usages() override;
 
@@ -122,11 +125,11 @@ public:
         const override;
 };
 
-class BoolLiteralNode : public DecoratedExpression {
+class DecoratedBoolLiteralExpression : public DecoratedExpression {
     bool value;
 
 public:
-    explicit BoolLiteralNode(bool value);
+    explicit DecoratedBoolLiteralExpression(bool value);
 
     std::any construct(ConstructContext& context) const override;
 
@@ -134,11 +137,11 @@ public:
         const override;
 };
 
-class StringLiteralNode : public DecoratedExpression {
+class DecoratedStringLiteralExpression : public DecoratedExpression {
     std::string value;
 
 public:
-    explicit StringLiteralNode(const std::string& value);
+    explicit DecoratedStringLiteralExpression(const std::string& value);
 
     std::any construct(ConstructContext& context) const override;
 
@@ -146,11 +149,11 @@ public:
         const override;
 };
 
-class IntLiteralNode : public DecoratedExpression {
+class DecoratedIntLiteralExpression : public DecoratedExpression {
     std::string value;
 
 public:
-    explicit IntLiteralNode(const std::string& value);
+    explicit DecoratedIntLiteralExpression(const std::string& value);
 
     std::any construct(ConstructContext& context) const override;
 
@@ -158,11 +161,11 @@ public:
         const override;
 };
 
-class FloatLiteralNode : public DecoratedExpression {
+class DecoratedFloatLiteralExpression : public DecoratedExpression {
     std::string value;
 
 public:
-    explicit FloatLiteralNode(const std::string& value);
+    explicit DecoratedFloatLiteralExpression(const std::string& value);
 
     std::any construct(ConstructContext& context) const override;
 
@@ -170,11 +173,11 @@ public:
         const override;
 };
 
-class SymbolNode : public DecoratedExpression {
+class DecoratedSymbolExpression : public DecoratedExpression {
     std::string value;
 
 public:
-    explicit SymbolNode(const std::string& value);
+    explicit DecoratedSymbolExpression(const std::string& value);
 
     std::any construct(ConstructContext& context) const override;
 
@@ -182,13 +185,13 @@ public:
         const override;
 };
 
-class ConvertNode : public DecoratedExpression {
+class DecoratedConvertExpression : public DecoratedExpression {
     std::unique_ptr<DecoratedExpression> value;
     const plugins::Type& from_type;
     const plugins::Type& to_type;
 
 public:
-    ConvertNode(
+    DecoratedConvertExpression(
         std::unique_ptr<DecoratedExpression> value,
         const plugins::Type& from_type,
         const plugins::Type& to_type);
@@ -201,13 +204,13 @@ public:
         const override;
 };
 
-class CheckBoundsNode : public DecoratedExpression {
+class DecoratedCheckBoundsExpression : public DecoratedExpression {
     std::unique_ptr<DecoratedExpression> value;
     std::unique_ptr<DecoratedExpression> min_value;
     std::unique_ptr<DecoratedExpression> max_value;
 
 public:
-    CheckBoundsNode(
+    DecoratedCheckBoundsExpression(
         std::unique_ptr<DecoratedExpression> value,
         std::unique_ptr<DecoratedExpression> min_value,
         std::unique_ptr<DecoratedExpression> max_value);

@@ -67,7 +67,7 @@ construct_let(std::unique_ptr<Expression> parsed, R&& predefinitions)
         variable_definitions.emplace_back(key, tokenize_and_parse(definition));
     }
 
-    return std::make_unique<LetNode>(
+    return std::make_unique<LetExpression>(
         std::move(variable_definitions),
         std::move(parsed));
 }

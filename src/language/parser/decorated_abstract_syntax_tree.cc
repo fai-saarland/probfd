@@ -1,6 +1,7 @@
 #include "language/parser/decorated_abstract_syntax_tree.h"
 
 #include "language/plugins/options.h"
+#include "language/plugins/plugin.h"
 #include "language/plugins/types.h"
 
 #include <any>
@@ -108,7 +109,7 @@ VariableDefinition::VariableDefinition(VariableDefinition&& other) noexcept
     , variable_expression(std::move(other.variable_expression))
     , usages(std::move(other.usages))
 {
-    for (VariableNode* u : usages) { u->definition = this; }
+    for (DecoratedIdentifierExpression* u : usages) { u->definition = this; }
 }
 
 VariableDefinition&
@@ -118,7 +119,7 @@ VariableDefinition::operator=(VariableDefinition&& other) noexcept
     variable_expression = std::move(other.variable_expression);
     usages = std::move(other.usages);
 
-    for (VariableNode* u : usages) { u->definition = this; }
+    for (DecoratedIdentifierExpression* u : usages) { u->definition = this; }
 
     return *this;
 }
@@ -160,7 +161,7 @@ bool FunctionArgument::is_default_argument() const
     return is_default;
 }
 
-DecoratedLetNode::DecoratedLetNode(
+DecoratedLetExpression::DecoratedLetExpression(
     std::vector<VariableDefinition> decorated_variable_definitions,
     std::unique_ptr<DecoratedExpression> nested_value)
     : decorated_variable_definitions(move(decorated_variable_definitions))
@@ -168,7 +169,7 @@ DecoratedLetNode::DecoratedLetNode(
 {
 }
 
-void DecoratedLetNode::prune_unused_definitions(
+void DecoratedLetExpression::prune_unused_definitions(
     std::vector<VariableDefinition>& defs)
 {
     nested_value->prune_unused_definitions(defs);
@@ -191,14 +192,14 @@ void DecoratedLetNode::prune_unused_definitions(
     decorated_variable_definitions.erase(beg, end);
 }
 
-void DecoratedLetNode::remove_variable_usages()
+void DecoratedLetExpression::remove_variable_usages()
 {
     for (auto& def : decorated_variable_definitions) {
         def.variable_expression->remove_variable_usages();
     }
 }
 
-std::any DecoratedLetNode::construct(ConstructContext& context) const
+std::any DecoratedLetExpression::construct(ConstructContext& context) const
 {
     TraceBlock block(context, "Constructing let-expression");
     for (const auto& [variable_name, variable_definition, _] :
@@ -222,7 +223,7 @@ std::any DecoratedLetNode::construct(ConstructContext& context) const
     return result;
 }
 
-void DecoratedLetNode::print(
+void DecoratedLetExpression::print(
     std::ostream& out,
     std::size_t indent,
     bool print_default_args) const
@@ -251,7 +252,7 @@ void DecoratedLetNode::print(
     nested_value->print(out, indent + 4, print_default_args);
 }
 
-DecoratedFunctionCallNode::DecoratedFunctionCallNode(
+DecoratedFunctionCallExpression::DecoratedFunctionCallExpression(
     const shared_ptr<const plugins::Feature>& feature,
     vector<std::pair<std::string, FunctionArgument>>&& arguments,
     const string& unparsed_config)
@@ -261,14 +262,15 @@ DecoratedFunctionCallNode::DecoratedFunctionCallNode(
 {
 }
 
-void DecoratedFunctionCallNode::remove_variable_usages()
+void DecoratedFunctionCallExpression::remove_variable_usages()
 {
     for (auto& arg : arguments | views::values) {
         arg.get_value().remove_variable_usages();
     }
 }
 
-std::any DecoratedFunctionCallNode::construct(ConstructContext& context) const
+std::any
+DecoratedFunctionCallExpression::construct(ConstructContext& context) const
 {
     TraceBlock block(
         context,
@@ -285,7 +287,7 @@ std::any DecoratedFunctionCallNode::construct(ConstructContext& context) const
     return feature->construct(opts, context);
 }
 
-void DecoratedFunctionCallNode::print(
+void DecoratedFunctionCallExpression::print(
     std::ostream& out,
     std::size_t indent,
     bool print_default_args) const
@@ -319,18 +321,18 @@ void DecoratedFunctionCallNode::print(
     std::print(out, ")");
 }
 
-DecoratedListNode::DecoratedListNode(
+DecoratedListExpression::DecoratedListExpression(
     vector<std::unique_ptr<DecoratedExpression>>&& elements)
     : elements(move(elements))
 {
 }
 
-void DecoratedListNode::remove_variable_usages()
+void DecoratedListExpression::remove_variable_usages()
 {
     for (const auto& el : elements) { el->remove_variable_usages(); }
 }
 
-std::any DecoratedListNode::construct(ConstructContext& context) const
+std::any DecoratedListExpression::construct(ConstructContext& context) const
 {
     TraceBlock block(context, "Constructing list");
     vector<std::any> result;
@@ -343,7 +345,7 @@ std::any DecoratedListNode::construct(ConstructContext& context) const
     return result;
 }
 
-void DecoratedListNode::print(
+void DecoratedListExpression::print(
     std::ostream& out,
     std::size_t indent,
     bool print_default_args) const
@@ -365,7 +367,7 @@ void DecoratedListNode::print(
     std::print(out, "]");
 }
 
-DecoratedUnaryNode::DecoratedUnaryNode(
+DecoratedUnaryExpression::DecoratedUnaryExpression(
     Token token,
     std::unique_ptr<DecoratedExpression> operand)
     : token(std::move(token))
@@ -373,12 +375,12 @@ DecoratedUnaryNode::DecoratedUnaryNode(
 {
 }
 
-void DecoratedUnaryNode::remove_variable_usages()
+void DecoratedUnaryExpression::remove_variable_usages()
 {
     operand->remove_variable_usages();
 }
 
-std::any DecoratedUnaryNode::construct(ConstructContext& context) const
+std::any DecoratedUnaryExpression::construct(ConstructContext& context) const
 {
     std::any operand_value = operand->construct(context);
 
@@ -389,7 +391,7 @@ std::any DecoratedUnaryNode::construct(ConstructContext& context) const
     }
 }
 
-void DecoratedUnaryNode::print(
+void DecoratedUnaryExpression::print(
     std::ostream& out,
     std::size_t indent,
     bool print_default_args) const
@@ -399,19 +401,21 @@ void DecoratedUnaryNode::print(
     operand->print(out, 0, print_default_args);
 }
 
-VariableNode::VariableNode(VariableDefinition& definition)
+DecoratedIdentifierExpression::DecoratedIdentifierExpression(
+    VariableDefinition& definition)
     : definition(&definition)
 {
 }
 
-void VariableNode::remove_variable_usages()
+void DecoratedIdentifierExpression::remove_variable_usages()
 {
     const auto it = std::ranges::find(definition->usages, this);
     assert(it != definition->usages.end());
     definition->usages.erase(it);
 }
 
-std::any VariableNode::construct(ConstructContext& context) const
+std::any
+DecoratedIdentifierExpression::construct(ConstructContext& context) const
 {
     TraceBlock block(
         context,
@@ -427,7 +431,10 @@ std::any VariableNode::construct(ConstructContext& context) const
     return context.get_variable(definition->variable_name);
 }
 
-void VariableNode::print(std::ostream& out, std::size_t indent, bool) const
+void DecoratedIdentifierExpression::print(
+    std::ostream& out,
+    std::size_t indent,
+    bool) const
 {
     std::print(
         out,
@@ -436,35 +443,42 @@ void VariableNode::print(std::ostream& out, std::size_t indent, bool) const
         indent + definition->variable_name.size());
 }
 
-BoolLiteralNode::BoolLiteralNode(bool value)
+DecoratedBoolLiteralExpression::DecoratedBoolLiteralExpression(bool value)
     : value(value)
 {
 }
 
-std::any BoolLiteralNode::construct(ConstructContext& context) const
+std::any
+DecoratedBoolLiteralExpression::construct(ConstructContext& context) const
 {
     TraceBlock block(context, "Constructing bool value from '{}'", value);
     return value;
 }
 
-void BoolLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
+void DecoratedBoolLiteralExpression::print(
+    std::ostream& out,
+    std::size_t indent,
+    bool) const
 {
     std::print(out, "{}", std::string(indent, ' '));
     std::print(out, "{}", value);
 }
 
-StringLiteralNode::StringLiteralNode(const string& value)
+DecoratedStringLiteralExpression::DecoratedStringLiteralExpression(
+    const string& value)
     : value(value)
 {
 }
 
-std::any StringLiteralNode::construct(ConstructContext& context) const
+std::any
+DecoratedStringLiteralExpression::construct(ConstructContext& context) const
 {
     TraceBlock block(context, "Constructing string value from '{}'", value);
     if (!(value.starts_with('"') && value.ends_with('"'))) {
         context.error(
             "String literal value is not enclosed in quotation marks"
-            " (this should have been caught before constructing this node).");
+            " (this should have been caught before constructing this "
+            "Expression).");
     }
     /*
       We are not doing any further syntax checking. Escaped symbols other than
@@ -492,23 +506,29 @@ std::any StringLiteralNode::construct(ConstructContext& context) const
     return result;
 }
 
-void StringLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
+void DecoratedStringLiteralExpression::print(
+    std::ostream& out,
+    std::size_t indent,
+    bool) const
 {
     std::print(out, "{:>{}}", value, indent + value.size());
 }
 
-IntLiteralNode::IntLiteralNode(const string& value)
+DecoratedIntLiteralExpression::DecoratedIntLiteralExpression(
+    const string& value)
     : value(value)
 {
 }
 
-std::any IntLiteralNode::construct(ConstructContext& context) const
+std::any
+DecoratedIntLiteralExpression::construct(ConstructContext& context) const
 {
     TraceBlock block(context, "Constructing int value from '{}'", value);
     if (value.empty()) {
         context.error(
             "Empty value in int constant '{}'"
-            " (this should have been caught before constructing this node).",
+            " (this should have been caught before constructing this "
+            "Expression).",
             value);
     } else if (value == "infinity") {
         return numeric_limits<int>::max();
@@ -529,7 +549,7 @@ std::any IntLiteralNode::construct(ConstructContext& context) const
             context.error(
                 "Invalid suffix in int constant '{}'"
                 " (this should have been caught before constructing this "
-                "node).",
+                "Expression).",
                 value);
         }
         prefix.pop_back();
@@ -541,7 +561,8 @@ std::any IntLiteralNode::construct(ConstructContext& context) const
     if (stream.fail() || !stream.eof()) {
         context.error(
             "Could not parse int constant '{}'"
-            " (this should have been caught before constructing this node).",
+            " (this should have been caught before constructing this "
+            "Expression).",
             value);
     }
 
@@ -556,18 +577,23 @@ std::any IntLiteralNode::construct(ConstructContext& context) const
     return x * factor;
 }
 
-void IntLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
+void DecoratedIntLiteralExpression::print(
+    std::ostream& out,
+    std::size_t indent,
+    bool) const
 {
     std::print(out, "{}", std::string(indent, ' '));
     std::print(out, "{}", value);
 }
 
-FloatLiteralNode::FloatLiteralNode(const string& value)
+DecoratedFloatLiteralExpression::DecoratedFloatLiteralExpression(
+    const string& value)
     : value(value)
 {
 }
 
-std::any FloatLiteralNode::construct(ConstructContext& context) const
+std::any
+DecoratedFloatLiteralExpression::construct(ConstructContext& context) const
 {
     TraceBlock block(context, "Constructing float value from '{}'", value);
     if (value == "infinity") {
@@ -580,36 +606,42 @@ std::any FloatLiteralNode::construct(ConstructContext& context) const
             context.error(
                 "Could not parse double constant '{}"
                 " (this should have been caught before constructing this "
-                "node).",
+                "Expression).",
                 value);
         }
         return x;
     }
 }
 
-void FloatLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
+void DecoratedFloatLiteralExpression::print(
+    std::ostream& out,
+    std::size_t indent,
+    bool) const
 {
     std::print(out, "{}", std::string(indent, ' '));
     std::print(out, "{}", value);
 }
 
-SymbolNode::SymbolNode(const string& value)
+DecoratedSymbolExpression::DecoratedSymbolExpression(const string& value)
     : value(value)
 {
 }
 
-std::any SymbolNode::construct(ConstructContext&) const
+std::any DecoratedSymbolExpression::construct(ConstructContext&) const
 {
     return std::any(value);
 }
 
-void SymbolNode::print(std::ostream& out, std::size_t indent, bool) const
+void DecoratedSymbolExpression::print(
+    std::ostream& out,
+    std::size_t indent,
+    bool) const
 {
     std::print(out, "{}", std::string(indent, ' '));
     std::print(out, "{}", value);
 }
 
-ConvertNode::ConvertNode(
+DecoratedConvertExpression::DecoratedConvertExpression(
     std::unique_ptr<DecoratedExpression> value,
     const plugins::Type& from_type,
     const plugins::Type& to_type)
@@ -619,12 +651,12 @@ ConvertNode::ConvertNode(
 {
 }
 
-void ConvertNode::remove_variable_usages()
+void DecoratedConvertExpression::remove_variable_usages()
 {
     value->remove_variable_usages();
 }
 
-std::any ConvertNode::construct(ConstructContext& context) const
+std::any DecoratedConvertExpression::construct(ConstructContext& context) const
 {
     TraceBlock block(context, "Constructing value that requires conversion");
     std::any constructed_value;
@@ -649,7 +681,7 @@ std::any ConvertNode::construct(ConstructContext& context) const
     return converted_value;
 }
 
-void ConvertNode::print(
+void DecoratedConvertExpression::print(
     std::ostream& out,
     std::size_t indent,
     bool print_default_args) const
@@ -657,7 +689,7 @@ void ConvertNode::print(
     value->print(out, indent, print_default_args);
 }
 
-CheckBoundsNode::CheckBoundsNode(
+DecoratedCheckBoundsExpression::DecoratedCheckBoundsExpression(
     std::unique_ptr<DecoratedExpression> value,
     std::unique_ptr<DecoratedExpression> min_value,
     std::unique_ptr<DecoratedExpression> max_value)
@@ -677,7 +709,8 @@ satisfies_bounds(const std::any& v_, const std::any& min_, const std::any& max_)
     return (min <= v) && (v <= max);
 }
 
-std::any CheckBoundsNode::construct(ConstructContext& context) const
+std::any
+DecoratedCheckBoundsExpression::construct(ConstructContext& context) const
 {
     TraceBlock block(context, "Constructing value with bounds");
     std::any v;
@@ -702,7 +735,7 @@ std::any CheckBoundsNode::construct(ConstructContext& context) const
             context.error(
                 "Types of bounds ({}, {}) do not match type of value ({})"
                 " (this should have been caught before constructing this "
-                "node).",
+                "Expression).",
                 min.type().name(),
                 max.type().name(),
                 type.name());
@@ -723,7 +756,7 @@ std::any CheckBoundsNode::construct(ConstructContext& context) const
     return v;
 }
 
-void CheckBoundsNode::print(
+void DecoratedCheckBoundsExpression::print(
     std::ostream& out,
     std::size_t indent,
     bool print_default_args) const

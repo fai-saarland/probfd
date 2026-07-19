@@ -1,8 +1,6 @@
 #ifndef LANGUAGE_PARSER_DECORATED_EXPRESSION_H
 #define LANGUAGE_PARSER_DECORATED_EXPRESSION_H
 
-#include "language/plugins/plugin.h"
-
 #include <any>
 #include <memory>
 #include <string>
@@ -33,12 +31,12 @@ public:
         const = 0;
 };
 
-class VariableNode;
+class DecoratedIdentifierExpression;
 
 struct VariableDefinition {
     std::string variable_name;
     std::unique_ptr<DecoratedExpression> variable_expression;
-    std::vector<VariableNode*> usages;
+    std::vector<DecoratedIdentifierExpression*> usages;
 
     VariableDefinition(
         std::string variable_name,

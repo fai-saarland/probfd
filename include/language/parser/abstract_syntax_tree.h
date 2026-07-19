@@ -1,5 +1,5 @@
-#ifndef LANGUAGE_PARSER_ABSTRACT_SYNTAX_TREE_H
-#define LANGUAGE_PARSER_ABSTRACT_SYNTAX_TREE_H
+#ifndef PARSER_ABSTRACT_SYNTAX_TREE_H
+#define PARSER_ABSTRACT_SYNTAX_TREE_H
 
 #include "language/parser/decorated_abstract_syntax_tree.h"
 #include "language/parser/expression.h"
@@ -18,23 +18,24 @@ struct ArgumentInfo;
 
 namespace language::parser {
 
-class LetNode : public Expression {
+class LetExpression : public Expression {
     std::vector<std::pair<std::string, std::unique_ptr<Expression>>>
         variable_definitions;
     std::unique_ptr<Expression> nested_value;
 
 public:
-    LetNode(
+    LetExpression(
         std::vector<std::pair<std::string, std::unique_ptr<Expression>>>
             variable_definitions,
         std::unique_ptr<Expression> nested_value);
 
-    TypedDecoratedAstNodePtr decorate(DecorateContext& context) const override;
+    TypedDecoratedExpressionPtr
+    decorate(DecorateContext& context) const override;
 
     void dump(std::string indent) const override;
 };
 
-class FunctionCallNode : public Expression {
+class FunctionCallExpression : public Expression {
     std::unique_ptr<Expression> callee;
     std::vector<std::unique_ptr<Expression>> positional_arguments;
     std::unordered_map<std::string, std::unique_ptr<Expression>>
@@ -45,7 +46,7 @@ class FunctionCallNode : public Expression {
         std::unordered_map<std::string, FunctionArgument>;
 
     static bool collect_argument(
-        Expression& arg,
+        const Expression& arg,
         const plugins::ArgumentInfo& arg_info,
         DecorateContext& context,
         CollectedArguments& arguments,
@@ -67,63 +68,69 @@ class FunctionCallNode : public Expression {
         CollectedArguments& arguments);
 
 public:
-    FunctionCallNode(
+    FunctionCallExpression(
         std::unique_ptr<Expression> callee,
         std::vector<std::unique_ptr<Expression>>&& positional_arguments,
         std::unordered_map<std::string, std::unique_ptr<Expression>>&&
             keyword_arguments,
-        const std::string& unparsed_config);
+        std::string unparsed_config);
 
-    TypedDecoratedAstNodePtr decorate(DecorateContext& context) const override;
+    TypedDecoratedExpressionPtr
+    decorate(DecorateContext& context) const override;
 
     void dump(std::string indent) const override;
 };
 
-class ListNode : public Expression {
+class ListExpression : public Expression {
     std::vector<std::unique_ptr<Expression>> elements;
 
 public:
-    explicit ListNode(std::vector<std::unique_ptr<Expression>>&& elements);
+    explicit ListExpression(
+        std::vector<std::unique_ptr<Expression>>&& elements);
 
-    TypedDecoratedAstNodePtr decorate(DecorateContext& context) const override;
+    TypedDecoratedExpressionPtr
+    decorate(DecorateContext& context) const override;
 
     void dump(std::string indent) const override;
 };
 
-class IdentifierNode : public Expression {
+class IdentifierExpression : public Expression {
     Token identifier;
 
 public:
-    explicit IdentifierNode(const Token& identifier);
+    explicit IdentifierExpression(Token identifier);
 
     const Token& get_identifier() const;
 
-    TypedDecoratedAstNodePtr decorate(DecorateContext& context) const override;
+    TypedDecoratedExpressionPtr
+    decorate(DecorateContext& context) const override;
 
     void dump(std::string indent) const override;
 };
 
-class LiteralNode : public Expression {
+class LiteralExpression : public Expression {
     Token value;
 
 public:
-    explicit LiteralNode(const Token& value);
+    explicit LiteralExpression(Token value);
 
-    TypedDecoratedAstNodePtr decorate(DecorateContext& context) const override;
+    TypedDecoratedExpressionPtr
+    decorate(DecorateContext& context) const override;
 
     void dump(std::string indent) const override;
 };
 
-class PrefixNode : public Expression {
+class PrefixExpression : public Expression {
     Token expr_operator;
     std::unique_ptr<Expression> operand;
 
 public:
-    explicit PrefixNode(
-        const Token& expr_operator,
+    explicit PrefixExpression(
+        Token expr_operator,
         std::unique_ptr<Expression> operand);
 
-    TypedDecoratedAstNodePtr decorate(DecorateContext& context) const override;
+    TypedDecoratedExpressionPtr
+    decorate(DecorateContext& context) const override;
 
     void dump(std::string indent) const override;
 };

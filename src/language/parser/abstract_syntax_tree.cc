@@ -10,6 +10,7 @@
 #include "language/plugins/types.h"
 
 #include <cassert>
+#include <deque>
 #include <iostream>
 #include <ranges>
 #include <unordered_map>
@@ -21,26 +22,17 @@ namespace language::parser {
 
 struct VariableDefinition;
 
+namespace {
 struct TypedDefinition {
     const plugins::Type* type;
     VariableDefinition* definition;
 };
 
 class Scope {
-    std::unique_ptr<Scope> parent = nullptr;
-    unordered_map<string, TypedDefinition> variables;
+    std::unordered_map<string, TypedDefinition> variables;
 
 public:
-    Scope() = default;
-
-    explicit Scope(std::unique_ptr<Scope> parent)
-        : parent(std::move(parent))
-    {
-    }
-
-    std::unique_ptr<Scope>& get_parent() { return parent; }
-
-    void insert(Context& context, std::pair<string, TypedDefinition> pair)
+    void insert(const Context& context, std::pair<string, TypedDefinition> pair)
     {
         if (!variables.insert(pair).second) {
             context.error(
@@ -49,54 +41,25 @@ public:
         }
     }
 
-    bool has_variable(const string& name) const
-    {
-        return get_typed_definition(name) != nullptr;
-    }
-
-    TypedDefinition* get_typed_definition(const string& name)
-    {
-        const auto it = variables.find(name);
-        if (it == variables.end()) {
-            return parent ? parent->get_typed_definition(name) : nullptr;
-        }
-
-        return &it->second;
-    }
-
     const TypedDefinition* get_typed_definition(const string& name) const
     {
-        auto it = variables.find(name);
-        if (it == variables.end()) {
-            return parent ? parent->get_typed_definition(name) : nullptr;
+        if (const auto it = variables.find(name); it != variables.end()) {
+            return &it->second;
         }
 
-        return &it->second;
-    }
-
-    const plugins::Type& get_variable_type(const string& name)
-    {
-        const auto* t = get_typed_definition(name);
-        assert(t);
-        return *t->type;
-    }
-
-    VariableDefinition& get_variable_definition(const string& name)
-    {
-        const auto* t = get_typed_definition(name);
-        assert(t);
-        return *t->definition;
+        return nullptr;
     }
 };
+} // namespace
 
 class DecorateContext : public Context {
     const plugins::Registry registry;
-    std::unique_ptr<Scope> scope;
+    std::deque<Scope> scopes;
 
 public:
     explicit DecorateContext(const plugins::RawRegistry& raw_registry)
         : registry(raw_registry.construct_registry())
-        , scope(std::make_unique<Scope>())
+        , scopes(1)
     {
     }
 
@@ -105,27 +68,23 @@ public:
         const plugins::Type& type,
         VariableDefinition& definition)
     {
-        scope->insert(*this, {name, TypedDefinition{&type, &definition}});
+        scopes.back().insert(
+            *this,
+            {name, TypedDefinition{.type = &type, .definition = &definition}});
     }
 
-    bool has_variable(const string& name) const
+    const TypedDefinition* get_typed_definition(const string& name) const
     {
-        return scope->has_variable(name);
+        for (const auto& scope : scopes | std::views::reverse) {
+            if (const auto td = scope.get_typed_definition(name)) { return td; }
+        }
+
+        return nullptr;
     }
 
-    const plugins::Type& get_variable_type(const string& name) const
-    {
-        return scope->get_variable_type(name);
-    }
+    void enter_scope() { scopes.emplace_back(); }
 
-    VariableDefinition& get_variable_definition(const string& name) const
-    {
-        return scope->get_variable_definition(name);
-    }
-
-    void enter_scope() { scope = std::make_unique<Scope>(std::move(scope)); }
-
-    void leave_scope() { scope = std::move(scope->get_parent()); }
+    void leave_scope() { scopes.pop_back(); }
 
     const plugins::Registry& get_registry() const { return registry; }
 };
@@ -140,7 +99,7 @@ static vector<T> get_keys(const unordered_map<T, K>& map)
 }
 
 static std::unique_ptr<Expression>
-parse_ast_node(const string& definition, DecorateContext&)
+parse_expression(const string& definition, DecorateContext&)
 {
     TokenStream tokens = split_tokens(definition);
     return parse(tokens);
@@ -151,19 +110,20 @@ Expression::decorate(const plugins::RawRegistry& raw_registry) const
 {
     DecorateContext context(raw_registry);
     TraceBlock block(context, "Start semantic analysis");
-    return decorate(context).ast_node;
+    return decorate(context).expression;
 }
 
-LetNode::LetNode(
+LetExpression::LetExpression(
     std::vector<std::pair<std::string, std::unique_ptr<Expression>>>
         variable_definitions,
     std::unique_ptr<Expression> nested_value)
-    : variable_definitions(move(variable_definitions))
-    , nested_value(move(nested_value))
+    : variable_definitions(std::move(variable_definitions))
+    , nested_value(std::move(nested_value))
 {
 }
 
-TypedDecoratedAstNodePtr LetNode::decorate(DecorateContext& context) const
+TypedDecoratedExpressionPtr
+LetExpression::decorate(DecorateContext& context) const
 {
     TraceBlock _(
         context,
@@ -178,15 +138,15 @@ TypedDecoratedAstNodePtr LetNode::decorate(DecorateContext& context) const
     for (const auto& [variable_name, variable_definition] :
          variable_definitions) {
         TraceBlock _(context, "Check variable definition");
-        auto [ast_node, type] = variable_definition->decorate(context);
+        auto [expression, type] = variable_definition->decorate(context);
         auto& definition = decorated_variable_definitions.emplace_back(
             variable_name,
-            std::move(ast_node));
+            std::move(expression));
 
         context.add_variable(variable_name, *type, definition);
     }
 
-    TypedDecoratedAstNodePtr decorated_nested_value;
+    TypedDecoratedExpressionPtr decorated_nested_value;
 
     {
         TraceBlock _(context, "Check nested expression.");
@@ -196,13 +156,13 @@ TypedDecoratedAstNodePtr LetNode::decorate(DecorateContext& context) const
     context.leave_scope();
 
     return {
-        std::make_unique<DecoratedLetNode>(
-            move(decorated_variable_definitions),
-            move(decorated_nested_value.ast_node)),
-        decorated_nested_value.type};
+        .expression = std::make_unique<DecoratedLetExpression>(
+            std::move(decorated_variable_definitions),
+            std::move(decorated_nested_value.expression)),
+        .type = decorated_nested_value.type};
 }
 
-void LetNode::dump(string indent) const
+void LetExpression::dump(string indent) const
 {
     cout << indent << "LET:";
 
@@ -218,45 +178,45 @@ void LetNode::dump(string indent) const
     nested_value->dump("| " + indent);
 }
 
-FunctionCallNode::FunctionCallNode(
+FunctionCallExpression::FunctionCallExpression(
     std::unique_ptr<Expression> callee,
     vector<std::unique_ptr<Expression>>&& positional_arguments,
     unordered_map<string, std::unique_ptr<Expression>>&& keyword_arguments,
-    const string& unparsed_config)
+    string unparsed_config)
     : callee(std::move(callee))
-    , positional_arguments(move(positional_arguments))
-    , keyword_arguments(move(keyword_arguments))
-    , unparsed_config(unparsed_config)
+    , positional_arguments(std::move(positional_arguments))
+    , keyword_arguments(std::move(keyword_arguments))
+    , unparsed_config(std::move(unparsed_config))
 {
 }
 
 static std::unique_ptr<DecoratedExpression> decorate_and_convert(
-    Expression& node,
+    const Expression& expression,
     const plugins::Type& target_type,
     DecorateContext& context)
 {
-    TypedDecoratedAstNodePtr decorated_node = node.decorate(context);
+    auto [decorated_expression, type] = expression.decorate(context);
 
-    if (*decorated_node.type != target_type) {
-        TraceBlock block(context, "Adding casting node");
-        if (decorated_node.type->can_convert_into(target_type)) {
-            return std::make_unique<ConvertNode>(
-                move(decorated_node.ast_node),
-                *decorated_node.type,
+    if (*type != target_type) {
+        TraceBlock block(context, "Adding casting expression");
+        if (type->can_convert_into(target_type)) {
+            return std::make_unique<DecoratedConvertExpression>(
+                std::move(decorated_expression),
+                *type,
                 target_type);
         }
 
         context.error(
             "Cannot convert from type '{}' to type '{}'\n",
-            decorated_node.type->name(),
+            type->name(),
             target_type.name());
     }
 
-    return std::move(decorated_node.ast_node);
+    return std::move(decorated_expression);
 }
 
-bool FunctionCallNode::collect_argument(
-    Expression& arg,
+bool FunctionCallExpression::collect_argument(
+    const Expression& arg,
     const plugins::ArgumentInfo& arg_info,
     DecorateContext& context,
     CollectedArguments& arguments,
@@ -269,37 +229,37 @@ bool FunctionCallNode::collect_argument(
         decorate_and_convert(arg, arg_info.type, context);
 
     if (arg_info.bounds.has_bound()) {
-        std::unique_ptr<DecoratedExpression> decorated_min_node;
+        std::unique_ptr<DecoratedExpression> decorated_min_expression;
         {
             TraceBlock block(context, "Handling lower bound");
-            std::unique_ptr<Expression> min_node =
-                parse_ast_node(arg_info.bounds.min, context);
-            decorated_min_node =
-                decorate_and_convert(*min_node, arg_info.type, context);
+            const std::unique_ptr<Expression> min_expression =
+                parse_expression(arg_info.bounds.min, context);
+            decorated_min_expression =
+                decorate_and_convert(*min_expression, arg_info.type, context);
         }
-        std::unique_ptr<DecoratedExpression> decorated_max_node;
+        std::unique_ptr<DecoratedExpression> decorated_max_expression;
         {
             TraceBlock block(context, "Handling upper bound");
-            std::unique_ptr<Expression> max_node =
-                parse_ast_node(arg_info.bounds.max, context);
-            decorated_max_node =
-                decorate_and_convert(*max_node, arg_info.type, context);
+            const std::unique_ptr<Expression> max_expression =
+                parse_expression(arg_info.bounds.max, context);
+            decorated_max_expression =
+                decorate_and_convert(*max_expression, arg_info.type, context);
         }
-        decorated_arg = std::make_unique<CheckBoundsNode>(
-            move(decorated_arg),
-            move(decorated_min_node),
-            move(decorated_max_node));
+        decorated_arg = std::make_unique<DecoratedCheckBoundsExpression>(
+            std::move(decorated_arg),
+            std::move(decorated_min_expression),
+            std::move(decorated_max_expression));
     }
 
     arguments.emplace(
         std::piecewise_construct,
         std::forward_as_tuple(key),
-        std::forward_as_tuple(move(decorated_arg), is_default));
+        std::forward_as_tuple(std::move(decorated_arg), is_default));
 
     return true;
 }
 
-void FunctionCallNode::collect_keyword_arguments(
+void FunctionCallExpression::collect_keyword_arguments(
     const vector<plugins::ArgumentInfo>& argument_infos,
     DecorateContext& context,
     CollectedArguments& arguments) const
@@ -335,15 +295,16 @@ void FunctionCallNode::collect_keyword_arguments(
 }
 
 /* This function has to be called *AFTER* collect_keyword_arguments. */
-void FunctionCallNode::collect_positional_arguments(
+void FunctionCallExpression::collect_positional_arguments(
     const vector<plugins::ArgumentInfo>& argument_infos,
     DecorateContext& context,
     CollectedArguments& arguments) const
 {
     // Check if too many arguments are specified for the plugin
-    int num_pos_args = positional_arguments.size();
-    int num_kwargs = keyword_arguments.size();
-    if (num_pos_args + num_kwargs > static_cast<int>(argument_infos.size())) {
+    const std::size_t num_pos_args = positional_arguments.size();
+    const std::size_t num_kwargs = keyword_arguments.size();
+
+    if (num_pos_args + num_kwargs > argument_infos.size()) {
         vector<string> allowed_keys;
         allowed_keys.reserve(argument_infos.size());
         for (const auto& arg_info : argument_infos) {
@@ -354,7 +315,7 @@ void FunctionCallNode::collect_positional_arguments(
             if (i < argument_infos.size()) {
                 given_positional_keys.push_back(argument_infos[i].key);
             } else {
-                given_positional_keys.push_back("?");
+                given_positional_keys.emplace_back("?");
             }
         }
         vector<string> given_keyword_keys = get_keys(keyword_arguments);
@@ -369,7 +330,7 @@ void FunctionCallNode::collect_positional_arguments(
             given_keyword_keys);
     }
 
-    for (int i = 0; i < num_pos_args; ++i) {
+    for (std::size_t i = 0; i < num_pos_args; ++i) {
         Expression& arg = *positional_arguments[i];
         const plugins::ArgumentInfo& arg_info = argument_infos[i];
         TraceBlock block(
@@ -392,7 +353,7 @@ void FunctionCallNode::collect_positional_arguments(
 }
 
 /* This function has to be called *AFTER* collect_positional_arguments. */
-void FunctionCallNode::collect_default_values(
+void FunctionCallExpression::collect_default_values(
     const vector<plugins::ArgumentInfo>& argument_infos,
     DecorateContext& context,
     CollectedArguments& arguments)
@@ -408,8 +369,8 @@ void FunctionCallNode::collect_default_values(
             if (arg_info.has_default()) {
                 std::unique_ptr<Expression> arg;
                 {
-                    TraceBlock block(context, "Parsing default value");
-                    arg = parse_ast_node(arg_info.default_value, context);
+                    TraceBlock _(context, "Parsing default value");
+                    arg = parse_expression(arg_info.default_value, context);
                 }
                 const bool success =
                     collect_argument(*arg, arg_info, context, arguments, true);
@@ -426,16 +387,17 @@ void FunctionCallNode::collect_default_values(
     }
 }
 
-TypedDecoratedAstNodePtr
-FunctionCallNode::decorate(DecorateContext& context) const
+TypedDecoratedExpressionPtr
+FunctionCallExpression::decorate(DecorateContext& context) const
 {
     TraceBlock block(context, "Checking Function Call");
 
-    const IdentifierNode* node = dynamic_cast<IdentifierNode*>(callee.get());
+    const IdentifierExpression* expression =
+        dynamic_cast<IdentifierExpression*>(callee.get());
 
-    if (!node) { context.error("Callee is not a variable!"); }
+    if (!expression) { context.error("Callee is not a variable!"); }
 
-    const std::string& name = node->get_identifier().content;
+    const std::string& name = expression->get_identifier().content;
 
     const plugins::Registry& registry = context.get_registry();
     if (!registry.has_feature(name)) {
@@ -454,24 +416,26 @@ FunctionCallNode::decorate(DecorateContext& context) const
     vector<std::pair<std::string, FunctionArgument>> arguments;
     arguments.reserve(arguments_by_key.size());
 
-    for (auto& val : arguments_by_key) { arguments.push_back(move(val)); }
+    for (auto& val : arguments_by_key) {
+        arguments.emplace_back(std::move(val));
+    }
 
     return {
-        std::make_unique<DecoratedFunctionCallNode>(
+        .expression = std::make_unique<DecoratedFunctionCallExpression>(
             feature,
-            move(arguments),
+            std::move(arguments),
             unparsed_config),
-        &feature->get_type()};
+        .type = &feature->get_type()};
 }
 
-void FunctionCallNode::dump(string indent) const
+void FunctionCallExpression::dump(string indent) const
 {
     cout << indent << "FUNC:" << endl;
     callee->dump("| " + indent);
     indent = "| " + indent;
     cout << indent << "POSITIONAL ARGS:" << endl;
-    for (const std::unique_ptr<Expression>& node : positional_arguments) {
-        node->dump("| " + indent);
+    for (const std::unique_ptr<Expression>& expression : positional_arguments) {
+        expression->dump("| " + indent);
     }
     cout << indent << "KEYWORD ARGS:" << endl;
     for (const auto& pair : keyword_arguments) {
@@ -480,8 +444,8 @@ void FunctionCallNode::dump(string indent) const
     }
 }
 
-ListNode::ListNode(vector<std::unique_ptr<Expression>>&& elements)
-    : elements(move(elements))
+ListExpression::ListExpression(vector<std::unique_ptr<Expression>>&& elements)
+    : elements(std::move(elements))
 {
 }
 
@@ -490,7 +454,7 @@ get_common_element_type(const std::vector<const plugins::Type*>& types)
 {
     const plugins::Type* common_element_type = nullptr;
     for (const plugins::Type* element_type : types) {
-        if ((!common_element_type) ||
+        if (!common_element_type ||
             (!element_type->can_convert_into(*common_element_type) &&
              common_element_type->can_convert_into(*element_type))) {
             common_element_type = element_type;
@@ -501,7 +465,8 @@ get_common_element_type(const std::vector<const plugins::Type*>& types)
     return common_element_type;
 }
 
-TypedDecoratedAstNodePtr ListNode::decorate(DecorateContext& context) const
+TypedDecoratedExpressionPtr
+ListExpression::decorate(DecorateContext& context) const
 {
     TraceBlock block(context, "Checking list");
     vector<std::unique_ptr<DecoratedExpression>> decorated_elements;
@@ -509,15 +474,18 @@ TypedDecoratedAstNodePtr ListNode::decorate(DecorateContext& context) const
 
     if (elements.empty()) {
         return {
-            std::make_unique<DecoratedListNode>(move(decorated_elements)),
-            &plugins::TypeRegistry::EMPTY_LIST_TYPE};
+            .expression = std::make_unique<DecoratedListExpression>(
+                std::move(decorated_elements)),
+            .type = &plugins::TypeRegistry::EMPTY_LIST_TYPE};
     }
+
     for (size_t i = 0; i < elements.size(); i++) {
-        TraceBlock block(context, "Checking {}. element", i);
-        TypedDecoratedAstNodePtr decorated_element_node =
+        TraceBlock _(context, "Checking {}. element", i);
+        TypedDecoratedExpressionPtr decorated_element_expression =
             elements[i]->decorate(context);
-        decorated_elements.push_back(move(decorated_element_node.ast_node));
-        types.push_back(decorated_element_node.type);
+        decorated_elements.push_back(
+            std::move(decorated_element_expression.expression));
+        types.push_back(decorated_element_expression.type);
     }
 
     const plugins::Type* common_element_type = get_common_element_type(types);
@@ -537,137 +505,134 @@ TypedDecoratedAstNodePtr ListNode::decorate(DecorateContext& context) const
         if (const plugins::Type* element_type = types[i];
             element_type != common_element_type) {
             assert(element_type->can_convert_into(*common_element_type));
-            std::unique_ptr<DecoratedExpression>& decorated_element_node =
+            std::unique_ptr<DecoratedExpression>& decorated_element_expression =
                 decorated_elements[i];
-            decorated_element_node = std::make_unique<ConvertNode>(
-                move(decorated_element_node),
-                *element_type,
-                *common_element_type);
+            decorated_element_expression =
+                std::make_unique<DecoratedConvertExpression>(
+                    std::move(decorated_element_expression),
+                    *element_type,
+                    *common_element_type);
         }
     }
 
     return {
-        std::make_unique<DecoratedListNode>(move(decorated_elements)),
-        &plugins::TypeRegistry::instance()->create_list_type(
+        .expression = std::make_unique<DecoratedListExpression>(
+            std::move(decorated_elements)),
+        .type = &plugins::TypeRegistry::instance()->create_list_type(
             *common_element_type)};
 }
 
-void ListNode::dump(string indent) const
+void ListExpression::dump(string indent) const
 {
     cout << indent << "LIST:" << endl;
     indent = "| " + indent;
-    for (const std::unique_ptr<Expression>& node : elements) {
-        node->dump(indent);
+    for (const std::unique_ptr<Expression>& expression : elements) {
+        expression->dump(indent);
     }
 }
 
-IdentifierNode::IdentifierNode(const Token& identifier)
-    : identifier(identifier)
+IdentifierExpression::IdentifierExpression(Token identifier)
+    : identifier(std::move(identifier))
 {
 }
 
-const Token& IdentifierNode::get_identifier() const
-{
-    return identifier;
-}
+const Token& IdentifierExpression::get_identifier() const
+{ return identifier; }
 
-TypedDecoratedAstNodePtr
-IdentifierNode::decorate(DecorateContext& context) const
+TypedDecoratedExpressionPtr
+IdentifierExpression::decorate(DecorateContext& context) const
 {
     TraceBlock block(context, "Checking Identifier: {}", identifier.content);
-    if (context.has_variable(identifier.content)) {
+    if (const auto* td = context.get_typed_definition(identifier.content)) {
         if (identifier.type != TokenType::IDENTIFIER) {
             throw ContextError(
                 "A non-identifier token was defined as variable.");
         }
-        const string& variable_name = identifier.content;
-        auto& def = context.get_variable_definition(variable_name);
-        auto n = std::make_unique<VariableNode>(def);
-        def.usages.push_back(n.get());
-        return {std::move(n), &context.get_variable_type(variable_name)};
+
+        auto n =
+            std::make_unique<DecoratedIdentifierExpression>(*td->definition);
+        td->definition->usages.push_back(n.get());
+        return {.expression = std::move(n), .type = td->type};
     }
 
     return {
-        std::make_unique<SymbolNode>(identifier.content),
-        &plugins::TypeRegistry::SYMBOL_TYPE};
+        .expression =
+            std::make_unique<DecoratedSymbolExpression>(identifier.content),
+        .type = &plugins::TypeRegistry::SYMBOL_TYPE};
 }
 
-void IdentifierNode::dump(std::string indent) const
+void IdentifierExpression::dump(std::string indent) const
 {
     cout << indent << token_type_name(identifier.type) << ": "
          << identifier.content << endl;
 }
 
-LiteralNode::LiteralNode(const Token& value)
-    : value(value)
+LiteralExpression::LiteralExpression(Token value)
+    : value(std::move(value))
 {
 }
 
-TypedDecoratedAstNodePtr LiteralNode::decorate(DecorateContext& context) const
+TypedDecoratedExpressionPtr
+LiteralExpression::decorate(DecorateContext& context) const
 {
     TraceBlock block(context, "Checking Literal: {}", value.content);
-    if (context.has_variable(value.content)) {
-        if (value.type != TokenType::IDENTIFIER) {
-            throw ContextError(
-                "A non-identifier token was defined as variable.");
-        }
-        const string& variable_name = value.content;
-        auto& def = context.get_variable_definition(variable_name);
-        auto n = std::make_unique<VariableNode>(def);
-        def.usages.push_back(n.get());
-        return {std::move(n), &context.get_variable_type(variable_name)};
-    }
 
     switch (value.type) {
     case TokenType::TRUE:
         return {
-            std::make_unique<BoolLiteralNode>(true),
-            &plugins::TypeRegistry::instance()->get_type<bool>()};
+            .expression =
+                std::make_unique<DecoratedBoolLiteralExpression>(true),
+            .type = &plugins::TypeRegistry::instance()->get_type<bool>()};
     case TokenType::FALSE:
         return {
-            std::make_unique<BoolLiteralNode>(false),
-            &plugins::TypeRegistry::instance()->get_type<bool>()};
+            .expression =
+                std::make_unique<DecoratedBoolLiteralExpression>(false),
+            .type = &plugins::TypeRegistry::instance()->get_type<bool>()};
     case TokenType::STRING:
         return {
-            std::make_unique<StringLiteralNode>(value.content),
-            &plugins::TypeRegistry::instance()->get_type<string>()};
+            .expression = std::make_unique<DecoratedStringLiteralExpression>(
+                value.content),
+            .type = &plugins::TypeRegistry::instance()->get_type<string>()};
     case TokenType::INTEGER:
         return {
-            std::make_unique<IntLiteralNode>(value.content),
-            &plugins::TypeRegistry::instance()->get_type<int>()};
+            .expression =
+                std::make_unique<DecoratedIntLiteralExpression>(value.content),
+            .type = &plugins::TypeRegistry::instance()->get_type<int>()};
     case TokenType::FLOAT:
         return {
-            std::make_unique<FloatLiteralNode>(value.content),
-            &plugins::TypeRegistry::instance()->get_type<double>()};
+            .expression = std::make_unique<DecoratedFloatLiteralExpression>(
+                value.content),
+            .type = &plugins::TypeRegistry::instance()->get_type<double>()};
     default:
         throw ContextError(
-            "LiteralNode has unexpected token type '{}'.",
+            "LiteralExpression has unexpected token type '{}'.",
             token_type_name(value.type));
     }
 }
 
-void LiteralNode::dump(string indent) const
+void LiteralExpression::dump(string indent) const
 {
     cout << indent << token_type_name(value.type) << ": " << value.content
          << endl;
 }
 
-PrefixNode::PrefixNode(
-    const Token& expr_operator,
+PrefixExpression::PrefixExpression(
+    Token expr_operator,
     std::unique_ptr<Expression> operand)
-    : expr_operator(expr_operator)
+    : expr_operator(std::move(expr_operator))
     , operand(std::move(operand))
 {
 }
 
-TypedDecoratedAstNodePtr PrefixNode::decorate(DecorateContext& context) const
+TypedDecoratedExpressionPtr
+PrefixExpression::decorate(DecorateContext& context) const
 {
     TraceBlock block(
         context,
         "Checking Prefix Expression: {}",
         expr_operator.content);
 
-    auto [node, type] = operand->decorate(context);
+    auto [expression, type] = operand->decorate(context);
 
     switch (expr_operator.type) {
     case TokenType::PLUS:
@@ -677,21 +642,20 @@ TypedDecoratedAstNodePtr PrefixNode::decorate(DecorateContext& context) const
                 "Operand does not have type int.",
                 token_type_name(expr_operator.type));
         }
+
         return {
-            std::make_unique<DecoratedUnaryNode>(
+            .expression = std::make_unique<DecoratedUnaryExpression>(
                 expr_operator,
-                std::move(node)),
-            &plugins::TypeRegistry::instance()->get_type<int>()};
+                std::move(expression)),
+            .type = &plugins::TypeRegistry::instance()->get_type<int>()};
     default:
         throw ContextError(
-            "Unary expression node has unexpected token type '{}'.",
+            "Unary expression expression has unexpected token type '{}'.",
             token_type_name(expr_operator.type));
     }
 }
 
-void PrefixNode::dump(string indent) const
-{
-    cout << indent << "UNARY: " << expr_operator.content << endl;
-}
+void PrefixExpression::dump(string indent) const
+{ cout << indent << "UNARY: " << expr_operator.content << endl; }
 
 } // namespace language::parser

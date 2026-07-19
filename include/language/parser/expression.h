@@ -15,8 +15,8 @@ namespace language::parser {
 class DecoratedExpression;
 class DecorateContext;
 
-struct TypedDecoratedAstNodePtr {
-    std::unique_ptr<DecoratedExpression> ast_node;
+struct TypedDecoratedExpressionPtr {
+    std::unique_ptr<DecoratedExpression> expression;
     const plugins::Type* type;
 };
 
@@ -27,7 +27,7 @@ public:
     std::unique_ptr<DecoratedExpression>
     decorate(const plugins::RawRegistry& raw_registry) const;
 
-    virtual TypedDecoratedAstNodePtr
+    virtual TypedDecoratedExpressionPtr
     decorate(DecorateContext& context) const = 0;
 
     virtual void dump(std::string indent = "+") const = 0;
