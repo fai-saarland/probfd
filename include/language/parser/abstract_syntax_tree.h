@@ -1,5 +1,5 @@
-#ifndef PARSER_ABSTRACT_SYNTAX_TREE_H
-#define PARSER_ABSTRACT_SYNTAX_TREE_H
+#ifndef LANGUAGE_PARSER_ABSTRACT_SYNTAX_TREE_H
+#define LANGUAGE_PARSER_ABSTRACT_SYNTAX_TREE_H
 
 #include "language/parser/decorated_abstract_syntax_tree.h"
 #include "language/parser/expression.h"
