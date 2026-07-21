@@ -6,6 +6,6 @@
 namespace language::parser {
 class TokenStream;
 
-extern TokenStream split_tokens(const std::string& text);
+extern TokenStream split_tokens(std::string_view text);
 } // namespace language::parser
 #endif

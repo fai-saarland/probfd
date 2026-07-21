@@ -60,7 +60,7 @@ static vector<pair<TokenType, regex>> construct_token_type_expressions()
 static const vector<pair<TokenType, regex>> token_type_expressions =
     construct_token_type_expressions();
 
-static string highlight_position(const string& text, string::const_iterator pos)
+static string highlight_position(string_view text, const char* pos)
 {
     ostringstream message_stream;
     int distance_to_highlight = pos - text.begin();
@@ -86,38 +86,34 @@ static string highlight_position(const string& text, string::const_iterator pos)
     return message;
 }
 
-TokenStream split_tokens(const string& text)
+TokenStream split_tokens(std::string_view text)
 {
     Context context;
     TraceBlock block(context, "Splitting Tokens.");
 
     vector<Token> tokens;
-    auto start = text.begin();
-    auto end = text.end();
 
-    while (start != end) {
-        bool has_match = false;
-        smatch match;
-
+    for (std::ranges::subrange chars = text; !chars.empty();) {
         for (const auto& [token_type, expression] : token_type_expressions) {
-            if (regex_search(
-                    start,
-                    end,
+            if (cmatch match; regex_search(
+                    chars.begin(),
+                    chars.end(),
                     match,
                     expression,
                     regex_constants::match_continuous)) {
                 tokens.emplace_back(match[1], token_type);
-                start += match[0].length();
-                has_match = true;
-                break;
+                chars.advance(match[0].length());
+                goto continue_next_token;
             }
         }
-        if (!has_match) {
-            context.error(
-                "Unable to recognize next token:\n{}",
-                highlight_position(text, start));
-        }
+
+        context.error(
+            "Unable to recognize next token:\n{}",
+            highlight_position(text, chars.begin()));
+
+    continue_next_token:
     }
+
     return TokenStream(move(tokens));
 }
 } // namespace language::parser
