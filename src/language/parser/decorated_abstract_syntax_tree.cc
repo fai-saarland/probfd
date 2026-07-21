@@ -15,6 +15,7 @@
 using namespace std;
 
 namespace {
+
 bool is_product_within_limit(int factor1, int factor2, int limit)
 {
     assert(factor1 >= 0);
@@ -51,18 +52,21 @@ bool is_product_within_limits(
 
     if (factor1 >= 0 && factor2 >= 0) {
         return is_product_within_limit(factor1, factor2, upper_limit);
-    } else if (factor1 < 0 && factor2 < 0) {
+    }
+
+    if (factor1 < 0 && factor2 < 0) {
         return is_product_within_limit_unsigned(
             safe_abs(factor1),
             safe_abs(factor2),
             upper_limit);
-    } else {
-        return is_product_within_limit_unsigned(
-            safe_abs(factor1),
-            safe_abs(factor2),
-            safe_abs(lower_limit));
     }
+
+    return is_product_within_limit_unsigned(
+        safe_abs(factor1),
+        safe_abs(factor2),
+        safe_abs(lower_limit));
 }
+
 } // namespace
 
 namespace language::parser {
@@ -148,7 +152,8 @@ void DecoratedLetExpression::prune_unused_definitions(
 {
     nested_value->prune_unused_definitions(defs);
 
-    for (auto& declaration : std::views::reverse(decorated_variable_definitions)) {
+    for (auto& declaration :
+         std::views::reverse(decorated_variable_definitions)) {
         if (declaration.usages.empty()) {
             declaration.variable_expression->remove_variable_usages();
         }
@@ -469,7 +474,7 @@ DecoratedStringLiteralExpression::construct(ConstructContext& context) const
     string result;
     result.reserve(value.length() - 2);
     bool escaped = false;
-    for (char c : value.substr(1, value.size() - 2)) {
+    for (const char c : value.substr(1, value.size() - 2)) {
         if (escaped) {
             escaped = false;
             if (c == 'n') {
@@ -510,7 +515,9 @@ DecoratedIntLiteralExpression::construct(ConstructContext& context) const
             " (this should have been caught before constructing this "
             "Expression).",
             value);
-    } else if (value == "infinity") {
+    }
+
+    if (value == "infinity") {
         return numeric_limits<int>::max();
     }
 
@@ -578,19 +585,19 @@ DecoratedFloatLiteralExpression::construct(ConstructContext& context) const
     TraceBlock _(context, "Constructing float value from '{}'", value);
     if (value == "infinity") {
         return numeric_limits<double>::infinity();
-    } else {
-        istringstream stream(value);
-        double x;
-        stream >> noskipws >> x;
-        if (stream.fail() || !stream.eof()) {
-            context.error(
-                "Could not parse double constant '{}"
-                " (this should have been caught before constructing this "
-                "Expression).",
-                value);
-        }
-        return x;
     }
+
+    istringstream stream(value);
+    double x;
+    stream >> noskipws >> x;
+    if (stream.fail() || !stream.eof()) {
+        context.error(
+            "Could not parse double constant '{}"
+            " (this should have been caught before constructing this "
+            "Expression).",
+            value);
+    }
+    return x;
 }
 
 void DecoratedFloatLiteralExpression::print(
@@ -686,7 +693,7 @@ satisfies_bounds(const std::any& v_, const std::any& min_, const std::any& max_)
     T v = std::any_cast<T>(v_);
     T min = std::any_cast<T>(min_);
     T max = std::any_cast<T>(max_);
-    return (min <= v) && (v <= max);
+    return min <= v && v <= max;
 }
 
 std::any

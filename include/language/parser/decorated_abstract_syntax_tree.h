@@ -119,7 +119,7 @@ class DecoratedIdentifierExpression : public DecoratedExpression {
     Declaration* declaration;
 
 public:
-    explicit DecoratedIdentifierExpression(Declaration& definition);
+    explicit DecoratedIdentifierExpression(Declaration& declaration);
 
     void remove_variable_usages() override;
 
