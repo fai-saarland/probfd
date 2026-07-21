@@ -29,6 +29,7 @@ create_library(
     HELP "Option parsing"
     SOURCES
     language/parser/abstract_syntax_tree
+    language/parser/declaration
     language/parser/decorated_abstract_syntax_tree
     language/parser/lexical_analyzer
     language/parser/syntax_analyzer

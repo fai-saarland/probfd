@@ -1,5 +1,6 @@
 #include "language/parser/abstract_syntax_tree.h"
 
+#include "language/parser/declaration.h"
 #include "language/parser/decorated_abstract_syntax_tree.h"
 #include "language/parser/lexical_analyzer.h"
 #include "language/parser/syntax_analyzer.h"
@@ -76,17 +77,28 @@ public:
     const TypedDefinition* get_typed_definition(const string& name) const
     {
         for (const auto& scope : scopes | std::views::reverse) {
-            if (const auto td = scope.get_typed_definition(name)) { return td; }
+            if (const auto td = scope.get_typed_definition(name)) {
+                return td;
+            }
         }
 
         return nullptr;
     }
 
-    void enter_scope() { scopes.emplace_back(); }
+    void enter_scope()
+    {
+        scopes.emplace_back();
+    }
 
-    void leave_scope() { scopes.pop_back(); }
+    void leave_scope()
+    {
+        scopes.pop_back();
+    }
 
-    const plugins::Registry& get_registry() const { return registry; }
+    const plugins::Registry& get_registry() const
+    {
+        return registry;
+    }
 };
 
 template <typename T, typename K>
@@ -94,7 +106,9 @@ static vector<T> get_keys(const unordered_map<T, K>& map)
 {
     vector<T> keys;
     keys.reserve(map.size());
-    for (const auto& key_value : map) { keys.push_back(key_value.first); }
+    for (const auto& key_value : map) {
+        keys.push_back(key_value.first);
+    }
     return keys;
 }
 
@@ -155,11 +169,10 @@ LetExpression::decorate(DecorateContext& context) const
 
     context.leave_scope();
 
-    return {
-        .expression = std::make_unique<DecoratedLetExpression>(
-            std::move(decorated_variable_definitions),
-            std::move(decorated_nested_value.expression)),
-        .type = decorated_nested_value.type};
+    return {.expression = std::make_unique<DecoratedLetExpression>(
+                std::move(decorated_variable_definitions),
+                std::move(decorated_nested_value.expression)),
+            .type = decorated_nested_value.type};
 }
 
 void LetExpression::dump(string indent) const
@@ -223,7 +236,9 @@ bool FunctionCallExpression::collect_argument(
     bool is_default)
 {
     string key = arg_info.key;
-    if (arguments.contains(key)) { return false; }
+    if (arguments.contains(key)) {
+        return false;
+    }
 
     std::unique_ptr<DecoratedExpression> decorated_arg =
         decorate_and_convert(arg, arg_info.type, context);
@@ -395,7 +410,9 @@ FunctionCallExpression::decorate(DecorateContext& context) const
     const IdentifierExpression* expression =
         dynamic_cast<IdentifierExpression*>(callee.get());
 
-    if (!expression) { context.error("Callee is not a variable!"); }
+    if (!expression) {
+        context.error("Callee is not a variable!");
+    }
 
     const std::string& name = expression->get_identifier().content;
 
@@ -420,12 +437,11 @@ FunctionCallExpression::decorate(DecorateContext& context) const
         arguments.emplace_back(std::move(val));
     }
 
-    return {
-        .expression = std::make_unique<DecoratedFunctionCallExpression>(
-            feature,
-            std::move(arguments),
-            unparsed_config),
-        .type = &feature->get_type()};
+    return {.expression = std::make_unique<DecoratedFunctionCallExpression>(
+                feature,
+                std::move(arguments),
+                unparsed_config),
+            .type = &feature->get_type()};
 }
 
 void FunctionCallExpression::dump(string indent) const
@@ -473,10 +489,9 @@ ListExpression::decorate(DecorateContext& context) const
     vector<const plugins::Type*> types;
 
     if (elements.empty()) {
-        return {
-            .expression = std::make_unique<DecoratedListExpression>(
-                std::move(decorated_elements)),
-            .type = &plugins::TypeRegistry::EMPTY_LIST_TYPE};
+        return {.expression = std::make_unique<DecoratedListExpression>(
+                    std::move(decorated_elements)),
+                .type = &plugins::TypeRegistry::EMPTY_LIST_TYPE};
     }
 
     for (size_t i = 0; i < elements.size(); i++) {
@@ -515,11 +530,10 @@ ListExpression::decorate(DecorateContext& context) const
         }
     }
 
-    return {
-        .expression = std::make_unique<DecoratedListExpression>(
-            std::move(decorated_elements)),
-        .type = &plugins::TypeRegistry::instance()->create_list_type(
-            *common_element_type)};
+    return {.expression = std::make_unique<DecoratedListExpression>(
+                std::move(decorated_elements)),
+            .type = &plugins::TypeRegistry::instance()->create_list_type(
+                *common_element_type)};
 }
 
 void ListExpression::dump(string indent) const
@@ -537,7 +551,9 @@ IdentifierExpression::IdentifierExpression(Token identifier)
 }
 
 const Token& IdentifierExpression::get_identifier() const
-{ return identifier; }
+{
+    return identifier;
+}
 
 TypedDecoratedExpressionPtr
 IdentifierExpression::decorate(DecorateContext& context) const
@@ -555,10 +571,9 @@ IdentifierExpression::decorate(DecorateContext& context) const
         return {.expression = std::move(n), .type = td->type};
     }
 
-    return {
-        .expression =
-            std::make_unique<DecoratedSymbolExpression>(identifier.content),
-        .type = &plugins::TypeRegistry::SYMBOL_TYPE};
+    return {.expression =
+                std::make_unique<DecoratedSymbolExpression>(identifier.content),
+            .type = &plugins::TypeRegistry::SYMBOL_TYPE};
 }
 
 void IdentifierExpression::dump(std::string indent) const
@@ -579,30 +594,26 @@ LiteralExpression::decorate(DecorateContext& context) const
 
     switch (value.type) {
     case TokenType::TRUE:
-        return {
-            .expression =
-                std::make_unique<DecoratedBoolLiteralExpression>(true),
-            .type = &plugins::TypeRegistry::instance()->get_type<bool>()};
+        return {.expression =
+                    std::make_unique<DecoratedBoolLiteralExpression>(true),
+                .type = &plugins::TypeRegistry::instance()->get_type<bool>()};
     case TokenType::FALSE:
-        return {
-            .expression =
-                std::make_unique<DecoratedBoolLiteralExpression>(false),
-            .type = &plugins::TypeRegistry::instance()->get_type<bool>()};
+        return {.expression =
+                    std::make_unique<DecoratedBoolLiteralExpression>(false),
+                .type = &plugins::TypeRegistry::instance()->get_type<bool>()};
     case TokenType::STRING:
-        return {
-            .expression = std::make_unique<DecoratedStringLiteralExpression>(
-                value.content),
-            .type = &plugins::TypeRegistry::instance()->get_type<string>()};
+        return {.expression =
+                    std::make_unique<DecoratedStringLiteralExpression>(
+                        value.content),
+                .type = &plugins::TypeRegistry::instance()->get_type<string>()};
     case TokenType::INTEGER:
-        return {
-            .expression =
-                std::make_unique<DecoratedIntLiteralExpression>(value.content),
-            .type = &plugins::TypeRegistry::instance()->get_type<int>()};
+        return {.expression = std::make_unique<DecoratedIntLiteralExpression>(
+                    value.content),
+                .type = &plugins::TypeRegistry::instance()->get_type<int>()};
     case TokenType::FLOAT:
-        return {
-            .expression = std::make_unique<DecoratedFloatLiteralExpression>(
-                value.content),
-            .type = &plugins::TypeRegistry::instance()->get_type<double>()};
+        return {.expression = std::make_unique<DecoratedFloatLiteralExpression>(
+                    value.content),
+                .type = &plugins::TypeRegistry::instance()->get_type<double>()};
     default:
         throw ContextError(
             "LiteralExpression has unexpected token type '{}'.",
@@ -643,11 +654,10 @@ PrefixExpression::decorate(DecorateContext& context) const
                 token_type_name(expr_operator.type));
         }
 
-        return {
-            .expression = std::make_unique<DecoratedUnaryExpression>(
-                expr_operator,
-                std::move(expression)),
-            .type = &plugins::TypeRegistry::instance()->get_type<int>()};
+        return {.expression = std::make_unique<DecoratedUnaryExpression>(
+                    expr_operator,
+                    std::move(expression)),
+                .type = &plugins::TypeRegistry::instance()->get_type<int>()};
     default:
         throw ContextError(
             "Unary expression expression has unexpected token type '{}'.",
@@ -656,6 +666,8 @@ PrefixExpression::decorate(DecorateContext& context) const
 }
 
 void PrefixExpression::dump(string indent) const
-{ cout << indent << "UNARY: " << expr_operator.content << endl; }
+{
+    cout << indent << "UNARY: " << expr_operator.content << endl;
+}
 
 } // namespace language::parser

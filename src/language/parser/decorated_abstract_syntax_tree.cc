@@ -1,5 +1,7 @@
 #include "language/parser/decorated_abstract_syntax_tree.h"
 
+#include "language/parser/declaration.h"
+
 #include "language/plugins/options.h"
 #include "language/plugins/plugin.h"
 #include "language/plugins/types.h"
@@ -96,34 +98,6 @@ std::any ConstructContext::get_variable(const string& name) const
     return variable;
 }
 
-VariableDefinition::VariableDefinition(
-    std::string variable_name,
-    std::unique_ptr<DecoratedExpression> variable_expression)
-    : variable_name(std::move(variable_name))
-    , variable_expression(std::move(variable_expression))
-{
-}
-
-VariableDefinition::VariableDefinition(VariableDefinition&& other) noexcept
-    : variable_name(std::move(other.variable_name))
-    , variable_expression(std::move(other.variable_expression))
-    , usages(std::move(other.usages))
-{
-    for (DecoratedIdentifierExpression* u : usages) { u->definition = this; }
-}
-
-VariableDefinition&
-VariableDefinition::operator=(VariableDefinition&& other) noexcept
-{
-    variable_name = std::move(other.variable_name);
-    variable_expression = std::move(other.variable_expression);
-    usages = std::move(other.usages);
-
-    for (DecoratedIdentifierExpression* u : usages) { u->definition = this; }
-
-    return *this;
-}
-
 std::vector<VariableDefinition> DecoratedExpression::prune_unused_definitions()
 {
     std::vector<VariableDefinition> defs;
@@ -134,7 +108,7 @@ std::vector<VariableDefinition> DecoratedExpression::prune_unused_definitions()
 std::any DecoratedExpression::construct() const
 {
     ConstructContext context;
-    TraceBlock block(context, "Constructing parsed object");
+    TraceBlock _(context, "Constructing parsed object");
     return construct(context);
 }
 
@@ -174,15 +148,15 @@ void DecoratedLetExpression::prune_unused_definitions(
 {
     nested_value->prune_unused_definitions(defs);
 
-    for (auto& def : std::views::reverse(decorated_variable_definitions)) {
-        if (def.usages.empty()) {
-            def.variable_expression->remove_variable_usages();
+    for (auto& declaration : std::views::reverse(decorated_variable_definitions)) {
+        if (declaration.usages.empty()) {
+            declaration.variable_expression->remove_variable_usages();
         }
     }
 
     auto [beg, end] = std::ranges::stable_partition(
         decorated_variable_definitions,
-        [](const auto& def) { return !def.usages.empty(); });
+        [](const auto& declaration) { return !declaration.usages.empty(); });
 
     defs.insert(
         defs.end(),
@@ -194,30 +168,32 @@ void DecoratedLetExpression::prune_unused_definitions(
 
 void DecoratedLetExpression::remove_variable_usages()
 {
-    for (auto& def : decorated_variable_definitions) {
-        def.variable_expression->remove_variable_usages();
+    for (const auto& declaration : decorated_variable_definitions) {
+        declaration.variable_expression->remove_variable_usages();
     }
 }
 
 std::any DecoratedLetExpression::construct(ConstructContext& context) const
 {
-    TraceBlock block(context, "Constructing let-expression");
-    for (const auto& [variable_name, variable_definition, _] :
-         decorated_variable_definitions) {
-        TraceBlock block(context, "Constructing variable '{}'", variable_name);
-        std::any variable_value = variable_definition->construct(context);
-        context.set_variable(variable_name, variable_value);
+    TraceBlock _(context, "Constructing let-expression");
+    for (const auto& declaration : decorated_variable_definitions) {
+        TraceBlock _(
+            context,
+            "Constructing variable '{}'",
+            declaration.identifier);
+        std::any variable_value =
+            declaration.variable_expression->construct(context);
+        context.set_variable(declaration.identifier, variable_value);
     }
 
     std::any result;
     {
-        TraceBlock block(context, "Constructing nested value");
+        TraceBlock _(context, "Constructing nested value");
         result = nested_value->construct(context);
     }
 
-    for (const auto& [variable_name, variable_definition, _] :
-         decorated_variable_definitions) {
-        context.remove_variable(variable_name);
+    for (const auto& declaration : decorated_variable_definitions) {
+        context.remove_variable(declaration.identifier);
     }
 
     return result;
@@ -232,17 +208,22 @@ void DecoratedLetExpression::print(
 
     if (!decorated_variable_definitions.empty()) {
         {
-            const auto& [variable_name, variable_definition, _] =
-                decorated_variable_definitions.front();
-            variable_definition->print(out, indent + 4, print_default_args);
-            std::print(out, " as {}", variable_name);
+            const auto& declaration = decorated_variable_definitions.front();
+            declaration.variable_expression->print(
+                out,
+                indent + 4,
+                print_default_args);
+            std::print(out, " as {}", declaration.identifier);
         }
 
-        for (const auto& [variable_name, variable_definition, _] :
+        for (const auto& declaration :
              decorated_variable_definitions | std::views::drop(1)) {
             std::println(out, ",");
-            variable_definition->print(out, indent + 4, print_default_args);
-            std::print(out, " as {}", variable_name);
+            declaration.variable_expression->print(
+                out,
+                indent + 4,
+                print_default_args);
+            std::print(out, " as {}", declaration.identifier);
         }
     }
 
@@ -272,7 +253,7 @@ void DecoratedFunctionCallExpression::remove_variable_usages()
 std::any
 DecoratedFunctionCallExpression::construct(ConstructContext& context) const
 {
-    TraceBlock block(
+    TraceBlock _(
         context,
         "Constructing feature '{}': {}",
         feature->get_key(),
@@ -281,7 +262,7 @@ DecoratedFunctionCallExpression::construct(ConstructContext& context) const
     plugins::Options opts;
     opts.set_unparsed_config(unparsed_config);
     for (const auto& [key, arg] : arguments) {
-        TraceBlock block(context, "Constructing argument '{}'", key);
+        TraceBlock _(context, "Constructing argument '{}'", key);
         opts.set(key, arg.get_value().construct(context));
     }
     return feature->construct(opts, context);
@@ -329,16 +310,18 @@ DecoratedListExpression::DecoratedListExpression(
 
 void DecoratedListExpression::remove_variable_usages()
 {
-    for (const auto& el : elements) { el->remove_variable_usages(); }
+    for (const auto& el : elements) {
+        el->remove_variable_usages();
+    }
 }
 
 std::any DecoratedListExpression::construct(ConstructContext& context) const
 {
-    TraceBlock block(context, "Constructing list");
+    TraceBlock _(context, "Constructing list");
     vector<std::any> result;
     int i = 0;
     for (const std::unique_ptr<DecoratedExpression>& element : elements) {
-        TraceBlock block(context, "Constructing element {}", i);
+        TraceBlock _(context, "Constructing element {}", i);
         result.push_back(element->construct(context));
         ++i;
     }
@@ -396,39 +379,36 @@ void DecoratedUnaryExpression::print(
     std::size_t indent,
     bool print_default_args) const
 {
-    for (std::size_t i = 0; i != indent; ++i) { out.put(' '); }
+    for (std::size_t i = 0; i != indent; ++i) {
+        out.put(' ');
+    }
     std::print(out, "{}", token.content);
     operand->print(out, 0, print_default_args);
 }
 
 DecoratedIdentifierExpression::DecoratedIdentifierExpression(
-    VariableDefinition& definition)
-    : definition(&definition)
+    Declaration& declaration)
+    : declaration(&declaration)
 {
 }
 
 void DecoratedIdentifierExpression::remove_variable_usages()
 {
-    const auto it = std::ranges::find(definition->usages, this);
-    assert(it != definition->usages.end());
-    definition->usages.erase(it);
+    const auto it = std::ranges::find(declaration->usages, this);
+    assert(it != declaration->usages.end());
+    declaration->usages.erase(it);
 }
 
 std::any
 DecoratedIdentifierExpression::construct(ConstructContext& context) const
 {
-    TraceBlock block(
-        context,
-        "Looking up variable '{}'",
-        definition->variable_name);
+    TraceBlock _(context, "Looking up variable '{}'", declaration->identifier);
 
-    if (!context.has_variable(definition->variable_name)) {
-        context.error(
-            "Variable '{}' is not defined.",
-            definition->variable_name);
+    if (!context.has_variable(declaration->identifier)) {
+        context.error("Variable '{}' is not defined.", declaration->identifier);
     }
 
-    return context.get_variable(definition->variable_name);
+    return context.get_variable(declaration->identifier);
 }
 
 void DecoratedIdentifierExpression::print(
@@ -439,8 +419,8 @@ void DecoratedIdentifierExpression::print(
     std::print(
         out,
         "{:>{}}",
-        definition->variable_name,
-        indent + definition->variable_name.size());
+        declaration->identifier,
+        indent + declaration->identifier.size());
 }
 
 DecoratedBoolLiteralExpression::DecoratedBoolLiteralExpression(bool value)
@@ -451,7 +431,7 @@ DecoratedBoolLiteralExpression::DecoratedBoolLiteralExpression(bool value)
 std::any
 DecoratedBoolLiteralExpression::construct(ConstructContext& context) const
 {
-    TraceBlock block(context, "Constructing bool value from '{}'", value);
+    TraceBlock _(context, "Constructing bool value from '{}'", value);
     return value;
 }
 
@@ -473,7 +453,7 @@ DecoratedStringLiteralExpression::DecoratedStringLiteralExpression(
 std::any
 DecoratedStringLiteralExpression::construct(ConstructContext& context) const
 {
-    TraceBlock block(context, "Constructing string value from '{}'", value);
+    TraceBlock _(context, "Constructing string value from '{}'", value);
     if (!(value.starts_with('"') && value.ends_with('"'))) {
         context.error(
             "String literal value is not enclosed in quotation marks"
@@ -523,7 +503,7 @@ DecoratedIntLiteralExpression::DecoratedIntLiteralExpression(
 std::any
 DecoratedIntLiteralExpression::construct(ConstructContext& context) const
 {
-    TraceBlock block(context, "Constructing int value from '{}'", value);
+    TraceBlock _(context, "Constructing int value from '{}'", value);
     if (value.empty()) {
         context.error(
             "Empty value in int constant '{}'"
@@ -595,7 +575,7 @@ DecoratedFloatLiteralExpression::DecoratedFloatLiteralExpression(
 std::any
 DecoratedFloatLiteralExpression::construct(ConstructContext& context) const
 {
-    TraceBlock block(context, "Constructing float value from '{}'", value);
+    TraceBlock _(context, "Constructing float value from '{}'", value);
     if (value == "infinity") {
         return numeric_limits<double>::infinity();
     } else {
@@ -658,10 +638,10 @@ void DecoratedConvertExpression::remove_variable_usages()
 
 std::any DecoratedConvertExpression::construct(ConstructContext& context) const
 {
-    TraceBlock block(context, "Constructing value that requires conversion");
+    TraceBlock _(context, "Constructing value that requires conversion");
     std::any constructed_value;
     {
-        TraceBlock block(
+        TraceBlock _(
             context,
             "Constructing value of type '{}'",
             from_type.name());
@@ -669,7 +649,7 @@ std::any DecoratedConvertExpression::construct(ConstructContext& context) const
     }
     std::any converted_value;
     {
-        TraceBlock block(
+        TraceBlock _(
             context,
             "Converting constructed value from '{}' to '{}'",
             from_type.name(),
@@ -712,24 +692,24 @@ satisfies_bounds(const std::any& v_, const std::any& min_, const std::any& max_)
 std::any
 DecoratedCheckBoundsExpression::construct(ConstructContext& context) const
 {
-    TraceBlock block(context, "Constructing value with bounds");
+    TraceBlock _(context, "Constructing value with bounds");
     std::any v;
     {
-        TraceBlock block(context, "Constructing value");
+        TraceBlock _(context, "Constructing value");
         v = value->construct(context);
     }
     std::any min;
     {
-        TraceBlock block(context, "Constructing lower bound");
+        TraceBlock _(context, "Constructing lower bound");
         min = min_value->construct(context);
     }
     std::any max;
     {
-        TraceBlock block(context, "Constructing upper bound");
+        TraceBlock _(context, "Constructing upper bound");
         max = max_value->construct(context);
     }
     {
-        TraceBlock block(context, "Checking bounds");
+        TraceBlock _(context, "Checking bounds");
         const type_info& type = v.type();
         if (min.type() != type || max.type() != type) {
             context.error(
@@ -751,7 +731,9 @@ DecoratedCheckBoundsExpression::construct(ConstructContext& context) const
                 "Bounds are only supported for arguments of type int or "
                 "double.");
         }
-        if (!bounds_satisfied) { context.error("Value is not in bounds."); }
+        if (!bounds_satisfied) {
+            context.error("Value is not in bounds.");
+        }
     }
     return v;
 }

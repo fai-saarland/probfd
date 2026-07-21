@@ -15,6 +15,10 @@ class Type;
 } // namespace language::plugins
 
 namespace language::parser {
+struct Declaration;
+}
+
+namespace language::parser {
 
 class DecoratedLetExpression : public DecoratedExpression {
     std::vector<VariableDefinition> decorated_variable_definitions;
@@ -110,12 +114,12 @@ public:
 };
 
 class DecoratedIdentifierExpression : public DecoratedExpression {
-    friend VariableDefinition;
+    friend Declaration;
 
-    VariableDefinition* definition;
+    Declaration* declaration;
 
 public:
-    explicit DecoratedIdentifierExpression(VariableDefinition& definition);
+    explicit DecoratedIdentifierExpression(Declaration& definition);
 
     void remove_variable_usages() override;
 

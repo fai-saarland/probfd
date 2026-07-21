@@ -1,6 +1,7 @@
 #include "search.h"
 
 #include "language/parser/abstract_syntax_tree.h"
+#include "language/parser/declaration.h"
 #include "language/parser/decorated_abstract_syntax_tree.h"
 #include "language/parser/lexical_analyzer.h"
 #include "language/parser/syntax_analyzer.h"
@@ -137,7 +138,7 @@ static auto construct_solver(argparse::ArgumentParser& parser)
             std::println(
                 std::cout,
                 "Removed unused variables from feature expression: {}",
-                defs | views::transform(&VariableDefinition::variable_name));
+                defs | views::transform(&VariableDefinition::identifier));
         }
     }
 
