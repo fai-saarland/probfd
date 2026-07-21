@@ -1,23 +1,27 @@
 BasedOnStyle: LLVM
 AccessModifierOffset: -4
-AlignAfterOpenBracket: AlwaysBreak
+AlignAfterOpenBracket: true
 AllowAllArgumentsOnNextLine: false
 AllowAllParametersOfDeclarationOnNextLine: false
-AllowShortBlocksOnASingleLine: Always
+AllowShortBlocksOnASingleLine: Never
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortCompoundRequirementOnASingleLine: true
-AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: WithoutElse
 AllowShortLoopsOnASingleLine: true
 AlwaysBreakTemplateDeclarations: 'Yes'
 BinPackArguments: false
-BinPackParameters: false
+BinPackParameters: "false"
+BreakAfterOpenBracketBracedList: false
+BreakAfterOpenBracketFunction: true
+BreakAfterOpenBracketIf: false
 BreakAfterAttributes: Always
 BreakBeforeBraces: Custom
+BreakBeforeCloseBracketFunction: false
 BreakBeforeConceptDeclarations: Always
 BraceWrapping:
   AfterClass: false
-  AfterControlStatement: false
+  AfterControlStatement: "false"
   AfterEnum: false
   AfterFunction: true
   AfterNamespace: false

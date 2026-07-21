@@ -103,7 +103,8 @@ readability-*,
 -readability-avoid-unconditional-preprocessor-if,
 -readability-function-cognitive-complexity,
 -readability-reference-to-constructed-temporary
-llvm-header-guard'
+llvm-header-guard
+llvm-include-order'
 CheckOptions:
   - key: abseil-cleanup-ctad.IncludeStyle
     value: llvm
