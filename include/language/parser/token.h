@@ -49,11 +49,14 @@ struct std::hash<language::parser::TokenType> {
 
 template <>
 struct std::formatter<language::parser::TokenType> {
-    constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
+    static constexpr auto parse(const std::format_parse_context& ctx)
+    {
+        return ctx.begin();
+    }
 
-    auto format(
+    static auto format(
         const language::parser::TokenType& token_type,
-        std::format_context& ctx) const
+        std::format_context& ctx)
     {
         return std::format_to(ctx.out(), "{}", token_type_name(token_type));
     }
@@ -61,10 +64,13 @@ struct std::formatter<language::parser::TokenType> {
 
 template <>
 struct std::formatter<language::parser::Token> {
-    constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
+    static constexpr auto parse(const std::format_parse_context& ctx)
+    {
+        return ctx.begin();
+    }
 
-    auto
-    format(const language::parser::Token& token, std::format_context& ctx) const
+    static auto
+    format(const language::parser::Token& token, std::format_context& ctx)
     {
         return std::format_to(
             ctx.out(),

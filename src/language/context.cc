@@ -1,6 +1,5 @@
 #include "language/context.h"
 
-#include <iomanip>
 #include <iostream>
 #include <ranges>
 #include <vector>
@@ -9,15 +8,11 @@ using namespace std;
 
 namespace language {
 
-Context::Context(const Context& context)
-    : initial_stack_size(context.block_stack.size())
-    , block_stack(context.block_stack)
-{
-}
+static constexpr char INDENT[] = "  ";
 
 Context::~Context() noexcept(false)
 {
-    if (block_stack.size() > initial_stack_size) {
+    if (!block_stack.empty()) {
         cerr << str() << endl;
         throw ContextError("A context was destructed with an non-empty stack.");
     }
@@ -33,21 +28,21 @@ void Context::enter_block(const string& block_name)
     block_stack.push_back(block_name);
 }
 
-void Context::leave_block(const string& block_name)
+void Context::leave_block()
 {
-    if (block_stack.empty() || block_stack.back() != block_name) {
+    if (block_stack.empty()) {
         cerr << str() << endl;
-        throw ContextError(
-            "Tried to pop a block '{}' from an empty stack or the block to "
-            "remove is not on the top of the stack.",
-            block_name);
+        throw ContextError("Tried to pop a block from an empty stack.");
     }
+
     block_stack.pop_back();
 }
 
 string Context::str() const
 {
-    if (block_stack.empty()) { return "Traceback: Empty\n"; }
+    if (block_stack.empty()) {
+        return "Traceback: Empty\n";
+    }
 
     return std::format(
         "{}{:s}",
@@ -74,7 +69,7 @@ TraceBlock::TraceBlock(Context& context, const string& block_name)
 
 TraceBlock::~TraceBlock()
 {
-    context.leave_block(block_name);
+    context.leave_block();
 }
 
 } // namespace language

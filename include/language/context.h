@@ -20,16 +20,10 @@ struct ContextError : std::runtime_error {
 
 class Context {
 protected:
-    static constexpr char INDENT[] = "  ";
-
-    // TODO: Can be removed once we got rid of LazyValues
-    size_t initial_stack_size = 0;
     std::vector<std::string> block_stack;
 
 public:
     explicit Context() = default;
-
-    Context(const Context& context);
 
     virtual ~Context() noexcept(false);
 
@@ -38,7 +32,7 @@ public:
 
     void enter_block(const std::string& block_name);
 
-    void leave_block(const std::string& block_name);
+    void leave_block();
 
     std::string str() const;
 
