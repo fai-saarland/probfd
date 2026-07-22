@@ -3,6 +3,7 @@
 
 #include "language/plugins/options.h"
 #include "language/plugins/plugin_info.h"
+#include "language/plugins/type_registry.h"
 
 #include "language/tuples.h"
 
@@ -31,7 +32,9 @@ class Feature {
 
 public:
     Feature(const Type& type, const std::string& key);
+
     virtual ~Feature() = default;
+
     Feature(const Feature&) = delete;
 
     virtual std::any

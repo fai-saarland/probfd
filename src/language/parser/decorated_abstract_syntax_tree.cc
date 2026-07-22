@@ -6,7 +6,9 @@
 #include "language/plugins/plugin.h"
 #include "language/plugins/types.h"
 
+#include <algorithm>
 #include <any>
+#include <cassert>
 #include <functional>
 #include <iostream>
 #include <limits>
@@ -159,16 +161,13 @@ void DecoratedLetExpression::prune_unused_definitions(
         }
     }
 
-    auto [beg, end] = std::ranges::stable_partition(
+    auto r = std::ranges::stable_partition(
         decorated_variable_definitions,
         [](const auto& declaration) { return !declaration.usages.empty(); });
 
-    defs.insert(
-        defs.end(),
-        std::make_move_iterator(beg),
-        std::make_move_iterator(end));
+    defs.append_range(r | std::views::as_rvalue);
 
-    decorated_variable_definitions.erase(beg, end);
+    decorated_variable_definitions.erase(r.begin(), r.end());
 }
 
 void DecoratedLetExpression::remove_variable_usages()

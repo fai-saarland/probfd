@@ -20,6 +20,7 @@ create_library(
     language/plugins/registry
     language/plugins/registry_types
     language/plugins/types
+    language/plugins/type_registry
     DEPENDS
     context
 )

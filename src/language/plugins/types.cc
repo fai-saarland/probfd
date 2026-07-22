@@ -55,8 +55,8 @@ BasicType::BasicType(type_index type, const string& class_name)
 
 bool BasicType::operator==(const Type& other) const
 {
-    const BasicType* other_ptr = dynamic_cast<const BasicType*>(&other);
-    return other_ptr && type == other_ptr->type;
+    const auto other_ptr = dynamic_cast<const BasicType*>(&other);
+    return other_ptr != nullptr && type == other_ptr->type;
 }
 
 bool BasicType::is_basic_type() const
@@ -99,8 +99,8 @@ FeatureType::FeatureType(
 
 bool FeatureType::operator==(const Type& other) const
 {
-    const FeatureType* other_ptr = dynamic_cast<const FeatureType*>(&other);
-    return other_ptr && pointer_type == other_ptr->pointer_type;
+    const auto other_ptr = dynamic_cast<const FeatureType*>(&other);
+    return other_ptr != nullptr && pointer_type == other_ptr->pointer_type;
 }
 
 bool FeatureType::is_feature_type() const
@@ -131,8 +131,8 @@ ListType::ListType(const Type& nested_type)
 
 bool ListType::operator==(const Type& other) const
 {
-    const ListType* other_ptr = dynamic_cast<const ListType*>(&other);
-    return other_ptr && nested_type == other_ptr->nested_type;
+    const auto other_ptr = dynamic_cast<const ListType*>(&other);
+    return other_ptr != nullptr && nested_type == other_ptr->nested_type;
 }
 
 bool ListType::is_list_type() const
@@ -164,8 +164,7 @@ size_t ListType::get_hash() const
 
 bool EmptyListType::operator==(const Type& other) const
 {
-    const EmptyListType* other_ptr = dynamic_cast<const EmptyListType*>(&other);
-    return other_ptr;
+    return dynamic_cast<const EmptyListType*>(&other) != nullptr;
 }
 
 bool EmptyListType::is_list_type() const
@@ -205,8 +204,8 @@ EnumType::EnumType(type_index type, const EnumInfo& documented_values)
 
 bool EnumType::operator==(const Type& other) const
 {
-    const EnumType* other_ptr = dynamic_cast<const EnumType*>(&other);
-    return other_ptr && type == other_ptr->type;
+    const auto other_ptr = dynamic_cast<const EnumType*>(&other);
+    return other_ptr != nullptr && type == other_ptr->type;
 }
 
 bool EnumType::is_enum_type() const
@@ -214,7 +213,7 @@ bool EnumType::is_enum_type() const
     return true;
 }
 
-int EnumType::get_enum_index(const string& value, Context& context) const
+int EnumType::get_enum_index(const string& value, const Context& context) const
 {
     const auto it = ranges::find(values, value);
     const int enum_index = static_cast<int>(it - values.begin());
@@ -241,7 +240,9 @@ string EnumType::name() const
 size_t EnumType::get_hash() const
 {
     size_t hash_value = 0;
-    for (const string& value : values) { hash_value ^= hash<string>()(value); }
+    for (const string& value : values) {
+        hash_value ^= hash<string>()(value);
+    }
     return hash_value;
 }
 
@@ -278,28 +279,38 @@ std::any convert(
 {
     if (from_type == to_type) {
         return value;
-    } else if (
-        from_type.is_basic_type() &&
+    }
+
+    if (from_type.is_basic_type() &&
         static_cast<const BasicType&>(from_type).get_basic_type_index() ==
             typeid(int) &&
         to_type.is_basic_type() &&
         static_cast<const BasicType&>(to_type).get_basic_type_index() ==
             typeid(double)) {
-        int int_value = any_cast<int>(value);
+        const int int_value = any_cast<int>(value);
         if (int_value == numeric_limits<int>::max()) {
             return std::any(numeric_limits<double>::infinity());
-        } else if (int_value == numeric_limits<int>::min()) {
+        }
+
+        if (int_value == numeric_limits<int>::min()) {
             return std::any(-numeric_limits<double>::infinity());
         }
+
         return std::any(static_cast<double>(int_value));
-    } else if (from_type.is_symbol_type() && to_type.is_enum_type()) {
-        string str_value = any_cast<string>(value);
+    }
+
+    if (from_type.is_symbol_type() && to_type.is_enum_type()) {
+        const auto str_value = any_cast<string>(value);
         return std::any(
             static_cast<const EnumType&>(to_type).get_enum_index(
                 str_value,
                 context));
-    } else if (from_type.is_list_type() && to_type.is_list_type()) {
-        if (from_type.is_empty_list_type()) { return value; }
+    }
+
+    if (from_type.is_list_type() && to_type.is_list_type()) {
+        if (from_type.is_empty_list_type()) {
+            return value;
+        }
 
         const Type& from_nested_type =
             static_cast<const ListType&>(from_type).get_nested_type();
@@ -325,92 +336,4 @@ std::any convert(
     context.error("Cannot convert {} to {}.", from_type.name(), to_type.name());
 }
 
-SymbolType TypeRegistry::SYMBOL_TYPE;
-EmptyListType TypeRegistry::EMPTY_LIST_TYPE;
-BasicType TypeRegistry::NO_TYPE = BasicType(typeid(void), "<no type>");
-
-TypeRegistry::TypeRegistry()
-{
-    insert_basic_type<bool>();
-    insert_basic_type<string>();
-    insert_basic_type<int>();
-    insert_basic_type<double>();
-}
-
-template <typename T>
-void TypeRegistry::insert_basic_type()
-{
-    type_index type = typeid(T);
-
-    std::string name;
-
-    if constexpr (std::same_as<T, bool>) {
-        name = "bool";
-    } else if constexpr (std::same_as<T, float>) {
-        name = "float";
-    } else if constexpr (std::same_as<T, double>) {
-        name = "double";
-    } else if constexpr (std::same_as<T, int>) {
-        name = "int";
-    } else if constexpr (std::same_as<T, std::string>) {
-        name = "string";
-    } else {
-        name = type.name();
-    }
-
-    registered_types[type] = std::make_unique<BasicType>(type, name);
-}
-
-const FeatureType&
-TypeRegistry::create_feature_type(const CategoryPlugin& plugin)
-{
-    type_index type = plugin.get_pointer_type();
-    if (registered_types.contains(type)) {
-        throw RegistryError<std::runtime_error>(
-            "Creating the FeatureType '{}' but the type '{}' already exists "
-            "and has the same type_index.",
-            plugin.get_class_name(),
-            registered_types[type]->name());
-    }
-    unique_ptr<FeatureType> type_ptr = std::make_unique<FeatureType>(
-        plugin.get_pointer_type(),
-        plugin.get_category_name(),
-        plugin.get_synopsis());
-    const FeatureType& type_ref = *type_ptr;
-    registered_types[type] = move(type_ptr);
-    return type_ref;
-}
-
-const EnumType& TypeRegistry::create_enum_type(const EnumPlugin& plugin)
-{
-    type_index type = plugin.get_type();
-    const EnumInfo& values = plugin.get_enum_info();
-    if (registered_types.contains(type)) {
-        throw RegistryError<std::runtime_error>(
-            "Creating the EnumType '{}' but the type '{}' already exists and "
-            "has the same type_index.",
-            plugin.get_class_name(),
-            registered_types[type]->name());
-    }
-    unique_ptr<EnumType> type_ptr = std::make_unique<EnumType>(type, values);
-    const EnumType& type_ref = *type_ptr;
-    registered_types[type] = move(type_ptr);
-    return type_ref;
-}
-
-const ListType& TypeRegistry::create_list_type(const Type& element_type)
-{
-    const Type* key = &element_type;
-    if (!registered_list_types.contains(key)) {
-        registered_list_types.insert(
-            {key, std::make_unique<ListType>(element_type)});
-    }
-    return *registered_list_types[key];
-}
-
-const Type& TypeRegistry::get_nonlist_type(type_index type) const
-{
-    if (!registered_types.contains(type)) { return NO_TYPE; }
-    return *registered_types.at(type);
-}
 } // namespace language::plugins

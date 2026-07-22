@@ -3,6 +3,7 @@
 #include "language/plugins/plugin.h"
 #include "language/plugins/registry.h"
 
+#include <algorithm>
 #include <ranges>
 #include <string>
 

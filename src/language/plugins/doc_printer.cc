@@ -2,7 +2,7 @@
 
 #include "language/plugins/plugin.h"
 
-#include <iostream>
+#include <algorithm>
 #include <map>
 #include <ranges>
 

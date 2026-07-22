@@ -10,6 +10,7 @@
 
 #include "downward/utils/system.h"
 
+#include <cassert>
 #include <charconv>
 #include <filesystem>
 #include <iostream>
