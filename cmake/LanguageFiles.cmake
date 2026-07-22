@@ -10,7 +10,6 @@ create_library(
     NAME plugins
     HELP "Plugin definition"
     SOURCES
-    language/plugins/any
     language/plugins/bounds
     language/plugins/doc_printer
     language/plugins/options
