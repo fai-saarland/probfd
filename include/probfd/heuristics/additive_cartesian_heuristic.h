@@ -37,7 +37,6 @@ public:
 
     ~AdditiveCartesianHeuristic() override;
 
-protected:
     value_t evaluate(const downward::State& ancestor_state) const override;
 };
 

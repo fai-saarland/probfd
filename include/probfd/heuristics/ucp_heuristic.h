@@ -33,7 +33,6 @@ public:
         // TODO
     }
 
-protected:
     value_t evaluate(const downward::State& state) const override;
 };
 
