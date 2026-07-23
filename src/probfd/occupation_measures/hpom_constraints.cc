@@ -265,7 +265,7 @@ void HPOMGenerator::generate_hpom_lp_with_ocm_variables(
     for (const auto op : get_operators(task)) {
         variables.emplace_back(
             0.0,
-            INFINITE_VALUE,
+            lp.get_infinity(),
             cost_function.get_operator_cost(op.get_id()));
     }
 
