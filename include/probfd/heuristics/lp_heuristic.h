@@ -28,9 +28,8 @@ protected:
 public:
     LPHeuristic(
         SharedProbabilisticTask task,
-        downward::utils::LogProxy log,
         downward::lp::LPSolverType solver_type)
-        : TaskDependentHeuristic(std::move(task), std::move(log))
+        : TaskDependentHeuristic(std::move(task))
         , lp_solver_(solver_type)
     {
     }

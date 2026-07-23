@@ -10,16 +10,15 @@ using downward::cli::utils::get_log_arguments_from_options;
 
 namespace probfd::cli::heuristics {
 
-void add_task_dependent_heuristic_options_to_feature(Feature& feature)
+void add_task_dependent_heuristic_options_to_feature(Feature&)
 {
-    add_log_options_to_feature(feature);
 }
 
 TaskDependentHeuristicArgs get_task_dependent_heuristic_arguments_from_options(
-    const Context& context,
-    const Options& opts)
+    const Context&,
+    const Options&)
 {
-    return get_log_arguments_from_options(context, opts);
+    return {};
 }
 
 } // namespace probfd::cli::heuristics

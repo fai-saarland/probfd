@@ -7,6 +7,8 @@
 
 #include "probfd/heuristics/additive_cartesian_heuristic.h"
 
+#include "downward_cli/utils/logging_options.h"
+
 using namespace downward;
 using namespace probfd;
 using namespace probfd::cartesian_abstractions;
@@ -89,7 +91,9 @@ public:
             opts.get<int>(context, "max_transitions"),
             opts.get<utils::Duration>(context, "max_time"),
             opts.get<bool>(context, "use_general_costs"),
-            get_task_dependent_heuristic_arguments_from_options(context, opts));
+            downward::cli::utils::get_log_arguments_from_options(
+                context,
+                opts));
     }
 };
 } // namespace

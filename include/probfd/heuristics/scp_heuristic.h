@@ -5,15 +5,12 @@
 #include "probfd/heuristic.h"
 #include "probfd/task_heuristic_factory.h"
 
-#include "downward/utils/logging.h"
-
 #include <memory>
 #include <vector>
 
 // Forward Declarations
 namespace downward::utils {
 class RandomNumberGenerator;
-class LogProxy;
 } // namespace downward::utils
 
 namespace probfd::pdbs {
@@ -46,15 +43,13 @@ private:
         pattern_collection_generator_;
     const OrderingStrategy ordering_;
     const int random_seed_;
-    const downward::utils::Verbosity verbosity_;
 
 public:
     SCPHeuristicFactory(
         std::shared_ptr<pdbs::PatternCollectionGenerator>
             pattern_collection_generator,
         OrderingStrategy ordering,
-        int random_seed,
-        downward::utils::Verbosity verbosity);
+        int random_seed);
 
     std::unique_ptr<FDRHeuristic>
     create_object(const SharedProbabilisticTask& task) override;

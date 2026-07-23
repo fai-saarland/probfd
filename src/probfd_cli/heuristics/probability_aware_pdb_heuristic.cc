@@ -7,6 +7,8 @@
 
 #include "probfd/heuristics/probability_aware_pdb_heuristic.h"
 
+#include "downward_cli/utils/logging_options.h"
+
 using namespace downward;
 using namespace probfd;
 using namespace probfd::pdbs;
@@ -53,7 +55,9 @@ public:
                 context,
                 "patterns"),
             opts.get<utils::Duration>(context, "max_time_dominance_pruning"),
-            get_task_dependent_heuristic_arguments_from_options(context, opts));
+            downward::cli::utils::get_log_arguments_from_options(
+                context,
+                opts));
     }
 };
 } // namespace

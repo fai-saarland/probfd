@@ -2,15 +2,10 @@
 
 #include <utility>
 
-using namespace downward;
-
 namespace probfd::heuristics {
 
-TaskDependentHeuristic::TaskDependentHeuristic(
-    SharedProbabilisticTask task,
-    utils::LogProxy log)
+TaskDependentHeuristic::TaskDependentHeuristic(SharedProbabilisticTask task)
     : task_(std::move(task))
-    , log_(std::move(log))
 {
 }
 

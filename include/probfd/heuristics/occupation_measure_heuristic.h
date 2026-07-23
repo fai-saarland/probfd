@@ -2,6 +2,7 @@
 #define PROBFD_HEURISTICS_OCCUPATION_MEASURE_HEURISTIC_H
 
 #include "probfd/heuristics/lp_heuristic.h"
+
 #include "probfd/task_heuristic_factory.h"
 
 #include <memory>
@@ -29,7 +30,6 @@ protected:
 public:
     OccupationMeasureHeuristic(
         SharedProbabilisticTask task,
-        downward::utils::LogProxy log,
         downward::lp::LPSolverType solver_type,
         std::shared_ptr<occupation_measures::ConstraintGenerator>
             constraint_generator);
@@ -40,14 +40,12 @@ private:
 };
 
 class OccupationMeasureHeuristicFactory : public TaskHeuristicFactory {
-    const downward::utils::Verbosity verbosity_;
     const downward::lp::LPSolverType lp_solver_type_;
     const std::shared_ptr<occupation_measures::ConstraintGeneratorFactory>
         constraint_generator_factory_;
 
 public:
     OccupationMeasureHeuristicFactory(
-        downward::utils::Verbosity verbosity,
         downward::lp::LPSolverType lp_solver_type,
         const std::shared_ptr<occupation_measures::ConstraintGeneratorFactory>&
             constraint_generator_factory);

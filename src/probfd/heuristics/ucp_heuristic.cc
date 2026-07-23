@@ -38,7 +38,9 @@ value_t UCPHeuristic::evaluate(const State& state) const
     for (const auto& pdb : pdbs_) {
         const value_t estimate = pdb.lookup_estimate(state);
 
-        if (estimate == termination_cost_) { return estimate; }
+        if (estimate == termination_cost_) {
+            return estimate;
+        }
 
         value += estimate;
     }
@@ -47,10 +49,8 @@ value_t UCPHeuristic::evaluate(const State& state) const
 }
 
 UCPHeuristicFactory::UCPHeuristicFactory(
-    utils::Verbosity verbosity,
     std::shared_ptr<PatternCollectionGenerator> generator)
-    : verbosity_(verbosity)
-    , pattern_collection_generator_(std::move(generator))
+    : pattern_collection_generator_(std::move(generator))
 {
 }
 
@@ -70,8 +70,7 @@ UCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
     const auto& variables = get_variables(task);
     const auto& operators = get_operators(task);
     const auto& init_vals = get_init(task);
-    const auto& cost_function =
-        get_cost_function(task);
+    const auto& cost_function = get_cost_function(task);
     const auto& term_costs = get_termination_costs(task);
 
     std::vector<value_t> costs;

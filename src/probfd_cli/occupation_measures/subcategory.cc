@@ -74,7 +74,6 @@ public:
         const override
     {
         return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
-            get_log_arguments_from_options(context, options),
             get_lp_solver_arguments_from_options(context, options),
             std::make_shared<HROCGeneratorFactory>());
     }
@@ -115,7 +114,6 @@ public:
         const override
     {
         return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
-            get_log_arguments_from_options(context, options),
             get_lp_solver_arguments_from_options(context, options),
             std::make_shared<HPOMGeneratorFactory>());
     }
@@ -159,7 +157,6 @@ public:
         const override
     {
         return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
-            get_log_arguments_from_options(context, options),
             get_lp_solver_arguments_from_options(context, options),
             std::make_shared<HigherOrderHPOMGeneratorFactory>(
                 options.get<int>(context, "projection_size")));
@@ -194,7 +191,6 @@ public:
         const override
     {
         return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
-            get_log_arguments_from_options(context, options),
             get_lp_solver_arguments_from_options(context, options),
             std::make_shared<PHOGeneratorFactory>(
                 options.get<std::shared_ptr<PatternCollectionGenerator>>(

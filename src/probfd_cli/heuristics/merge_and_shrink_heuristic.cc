@@ -18,6 +18,7 @@
 #include "probfd/task_heuristic_factory.h"
 
 #include "downward/utils/logging.h"
+#include "downward_cli/utils/logging_options.h"
 
 using namespace std;
 using namespace downward;
@@ -185,8 +186,9 @@ public:
     shared_ptr<TaskHeuristicFactory>
     create_component(const Options& opts, const Context& context) const override
     {
-        auto mns_args =
-            get_merge_and_shrink_algorithm_arguments_from_options(context, opts);
+        auto mns_args = get_merge_and_shrink_algorithm_arguments_from_options(
+            context,
+            opts);
 
         int& max_states = std::get<4>(mns_args);
         int& max_states_before_merge = std::get<5>(mns_args);
@@ -200,7 +202,9 @@ public:
 
         return make_shared_from_arg_tuples<MergeAndShrinkHeuristicFactory>(
             mns_args,
-            get_task_dependent_heuristic_arguments_from_options(context, opts));
+            downward::cli::utils::get_log_arguments_from_options(
+                context,
+                opts));
     }
 };
 } // namespace

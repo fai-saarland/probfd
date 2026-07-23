@@ -5,22 +5,15 @@
 #include "probfd/heuristic.h"
 #include "probfd/probabilistic_task.h"
 
-#include "downward/utils/logging.h"
-
-#include <memory>
-
 /// This namespace contains heuristic implementations.
 namespace probfd::heuristics {
 
 class TaskDependentHeuristic : public FDRHeuristic {
 protected:
     SharedProbabilisticTask task_;
-    mutable downward::utils::LogProxy log_;
 
 public:
-    TaskDependentHeuristic(
-        SharedProbabilisticTask task,
-        downward::utils::LogProxy log);
+    explicit TaskDependentHeuristic(SharedProbabilisticTask task);
 };
 
 } // namespace probfd::heuristics

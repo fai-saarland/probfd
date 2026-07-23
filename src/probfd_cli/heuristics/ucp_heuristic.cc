@@ -8,7 +8,6 @@
 #include "probfd/heuristics/ucp_heuristic.h"
 
 using namespace downward;
-using namespace utils;
 
 using namespace probfd;
 using namespace probfd::pdbs;
