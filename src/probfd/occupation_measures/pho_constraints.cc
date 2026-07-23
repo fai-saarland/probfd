@@ -33,10 +33,10 @@ void PHOGenerator::initialize_constraints(
     lp::LinearProgram& lp)
 {
     const auto& operators = get_operators(task);
+    const auto& cost_function = get_cost_function(task);
 
     const double lp_infinity = lp.get_infinity();
 
-    auto& lp_variables = lp.get_variables();
     auto& lp_constraints = lp.get_constraints();
 
     std::vector<std::set<int>> affected_vars;
@@ -47,7 +47,6 @@ void PHOGenerator::initialize_constraints(
         task_properties::get_affected_vars(
             op,
             std::inserter(var_set, var_set.begin()));
-        lp_variables.emplace_back(0.0, lp_infinity, 1.0);
     }
 
     for (auto& pdb : pdbs_) {
@@ -59,7 +58,10 @@ void PHOGenerator::initialize_constraints(
                 pdb->get_pattern(),
                 affected_vars[op_id]);
 
-            pdb_constraint.insert(op_id, affects_pdb ? 1.0 : 0.0);
+            pdb_constraint.insert(
+                op_id,
+                affects_pdb ? cost_function.get_operator_cost(op.get_id())
+                            : 0.0);
         }
     }
 }

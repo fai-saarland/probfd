@@ -44,6 +44,11 @@ public:
         const ProbabilisticTaskTuple& task,
         downward::lp::LinearProgram& lp,
         std::vector<int>& offsets);
+
+    static void generate_hpom_lp_with_ocm_variables(
+        const ProbabilisticTaskTuple& task,
+        downward::lp::LinearProgram& lp,
+        std::vector<int>& offsets);
 };
 
 class HPOMGeneratorFactory : public ConstraintGeneratorFactory {

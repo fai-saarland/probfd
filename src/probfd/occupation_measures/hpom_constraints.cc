@@ -104,7 +104,6 @@ void HPOMGenerator::generate_hpom_lp(
     const auto& axioms = get_axioms(task);
     const auto& operators = get_operators(task);
     const auto& goals = get_goal(task);
-    const auto& cost_function = get<OperatorCostFunction<value_t>&>(task);
     const auto& term_costs = get_termination_costs(task);
 
     const value_t term_cost = term_costs.get_non_goal_termination_cost();
@@ -129,6 +128,10 @@ void HPOMGenerator::generate_hpom_lp(
     // Prepare fact variable offsets
     offset_.reserve(num_variables);
 
+    const auto num_ocm_vars = static_cast<std::size_t>(lp_variables.size());
+
+    assert(num_ocm_vars == operators.size());
+
     std::size_t offset = 0;
     for (const VariableProxy variable : variables) {
         offset_.push_back(offset);
@@ -146,10 +149,10 @@ void HPOMGenerator::generate_hpom_lp(
 
     std::vector<int> the_goal = pasmt_to_vector(goals, num_variables);
 
-    // Build flow contraint coefficients for dummy goal action
+    // Build flow constraint coefficients for dummy goal action
     for (const VariableProxy var : variables) {
         lp::LPConstraint& goal_constraint = constraints.emplace_back(0, 0);
-        goal_constraint.insert(0, -1);
+        goal_constraint.insert(num_ocm_vars, -1);
         lp::LPConstraint* flow = &constraints[offset_[var.get_id()]];
 
         if (the_goal[var.get_id()] == -1) {
@@ -170,9 +173,6 @@ void HPOMGenerator::generate_hpom_lp(
 
     // Now ordinary actions
     for (const ProbabilisticOperatorProxy& op : operators) {
-        const auto cost =
-            maxprob ? 0 : cost_function.get_operator_cost(op.get_id());
-
         // Get dense precondition
         const std::vector<int> pre =
             pasmt_to_vector(op.get_preconditions(), num_variables);
@@ -183,11 +183,11 @@ void HPOMGenerator::generate_hpom_lp(
             get_transition_probs_explicit(variables, op, possibly_updated);
 
         // For tying constraints, contains lp variable ranges of projections
-        std::vector<std::pair<int, int>> tieing_equality;
+        std::vector<std::pair<int, int>> tying_equality;
 
         // Build flow constraint coefficients...
         for (const int var : possibly_updated) {
-            std::pair<int, int> var_range(lp_variables.size(), 0);
+            const auto first_var = lp_variables.size();
             lp::LPConstraint* flow = &constraints[offset_[var]];
 
             const std::size_t domain = variables[var].get_domain_size();
@@ -210,7 +210,9 @@ void HPOMGenerator::generate_hpom_lp(
                         if (j == i) continue;
 
                         const value_t prob = tr_probs[j];
-                        if (prob > 0_vt) { flow[j].insert(lpvar, -prob); }
+                        if (prob > 0_vt) {
+                            flow[j].insert(lpvar, -prob);
+                        }
                     }
                 }
             } else {
@@ -229,39 +231,45 @@ void HPOMGenerator::generate_hpom_lp(
                     if (j == i) continue;
 
                     const value_t prob = tr_probs[j];
-                    if (prob > 0) { flow[j].insert(lpvar, -prob); }
+                    if (prob > 0) {
+                        flow[j].insert(lpvar, -prob);
+                    }
                 }
             }
 
-            var_range.second = lp_variables.size();
-
-            tieing_equality.push_back(var_range);
+            tying_equality.emplace_back(first_var, lp_variables.size());
         }
 
-        // Build tying constraints, tie everything to first projection
-        if (!tieing_equality.empty()) {
-            const auto& base_range = tieing_equality[0];
+        // Build tying constraints.
+        for (const auto& tying_eq : tying_equality) {
+            auto& tying_constraint = constraints.emplace_back(0, 0);
 
-            // Set objective coefficients for occ. measures of first projection
-            for (int i = base_range.first; i < base_range.second; ++i) {
-                lp_variables[i].objective_coefficient = cost;
-            }
+            tying_constraint.insert(op.get_id(), 1);
 
-            for (std::size_t j = 1; j < tieing_equality.size(); ++j) {
-                const auto& tieing_eq = tieing_equality[j];
-
-                auto& tieing_constraint = constraints.emplace_back(0, 0);
-
-                for (int i = base_range.first; i < base_range.second; ++i) {
-                    tieing_constraint.insert(i, 1);
-                }
-
-                for (int i = tieing_eq.first; i < tieing_eq.second; ++i) {
-                    tieing_constraint.insert(i, -1);
-                }
+            for (int i = tying_eq.first; i < tying_eq.second; ++i) {
+                tying_constraint.insert(i, -1);
             }
         }
     }
+}
+
+void HPOMGenerator::generate_hpom_lp_with_ocm_variables(
+    const ProbabilisticTaskTuple& task,
+    lp::LinearProgram& lp,
+    std::vector<int>& offset_)
+{
+    const auto& cost_function = get_cost_function(task);
+
+    auto& variables = lp.get_variables();
+
+    for (const auto op : get_operators(task)) {
+        variables.emplace_back(
+            0.0,
+            INFINITE_VALUE,
+            cost_function.get_operator_cost(op.get_id()));
+    }
+
+    generate_hpom_lp(task, lp, offset_);
 }
 
 std::unique_ptr<ConstraintGenerator>

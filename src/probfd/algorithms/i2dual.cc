@@ -210,7 +210,9 @@ Interval I2Dual::solve(
 
                 mdp.generate_action_transitions(state, act, succs_);
 
-                if (succs_.non_source_probability == 0) { continue; }
+                if (succs_.non_source_probability == 0) {
+                    continue;
+                }
 
                 ClearGuard _guard(var_constraint_ids, var_constraint_coefs);
 
@@ -362,10 +364,15 @@ void I2Dual::prepare_lp()
 
 void I2Dual::prepare_hpom(LinearProgram& lp)
 {
-    if (!hpom_enabled_) { return; }
+    if (!hpom_enabled_) {
+        return;
+    }
 
     TimerScope scope(statistics_.hpom_timer);
-    occupation_measures::HPOMGenerator::generate_hpom_lp(task_, lp, offset_);
+    occupation_measures::HPOMGenerator::generate_hpom_lp_with_ocm_variables(
+        task_,
+        lp,
+        offset_);
 
     hpom_constraints_ = std::move(lp.get_constraints());
 
@@ -378,7 +385,9 @@ void I2Dual::update_hpom_constraints_expanded(
     storage::PerStateStorage<IDualData>& data,
     const std::vector<StateID>& expanded)
 {
-    if (!hpom_enabled_ || !incremental_hpom_updates_) { return; }
+    if (!hpom_enabled_ || !incremental_hpom_updates_) {
+        return;
+    }
 
     if (hpom_initialized_) {
         TimerScope scope(statistics_.hpom_timer);
@@ -399,7 +408,9 @@ void I2Dual::update_hpom_constraints_frontier(
     const std::vector<StateID>& frontier,
     const unsigned start)
 {
-    if (!hpom_enabled_) { return; }
+    if (!hpom_enabled_) {
+        return;
+    }
 
     TimerScope scope(statistics_.hpom_timer);
 
@@ -424,7 +435,9 @@ void I2Dual::remove_fringe_state_from_hpom(
     for (VariableProxy var : variables) {
         const int val = state[var];
         LPConstraint& c = constraints[offset_[var.get_id()] + val];
-        for (const auto& om : data.incoming) { c.remove(om.second); }
+        for (const auto& om : data.incoming) {
+            c.remove(om.second);
+        }
     }
 }
 
@@ -438,7 +451,9 @@ void I2Dual::add_fringe_state_to_hpom(
     for (VariableProxy var : variables) {
         const int val = state[var];
         LPConstraint& c = constraints[offset_[var.get_id()] + val];
-        for (const auto& om : data.incoming) { c.insert(om.second, om.first); }
+        for (const auto& om : data.incoming) {
+            c.insert(om.second, om.first);
+        }
     }
 }
 

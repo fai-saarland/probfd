@@ -183,7 +183,7 @@ public:
             "patterns",
             "The pattern generator used to construct the PDB collection which "
             "is subject to post-hoc optimization.",
-            "det_adapter(generator=systematic(pattern_max_size=2))");
+            "psystematic(pattern_max_size=2)");
     }
 
     std::shared_ptr<TaskHeuristicFactory>

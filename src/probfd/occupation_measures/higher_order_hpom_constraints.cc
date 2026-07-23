@@ -43,7 +43,9 @@ static bool next_pattern(std::size_t num_variables, std::vector<int>& pattern)
         }
     }
 
-    if (idx == -1) { overflow = true; }
+    if (idx == -1) {
+        overflow = true;
+    }
 
     for (++idx; idx < static_cast<int>(pattern.size()); ++idx) {
         pattern[idx] = base++;
@@ -118,7 +120,9 @@ int HigherOrderHPOMGenerator::PatternInfo::get_updated_id(
     const std::vector<int>& state,
     const std::vector<int>& pstate) const
 {
-    if (pstate.empty()) { return get_state_id(state); }
+    if (pstate.empty()) {
+        return get_state_id(state);
+    }
 
     int res = 0;
 
@@ -156,7 +160,6 @@ void HigherOrderHPOMGenerator::initialize_constraints(
     const auto& axioms = get_axioms(task);
     const auto& operators = get_operators(task);
     const auto& goals = get_goal(task);
-    const auto& cost_function = get_cost_function(task);
     const auto& term_costs = get_termination_costs(task);
 
     const value_t term_cost = term_costs.get_non_goal_termination_cost();
@@ -181,6 +184,11 @@ void HigherOrderHPOMGenerator::initialize_constraints(
 
     // Prepare fact variable offsets
     infos_.reserve(num_variables);
+
+    const auto num_ocm_variables =
+        static_cast<std::size_t>(lp.get_variables().size());
+
+    assert(num_ocm_variables == operators.size());
 
     int offset = 0;
 
@@ -212,7 +220,9 @@ void HigherOrderHPOMGenerator::initialize_constraints(
 
     std::vector<int> the_goal(num_variables, -1);
 
-    for (const auto [var, value] : goals) { the_goal[var] = value; }
+    for (const auto [var, value] : goals) {
+        the_goal[var] = value;
+    }
 
     // Build flow contraint coefficients for dummy goal action
     {
@@ -223,7 +233,7 @@ void HigherOrderHPOMGenerator::initialize_constraints(
 
             lp::LPConstraint& goal_constraint =
                 lp_constraints.emplace_back(0, 0);
-            goal_constraint.insert(0, -1);
+            goal_constraint.insert(num_ocm_variables, -1);
             lp::LPConstraint* flow = &lp_constraints[0] + info.offset;
 
             std::vector<int> pstate =
@@ -243,9 +253,6 @@ void HigherOrderHPOMGenerator::initialize_constraints(
 
     // Now ordinary actions
     for (const ProbabilisticOperatorProxy op : operators) {
-        const auto cost =
-            maxprob ? 0 : cost_function.get_operator_cost(op.get_id());
-
         // Get dense precondition
         std::vector<int> pre(num_variables, -1);
 
@@ -254,7 +261,7 @@ void HigherOrderHPOMGenerator::initialize_constraints(
         }
 
         // For tying constraints, contains lp variable ranges of projections
-        std::vector<std::pair<int, int>> tieing_equality;
+        std::vector<std::pair<int, int>> tying_equality;
 
         // Build flow constraint coefficients...
         std::vector<int> pattern = get_first_pattern();
@@ -297,11 +304,15 @@ void HigherOrderHPOMGenerator::initialize_constraints(
 
                     auto [it, inserted] = transitions.emplace(id, -probability);
 
-                    if (!inserted) { it->second -= probability; }
+                    if (!inserted) {
+                        it->second -= probability;
+                    }
                 }
 
                 // Pure self loop check
-                if (transitions.size() == 1) { continue; }
+                if (transitions.size() == 1) {
+                    continue;
+                }
 
                 for (const auto& [succ_id, prob] : transitions) {
                     assert(succ_id == astate_id || prob < 0.0_vt);
@@ -309,31 +320,16 @@ void HigherOrderHPOMGenerator::initialize_constraints(
                 }
             } while (next_partial_state(variables, pstate, pattern, pre));
 
-            tieing_equality.emplace_back(first_lpvar, lp_variables.size());
+            tying_equality.emplace_back(first_lpvar, lp_variables.size());
         } while (next_pattern(num_variables, pattern));
 
-        // Build tying constraints, tie everything to first projection
-        if (!tieing_equality.empty()) {
-            const auto& base_range = tieing_equality[0];
+        // Build tying constraints.
+        for (const auto& tying_eq : tying_equality) {
+            auto& tying_constraint = lp_constraints.emplace_back(0, 0);
+            tying_constraint.insert(op.get_id(), 1);
 
-            // Set objective coefficients for occ. measures of first
-            // projection
-            for (int i = base_range.first; i < base_range.second; ++i) {
-                lp_variables[i].objective_coefficient = cost;
-            }
-
-            for (std::size_t j = 1; j < tieing_equality.size(); ++j) {
-                const auto& tieing_eq = tieing_equality[j];
-
-                auto& tieing_constraint = lp_constraints.emplace_back(0, 0);
-
-                for (int i = base_range.first; i < base_range.second; ++i) {
-                    tieing_constraint.insert(i, 1);
-                }
-
-                for (int i = tieing_eq.first; i < tieing_eq.second; ++i) {
-                    tieing_constraint.insert(i, -1);
-                }
+            for (int i = tying_eq.first; i < tying_eq.second; ++i) {
+                tying_constraint.insert(i, -1);
             }
         }
     }
