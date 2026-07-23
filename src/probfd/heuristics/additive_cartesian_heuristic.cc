@@ -32,15 +32,14 @@ AdditiveCartesianHeuristic::~AdditiveCartesianHeuristic() = default;
 
 value_t AdditiveCartesianHeuristic::evaluate(const State& state) const
 {
-    value_t sum_h = 0;
-    for (const CartesianHeuristicFunction& function : heuristic_functions_) {
+    value_t sum_h = 0_vt;
+
+    for (const auto& function : heuristic_functions_) {
         const value_t value = function.get_value(state);
-        assert(value >= 0_vt);
         if (value == INFINITE_VALUE) return INFINITE_VALUE;
         sum_h += value;
     }
 
-    assert(sum_h >= 0_vt);
     return sum_h;
 }
 

@@ -6,7 +6,6 @@
 #include "probfd/task_heuristic_factory.h"
 
 #include <memory>
-#include <vector>
 
 // Forward Declarations
 namespace downward::utils {
@@ -14,30 +13,10 @@ class RandomNumberGenerator;
 } // namespace downward::utils
 
 namespace probfd::pdbs {
-struct ProbabilityAwarePatternDatabase;
 class PatternCollectionGenerator;
 } // namespace probfd::pdbs
 
 namespace probfd::heuristics {
-
-class GZOCPHeuristic final : public FDRHeuristic {
-    const value_t termination_cost_;
-    const std::vector<pdbs::ProbabilityAwarePatternDatabase> pdbs_;
-
-public:
-    GZOCPHeuristic(
-        value_t termination_cost,
-        std::vector<pdbs::ProbabilityAwarePatternDatabase> pdbs);
-
-    ~GZOCPHeuristic() override;
-
-    void print_statistics() const override
-    {
-        // TODO
-    }
-
-    value_t evaluate(const downward::State& state) const override;
-};
 
 class GZOCPHeuristicFactory final : public TaskHeuristicFactory {
 public:

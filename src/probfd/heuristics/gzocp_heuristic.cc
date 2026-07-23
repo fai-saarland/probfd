@@ -1,22 +1,25 @@
 #include "probfd/heuristics/gzocp_heuristic.h"
 
-#include "downward/initial_state_values.h"
 #include "probfd/pdbs/pattern_collection_generator.h"
 #include "probfd/pdbs/pattern_collection_information.h"
 #include "probfd/pdbs/probability_aware_pattern_database.h"
 #include "probfd/pdbs/projection_state_space.h"
 
+#include "probfd/heuristics/additive_pdb_heuristic.h"
+
 #include "probfd/task_utils/task_properties.h"
 
+#include "probfd/probabilistic_operator_space.h"
 #include "probfd/probabilistic_task.h"
 #include "probfd/value_type.h"
-#include "probfd/probabilistic_operator_space.h"
 
 #include "downward/utils/collections.h"
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
 
 #include "downward/task_utils/task_properties.h"
+
+#include "downward/initial_state_values.h"
 
 #include <algorithm>
 #include <iterator>
@@ -38,7 +41,7 @@ class RunningCostFunction final
 public:
     explicit RunningCostFunction(
         const ProbabilisticOperatorSpace& operators,
-        const OperatorCostFunction<value_t>& cost_function)
+        const OperatorCostFunction& cost_function)
     {
         costs.reserve(operators.size());
         affected_vars.reserve(operators.size());
@@ -52,7 +55,10 @@ public:
         }
     }
 
-    value_t get_operator_cost(int index) const override { return costs[index]; }
+    value_t get_operator_cost(int index) const override
+    {
+        return costs[index];
+    }
 
     void decrease_costs(const ProbabilityAwarePatternDatabase& pdb)
     {
@@ -61,41 +67,24 @@ public:
                 pdb.get_pattern(),
                 affected_vars[op_id]);
 
-            if (affects_pdb) { costs[op_id] = 0; }
+            if (affects_pdb) {
+                costs[op_id] = 0;
+            }
         }
     }
 
-    value_t& operator[](size_t i) { return costs[i]; }
+    value_t& operator[](size_t i)
+    {
+        return costs[i];
+    }
 
-    const value_t& operator[](size_t i) const { return costs[i]; }
+    const value_t& operator[](size_t i) const
+    {
+        return costs[i];
+    }
 };
 
 } // namespace
-
-GZOCPHeuristic::GZOCPHeuristic(
-    value_t termination_cost,
-    std::vector<ProbabilityAwarePatternDatabase> pdbs)
-    : termination_cost_(termination_cost)
-    , pdbs_(std::move(pdbs))
-{
-}
-
-GZOCPHeuristic::~GZOCPHeuristic() = default;
-
-value_t GZOCPHeuristic::evaluate(const State& state) const
-{
-    value_t value = 0.0_vt;
-
-    for (const auto& pdb : pdbs_) {
-        const value_t estimate = pdb.lookup_estimate(state);
-
-        if (estimate == termination_cost_) { return estimate; }
-
-        value += estimate;
-    }
-
-    return value;
-}
 
 GZOCPHeuristicFactory::GZOCPHeuristicFactory(
     std::shared_ptr<PatternCollectionGenerator> pattern_collection_generator,
@@ -124,11 +113,11 @@ GZOCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
     case RANDOM: rng->shuffle(patterns); break;
 
     case SIZE_ASC:
-        std::ranges::stable_sort(patterns, std::less<>(), &Pattern::size);
+        std::ranges::stable_sort(patterns, std::less(), &Pattern::size);
         break;
 
     case SIZE_DESC:
-        std::ranges::stable_sort(patterns, std::greater<>(), &Pattern::size);
+        std::ranges::stable_sort(patterns, std::greater(), &Pattern::size);
         break;
 
     case INHERIT:
@@ -138,8 +127,7 @@ GZOCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
     const auto& variables = get_variables(task);
     const auto& operators = get_operators(task);
     const auto& init_vals = get_init(task);
-    const auto& cost_function =
-        get_cost_function(task);
+    const auto& cost_function = get_cost_function(task);
     const auto& term_costs = get_termination_costs(task);
 
     const State& init_state = init_vals.get_initial_state();
@@ -164,9 +152,7 @@ GZOCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
         gzo_cost_function->decrease_costs(pdb);
     }
 
-    return std::make_unique<GZOCPHeuristic>(
-        term_costs.get_non_goal_termination_cost(),
-        std::move(pdbs));
+    return std::make_unique<AdditivePDBHeuristic>(std::move(pdbs));
 }
 
 } // namespace probfd::heuristics

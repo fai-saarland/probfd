@@ -6,33 +6,12 @@
 #include "probfd/task_heuristic_factory.h"
 
 #include <memory>
-#include <vector>
 
 namespace probfd::pdbs {
-struct ProbabilityAwarePatternDatabase;
 class PatternCollectionGenerator;
 } // namespace probfd::pdbs
 
 namespace probfd::heuristics {
-
-class UCPHeuristic final : public FDRHeuristic {
-    const value_t termination_cost_;
-    const std::vector<pdbs::ProbabilityAwarePatternDatabase> pdbs_;
-
-public:
-    UCPHeuristic(
-        value_t termination_cost,
-        std::vector<pdbs::ProbabilityAwarePatternDatabase> pdbs);
-
-    ~UCPHeuristic() override;
-
-    void print_statistics() const override
-    {
-        // TODO
-    }
-
-    value_t evaluate(const downward::State& state) const override;
-};
 
 class UCPHeuristicFactory final : public TaskHeuristicFactory {
     const std::shared_ptr<pdbs::PatternCollectionGenerator>
