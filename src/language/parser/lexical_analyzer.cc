@@ -60,21 +60,18 @@ static vector<pair<TokenType, regex>> construct_token_type_expressions()
 static const vector<pair<TokenType, regex>> token_type_expressions =
     construct_token_type_expressions();
 
-static string highlight_position(string_view text, const char* pos)
+static string
+highlight_position(string_view text, const string_view::const_iterator& pos)
 {
     ostringstream message_stream;
-    int distance_to_highlight = pos - text.begin();
-    for (const auto& line : std::views::split(text, "\n")) {
-        int line_length = line.size();
-        bool highlight_in_line =
-            distance_to_highlight < line_length && distance_to_highlight >= 0;
-        message_stream << (highlight_in_line ? "> " : "  ") << string_view{line}
-                       << endl;
+    for (const auto& [begin, end] : std::views::split(text, "\n")) {
+        const bool highlight_in_line = begin <= pos && pos < end;
+        message_stream << (highlight_in_line ? "> " : "  ")
+                       << string_view{begin, end} << endl;
         if (highlight_in_line) {
-            message_stream << string(distance_to_highlight + 2, ' ') << "^"
+            message_stream << string(std::distance(begin, pos) + 2, ' ') << "^"
                            << endl;
         }
-        distance_to_highlight -= line.size() + 1;
     }
     string message = message_stream.str();
 
@@ -96,8 +93,8 @@ TokenStream split_tokens(std::string_view text)
     for (std::ranges::subrange chars = text; !chars.empty();) {
         for (const auto& [token_type, expression] : token_type_expressions) {
             if (cmatch match; regex_search(
-                    chars.begin(),
-                    chars.end(),
+                    chars.data(),
+                    chars.data() + chars.size(),
                     match,
                     expression,
                     regex_constants::match_continuous)) {
