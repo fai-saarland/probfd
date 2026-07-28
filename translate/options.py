@@ -95,11 +95,11 @@ def parse_args():
                            choices=["cost", "one", "plus_one", "min_one"],
                            help="How actions affect the budget")
     argparser.add_argument("--give-up-cost", default=None,
-                           type=Optional[Fraction])
+                           type=Fraction)
     argparser.add_argument(
         "--discount-factor",
         default=None,
-        type=Optional[Fraction],
+        type=Fraction,
         help=
         "Discounted SSP compilation with given discount factor in range (0, 1)"
     )

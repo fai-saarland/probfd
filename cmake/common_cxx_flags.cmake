@@ -1,6 +1,7 @@
 include_guard(GLOBAL)
 
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+set(CMAKE_OSX_DEPLOYMENT_TARGET "26.0")
 
 add_library(common_cxx_flags INTERFACE)
 target_compile_features(common_cxx_flags INTERFACE cxx_std_23)

@@ -40,7 +40,6 @@ public:
     [[noreturn]]
     virtual void error(const std::string& message) const;
 
-    [[noreturn]]
     virtual void warn(const std::string& message) const;
 
     template <typename... Args>

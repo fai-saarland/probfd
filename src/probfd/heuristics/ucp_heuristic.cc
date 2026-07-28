@@ -48,29 +48,50 @@ UCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
     const auto& cost_function = get_cost_function(task);
     const auto& term_costs = get_termination_costs(task);
 
-    std::vector<value_t> costs;
-    costs.reserve(operators.get_num_operators());
+    // Number of abstractions affected by the operator.
+    std::vector<std::size_t> num_affected(operators.get_num_operators(), 0);
 
     for (const ProbabilisticOperatorProxy op : operators) {
-        costs.push_back(
-            cost_function.get_operator_cost(op.get_id()) /
-            static_cast<value_t>(num_abstractions));
+        std::set<int> affected_vars;
+        task_properties::get_affected_vars(
+            op,
+            std::inserter(affected_vars, affected_vars.begin()));
+
+        for (const Pattern& pattern : patterns) {
+            if (utils::have_common_element(pattern, affected_vars)) {
+                ++num_affected[op.get_id()];
+            }
+        }
     }
-
-    auto uniform_cost_function =
-        std::make_shared<extra_tasks::VectorProbabilisticOperatorCostFunction>(
-            std::move(costs));
-
-    const auto adapted = replace(task, uniform_cost_function);
 
     const State& initial_state = init_vals.get_initial_state();
 
-    const BlindHeuristic<StateRank> h(
-        operators,
-        *uniform_cost_function,
-        term_costs);
-
     for (const Pattern& pattern : patterns) {
+        std::vector costs(operators.get_num_operators(), 0_vt);
+
+        for (const ProbabilisticOperatorProxy op : operators) {
+            std::set<int> affected_vars;
+            task_properties::get_affected_vars(
+                op,
+                std::inserter(affected_vars, affected_vars.begin()));
+
+            if (utils::have_common_element(pattern, affected_vars)) {
+                costs[op.get_id()] =
+                    cost_function.get_operator_cost(op.get_id()) /
+                    static_cast<value_t>(num_affected[op.get_id()]);
+            }
+        }
+
+        auto uniform_cost_function = std::make_shared<
+            extra_tasks::VectorProbabilisticOperatorCostFunction>(
+            std::move(costs));
+
+        const auto adapted = replace(task, uniform_cost_function);
+        const BlindHeuristic<StateRank> h(
+            operators,
+            *uniform_cost_function,
+            term_costs);
+
         auto& pdb = pdbs.emplace_back(variables, pattern);
         const StateRank init_rank = pdb.get_abstract_state(initial_state);
         compute_distances(pdb, adapted, init_rank, h);
