@@ -20,68 +20,96 @@ class NamedVector {
     std::vector<std::string> names;
 
 public:
-    template <typename... _Args>
-    T& emplace_back(_Args&&... __args)
+    template <typename... Args>
+    T& emplace_back(Args&&... args)
     {
-        return elements.emplace_back(std::forward<_Args>(__args)...);
+        return elements.emplace_back(std::forward<Args>(args)...);
     }
 
-    void push_back(const T& element) { elements.push_back(element); }
-
-    void push_back(T&& element) { elements.push_back(std::move(element)); }
-
-    T& operator[](int index) { return elements[index]; }
-
-    const T& operator[](int index) const { return elements[index]; }
-
-    bool has_names() const { return !names.empty(); }
-
-    void set_name(int index, const std::string& name)
+    void push_back(const T& element)
     {
-        assert(index >= 0 && index < size());
-        int num_names = names.size();
-        if (index >= num_names) {
+        elements.push_back(element);
+    }
+
+    void push_back(T&& element)
+    {
+        elements.push_back(std::move(element));
+    }
+
+    T& operator[](std::size_t index)
+    {
+        return elements[index];
+    }
+
+    const T& operator[](std::size_t index) const
+    {
+        return elements[index];
+    }
+
+    bool has_names() const
+    {
+        return !names.empty();
+    }
+
+    void set_name(std::size_t index, const std::string& name)
+    {
+        if (index >= names.size()) {
             if (name.empty()) {
                 // All unspecified names are empty by default.
                 return;
             }
+
             names.resize(index + 1, "");
         }
+
         names[index] = name;
     }
 
-    const std::string& get_name(int index) const
+    const std::string& get_name(std::size_t index) const
     {
-        assert(index >= 0 && index < size());
-        int num_names = names.size();
-        if (index < num_names) {
+        if (index < names.size()) {
             return names[index];
-        } else {
-            /*
-              All unspecified names are empty by default. We use a static
-              string here to avoid returning a reference to a local object.
-            */
-            static std::string empty;
-            return empty;
         }
+
+        /*
+          All unspecified names are empty by default. We use a static
+          string here to avoid returning a reference to a local object.
+        */
+        static std::string empty;
+        return empty;
     }
 
-    int size() const { return elements.size(); }
+    std::size_t size() const
+    {
+        return elements.size();
+    }
 
-    bool empty() const { return elements.empty(); }
+    bool empty() const
+    {
+        return elements.empty();
+    }
 
-    typename std::vector<T>::reference back() { return elements.back(); }
+    std::vector<T>::reference back()
+    {
+        return elements.back();
+    }
 
-    typename std::vector<T>::iterator begin() { return elements.begin(); }
-
-    typename std::vector<T>::iterator end() { return elements.end(); }
-
-    typename std::vector<T>::const_iterator begin() const
+    std::vector<T>::iterator begin()
     {
         return elements.begin();
     }
 
-    typename std::vector<T>::const_iterator end() const
+    std::vector<T>::iterator end()
+    {
+        return elements.end();
+    }
+
+    std::vector<T>::const_iterator begin() const
+    {
+        return elements.begin();
+    }
+
+    std::vector<T>::const_iterator end() const
     {
         return elements.end();
     }
@@ -92,27 +120,27 @@ public:
         names.clear();
     }
 
-    void reserve(int capacity)
+    void reserve(std::size_t capacity)
     {
         /* No space is reserved in the names vector because it is kept
            at minimal size and space is only used when necessary. */
         elements.reserve(capacity);
     }
 
-    void resize(int count)
+    void resize(std::size_t count)
     {
         /* The names vector is not resized because it is kept
            at minimal size and only resized when necessary. */
         elements.resize(count);
     }
 
-    void resize(int count, const T& value)
+    void resize(std::size_t count, const T& value)
     {
         /* The names vector is not resized because it is kept
            at minimal size and only resized when necessary. */
         elements.resize(count, value);
     }
 };
-} // namespace named_vector
+} // namespace downward::named_vector
 
 #endif
