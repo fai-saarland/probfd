@@ -13,11 +13,14 @@ namespace probfd::occupation_measures {
  * a vector containing -1 for each variable that is not assigned and otherwise
  * the assigned value.
  */
-std::vector<int> pasmt_to_vector(const auto& fact_range, int num_variables)
+std::vector<int>
+pasmt_to_vector(const auto& fact_range, std::size_t num_variables)
 {
     std::vector<int> vec(num_variables, -1);
 
-    for (const auto [var, value] : fact_range) { vec[var] = value; }
+    for (const auto [var, value] : fact_range) {
+        vec[var] = value;
+    }
 
     return vec;
 }

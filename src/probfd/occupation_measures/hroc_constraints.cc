@@ -81,7 +81,7 @@ void HROCGenerator::initialize_constraints(
 
     const auto flow_var_id = lp_variables.size();
 
-    assert(flow_var_id == static_cast<int>(operators.size()));
+    assert(flow_var_id == operators.size());
 
     // Insert flow absorption variable into goal fact constraints
     if (maxprob) {
@@ -95,6 +95,7 @@ void HROCGenerator::initialize_constraints(
     }
 
     for (const ProbabilisticOperatorProxy op : operators) {
+        const auto op_id = op.get_id();
         const ProbabilisticOutcomesProxy outcomes = op.get_outcomes();
 
         assert(outcomes.size() >= 1);
@@ -104,31 +105,21 @@ void HROCGenerator::initialize_constraints(
             pasmt_to_vector(op.get_preconditions(), num_variables);
 
         for (const ProbabilisticOutcomeProxy outcome : outcomes) {
-            const int lp_var = lp_variables.size();
-
-            // introduce outcome flow variable Y_{a,e} >= 0
-            lp_variables.emplace_back(0, inf, 0);
+            const value_t probability = outcome.get_probability();
 
             for (const auto& effect : outcome.get_effects()) {
                 const auto [var, val] = effect.get_fact();
 
-                auto* var_constraints = &constraints[0] + ncc_offsets_[var];
+                auto var_constraints = constraints.begin() + ncc_offsets_[var];
 
                 // Always produces / Sometimes produces
-                var_constraints[val].insert(lp_var, 1);
+                var_constraints[val].insert(op_id, probability);
 
                 if (const int pre_val = pre[var]; pre_val != -1) {
                     // Always consumes
-                    var_constraints[pre_val].insert(lp_var, -1);
+                    var_constraints[pre_val].insert(op_id, -probability);
                 }
             }
-
-            // Set up regrouping constraint Pr(e) * Y_a = Y_{a,e}
-            const value_t probability = outcome.get_probability();
-
-            auto& rg_constraint = constraints.emplace_back(0, 0);
-            rg_constraint.insert(op.get_id(), probability);
-            rg_constraint.insert(lp_var, -1);
         }
     }
 
@@ -139,7 +130,7 @@ void HROCGenerator::update_constraints(const State& state, lp::LPSolver& solver)
 {
     // Set outflow of 1 for all state facts
     for (std::size_t var = 0; var < state.size(); ++var) {
-        const int c_index = ncc_offsets_[var] + state[var];
+        const std::size_t c_index = ncc_offsets_[var] + state[var];
         solver.set_constraint_lower_bound(c_index, -1.0);
     }
 }
@@ -148,7 +139,7 @@ void HROCGenerator::reset_constraints(const State& state, lp::LPSolver& solver)
 {
     // Reset the coefficients to zero
     for (std::size_t var = 0; var < state.size(); ++var) {
-        const int c_index = ncc_offsets_[var] + state[var];
+        const std::size_t c_index = ncc_offsets_[var] + state[var];
         solver.set_constraint_lower_bound(c_index, 0.0);
     }
 }
