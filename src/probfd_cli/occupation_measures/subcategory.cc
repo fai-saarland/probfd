@@ -7,10 +7,10 @@
 
 #include "downward_cli/lp/lp_solver_options.h"
 
-#include "probfd/occupation_measures/higher_order_hpom_constraints.h"
-#include "probfd/occupation_measures/hpom_constraints.h"
-#include "probfd/occupation_measures/hroc_constraints.h"
-#include "probfd/occupation_measures/pho_constraints.h"
+#include "probfd/occupation_measures/higher_order_hpom_constraint_generator.h"
+#include "probfd/occupation_measures/hpom_constraint_generator.h"
+#include "probfd/occupation_measures/hroc_constraint_generator.h"
+#include "probfd/occupation_measures/pho_constraint_generator.h"
 
 #include "probfd/heuristics/occupation_measure_heuristic.h"
 
@@ -75,7 +75,7 @@ public:
     {
         return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
             get_lp_solver_arguments_from_options(context, options),
-            std::make_shared<HROCGeneratorFactory>());
+            std::make_shared<HROCConstraintGeneratorFactory>());
     }
 };
 
@@ -115,7 +115,7 @@ public:
     {
         return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
             get_lp_solver_arguments_from_options(context, options),
-            std::make_shared<HPOMGeneratorFactory>());
+            std::make_shared<HPOMConstraintGeneratorFactory>());
     }
 };
 
@@ -158,7 +158,7 @@ public:
     {
         return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
             get_lp_solver_arguments_from_options(context, options),
-            std::make_shared<HigherOrderHPOMGeneratorFactory>(
+            std::make_shared<HigherOrderHPOMConstraintGeneratorFactory>(
                 options.get<int>(context, "projection_size")));
     }
 };
@@ -192,7 +192,7 @@ public:
     {
         return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
             get_lp_solver_arguments_from_options(context, options),
-            std::make_shared<PHOGeneratorFactory>(
+            std::make_shared<PHOConstraintGeneratorFactory>(
                 options.get<std::shared_ptr<PatternCollectionGenerator>>(
                     context,
                     "patterns")));

@@ -1,4 +1,4 @@
-#include "probfd/occupation_measures/hroc_constraints.h"
+#include "probfd/occupation_measures/hroc_constraint_generator.h"
 
 #include "probfd/occupation_measures/utils.h"
 
@@ -29,7 +29,7 @@ using namespace downward;
 
 namespace probfd::occupation_measures {
 
-void HROCGenerator::initialize_constraints(
+void HROCConstraintGenerator::initialize_constraints(
     const SharedProbabilisticTask& task,
     lp::LinearProgram& lp)
 {
@@ -126,7 +126,9 @@ void HROCGenerator::initialize_constraints(
     std::println(std::cout, "Finished ROC LP setup after {}", timer());
 }
 
-void HROCGenerator::update_constraints(const State& state, lp::LPSolver& solver)
+void HROCConstraintGenerator::update_constraints(
+    const State& state,
+    lp::LPSolver& solver)
 {
     // Set outflow of 1 for all state facts
     for (std::size_t var = 0; var < state.size(); ++var) {
@@ -135,7 +137,9 @@ void HROCGenerator::update_constraints(const State& state, lp::LPSolver& solver)
     }
 }
 
-void HROCGenerator::reset_constraints(const State& state, lp::LPSolver& solver)
+void HROCConstraintGenerator::reset_constraints(
+    const State& state,
+    lp::LPSolver& solver)
 {
     // Reset the coefficients to zero
     for (std::size_t var = 0; var < state.size(); ++var) {
@@ -145,10 +149,10 @@ void HROCGenerator::reset_constraints(const State& state, lp::LPSolver& solver)
 }
 
 std::unique_ptr<ConstraintGenerator>
-HROCGeneratorFactory::construct_constraint_generator(
+HROCConstraintGeneratorFactory::construct_constraint_generator(
     const SharedProbabilisticTask&)
 {
-    return std::make_unique<HROCGenerator>();
+    return std::make_unique<HROCConstraintGenerator>();
 }
 
 } // namespace probfd::occupation_measures

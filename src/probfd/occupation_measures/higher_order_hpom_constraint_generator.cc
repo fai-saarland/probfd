@@ -1,4 +1,4 @@
-#include "probfd/occupation_measures/higher_order_hpom_constraints.h"
+#include "probfd/occupation_measures/higher_order_hpom_constraint_generator.h"
 
 #include "probfd/task_utils/task_properties.h"
 
@@ -92,7 +92,7 @@ static bool next_partial_state(
     return false;
 }
 
-std::vector<int> HigherOrderHPOMGenerator::get_first_pattern() const
+std::vector<int> HigherOrderHPOMConstraintGenerator::get_first_pattern() const
 {
     std::vector<int> pattern(projection_size_);
 
@@ -103,7 +103,7 @@ std::vector<int> HigherOrderHPOMGenerator::get_first_pattern() const
     return pattern;
 }
 
-int HigherOrderHPOMGenerator::PatternInfo::get_state_id(
+int HigherOrderHPOMConstraintGenerator::PatternInfo::get_state_id(
     const std::vector<int>& state) const
 {
     int res = 0;
@@ -115,7 +115,7 @@ int HigherOrderHPOMGenerator::PatternInfo::get_state_id(
     return res;
 }
 
-int HigherOrderHPOMGenerator::PatternInfo::get_updated_id(
+int HigherOrderHPOMConstraintGenerator::PatternInfo::get_updated_id(
     const std::vector<int>& pattern,
     const std::vector<int>& state,
     const std::vector<int>& pstate) const
@@ -134,7 +134,7 @@ int HigherOrderHPOMGenerator::PatternInfo::get_updated_id(
     return res;
 }
 
-int HigherOrderHPOMGenerator::PatternInfo::to_id(
+int HigherOrderHPOMConstraintGenerator::PatternInfo::to_id(
     const std::vector<int>& pattern,
     const State& state) const
 {
@@ -147,12 +147,13 @@ int HigherOrderHPOMGenerator::PatternInfo::to_id(
     return id;
 }
 
-HigherOrderHPOMGenerator::HigherOrderHPOMGenerator(int projection_size)
+HigherOrderHPOMConstraintGenerator::HigherOrderHPOMConstraintGenerator(
+    int projection_size)
     : projection_size_(projection_size)
 {
 }
 
-void HigherOrderHPOMGenerator::initialize_constraints(
+void HigherOrderHPOMConstraintGenerator::initialize_constraints(
     const SharedProbabilisticTask& task,
     lp::LinearProgram& lp)
 {
@@ -337,7 +338,7 @@ void HigherOrderHPOMGenerator::initialize_constraints(
     std::println(std::cout, "Finished HO-POM LP setup after {}", timer());
 }
 
-void HigherOrderHPOMGenerator::update_constraints(
+void HigherOrderHPOMConstraintGenerator::update_constraints(
     const State& state,
     lp::LPSolver& lp_solver)
 {
@@ -352,7 +353,7 @@ void HigherOrderHPOMGenerator::update_constraints(
     } while (next_pattern(state.size(), pattern));
 }
 
-void HigherOrderHPOMGenerator::reset_constraints(
+void HigherOrderHPOMConstraintGenerator::reset_constraints(
     const State& state,
     lp::LPSolver& lp_solver)
 {
@@ -367,17 +368,18 @@ void HigherOrderHPOMGenerator::reset_constraints(
     } while (next_pattern(state.size(), pattern));
 }
 
-HigherOrderHPOMGeneratorFactory::HigherOrderHPOMGeneratorFactory(
-    int projection_size)
+HigherOrderHPOMConstraintGeneratorFactory::
+    HigherOrderHPOMConstraintGeneratorFactory(int projection_size)
     : projection_size_(projection_size)
 {
 }
 
 std::unique_ptr<ConstraintGenerator>
-HigherOrderHPOMGeneratorFactory::construct_constraint_generator(
+HigherOrderHPOMConstraintGeneratorFactory::construct_constraint_generator(
     const SharedProbabilisticTask&)
 {
-    return std::make_unique<HigherOrderHPOMGenerator>(projection_size_);
+    return std::make_unique<HigherOrderHPOMConstraintGenerator>(
+        projection_size_);
 }
 
 } // namespace probfd::occupation_measures

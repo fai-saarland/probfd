@@ -1,5 +1,5 @@
-#ifndef PROBFD_OCCUPATION_MEASURES_HIGHER_ORDER_HPOM_CONSTRAINTS_H
-#define PROBFD_OCCUPATION_MEASURES_HIGHER_ORDER_HPOM_CONSTRAINTS_H
+#ifndef PROBFD_OCCUPATION_MEASURES_HIGHER_ORDER_HPOM_CONSTRAINT_GENERATOR_H
+#define PROBFD_OCCUPATION_MEASURES_HIGHER_ORDER_HPOM_CONSTRAINT_GENERATOR_H
 
 #include "probfd/occupation_measures/constraint_generator.h"
 
@@ -19,7 +19,7 @@ namespace probfd::occupation_measures {
  * @brief Implements the optimal operator cost partitioning heuristic over a set
  * of PDBs.
  */
-class HigherOrderHPOMGenerator : public ConstraintGenerator {
+class HigherOrderHPOMConstraintGenerator : public ConstraintGenerator {
     const int projection_size_;
 
     struct PatternInfo {
@@ -48,7 +48,7 @@ class HigherOrderHPOMGenerator : public ConstraintGenerator {
     std::vector<PatternInfo> infos_;
 
 public:
-    explicit HigherOrderHPOMGenerator(int projection_size);
+    explicit HigherOrderHPOMConstraintGenerator(int projection_size);
 
     void initialize_constraints(
         const SharedProbabilisticTask& task,
@@ -67,11 +67,12 @@ private:
     std::vector<int> get_first_pattern() const;
 };
 
-class HigherOrderHPOMGeneratorFactory : public ConstraintGeneratorFactory {
+class HigherOrderHPOMConstraintGeneratorFactory
+    : public ConstraintGeneratorFactory {
     const int projection_size_;
 
 public:
-    explicit HigherOrderHPOMGeneratorFactory(int projection_size);
+    explicit HigherOrderHPOMConstraintGeneratorFactory(int projection_size);
 
     std::unique_ptr<ConstraintGenerator> construct_constraint_generator(
         const SharedProbabilisticTask& task) override;
@@ -79,4 +80,4 @@ public:
 
 } // namespace probfd::occupation_measures
 
-#endif // PROBFD_OCCUPATION_MEASURES_HIGHER_ORDER_HPOM_CONSTRAINTS_H
+#endif

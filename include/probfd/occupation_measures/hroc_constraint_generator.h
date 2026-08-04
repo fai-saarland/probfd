@@ -1,5 +1,5 @@
-#ifndef PROBFD_OCCUPATION_MEASURES_HROC_CONSTRAINTS_H
-#define PROBFD_OCCUPATION_MEASURES_HROC_CONSTRAINTS_H
+#ifndef PROBFD_OCCUPATION_MEASURES_HROC_CONSTRAINT_GENERATOR_H
+#define PROBFD_OCCUPATION_MEASURES_HROC_CONSTRAINT_GENERATOR_H
 
 #include "probfd/occupation_measures/constraint_generator.h"
 
@@ -25,7 +25,7 @@ namespace probfd::occupation_measures {
  * @brief Implements the regrouped operator counting heuristic constraints
  * \cite trevizan:etal:icaps-17 .
  */
-class HROCGenerator : public ConstraintGenerator {
+class HROCConstraintGenerator : public ConstraintGenerator {
     std::vector<std::size_t> ncc_offsets_;
 
 public:
@@ -41,7 +41,7 @@ public:
         downward::lp::LPSolver& solver) final;
 };
 
-class HROCGeneratorFactory : public ConstraintGeneratorFactory {
+class HROCConstraintGeneratorFactory : public ConstraintGeneratorFactory {
 public:
     std::unique_ptr<ConstraintGenerator> construct_constraint_generator(
         const SharedProbabilisticTask& task) override;
@@ -49,4 +49,4 @@ public:
 
 } // namespace probfd::occupation_measures
 
-#endif // PROBFD_OCCUPATION_MEASURES_HROC_CONSTRAINTS_H
+#endif

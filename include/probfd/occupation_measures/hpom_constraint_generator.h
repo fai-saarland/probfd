@@ -1,5 +1,5 @@
-#ifndef PROBFD_OCCUPATION_MEASURES_HPOM_CONSTRAINTS_H
-#define PROBFD_OCCUPATION_MEASURES_HPOM_CONSTRAINTS_H
+#ifndef PROBFD_OCCUPATION_MEASURES_HPOM_CONSTRAINT_GENERATOR_H
+#define PROBFD_OCCUPATION_MEASURES_HPOM_CONSTRAINT_GENERATOR_H
 
 #include "probfd/occupation_measures/constraint_generator.h"
 
@@ -24,7 +24,7 @@ namespace probfd::occupation_measures {
  * @brief Implements the projection occupation measure heuristic constraints
  * \cite trevizan:etal:icaps-17 .
  */
-class HPOMGenerator : public ConstraintGenerator {
+class HPOMConstraintGenerator : public ConstraintGenerator {
     std::vector<int> offset_;
     mutable std::vector<int> reset_indices_;
 
@@ -51,7 +51,7 @@ public:
         std::vector<int>& offsets);
 };
 
-class HPOMGeneratorFactory : public ConstraintGeneratorFactory {
+class HPOMConstraintGeneratorFactory : public ConstraintGeneratorFactory {
 public:
     std::unique_ptr<ConstraintGenerator> construct_constraint_generator(
         const SharedProbabilisticTask& task) override;
@@ -59,4 +59,4 @@ public:
 
 } // namespace probfd::occupation_measures
 
-#endif // PROBFD_OCCUPATION_MEASURES_HPOM_CONSTRAINTS_H
+#endif

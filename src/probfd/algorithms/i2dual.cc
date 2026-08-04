@@ -2,7 +2,7 @@
 
 #include "probfd/algorithms/utils.h"
 
-#include "probfd/occupation_measures/hpom_constraints.h"
+#include "probfd/occupation_measures/hpom_constraint_generator.h"
 
 #include "probfd/task_utils/task_properties.h"
 
@@ -369,10 +369,8 @@ void I2Dual::prepare_hpom(LinearProgram& lp)
     }
 
     TimerScope scope(statistics_.hpom_timer);
-    occupation_measures::HPOMGenerator::generate_hpom_lp_with_ocm_variables(
-        task_,
-        lp,
-        offset_);
+    occupation_measures::HPOMConstraintGenerator::
+        generate_hpom_lp_with_ocm_variables(task_, lp, offset_);
 
     hpom_constraints_ = std::move(lp.get_constraints());
 

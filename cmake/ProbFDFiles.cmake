@@ -150,10 +150,10 @@ create_library(
     NAME occupation_measures
     SOURCES
         probfd/occupation_measures/constraint_generator
-        probfd/occupation_measures/hpom_constraints
-        probfd/occupation_measures/hroc_constraints
-        probfd/occupation_measures/higher_order_hpom_constraints
-        probfd/occupation_measures/pho_constraints
+    probfd/occupation_measures/hpom_constraint_generator
+    probfd/occupation_measures/hroc_constraint_generator
+    probfd/occupation_measures/higher_order_hpom_constraint_generator
+    probfd/occupation_measures/pho_constraint_generator
     DEPENDS
         probfd_core
         lp_based_heuristic

@@ -1,4 +1,4 @@
-#include "probfd/occupation_measures/hpom_constraints.h"
+#include "probfd/occupation_measures/hpom_constraint_generator.h"
 
 #include "probfd/occupation_measures/utils.h"
 
@@ -65,20 +65,22 @@ std::vector<std::vector<value_t>> get_transition_probs_explicit(
 }
 } // namespace
 
-void HPOMGenerator::initialize_constraints(
+void HPOMConstraintGenerator::initialize_constraints(
     const SharedProbabilisticTask& task,
     lp::LinearProgram& lp)
 {
     std::print(std::cout, "Initializing HPOM LP constraints... ");
     run_log_time(
         std::cout,
-        &HPOMGenerator::generate_hpom_lp,
+        &HPOMConstraintGenerator::generate_hpom_lp,
         to_refs(task),
         lp,
         offset_);
 }
 
-void HPOMGenerator::update_constraints(const State& state, lp::LPSolver& solver)
+void HPOMConstraintGenerator::update_constraints(
+    const State& state,
+    lp::LPSolver& solver)
 {
     // Set to initial state in LP
     for (size_t var = 0; var < state.size(); ++var) {
@@ -87,7 +89,9 @@ void HPOMGenerator::update_constraints(const State& state, lp::LPSolver& solver)
     }
 }
 
-void HPOMGenerator::reset_constraints(const State& state, lp::LPSolver& solver)
+void HPOMConstraintGenerator::reset_constraints(
+    const State& state,
+    lp::LPSolver& solver)
 {
     for (size_t var = 0; var < state.size(); ++var) {
         const std::size_t index = offset_[var] + state[var];
@@ -95,7 +99,7 @@ void HPOMGenerator::reset_constraints(const State& state, lp::LPSolver& solver)
     }
 }
 
-void HPOMGenerator::generate_hpom_lp(
+void HPOMConstraintGenerator::generate_hpom_lp(
     const ProbabilisticTaskTuple& task,
     lp::LinearProgram& lp,
     std::vector<int>& offset_)
@@ -253,7 +257,7 @@ void HPOMGenerator::generate_hpom_lp(
     }
 }
 
-void HPOMGenerator::generate_hpom_lp_with_ocm_variables(
+void HPOMConstraintGenerator::generate_hpom_lp_with_ocm_variables(
     const ProbabilisticTaskTuple& task,
     lp::LinearProgram& lp,
     std::vector<int>& offset_)
@@ -273,10 +277,10 @@ void HPOMGenerator::generate_hpom_lp_with_ocm_variables(
 }
 
 std::unique_ptr<ConstraintGenerator>
-HPOMGeneratorFactory::construct_constraint_generator(
+HPOMConstraintGeneratorFactory::construct_constraint_generator(
     const SharedProbabilisticTask&)
 {
-    return std::make_unique<HPOMGenerator>();
+    return std::make_unique<HPOMConstraintGenerator>();
 }
 
 } // namespace probfd::occupation_measures
