@@ -52,18 +52,6 @@ class CostSaturation {
     int num_states_;
     int num_non_looping_transitions_;
 
-    void reset(
-        const ProbabilisticOperatorSpace& operators,
-        const downward::OperatorCostFunction<value_t>& cost_function);
-
-    void reduce_remaining_costs(const std::vector<value_t>& saturated_costs);
-    bool state_is_dead_end(const downward::State& state) const;
-    void build_abstractions(
-        const SharedTasks& subtasks,
-        const downward::utils::CountdownTimer& timer,
-        std::function<bool()> should_abort);
-    void print_statistics(downward::utils::Duration init_time) const;
-
 public:
     CostSaturation(
         const std::vector<std::shared_ptr<SubtaskGenerator>>&
@@ -80,6 +68,21 @@ public:
 
     std::vector<CartesianHeuristicFunction>
     generate_heuristic_functions(const SharedProbabilisticTask& task);
+
+    void reset(
+        const ProbabilisticOperatorSpace& operators,
+        const downward::OperatorCostFunction<value_t>& cost_function);
+
+    void reduce_remaining_costs(const std::vector<value_t>& saturated_costs);
+
+    bool state_is_dead_end(const downward::State& state) const;
+
+    void build_abstractions(
+        const SharedTasks& subtasks,
+        const downward::utils::CountdownTimer& timer,
+        const std::function<bool()>& should_abort);
+
+    void print_statistics(downward::utils::Duration init_time) const;
 };
 
 } // namespace probfd::cartesian_abstractions

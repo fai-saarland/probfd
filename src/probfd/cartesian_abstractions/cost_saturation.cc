@@ -1,6 +1,5 @@
 #include "probfd/cartesian_abstractions/cost_saturation.h"
 
-#include "downward/initial_state_values.h"
 #include "probfd/abstractions/distances.h"
 
 #include "probfd/cartesian_abstractions/cartesian_abstraction.h"
@@ -14,12 +13,15 @@
 
 #include "probfd/tasks/range_operator_cost_function.h"
 
+#include "downward/cartesian_abstractions/refinement_hierarchy.h"
+
 #include "downward/task_utils/task_properties.h"
 
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/memory.h"
 #include "downward/utils/timer.h"
 
+#include "downward/initial_state_values.h"
 #include "downward/state.h"
 
 #include <cassert>
@@ -209,7 +211,7 @@ bool CostSaturation::state_is_dead_end(const State& state) const
 void CostSaturation::build_abstractions(
     const SharedTasks& subtasks,
     const utils::CountdownTimer& timer,
-    function<bool()> should_abort)
+    const function<bool()>& should_abort)
 {
     auto cf = downward::extra_tasks::make_shared_range_cf(remaining_costs_);
     int rem_subtasks = static_cast<int>(subtasks.size());
@@ -252,7 +254,6 @@ void CostSaturation::build_abstractions(
 
         heuristic_functions_.emplace_back(
             state_mapping,
-            subtask,
             std::move(refinement_hierarchy),
             std::move(goal_distances));
 

@@ -34,10 +34,11 @@ enum class FactOrder { ORIGINAL, RANDOM, HADD_UP, HADD_DOWN };
 */
 class SubtaskGenerator {
 public:
+    virtual ~SubtaskGenerator() = default;
+
     virtual SharedTasks get_subtasks(
         const SharedProbabilisticTask& task,
         downward::utils::LogProxy& log) const = 0;
-    virtual ~SubtaskGenerator() = default;
 };
 
 /*

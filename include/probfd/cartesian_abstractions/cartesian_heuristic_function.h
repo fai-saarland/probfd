@@ -23,16 +23,14 @@ namespace probfd::cartesian_abstractions {
 class CartesianHeuristicFunction {
     // Avoid const to enable moving.
     std::shared_ptr<downward::StateMapping> state_mapping_;
-    SharedProbabilisticTask task_;
     std::unique_ptr<RefinementHierarchy> refinement_hierarchy_;
     std::vector<value_t> h_values_;
 
 public:
     CartesianHeuristicFunction(
         std::shared_ptr<downward::StateMapping> state_mapping,
-        SharedProbabilisticTask task,
-        std::unique_ptr<RefinementHierarchy>&& hierarchy,
-        std::vector<value_t>&& h_values);
+        std::unique_ptr<RefinementHierarchy> hierarchy,
+        std::vector<value_t> h_values);
 
     CartesianHeuristicFunction(const CartesianHeuristicFunction&) = delete;
     CartesianHeuristicFunction(CartesianHeuristicFunction&&) noexcept;
