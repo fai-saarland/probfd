@@ -66,22 +66,22 @@ void HROCConstraintGenerator::initialize_constraints(
     // Set up net change constraint offsets, one constraint per fact
     ncc_offsets_.reserve(num_variables);
 
-    std::size_t offset = 0;
+    auto& lp_variables = lp.get_variables();
+    auto& constraints = lp.get_constraints();
+
+    std::size_t offset = constraints.size();
     for (const VariableProxy variable : variables) {
         ncc_offsets_.push_back(offset);
         offset += variable.get_domain_size();
     }
 
-    const std::size_t num_facts = offset;
+    const std::size_t num_facts = offset - constraints.size();
 
-    auto& lp_variables = lp.get_variables();
-    auto& constraints = lp.get_constraints();
-
-    constraints.resize(num_facts, lp::LPConstraint(0.0, inf));
+    for (std::size_t var = 0; var < num_facts; ++var) {
+        constraints.emplace_back(lp::LPConstraint(0.0, inf));
+    }
 
     const auto flow_var_id = lp_variables.size();
-
-    assert(flow_var_id == operators.size());
 
     // Insert flow absorption variable into goal fact constraints
     if (maxprob) {

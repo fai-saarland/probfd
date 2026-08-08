@@ -1,9 +1,7 @@
-#ifndef PROBFD_OCCUPATION_MEASURES_PHO_CONSTRAINT_GENERATOR_H
-#define PROBFD_OCCUPATION_MEASURES_PHO_CONSTRAINT_GENERATOR_H
+#ifndef PROBFD_OCCUPATION_MEASURES_UNION_CONSTRAINT_GENERATOR_H
+#define PROBFD_OCCUPATION_MEASURES_UNION_CONSTRAINT_GENERATOR_H
 
 #include "probfd/occupation_measures/constraint_generator.h"
-
-#include "probfd/pdbs/types.h"
 
 #include <memory>
 
@@ -24,12 +22,12 @@ class PatternCollectionGenerator;
 
 namespace probfd::occupation_measures {
 
-class PHOConstraintGenerator : public ConstraintGenerator {
-    pdbs::PPDBCollection pdbs_;
-    std::size_t constraint_offset_;
+class UnionConstraintGenerator : public ConstraintGenerator {
+    std::vector<std::unique_ptr<ConstraintGenerator>> generators_;
 
 public:
-    explicit PHOConstraintGenerator(pdbs::PPDBCollection pdbs);
+    explicit UnionConstraintGenerator(
+        std::vector<std::unique_ptr<ConstraintGenerator>> generators);
 
     void initialize_constraints(
         const SharedProbabilisticTask& task,
@@ -43,12 +41,14 @@ public:
         downward::lp::LPSolver& solver) final;
 };
 
-class PHOConstraintGeneratorFactory : public ConstraintGeneratorFactory {
-    std::shared_ptr<pdbs::PatternCollectionGenerator> generator_;
+class UnionConstraintGeneratorFactory : public ConstraintGeneratorFactory {
+    std::vector<std::shared_ptr<ConstraintGeneratorFactory>>
+        generators_factories_;
 
 public:
-    explicit PHOConstraintGeneratorFactory(
-        std::shared_ptr<pdbs::PatternCollectionGenerator> generator);
+    explicit UnionConstraintGeneratorFactory(
+        std::vector<std::shared_ptr<ConstraintGeneratorFactory>>
+            generators_factories);
 
     std::unique_ptr<ConstraintGenerator> construct_constraint_generator(
         const SharedProbabilisticTask& task) override;

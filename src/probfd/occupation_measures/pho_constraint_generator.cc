@@ -25,6 +25,7 @@ using namespace pdbs;
 
 PHOConstraintGenerator::PHOConstraintGenerator(pdbs::PPDBCollection pdbs)
     : pdbs_(std::move(pdbs))
+    , constraint_offset_(0)
 {
 }
 
@@ -38,6 +39,7 @@ void PHOConstraintGenerator::initialize_constraints(
     const double lp_infinity = lp.get_infinity();
 
     auto& lp_constraints = lp.get_constraints();
+    constraint_offset_ = lp_constraints.size();
 
     std::vector<std::set<int>> affected_vars;
     affected_vars.reserve(operators.size());
@@ -71,7 +73,9 @@ void PHOConstraintGenerator::update_constraints(
     lp::LPSolver& solver)
 {
     for (std::size_t i = 0; i != pdbs_.size(); ++i) {
-        solver.set_constraint_lower_bound(i, pdbs_[i]->lookup_estimate(state));
+        solver.set_constraint_lower_bound(
+            constraint_offset_ + i,
+            pdbs_[i]->lookup_estimate(state));
     }
 }
 

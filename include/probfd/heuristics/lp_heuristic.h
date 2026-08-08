@@ -40,6 +40,8 @@ public:
 
         static_cast<const Derived*>(this)->update_constraints(state);
 
+        lp_solver_.write_lp("the_lp.lp");
+
         lp_solver_.solve();
 
         const value_t result = lp_solver_.has_optimal_solution()

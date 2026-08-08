@@ -19,6 +19,7 @@
 #include "probfd/task_heuristic_factory.h"
 
 #include "downward/utils/markup.h"
+#include "probfd/occupation_measures/union_constraint_generator.h"
 
 #include <memory>
 #include <string>
@@ -41,6 +42,7 @@ using downward::cli::lp::add_lp_solver_option_to_feature;
 using downward::cli::lp::get_lp_solver_arguments_from_options;
 
 namespace {
+
 class HROCFactoryFeature : public TypedFeature<TaskHeuristicFactory> {
 public:
     HROCFactoryFeature()
@@ -76,6 +78,21 @@ public:
         return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
             get_lp_solver_arguments_from_options(context, options),
             std::make_shared<HROCConstraintGeneratorFactory>());
+    }
+};
+
+class HROCConstraintsFeature : public TypedFeature<ConstraintGeneratorFactory> {
+public:
+    HROCConstraintsFeature()
+        : TypedFeature("hroc_constraints")
+    {
+        document_title("Regrouped operator-counting constraints");
+    }
+
+    std::shared_ptr<ConstraintGeneratorFactory>
+    create_component(const Options&, const Context&) const override
+    {
+        return std::make_shared<HROCConstraintGeneratorFactory>();
     }
 };
 
@@ -163,6 +180,32 @@ public:
     }
 };
 
+class HPHOConstraintGeneratorFeature
+    : public TypedFeature<ConstraintGeneratorFactory> {
+public:
+    HPHOConstraintGeneratorFeature()
+        : TypedFeature("pho_om_constraints")
+    {
+        document_title("Post-hoc Optimization Constraints");
+
+        add_option<std::shared_ptr<probfd::pdbs::PatternCollectionGenerator>>(
+            "patterns",
+            "The pattern generator used to construct the PDB collection which "
+            "is subject to post-hoc optimization.",
+            "psystematic(pattern_max_size=2)");
+    }
+
+    std::shared_ptr<ConstraintGeneratorFactory>
+    create_component(const Options& options, const Context& context)
+        const override
+    {
+        return std::make_shared<PHOConstraintGeneratorFactory>(
+            options.get<std::shared_ptr<PatternCollectionGenerator>>(
+                context,
+                "patterns"));
+    }
+};
+
 class HPHOFactoryFeature : public TypedFeature<TaskHeuristicFactory> {
 public:
     HPHOFactoryFeature()
@@ -198,6 +241,38 @@ public:
                     "patterns")));
     }
 };
+
+class UnionFactoryFeature : public TypedFeature<TaskHeuristicFactory> {
+public:
+    UnionFactoryFeature()
+        : TypedFeature("om_heuristic")
+    {
+        document_title(
+            "Occupation Measure Heuristic constructed from collection of "
+            "occupation measure constraints");
+
+        add_log_options_to_feature(*this);
+        add_lp_solver_option_to_feature(*this);
+
+        add_list_option<std::shared_ptr<ConstraintGeneratorFactory>>(
+            "constraints",
+            "The constraint generators to generate the constraints from.",
+            ArgumentInfo::NO_DEFAULT);
+    }
+
+    std::shared_ptr<TaskHeuristicFactory>
+    create_component(const Options& options, const Context& context)
+        const override
+    {
+        return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
+            get_lp_solver_arguments_from_options(context, options),
+            std::make_shared<UnionConstraintGeneratorFactory>(
+                options.get_list<std::shared_ptr<ConstraintGeneratorFactory>>(
+                    context,
+                    "constraints")));
+    }
+};
+
 } // namespace
 
 namespace probfd::cli::occupation_measures {
@@ -205,9 +280,12 @@ namespace probfd::cli::occupation_measures {
 void add_occupation_measure_heuristics_features(RawRegistry& raw_registry)
 {
     raw_registry.insert_feature_plugin<HROCFactoryFeature>();
+    raw_registry.insert_feature_plugin<HROCConstraintsFeature>();
     raw_registry.insert_feature_plugin<HPOMFactoryFeature>();
     raw_registry.insert_feature_plugin<HOHPOMFactoryFeature>();
     raw_registry.insert_feature_plugin<HPHOFactoryFeature>();
+    raw_registry.insert_feature_plugin<HPHOConstraintGeneratorFeature>();
+    raw_registry.insert_feature_plugin<UnionFactoryFeature>();
 }
 
 } // namespace probfd::cli::occupation_measures
