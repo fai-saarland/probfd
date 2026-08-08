@@ -5,13 +5,13 @@
 #include "probfd/caching_task_state_space.h"
 
 #include "probfd/heuristic.h"
+#include "probfd/labelled_successor_distribution.h"
 #include "probfd/mdp_algorithm.h"
 #include "probfd/policy.h"
 #include "probfd/probabilistic_task.h"
 #include "probfd/task_cost_function.h"
 #include "probfd/task_heuristic_factory.h"
 #include "probfd/task_state_space_factory.h"
-#include "probfd/transition_tail.h"
 
 #include "probfd/utils/timed.h"
 

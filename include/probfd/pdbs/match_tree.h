@@ -20,7 +20,7 @@ class OperatorCostFunction;
 
 namespace probfd {
 template <typename>
-struct TransitionTail;
+struct LabelledSuccessorDistribution;
 }
 
 namespace probfd::pdbs {
@@ -70,7 +70,8 @@ public:
      */
     void generate_all_transitions(
         StateRank abstract_state,
-        std::vector<TransitionTail<const ProjectionOperator*>>& transitions,
+        std::vector<LabelledSuccessorDistribution<const ProjectionOperator*>>&
+            transitions,
         ProjectionStateSpace& state_space) const;
 
     /**

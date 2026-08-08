@@ -1,8 +1,8 @@
 #include "probfd/task_state_space.h"
 
 #include "probfd/distribution.h"
+#include "probfd/labelled_successor_distribution.h"
 #include "probfd/probabilistic_task.h"
-#include "probfd/transition_tail.h"
 #include "probfd/type_traits.h"
 
 #include "downward/evaluator.h"
@@ -98,7 +98,7 @@ void TaskStateSpace::generate_all_transitions(
 
 void TaskStateSpace::generate_all_transitions(
     const State& state,
-    std::vector<TransitionTailType>& transitions)
+    std::vector<LDistType>& transitions)
 {
     gen_.generate_transitions(state, transitions, *this);
 

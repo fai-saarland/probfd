@@ -1,8 +1,8 @@
 #include "probfd/pdbs/saturation.h"
 
+#include "probfd/labelled_successor_distribution.h"
 #include "probfd/pdbs/projection_operator.h"
 #include "probfd/pdbs/projection_state_space.h"
-#include "probfd/transition_tail.h"
 
 #include <algorithm>
 #include <vector>

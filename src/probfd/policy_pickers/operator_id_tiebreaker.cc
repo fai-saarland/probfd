@@ -1,6 +1,6 @@
 #include "probfd/policy_pickers/operator_id_tiebreaker.h"
 
-#include "probfd/transition_tail.h"
+#include "probfd/labelled_successor_distribution.h"
 
 #include "downward/operator_id.h"
 
@@ -21,7 +21,8 @@ OperatorIdTiebreaker::OperatorIdTiebreaker(
 int OperatorIdTiebreaker::pick_index(
     FDRMDP&,
     std::optional<OperatorID>,
-    const std::vector<TransitionTail<OperatorID>>& greedy_transitions,
+    const std::vector<LabelledSuccessorDistribution<OperatorID>>&
+        greedy_transitions,
     algorithms::StateProperties&)
 {
     int min_id = std::numeric_limits<int>::max();

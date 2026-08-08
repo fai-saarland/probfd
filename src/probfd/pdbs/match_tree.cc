@@ -4,7 +4,7 @@
 #include "probfd/pdbs/projection_state_space.h"
 #include "probfd/pdbs/state_ranking_function.h"
 
-#include "probfd/transition_tail.h"
+#include "probfd/labelled_successor_distribution.h"
 
 #include "downward/abstract_task.h"
 #include "downward/operator_cost_function.h"
@@ -172,7 +172,8 @@ void MatchTree::get_applicable_operators(
 
 void MatchTree::generate_all_transitions(
     StateRank abstract_state_rank,
-    std::vector<TransitionTail<const ProjectionOperator*>>& transitions,
+    std::vector<LabelledSuccessorDistribution<const ProjectionOperator*>>&
+        transitions,
     ProjectionStateSpace& state_space) const
 {
     if (!root_) return;

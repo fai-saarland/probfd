@@ -15,7 +15,7 @@ class OperatorSpace;
 namespace probfd {
 class TaskStateSpace;
 template <typename>
-struct TransitionTail;
+struct LabelledSuccessorDistribution;
 } // namespace probfd
 
 namespace probfd::successor_generator {
@@ -43,7 +43,8 @@ public:
 
     void generate_transitions(
         const downward::State& state,
-        std::vector<TransitionTail<downward::OperatorID>>& transitions,
+        std::vector<LabelledSuccessorDistribution<downward::OperatorID>>&
+            transitions,
         TaskStateSpace& task_state_space) const;
 };
 

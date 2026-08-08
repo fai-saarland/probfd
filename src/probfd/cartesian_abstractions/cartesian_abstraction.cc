@@ -6,8 +6,8 @@
 #include "probfd/cartesian_abstractions/probabilistic_transition_system.h"
 
 #include "probfd/distribution.h"
+#include "probfd/labelled_successor_distribution.h"
 #include "probfd/probabilistic_task.h"
-#include "probfd/transition_tail.h"
 
 #include "downward/cartesian_abstractions/refinement_hierarchy.h"
 
@@ -90,11 +90,11 @@ void CartesianAbstraction::generate_all_transitions(
 
 void CartesianAbstraction::generate_all_transitions(
     int state,
-    std::vector<TransitionTailType>& transitions)
+    std::vector<LDistType>& transitions)
 {
     for (const auto* t :
          transition_system_->get_outgoing_transitions()[state]) {
-        TransitionTailType& transition = transitions.emplace_back(t);
+        LDistType& transition = transitions.emplace_back(t);
         generate_action_transitions(state, t, transition.successor_dist);
     }
 }

@@ -11,8 +11,8 @@
 #include "probfd/utils/language.h"
 
 #include "probfd/heuristic.h"
+#include "probfd/labelled_successor_distribution.h"
 #include "probfd/mdp.h"
-#include "probfd/transition_tail.h"
 
 #include "downward/utils/collections.h"
 #include "downward/utils/timer.h"
@@ -71,7 +71,7 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::was_visited(
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman(
     ParamType<State> source_state,
-    const std::vector<TransitionTailType>& transition_tails,
+    const std::vector<LDistType>& transition_tails,
     ActionCostFunction<Action>& action_cost_function,
     TerminationCostFunction<State>& term_cost_function) const
     -> AlgorithmValueType
@@ -96,7 +96,7 @@ template <typename State, typename Action, typename StateInfoT>
 template <typename CostFunctionType>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman(
     ParamType<State> source_state,
-    const std::vector<TransitionTailType>& transition_tails,
+    const std::vector<LDistType>& transition_tails,
     CostFunctionType& cost_function) const -> AlgorithmValueType
     requires std::derived_from<CostFunctionType, ActionCostFunctionType> &&
              std::derived_from<CostFunctionType, TerminationCostFunctionType>
@@ -111,7 +111,7 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman(
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_and_greedy(
     ParamType<State> source_state,
-    std::vector<TransitionTailType>& transition_tails,
+    std::vector<LDistType>& transition_tails,
     ActionCostFunction<Action>& action_cost_function,
     TerminationCostFunction<State>& term_cost_function,
     std::vector<AlgorithmValueType>& qvalues) const -> AlgorithmValueType
@@ -146,7 +146,7 @@ template <typename State, typename Action, typename StateInfoT>
 template <typename CostFunctionType>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_and_greedy(
     ParamType<State> source_state,
-    std::vector<TransitionTailType>& transition_tails,
+    std::vector<LDistType>& transition_tails,
     CostFunctionType& cost_function,
     std::vector<AlgorithmValueType>& qvalues) const -> AlgorithmValueType
     requires std::derived_from<CostFunctionType, ActionCostFunctionType> &&
@@ -164,8 +164,7 @@ template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::select_greedy_transition(
     MDPType& mdp,
     std::optional<Action> previous_greedy,
-    std::vector<TransitionTailType>& transition_tails)
-    -> std::optional<TransitionTailType>
+    std::vector<LDistType>& transition_tails) -> std::optional<LDistType>
 {
 #if defined(EXPENSIVE_STATISTICS)
     TimerScope scoped(statistics_.policy_selection_time);
@@ -199,7 +198,7 @@ ValueUpdateResult HeuristicSearchBase<State, Action, StateInfoT>::update_value(
 template <typename State, typename Action, typename StateInfoT>
 bool HeuristicSearchBase<State, Action, StateInfoT>::update_policy(
     StateInfo& state_info,
-    const std::optional<TransitionTailType>& transition)
+    const std::optional<LDistType>& transition)
     requires(StorePolicy)
 {
     ++statistics_.policy_updates;
@@ -229,7 +228,7 @@ void HeuristicSearchBase<State, Action, StateInfoT>::expand_and_initialize(
     HeuristicType& h,
     ParamType<State> state,
     StateInfo& state_info,
-    std::vector<TransitionTailType>& transition_tails)
+    std::vector<LDistType>& transition_tails)
 {
     assert(!state_info.is_goal_or_terminal());
     assert(transition_tails.empty());
@@ -271,7 +270,7 @@ void HeuristicSearchBase<State, Action, StateInfoT>::
     generate_non_tip_transitions(
         MDPType& mdp,
         ParamType<State> state,
-        std::vector<TransitionTailType>& transition_tails) const
+        std::vector<LDistType>& transition_tails) const
 {
     assert(transition_tails.empty());
 
@@ -330,7 +329,7 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize(
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_qvalue(
-    const TransitionTailType& transition,
+    const LDistType& transition,
     ActionCostFunction<Action>& action_cost_function) const
     -> AlgorithmValueType
 {
@@ -349,7 +348,7 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_qvalue(
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_q_values(
-    std::vector<TransitionTailType>& transition_tails,
+    std::vector<LDistType>& transition_tails,
     ActionCostFunction<Action>& action_cost_function,
     std::vector<AlgorithmValueType>& qvalues) const -> AlgorithmValueType
 {
@@ -368,7 +367,7 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_q_values(
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::filter_greedy_transitions(
-    std::vector<TransitionTailType>& transition_tails,
+    std::vector<LDistType>& transition_tails,
     std::vector<AlgorithmValueType>& qvalues,
     const AlgorithmValueType& best_value) const -> AlgorithmValueType
 {
@@ -439,7 +438,7 @@ auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
     queue.push_back(initial_state_id);
     visited.insert(initial_state_id);
 
-    std::vector<TransitionTailType> transition_tails;
+    std::vector<LDistType> transition_tails;
     std::vector<AlgorithmValueType> qvalues;
 
     do {

@@ -123,7 +123,7 @@ template <typename State, typename Action, bool UseInterval>
 bool ExhaustiveAOSearch<State, Action, UseInterval>::update_value_check_solved(
     MDPType& mdp,
     ParamType<State> state,
-    std::vector<TransitionTail<Action>> transitions,
+    std::vector<LabelledSuccessorDistribution<Action>> transitions,
     StateInfo& info)
 {
     assert(!info.is_solved());

@@ -7,8 +7,8 @@
 #include "probfd/heuristics/constant_heuristic.h"
 
 #include "probfd/distribution.h"
+#include "probfd/labelled_successor_distribution.h"
 #include "probfd/mdp.h"
-#include "probfd/transition_tail.h"
 
 #include "downward/utils/logging.h"
 #include "probfd/merge_and_shrink/labels.h"
@@ -151,7 +151,8 @@ public:
 
     void generate_all_transitions(
         int state,
-        std::vector<TransitionTailType>& transitions) override
+        std::vector<LDistType>& transitions)
+        override
     {
         transitions.reserve(transitions_[state].size());
         for (const ProbabilisticTransition& t : transitions_[state]) {

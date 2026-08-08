@@ -126,7 +126,7 @@ class QuotientSystem
     using QuotientInformationType = QuotientInformation<Action>;
     using QState = QuotientState<State, Action>;
     using QAction = QuotientAction<Action>;
-    using QTransitionTail = TransitionTail<QAction>;
+    using QTransitionTail = LabelledSuccessorDistribution<QAction>;
 
     using MDPType = MDP<State, Action>;
 

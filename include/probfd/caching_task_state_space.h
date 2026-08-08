@@ -75,7 +75,7 @@ public:
 
     void generate_all_transitions(
         const downward::State& state,
-        std::vector<TransitionTailType>& transitions) final;
+        std::vector<LDistType>& transitions) final;
 
     void print_statistics(std::ostream& out) const final;
 

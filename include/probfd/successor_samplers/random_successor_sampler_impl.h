@@ -1,6 +1,6 @@
 #include "probfd/successor_samplers/random_successor_sampler.h"
 
-#include "probfd/transition_tail.h"
+#include "probfd/labelled_successor_distribution.h"
 
 #include "downward/utils/rng.h"
 

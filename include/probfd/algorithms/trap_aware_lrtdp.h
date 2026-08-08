@@ -165,7 +165,7 @@ class TALRTDPImpl
     internal::Statistics statistics_;
 
     // Buffer
-    std::vector<TransitionTail<QAction>> transitions_;
+    std::vector<LabelledSuccessorDistribution<QAction>> transitions_;
     std::vector<AlgorithmValueType> qvalues_;
 
 public:

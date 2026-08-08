@@ -86,7 +86,8 @@ public:
 
     void generate_all_transitions(
         int state,
-        std::vector<TransitionTailType>& transitions) override;
+        std::vector<LDistType>& transitions)
+        override;
 
     bool is_goal(int state) const override;
     value_t get_goal_termination_cost() const override;

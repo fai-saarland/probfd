@@ -10,7 +10,7 @@
 namespace probfd {
 struct SuccessorDistribution;
 template <typename>
-struct TransitionTail;
+struct LabelledSuccessorDistribution;
 } // namespace probfd
 
 namespace probfd {
@@ -42,7 +42,7 @@ namespace probfd {
 template <typename State, typename Action>
 class StateSpace {
 protected:
-    using TransitionTailType = TransitionTail<Action>;
+    using LDistType = LabelledSuccessorDistribution<Action>;
 
 public:
     virtual ~StateSpace() = default;
@@ -87,7 +87,7 @@ public:
      */
     virtual void generate_all_transitions(
         ParamType<State> state,
-        std::vector<TransitionTailType>& transitions) = 0;
+        std::vector<LDistType>& transitions) = 0;
 };
 
 } // namespace probfd

@@ -1,5 +1,5 @@
-#ifndef PROBFD_TRANSITION_TAIL_H
-#define PROBFD_TRANSITION_TAIL_H
+#ifndef PROBFD_LABELLED_SUCCESSOR_DISTRIBUTION_H
+#define PROBFD_LABELLED_SUCCESSOR_DISTRIBUTION_H
 
 #include "probfd/distribution.h"
 #include "probfd/state_id.h"
@@ -64,7 +64,7 @@ struct SuccessorDistribution {
  * @tparam Action The action type.
  */
 template <typename Action>
-struct TransitionTail {
+struct LabelledSuccessorDistribution {
     /// The action of the transition.
     Action action;
 

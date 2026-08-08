@@ -3,9 +3,9 @@
 
 #include "probfd/storage/per_state_storage.h"
 
+#include "probfd/labelled_successor_distribution.h"
 #include "probfd/mdp.h"
 #include "probfd/policy.h"
-#include "probfd/transition_tail.h"
 
 #include <ranges>
 #include <stack>

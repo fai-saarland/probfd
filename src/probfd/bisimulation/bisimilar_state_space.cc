@@ -3,7 +3,7 @@
 #include "probfd/task_utils/task_properties.h"
 
 #include "probfd/distribution.h"
-#include "probfd/transition_tail.h"
+#include "probfd/labelled_successor_distribution.h"
 
 #include "downward/merge_and_shrink/distances.h"
 #include "downward/merge_and_shrink/factored_transition_system.h"
@@ -195,7 +195,7 @@ void BisimilarStateSpace::generate_all_transitions(
 
 void BisimilarStateSpace::generate_all_transitions(
     QuotientState state,
-    std::vector<TransitionTailType>& transitions)
+    std::vector<LDistType>& transitions)
 {
     const auto& operators = get_operators(task_);
 
@@ -203,7 +203,7 @@ void BisimilarStateSpace::generate_all_transitions(
     transitions.reserve(cache.size());
 
     for (const auto [op_id, successors] : cache) {
-        TransitionTailType& t = transitions.emplace_back(op_id);
+        LDistType& t = transitions.emplace_back(op_id);
 
         const ProbabilisticOperatorProxy& op = operators[op_id];
         const ProbabilisticOutcomesProxy& outcomes = op.get_outcomes();

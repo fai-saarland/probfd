@@ -25,7 +25,7 @@ namespace probfd {
 template <typename>
 class Distribution;
 template <typename>
-struct TransitionTail;
+struct LabelledSuccessorDistribution;
 template <typename>
 class ActionCostFunction;
 template <typename>
@@ -126,7 +126,7 @@ protected:
     using ActionCostFunctionType = ActionCostFunction<Action>;
     using TerminationCostFunctionType = TerminationCostFunction<State>;
     using HeuristicType = Heuristic<State>;
-    using TransitionTailType = TransitionTail<Action>;
+    using LDistType = LabelledSuccessorDistribution<Action>;
 
     using PolicyPickerType = PolicyPicker<State, Action>;
 
@@ -172,14 +172,14 @@ public:
      */
     AlgorithmValueType compute_bellman(
         ParamType<State> source_state,
-        const std::vector<TransitionTailType>& transition_tails,
+        const std::vector<LDistType>& transition_tails,
         ActionCostFunctionType& action_cost_function,
         TerminationCostFunctionType& term_cost_function) const;
 
     template <typename CostFunctionType>
     AlgorithmValueType compute_bellman(
         ParamType<State> source_state,
-        const std::vector<TransitionTailType>& transition_tails,
+        const std::vector<LDistType>& transition_tails,
         CostFunctionType& cost_function) const
         requires std::derived_from<CostFunctionType, ActionCostFunctionType> &&
                  std::
@@ -207,7 +207,7 @@ public:
      */
     AlgorithmValueType compute_bellman_and_greedy(
         ParamType<State> source_state,
-        std::vector<TransitionTailType>& transition_tails,
+        std::vector<LDistType>& transition_tails,
         ActionCostFunctionType& action_cost_function,
         TerminationCostFunctionType& term_cost_function,
         std::vector<AlgorithmValueType>& qvalues) const;
@@ -215,7 +215,7 @@ public:
     template <typename CostFunctionType>
     AlgorithmValueType compute_bellman_and_greedy(
         ParamType<State> source_state,
-        std::vector<TransitionTailType>& transition_tails,
+        std::vector<LDistType>& transition_tails,
         CostFunctionType& cost_function,
         std::vector<AlgorithmValueType>& qvalues) const
         requires std::derived_from<CostFunctionType, ActionCostFunctionType> &&
@@ -233,10 +233,10 @@ public:
      * @attention The selected transition is moved from the transition list
      * to avoid a copy.
      */
-    std::optional<TransitionTailType> select_greedy_transition(
+    std::optional<LDistType> select_greedy_transition(
         MDPType& mdp,
         std::optional<Action> previous_greedy_action,
-        std::vector<TransitionTailType>& greedy_transition_tails);
+        std::vector<LDistType>& greedy_transition_tails);
 
     /**
      * @brief Updates the value of the state associated with the given storage.
@@ -258,7 +258,7 @@ public:
      */
     bool update_policy(
         StateInfo& state_info,
-        const std::optional<TransitionTailType>& transition_tail)
+        const std::optional<LDistType>& transition_tail)
         requires(StorePolicy);
 
 protected:
@@ -272,12 +272,12 @@ protected:
         HeuristicType& h,
         ParamType<State> state,
         StateInfo& state_info,
-        std::vector<TransitionTailType>& transition_tails);
+        std::vector<LDistType>& transition_tails);
 
     void generate_non_tip_transitions(
         MDPType& mdp,
         ParamType<State> state,
-        std::vector<TransitionTailType>& transition_tails) const;
+        std::vector<LDistType>& transition_tails) const;
 
     void print_statistics(std::ostream& out) const;
 
@@ -289,16 +289,16 @@ private:
         StateInfo& state_info);
 
     AlgorithmValueType compute_qvalue(
-        const TransitionTailType& transition_tail,
+        const LDistType& transition_tail,
         ActionCostFunctionType& action_cost_function) const;
 
     AlgorithmValueType compute_q_values(
-        std::vector<TransitionTailType>& transition_tails,
+        std::vector<LDistType>& transition_tails,
         ActionCostFunctionType& action_cost_function,
         std::vector<AlgorithmValueType>& qvalues) const;
 
     AlgorithmValueType filter_greedy_transitions(
-        std::vector<TransitionTailType>& transition_tails,
+        std::vector<LDistType>& transition_tails,
         std::vector<AlgorithmValueType>& qvalues,
         const AlgorithmValueType& best_value) const;
 
@@ -322,7 +322,7 @@ class HeuristicSearchAlgorithm
     using HSBase = typename HeuristicSearchAlgorithm::HeuristicSearchBase;
 
 public:
-    using TransitionTailType = typename HSBase::TransitionTailType;
+    using LDistType = typename HSBase::LDistType;
     using AlgorithmValueType = typename HSBase::AlgorithmValueType;
 
 protected:

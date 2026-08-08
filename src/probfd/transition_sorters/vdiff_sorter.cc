@@ -4,7 +4,7 @@
 
 #include "probfd/distribution.h"
 #include "probfd/interval.h"
-#include "probfd/transition_tail.h"
+#include "probfd/labelled_successor_distribution.h"
 
 #include <algorithm>
 #include <functional>

@@ -48,8 +48,8 @@ public:
  * @tparam Action - The action type of the MDP.
  */
 template <typename State, typename Action>
-struct CompositeMDP : public MDP<State, Action> {
-    using TransitionTailType = TransitionTail<Action>;
+struct CompositeMDP : MDP<State, Action> {
+    using LDistType = LabelledSuccessorDistribution<Action>;
 
     StateSpace<State, Action>& state_space;
     ActionCostFunction<Action>& action_cost_function;
@@ -120,9 +120,9 @@ struct CompositeMDP : public MDP<State, Action> {
             successor_dist);
     }
 
-    virtual void generate_all_transitions(
+    void generate_all_transitions(
         ParamType<State> state,
-        std::vector<TransitionTailType>& transitions) final
+        std::vector<LDistType>& transitions) final
     {
         return state_space.generate_all_transitions(state, transitions);
     }

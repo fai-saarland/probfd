@@ -19,14 +19,15 @@ template <typename State, typename Action>
 int VDiffTiebreaker<State, Action>::pick_index(
     MDP<State, Action>&,
     std::optional<Action>,
-    const std::vector<TransitionTail<Action>>& greedy_transitions,
+    const std::vector<LabelledSuccessorDistribution<Action>>&
+        greedy_transitions,
     algorithms::StateProperties& properties)
 {
     auto it = std::ranges::min_element(
         greedy_transitions,
         {},
         [&properties,
-         factor = factor_](const TransitionTail<Action>& t) {
+         factor = factor_](const LabelledSuccessorDistribution<Action>& t) {
             return t.successor_dist.non_source_successor_dist.expectation(
                 [&](StateID id) {
                     return factor * properties.lookup_bounds(id).length();

@@ -4,9 +4,9 @@
 #include "probfd/storage/per_state_storage.h"
 
 #include "probfd/fdr_types.h"
+#include "probfd/labelled_successor_distribution.h"
 #include "probfd/mdp_algorithm.h"
 #include "probfd/probabilistic_task.h"
-#include "probfd/transition_tail.h"
 #include "probfd/value_type.h"
 
 #include "downward/lp/lp_solver.h"

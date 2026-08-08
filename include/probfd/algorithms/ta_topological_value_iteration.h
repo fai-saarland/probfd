@@ -9,7 +9,7 @@
 #include "probfd/distribution.h"
 
 #include "downward/utils/timer.h"
-#include "probfd/transition_tail.h"
+#include "probfd/labelled_successor_distribution.h"
 
 #include <deque>
 #include <limits>

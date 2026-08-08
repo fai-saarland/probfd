@@ -87,7 +87,7 @@ public:
 
     void generate_all_transitions(
         const downward::State& state,
-        std::vector<TransitionTailType>& transitions) override;
+        std::vector<LDistType>& transitions) override;
 
     const downward::State& get_initial_state();
 

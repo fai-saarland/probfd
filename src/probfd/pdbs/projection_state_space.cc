@@ -4,8 +4,8 @@
 #include "probfd/pdbs/state_ranking_function.h"
 
 #include "probfd/cost_function.h"
+#include "probfd/labelled_successor_distribution.h"
 #include "probfd/probabilistic_task.h"
-#include "probfd/transition_tail.h"
 
 #include "probfd/probabilistic_operator_space.h"
 #include "probfd/termination_costs.h"
@@ -345,7 +345,7 @@ void ProjectionStateSpace::generate_all_transitions(
 
 void ProjectionStateSpace::generate_all_transitions(
     StateRank state,
-    std::vector<TransitionTailType>& transitions)
+    std::vector<LDistType>& transitions)
 {
     match_tree_.generate_all_transitions(state, transitions, *this);
 }

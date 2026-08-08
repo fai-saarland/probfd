@@ -155,7 +155,7 @@ private:
     Statistics statistics_;
 
     // Re-used buffer
-    std::vector<TransitionTail<Action>> transitions_;
+    std::vector<LabelledSuccessorDistribution<Action>> transitions_;
     std::vector<AlgorithmValueType> qvalues_;
 
 public:

@@ -4,8 +4,8 @@
 #include "probfd/storage/per_state_storage.h"
 
 #include "probfd/distribution.h"
+#include "probfd/labelled_successor_distribution.h"
 #include "probfd/mdp_algorithm.h"
-#include "probfd/transition_tail.h"
 
 #include "probfd/algorithms/events.h"
 #include "probfd/utils/observer.h"

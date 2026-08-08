@@ -9,7 +9,7 @@
 
 #include "probfd/distribution.h"
 #include "probfd/heuristic.h"
-#include "probfd/transition_tail.h"
+#include "probfd/labelled_successor_distribution.h"
 
 #include "downward/utils/countdown_timer.h"
 #include "probfd/policies/map_policy.h"
@@ -235,7 +235,7 @@ Interval IDual<State, Action>::solve(
         frontier.push_back(prev_state);
     }
 
-    std::vector<TransitionTail<Action>> transitions;
+    std::vector<LabelledSuccessorDistribution<Action>> transitions;
 
     value_t objective = 0_vt;
 

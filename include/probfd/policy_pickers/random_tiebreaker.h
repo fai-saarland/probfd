@@ -29,7 +29,8 @@ public:
     int pick_index(
         MDP<State, Action>& mdp,
         std::optional<Action> prev_policy,
-        const std::vector<TransitionTail<Action>>& greedy_transitions,
+        const std::vector<LabelledSuccessorDistribution<Action>>&
+            greedy_transitions,
         algorithms::StateProperties& properties) override;
 };
 

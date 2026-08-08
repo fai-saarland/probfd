@@ -4,8 +4,8 @@
 #include "probfd/storage/per_state_storage.h"
 
 #include "probfd/heuristic.h"
+#include "probfd/labelled_successor_distribution.h"
 #include "probfd/mdp.h"
-#include "probfd/transition_tail.h"
 
 #include <cassert>
 #include <deque>
@@ -349,17 +349,17 @@ void dump_state_space_dot_graph(
 
         if (!expand) { continue; }
 
-        std::vector<TransitionTail<Action>> transitions;
+        std::vector<LabelledSuccessorDistribution<Action>> transitions;
         mdp->generate_all_transitions(state, transitions);
 
         std::ranges::sort(
             transitions,
             {},
-            &TransitionTail<Action>::successor_dist);
+            &LabelledSuccessorDistribution<Action>::successor_dist);
         const auto [it, end] = std::ranges::unique(
             transitions,
             {},
-            &TransitionTail<Action>::successor_dist);
+            &LabelledSuccessorDistribution<Action>::successor_dist);
         transitions.erase(it, end);
 
         for (const auto& [act, successor_dist] : transitions) {

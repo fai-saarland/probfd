@@ -175,7 +175,7 @@ template <typename State, typename Action, bool UseInterval>
 bool AOStar<State, Action, UseInterval>::update_value_check_solved(
     MDPType& mdp,
     ParamType<State> state,
-    std::vector<TransitionTail<Action>> transitions,
+    std::vector<LabelledSuccessorDistribution<Action>> transitions,
     StateInfo& info)
 {
     const auto value = this->compute_bellman_and_greedy(

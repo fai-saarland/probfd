@@ -1,7 +1,7 @@
 #include "probfd/successor_samplers/arbitrary_sampler.h"
 
 #include "probfd/distribution.h"
-#include "probfd/transition_tail.h"
+#include "probfd/labelled_successor_distribution.h"
 
 namespace probfd::successor_samplers {
 

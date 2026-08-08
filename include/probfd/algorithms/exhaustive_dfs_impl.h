@@ -9,7 +9,7 @@
 #include "probfd/utils/not_implemented.h"
 
 #include "probfd/heuristic.h"
-#include "probfd/transition_tail.h"
+#include "probfd/labelled_successor_distribution.h"
 
 #include <cassert>
 #include <ranges>

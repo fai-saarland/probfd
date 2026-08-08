@@ -213,7 +213,7 @@ class ValueGraph {
         typename NestedAlgorithm::HeuristicSearchBase::AlgorithmValueType;
 
     std::unordered_set<StateID> ids_;
-    std::vector<TransitionTail<QAction>> opt_transitions_;
+    std::vector<LabelledSuccessorDistribution<QAction>> opt_transitions_;
     std::vector<AlgorithmValueType> q_values;
 
 public:

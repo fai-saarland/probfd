@@ -118,7 +118,7 @@ protected:
     void backpropagate_tip_value(
         this auto& self,
         MDPType& mdp,
-        std::vector<TransitionTail<Action>>& transitions,
+        std::vector<LabelledSuccessorDistribution<Action>>& transitions,
         StateInfo& state_info,
         downward::utils::CountdownTimer& timer);
 
