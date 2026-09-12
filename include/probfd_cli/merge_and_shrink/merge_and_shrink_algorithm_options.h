@@ -3,6 +3,8 @@
 
 #include "language/plugins/options.h"
 
+#include "probfd/merge_and_shrink/label_reduction_factory.h"
+
 #include "downward/utils/timer.h"
 
 #include <memory>
@@ -31,7 +33,7 @@ extern void add_merge_and_shrink_algorithm_options_to_feature(
 std::tuple<
     std::shared_ptr<probfd::merge_and_shrink::MergeStrategyFactory>,
     std::shared_ptr<probfd::merge_and_shrink::ShrinkStrategy>,
-    std::shared_ptr<probfd::merge_and_shrink::LabelReduction>,
+    std::shared_ptr<probfd::merge_and_shrink::LabelReductionFactory>,
     std::shared_ptr<probfd::merge_and_shrink::PruneStrategy>,
     int,
     int,

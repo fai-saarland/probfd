@@ -43,7 +43,7 @@ void add_merge_and_shrink_algorithm_options_to_feature(Feature& feature)
         "prune_identity()");
 
     // Label reduction option.
-    feature.add_option<shared_ptr<LabelReduction>>(
+    feature.add_option<shared_ptr<LabelReductionFactory>>(
         "label_reduction",
         "See detailed documentation for labels. There is currently only "
         "one 'option' to use label_reduction, which is "
@@ -68,7 +68,7 @@ void add_merge_and_shrink_algorithm_options_to_feature(Feature& feature)
 tuple<
     shared_ptr<MergeStrategyFactory>,
     shared_ptr<ShrinkStrategy>,
-    shared_ptr<LabelReduction>,
+    shared_ptr<LabelReductionFactory>,
     shared_ptr<PruneStrategy>,
     int,
     int,
@@ -84,7 +84,7 @@ get_merge_and_shrink_algorithm_arguments_from_options(
                 context,
                 "merge_strategy"),
             opts.get<shared_ptr<ShrinkStrategy>>(context, "shrink_strategy"),
-            opts.get<shared_ptr<LabelReduction>>(
+            opts.get<shared_ptr<LabelReductionFactory>>(
                 context,
                 "label_reduction",
                 nullptr),

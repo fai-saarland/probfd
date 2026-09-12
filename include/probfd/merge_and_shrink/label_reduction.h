@@ -2,6 +2,7 @@
 #define PROBFD_MERGE_AND_SHRINK_LABEL_REDUCTION_H
 
 #include "probfd/probabilistic_task.h"
+#include "probfd/task_dependent_factory.h"
 
 #include <memory>
 #include <vector>
@@ -52,17 +53,14 @@ class LabelReduction {
     LabelReductionSystemOrder lr_system_order;
     std::shared_ptr<downward::utils::RandomNumberGenerator> rng;
 
-    bool initialized() const;
-
 public:
     LabelReduction(
+        const ProbabilisticTaskTuple& task,
         bool before_shrinking,
         bool before_merging,
         LabelReductionMethod method,
         LabelReductionSystemOrder system_order,
         int random_seed);
-
-    void initialize(const ProbabilisticTaskTuple& task);
 
     bool reduce(
         int merge_index_left,

@@ -255,10 +255,6 @@ void MergeAndShrinkAlgorithm::run_merge_and_shrink_algorithm(
         }
     }
 
-    if (label_reduction) {
-        label_reduction->initialize(to_refs(task));
-    }
-
     const unique_ptr<MergeStrategy> merge_strategy =
         merge_strategy_factory.compute_merge_strategy(task, fts);
 

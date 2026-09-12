@@ -27,50 +27,8 @@ using utils::ExitCode;
 
 namespace probfd::merge_and_shrink {
 
-LabelReduction::LabelReduction(
-    bool before_shrinking,
-    bool before_merging,
-    LabelReductionMethod method,
-    LabelReductionSystemOrder system_order,
-    int random_seed)
-    : lr_before_shrinking(before_shrinking)
-    , lr_before_merging(before_merging)
-    , lr_method(method)
-    , lr_system_order(system_order)
-    , rng(utils::get_rng(random_seed))
-{
-}
-
-bool LabelReduction::initialized() const
-{
-    return !transition_system_order.empty();
-}
-
-void LabelReduction::initialize(const ProbabilisticTaskTuple& task)
-{
-    assert(!initialized());
-
-    const VariableSpace& variables = get_variables(task);
-
-    // Compute the transition system order.
-    const int max_transition_system_count = variables.size() * 2 - 1;
-    transition_system_order.reserve(max_transition_system_count);
-
-    if (lr_system_order == LabelReductionSystemOrder::REGULAR ||
-        lr_system_order == LabelReductionSystemOrder::RANDOM) {
-        for (int i = 0; i < max_transition_system_count; ++i)
-            transition_system_order.push_back(i);
-        if (lr_system_order == LabelReductionSystemOrder::RANDOM) {
-            rng->shuffle(transition_system_order);
-        }
-    } else {
-        assert(lr_system_order == LabelReductionSystemOrder::REVERSE);
-        for (int i = max_transition_system_count - 1; i >= 0; --i)
-            transition_system_order.push_back(i);
-    }
-}
-
-static void compute_label_mapping(
+namespace {
+void compute_label_mapping(
     const equivalence_relation::EquivalenceRelation& relation,
     const FactoredTransitionSystem& fts,
     vector<pair<int, vector<int>>>& label_mapping,
@@ -106,7 +64,9 @@ static void compute_label_mapping(
                 ++next_new_label;
             }
 
-            if (!equivalent_labels.empty()) { ++num_labels_after_reduction; }
+            if (!equivalent_labels.empty()) {
+                ++num_labels_after_reduction;
+            }
         }
     }
 
@@ -120,7 +80,7 @@ static void compute_label_mapping(
     }
 }
 
-static equivalence_relation::EquivalenceRelation
+equivalence_relation::EquivalenceRelation
 compute_combinable_equivalence_relation(
     int ts_index,
     const FactoredTransitionSystem& fts)
@@ -163,6 +123,40 @@ compute_combinable_equivalence_relation(
 
     return relation;
 }
+} // namespace
+
+LabelReduction::LabelReduction(
+    const ProbabilisticTaskTuple& task,
+    bool before_shrinking,
+    bool before_merging,
+    LabelReductionMethod method,
+    LabelReductionSystemOrder system_order,
+    int random_seed)
+    : lr_before_shrinking(before_shrinking)
+    , lr_before_merging(before_merging)
+    , lr_method(method)
+    , lr_system_order(system_order)
+    , rng(utils::get_rng(random_seed))
+{
+    const VariableSpace& variables = get_variables(task);
+
+    // Compute the transition system order.
+    const int max_transition_system_count = variables.size() * 2 - 1;
+    transition_system_order.reserve(max_transition_system_count);
+
+    if (lr_system_order == LabelReductionSystemOrder::REGULAR ||
+        lr_system_order == LabelReductionSystemOrder::RANDOM) {
+        for (int i = 0; i < max_transition_system_count; ++i)
+            transition_system_order.push_back(i);
+        if (lr_system_order == LabelReductionSystemOrder::RANDOM) {
+            rng->shuffle(transition_system_order);
+        }
+    } else {
+        assert(lr_system_order == LabelReductionSystemOrder::REVERSE);
+        for (int i = max_transition_system_count - 1; i >= 0; --i)
+            transition_system_order.push_back(i);
+    }
+}
 
 bool LabelReduction::reduce(
     int merge_index_left,
@@ -170,7 +164,6 @@ bool LabelReduction::reduce(
     FactoredTransitionSystem& fts,
     utils::LogProxy& log) const
 {
-    assert(initialized());
     assert(reduce_before_shrinking() || reduce_before_merging());
 
     const int num_transition_systems = fts.get_size();
@@ -220,9 +213,8 @@ bool LabelReduction::reduce(
     int max_iterations;
     if (lr_method == LabelReductionMethod::ALL_TRANSITION_SYSTEMS) {
         max_iterations = num_transition_systems;
-    } else if (
-        lr_method ==
-        LabelReductionMethod::ALL_TRANSITION_SYSTEMS_WITH_FIXPOINT) {
+    } else if (lr_method ==
+               LabelReductionMethod::ALL_TRANSITION_SYSTEMS_WITH_FIXPOINT) {
         max_iterations = std::numeric_limits<int>::max();
     } else {
         throw utils::CriticalError("unknown label reduction method");
@@ -272,10 +264,14 @@ bool LabelReduction::reduce(
         }
 
         ++tso_index;
-        if (tso_index == transition_system_order.size()) { tso_index = 0; }
+        if (tso_index == transition_system_order.size()) {
+            tso_index = 0;
+        }
         while (transition_system_order[tso_index] >= num_transition_systems) {
             ++tso_index;
-            if (tso_index == transition_system_order.size()) { tso_index = 0; }
+            if (tso_index == transition_system_order.size()) {
+                tso_index = 0;
+            }
         }
     }
     return reduced;

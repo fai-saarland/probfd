@@ -13,6 +13,7 @@
 #include "probfd/merge_and_shrink/factored_mapping.h"
 #include "probfd/merge_and_shrink/factored_transition_system.h"
 #include "probfd/merge_and_shrink/fts_factory.h"
+#include "probfd/merge_and_shrink/label_reduction.h"
 #include "probfd/merge_and_shrink/merge_and_shrink_algorithm.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
@@ -78,7 +79,7 @@ bool extract_unsolvable_factor(
 class MergeAndShrinkHeuristicFactory final : public TaskHeuristicFactory {
     std::shared_ptr<MergeStrategyFactory> merge_strategy;
     std::shared_ptr<ShrinkStrategy> shrink_strategy;
-    std::shared_ptr<LabelReduction> label_reduction;
+    std::shared_ptr<LabelReductionFactory> label_reduction_factory;
     std::shared_ptr<PruneStrategy> prune_strategy;
     int max_states;
     int max_states_before_merge;
@@ -90,7 +91,7 @@ public:
     explicit MergeAndShrinkHeuristicFactory(
         std::shared_ptr<MergeStrategyFactory> merge_strategy,
         std::shared_ptr<ShrinkStrategy> shrink_strategy,
-        std::shared_ptr<LabelReduction> label_reduction,
+        std::shared_ptr<LabelReductionFactory> label_reduction_factory,
         std::shared_ptr<PruneStrategy> prune_strategy,
         int max_states,
         int max_states_before_merge,
@@ -105,7 +106,7 @@ public:
 MergeAndShrinkHeuristicFactory::MergeAndShrinkHeuristicFactory(
     std::shared_ptr<MergeStrategyFactory> merge_strategy,
     std::shared_ptr<ShrinkStrategy> shrink_strategy,
-    std::shared_ptr<LabelReduction> label_reduction,
+    std::shared_ptr<LabelReductionFactory> label_reduction_factory,
     std::shared_ptr<PruneStrategy> prune_strategy,
     int max_states,
     int max_states_before_merge,
@@ -114,7 +115,7 @@ MergeAndShrinkHeuristicFactory::MergeAndShrinkHeuristicFactory(
     utils::Verbosity verbosity)
     : merge_strategy(std::move(merge_strategy))
     , shrink_strategy(std::move(shrink_strategy))
-    , label_reduction(std::move(label_reduction))
+    , label_reduction_factory(std::move(label_reduction_factory))
     , prune_strategy(std::move(prune_strategy))
     , max_states(max_states)
     , max_states_before_merge(max_states_before_merge)
@@ -129,6 +130,12 @@ std::unique_ptr<FDRHeuristic> MergeAndShrinkHeuristicFactory::create_object(
 {
     FactoredTransitionSystem fts =
         create_factored_transition_system(to_refs(task), log_);
+
+    std::unique_ptr<LabelReduction> label_reduction;
+
+    if (label_reduction_factory) {
+        label_reduction = label_reduction_factory->create_object(task);
+    }
 
     run_merge_and_shrink_algorithm(
         fts,
@@ -198,8 +205,8 @@ public:
         document_title("Merge-and-shrink heuristic");
         document_synopsis("TODO add a description");
 
-        add_task_dependent_heuristic_options_to_feature(*this);
         add_merge_and_shrink_algorithm_options_to_feature(*this);
+        downward::cli::utils::add_log_options_to_feature(*this);
     }
 
     shared_ptr<TaskHeuristicFactory>

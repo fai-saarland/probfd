@@ -1,6 +1,7 @@
 #include "probfd_cli/merge_and_shrink/label_reduction_feature.h"
 
 #include "probfd/merge_and_shrink/label_reduction.h"
+#include "probfd/merge_and_shrink/label_reduction_factory.h"
 
 #include "downward/utils/logging.h"
 #include "downward/utils/markup.h"
@@ -23,7 +24,43 @@ using utils::ExitCode;
 using namespace probfd::merge_and_shrink;
 
 namespace {
-class LabelReductionFeature : public TypedFeature<LabelReduction> {
+
+class DefaultLabelReductionFactory : public LabelReductionFactory {
+    bool before_shrinking;
+    bool before_merging;
+    LabelReductionMethod method;
+    LabelReductionSystemOrder system_order;
+    int random_seed;
+
+public:
+    DefaultLabelReductionFactory(
+        bool before_shrinking,
+        bool before_merging,
+        LabelReductionMethod method,
+        LabelReductionSystemOrder system_order,
+        int random_seed)
+        : before_shrinking(before_shrinking)
+        , before_merging(before_merging)
+        , method(method)
+        , system_order(system_order)
+        , random_seed(random_seed)
+    {
+    }
+
+    std::unique_ptr<LabelReduction>
+    create_object(const probfd::SharedProbabilisticTask& task) override
+    {
+        return std::make_unique<LabelReduction>(
+            to_refs(task),
+            before_shrinking,
+            before_merging,
+            method,
+            system_order,
+            random_seed);
+    }
+};
+
+class LabelReductionFeature : public TypedFeature<LabelReductionFactory> {
 public:
     LabelReductionFeature()
         : TypedFeature("pexact")
@@ -73,7 +110,7 @@ public:
         downward::cli::utils::add_rng_options_to_feature(*this);
     }
 
-    shared_ptr<LabelReduction>
+    shared_ptr<LabelReductionFactory>
     create_component(const Options& options, const Context& context)
         const override
     {
@@ -88,7 +125,7 @@ public:
                 "before_shrinking or before_merging!");
         }
 
-        return make_shared_from_arg_tuples<LabelReduction>(
+        return make_shared_from_arg_tuples<DefaultLabelReductionFactory>(
             lr_before_shrinking,
             lr_before_merging,
             options.get<LabelReductionMethod>(context, "method"),
@@ -105,8 +142,8 @@ namespace probfd::cli::merge_and_shrink {
 
 void add_label_reduction_features(RawRegistry& raw_registry)
 {
-    auto& category =
-        raw_registry.insert_category_plugin<LabelReduction>("PLabelReduction");
+    auto& category = raw_registry.insert_category_plugin<LabelReductionFactory>(
+        "PLabelReduction");
     category.document_synopsis(
         "This page describes the current single 'option' for "
         "label reduction.");
