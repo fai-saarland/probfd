@@ -31,52 +31,51 @@ class SoPlexSolverInterface : public SolverInterface {
 public:
     SoPlexSolverInterface();
 
-    virtual void load_problem(const LinearProgram& lp) override;
-    virtual void add_temporary_constraints(
+    void load_problem(const LinearProgram& lp) override;
+    void add_temporary_constraints(
         const named_vector::NamedVector<LPConstraint>& constraints) override;
-    virtual void clear_temporary_constraints() override;
-    virtual double get_infinity() const override;
+    void clear_temporary_constraints() override;
+    double get_infinity() const override;
 
-    virtual void set_objective_coefficients(
+    void set_objective_coefficients(
         const std::vector<double>& coefficients) override;
-    virtual void
-    set_objective_coefficient(int index, double coefficient) override;
-    virtual void set_constraint_lower_bound(int index, double bound) override;
-    virtual void set_constraint_upper_bound(int index, double bound) override;
-    virtual void set_variable_lower_bound(int index, double bound) override;
-    virtual void set_variable_upper_bound(int index, double bound) override;
+    void set_objective_coefficient(int index, double coefficient) override;
+    void set_constraint_lower_bound(int index, double bound) override;
+    void set_constraint_upper_bound(int index, double bound) override;
+    void set_variable_lower_bound(int index, double bound) override;
+    void set_variable_upper_bound(int index, double bound) override;
 
-    virtual void set_mip_gap(double gap) override;
+    void set_mip_gap(double gap) override;
 
-    virtual void solve() override;
-    virtual void write_lp(const std::string& filename) const override;
-    virtual void print_failure_analysis() const override;
-    virtual bool is_infeasible() const override;
-    virtual bool is_unbounded() const override;
+    void solve() override;
+    void write_lp(const std::string& filename) const override;
+    void print_failure_analysis() const override;
+    bool is_infeasible() const override;
+    bool is_unbounded() const override;
 
-    virtual bool has_optimal_solution() const override;
+    bool has_optimal_solution() const override;
 
-    virtual double get_objective_value() const override;
+    double get_objective_value() const override;
 
-    virtual std::vector<double> extract_solution() const override;
+    std::vector<double> extract_solution() const override;
 
-    virtual int get_num_variables() const override;
-    virtual int get_num_constraints() const override;
-    virtual bool has_temporary_constraints() const override;
-    virtual void print_statistics(std::ostream& out) const override;
+    int get_num_variables() const override;
+    int get_num_constraints() const override;
+    bool has_temporary_constraints() const override;
+    void print_statistics(std::ostream& out) const override;
 
-    virtual std::vector<double> extract_dual_solution() const override;
+    std::vector<double> extract_dual_solution() const override;
 
-    virtual void add_variable(
+    void add_variable(
         const LPVariable& var,
         const std::vector<int>& ids,
         const std::vector<double>& coefs,
         std::string_view name = "") override;
 
-    virtual void
+    void
     add_constraint(const LPConstraint& constraint, std::string_view name = "")
         override;
 };
-} // namespace lp
+} // namespace downward::lp
 
 #endif

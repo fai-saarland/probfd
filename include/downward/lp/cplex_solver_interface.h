@@ -108,11 +108,30 @@ class CplexSolverInterface : public SolverInterface {
          */
         void assign_row_by_row(std::span<const LPConstraint> constraints);
 
-        double* get_coefficients() { return to_cplex_array(coefficients); }
-        int* get_indices() { return to_cplex_array(indices); }
-        int* get_starts() { return to_cplex_array(starts); }
-        int* get_counts() { return to_cplex_array(counts); }
-        int get_num_nonzeros() { return coefficients.size(); }
+        double* get_coefficients()
+        {
+            return to_cplex_array(coefficients);
+        }
+
+        int* get_indices()
+        {
+            return to_cplex_array(indices);
+        }
+
+        int* get_starts()
+        {
+            return to_cplex_array(starts);
+        }
+
+        int* get_counts()
+        {
+            return to_cplex_array(counts);
+        }
+
+        int get_num_nonzeros()
+        {
+            return coefficients.size();
+        }
     };
 
     class CplexColumnsInfo {
@@ -127,10 +146,26 @@ class CplexSolverInterface : public SolverInterface {
 
     public:
         void assign(const named_vector::NamedVector<LPVariable>& variables);
-        double* get_lb() { return to_cplex_array(lb); }
-        double* get_ub() { return to_cplex_array(ub); }
-        char* get_type() { return to_cplex_array(type); }
-        double* get_objective() { return to_cplex_array(objective); }
+
+        double* get_lb()
+        {
+            return to_cplex_array(lb);
+        }
+
+        double* get_ub()
+        {
+            return to_cplex_array(ub);
+        }
+
+        char* get_type()
+        {
+            return to_cplex_array(type);
+        }
+
+        double* get_objective()
+        {
+            return to_cplex_array(objective);
+        }
     };
 
     class CplexRowsInfo {
@@ -154,11 +189,31 @@ class CplexSolverInterface : public SolverInterface {
             std::span<const LPConstraint> constraints,
             int offset = 0,
             bool dense_range_values = true);
-        double* get_rhs() { return to_cplex_array(rhs); }
-        char* get_sense() { return to_cplex_array(sense); }
-        double* get_range_values() { return to_cplex_array(range_values); }
-        int* get_range_indices() { return to_cplex_array(range_indices); }
-        int get_num_ranged_rows() { return range_indices.size(); }
+
+        double* get_rhs()
+        {
+            return to_cplex_array(rhs);
+        }
+
+        char* get_sense()
+        {
+            return to_cplex_array(sense);
+        }
+
+        double* get_range_values()
+        {
+            return to_cplex_array(range_values);
+        }
+
+        int* get_range_indices()
+        {
+            return to_cplex_array(range_indices);
+        }
+
+        int get_num_ranged_rows()
+        {
+            return range_indices.size();
+        }
     };
 
     class CplexNameData {
@@ -185,7 +240,11 @@ class CplexSolverInterface : public SolverInterface {
             }
         }
 
-        int size() { return names.size(); }
+        int size()
+        {
+            return names.size();
+        }
+
         int* get_indices()
         {
             if (indices.empty()) {
@@ -194,6 +253,7 @@ class CplexSolverInterface : public SolverInterface {
                 return indices.data();
             }
         }
+
         char** get_names()
         {
             if (names.empty()) {
@@ -232,46 +292,44 @@ class CplexSolverInterface : public SolverInterface {
 
 public:
     CplexSolverInterface();
-    virtual ~CplexSolverInterface() noexcept(false) override;
+    ~CplexSolverInterface() noexcept(false) override;
 
-    virtual void load_problem(const LinearProgram& lp) override;
-    virtual void add_temporary_constraints(
+    void load_problem(const LinearProgram& lp) override;
+    void add_temporary_constraints(
         const named_vector::NamedVector<LPConstraint>& constraints) override;
-    virtual void clear_temporary_constraints() override;
-    virtual double get_infinity() const override;
-    virtual void set_objective_coefficients(
+    void clear_temporary_constraints() override;
+    double get_infinity() const override;
+    void set_objective_coefficients(
         const std::vector<double>& coefficients) override;
-    virtual void
-    set_objective_coefficient(int index, double coefficient) override;
-    virtual void set_constraint_lower_bound(int index, double bound) override;
-    virtual void set_constraint_upper_bound(int index, double bound) override;
-    virtual void set_variable_lower_bound(int index, double bound) override;
-    virtual void set_variable_upper_bound(int index, double bound) override;
-    virtual void set_mip_gap(double gap) override;
-    virtual void solve() override;
-    virtual void write_lp(const std::string& filename) const override;
-    virtual void print_failure_analysis() const override;
-    virtual bool is_infeasible() const override;
-    virtual bool is_unbounded() const override;
-    virtual bool has_optimal_solution() const override;
-    virtual double get_objective_value() const override;
-    virtual std::vector<double> extract_solution() const override;
-    virtual int get_num_variables() const override;
-    virtual int get_num_constraints() const override;
-    virtual bool has_temporary_constraints() const override;
-    virtual void print_statistics(std::ostream& out) const override;
+    void set_objective_coefficient(int index, double coefficient) override;
+    void set_constraint_lower_bound(int index, double bound) override;
+    void set_constraint_upper_bound(int index, double bound) override;
+    void set_variable_lower_bound(int index, double bound) override;
+    void set_variable_upper_bound(int index, double bound) override;
+    void set_mip_gap(double gap) override;
+    void solve() override;
+    void write_lp(const std::string& filename) const override;
+    void print_failure_analysis() const override;
+    bool is_infeasible() const override;
+    bool is_unbounded() const override;
+    bool has_optimal_solution() const override;
+    double get_objective_value() const override;
+    std::vector<double> extract_solution() const override;
+    int get_num_variables() const override;
+    int get_num_constraints() const override;
+    bool has_temporary_constraints() const override;
+    void print_statistics(std::ostream& out) const override;
 
-    virtual std::vector<double> extract_dual_solution() const override;
+    std::vector<double> extract_dual_solution() const override;
 
-    virtual void add_variable(
+    void add_variable(
         const LPVariable& var,
-        const std::vector<int>& ids,
-        const std::vector<double>& coefs,
-        std::string_view name = "") override;
+        const std::vector<int>& constraint_indices,
+        const std::vector<double>& coefficients,
+        std::string_view name) override;
 
-    virtual void
-    add_constraint(const LPConstraint& constraint, std::string_view name = "")
+    void add_constraint(const LPConstraint& constraint, std::string_view name)
         override;
 };
-} // namespace lp
+} // namespace downward::lp
 #endif
