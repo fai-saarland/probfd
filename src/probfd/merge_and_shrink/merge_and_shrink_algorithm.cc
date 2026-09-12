@@ -126,7 +126,7 @@ private:
         bool compute_goal_distances,
         const utils::CountdownTimer& timer,
         utils::Kibibytes starting_peak_memory,
-        utils::LogProxy log);
+        utils::LogProxy log) const;
 };
 
 MergeAndShrinkAlgorithm::MergeAndShrinkAlgorithm(
@@ -339,7 +339,7 @@ void MergeAndShrinkAlgorithm::main_loop(
     bool compute_goal_distances,
     const utils::CountdownTimer& timer,
     utils::Kibibytes starting_peak_memory,
-    utils::LogProxy log)
+    utils::LogProxy log) const
 {
     if (log.is_at_least_normal()) {
         log.print("Starting main loop ");
