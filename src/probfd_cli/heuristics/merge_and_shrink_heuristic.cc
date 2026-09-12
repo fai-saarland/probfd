@@ -12,6 +12,7 @@
 #include "probfd/merge_and_shrink/distances.h"
 #include "probfd/merge_and_shrink/factored_mapping.h"
 #include "probfd/merge_and_shrink/factored_transition_system.h"
+#include "probfd/merge_and_shrink/fts_factory.h"
 #include "probfd/merge_and_shrink/merge_and_shrink_algorithm.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
@@ -75,7 +76,14 @@ bool extract_unsolvable_factor(
 }
 
 class MergeAndShrinkHeuristicFactory final : public TaskHeuristicFactory {
-    MergeAndShrinkAlgorithm algorithm;
+    std::shared_ptr<MergeStrategyFactory> merge_strategy;
+    std::shared_ptr<ShrinkStrategy> shrink_strategy;
+    std::shared_ptr<LabelReduction> label_reduction;
+    std::shared_ptr<PruneStrategy> prune_strategy;
+    int max_states;
+    int max_states_before_merge;
+    int threshold_before_merge;
+    utils::Duration main_loop_max_time;
     utils::LogProxy log_;
 
 public:
@@ -104,15 +112,14 @@ MergeAndShrinkHeuristicFactory::MergeAndShrinkHeuristicFactory(
     int threshold_before_merge,
     utils::Duration main_loop_max_time,
     utils::Verbosity verbosity)
-    : algorithm(
-          std::move(merge_strategy),
-          std::move(shrink_strategy),
-          std::move(label_reduction),
-          std::move(prune_strategy),
-          max_states,
-          max_states_before_merge,
-          threshold_before_merge,
-          main_loop_max_time)
+    : merge_strategy(std::move(merge_strategy))
+    , shrink_strategy(std::move(shrink_strategy))
+    , label_reduction(std::move(label_reduction))
+    , prune_strategy(std::move(prune_strategy))
+    , max_states(max_states)
+    , max_states_before_merge(max_states_before_merge)
+    , threshold_before_merge(threshold_before_merge)
+    , main_loop_max_time(main_loop_max_time)
     , log_(get_log_for_verbosity(verbosity))
 {
 }
@@ -121,7 +128,20 @@ std::unique_ptr<FDRHeuristic> MergeAndShrinkHeuristicFactory::create_object(
     const SharedProbabilisticTask& task)
 {
     FactoredTransitionSystem fts =
-        algorithm.build_factored_transition_system(task, log_);
+        create_factored_transition_system(to_refs(task), log_);
+
+    run_merge_and_shrink_algorithm(
+        fts,
+        task,
+        *merge_strategy,
+        *shrink_strategy,
+        label_reduction.get(),
+        *prune_strategy,
+        max_states,
+        max_states_before_merge,
+        threshold_before_merge,
+        main_loop_max_time,
+        log_);
 
     log_.println("Initializing merge-and-shrink heuristic...");
 
@@ -159,9 +179,8 @@ std::unique_ptr<FDRHeuristic> MergeAndShrinkHeuristicFactory::create_object(
         }
     }
 
-    const int num_factors_kept = factor_distances.size();
     if (log_.is_at_least_normal()) {
-        log_.println("Number of factors kept: {}", num_factors_kept);
+        log_.println("Number of factors kept: {}", factor_distances.size());
     }
 
     log_.println("Done initializing merge-and-shrink heuristic.\n");
