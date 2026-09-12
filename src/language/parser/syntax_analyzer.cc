@@ -126,9 +126,13 @@ parse_let(TokenStream& tokens, SyntaxAnalyzerContext& context)
 
             const auto next = tokens.pop(context);
 
-            if (next.type == TokenType::COMMA) { continue; }
+            if (next.type == TokenType::COMMA) {
+                continue;
+            }
 
-            if (next.type == TokenType::IN) { break; }
+            if (next.type == TokenType::IN) {
+                break;
+            }
 
             context.error("Got token {}. Expected either comma or 'in'.", next);
         }
@@ -164,7 +168,9 @@ void parse_sequence(
                 "Parsing token after {}. argument",
                 num_argument);
             const TokenType next_type = tokens.peek(context).type;
-            if (next_type == terminal_token) { return; }
+            if (next_type == terminal_token) {
+                return;
+            }
 
             if (next_type == TokenType::COMMA) {
                 tokens.pop(context);
@@ -226,13 +232,16 @@ enum Precedence : int { PREFIX = 7, CALL = 8 };
 
 std::unique_ptr<Expression>
 identifier_parselet(TokenStream& tokens, SyntaxAnalyzerContext& context)
-{ return std::make_unique<IdentifierExpression>(tokens.pop(context)); }
+{
+    return std::make_unique<IdentifierExpression>(tokens.pop(context));
+}
 
 std::unique_ptr<Expression>
 prefix_parselet(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
+    const auto token = tokens.pop(context);
     return std::make_unique<PrefixExpression>(
-        tokens.pop(context),
+        token,
         parse_expression(tokens, context, Precedence::PREFIX));
 }
 
