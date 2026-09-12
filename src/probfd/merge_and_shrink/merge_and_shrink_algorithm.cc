@@ -239,6 +239,7 @@ void MergeAndShrinkAlgorithm::run_merge_and_shrink_algorithm(
 
             if (!fts.is_factor_solvable(index)) {
                 log.println("Atomic FTS is unsolvable, stopping computation.");
+                return;
             }
         }
     }
