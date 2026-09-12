@@ -112,7 +112,7 @@ public:
     void run_merge_and_shrink_algorithm(
         FactoredTransitionSystem& fts,
         const SharedProbabilisticTask& task,
-        utils::LogProxy log);
+        utils::LogProxy log) const;
 
 private:
     void dump_options(utils::LogProxy log) const;
@@ -155,7 +155,7 @@ MergeAndShrinkAlgorithm::MergeAndShrinkAlgorithm(
 void MergeAndShrinkAlgorithm::run_merge_and_shrink_algorithm(
     FactoredTransitionSystem& fts,
     const SharedProbabilisticTask& task,
-    utils::LogProxy log)
+    utils::LogProxy log) const
 {
     const auto& axioms = get_axioms(task);
     const auto& operators = get_operators(task);
@@ -163,7 +163,7 @@ void MergeAndShrinkAlgorithm::run_merge_and_shrink_algorithm(
     downward::task_properties::verify_no_axioms(axioms);
     task_properties::verify_no_conditional_effects(operators);
 
-    utils::Kibibytes starting_peak_memory = utils::get_peak_memory_in_kib();
+    const auto starting_peak_memory = utils::get_peak_memory_in_kib();
 
     const utils::Timer timer;
     log.println("Running merge-and-shrink algorithm...");
