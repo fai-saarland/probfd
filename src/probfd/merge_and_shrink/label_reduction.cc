@@ -277,45 +277,4 @@ bool LabelReduction::reduce(
     return reduced;
 }
 
-void LabelReduction::dump_options(utils::LogProxy& log) const
-{
-    if (log.is_at_least_normal()) {
-        log.println("Label reduction options:");
-        log.println(
-            "Before merging: {}",
-            lr_before_merging ? "enabled" : "disabled");
-        log.println(
-            "Before shrinking: {}",
-            lr_before_shrinking ? "enabled" : "disabled");
-        log.print("Method: ");
-        switch (lr_method) {
-        case LabelReductionMethod::TWO_TRANSITION_SYSTEMS:
-            log.print("two transition systems (which will be merged next)");
-            break;
-        case LabelReductionMethod::ALL_TRANSITION_SYSTEMS:
-            log.print("all transition systems");
-            break;
-        case LabelReductionMethod::ALL_TRANSITION_SYSTEMS_WITH_FIXPOINT:
-            log.print("all transition systems with fixpoint computation");
-            break;
-        }
-        log.println();
-        if (lr_method == LabelReductionMethod::ALL_TRANSITION_SYSTEMS ||
-            lr_method ==
-                LabelReductionMethod::ALL_TRANSITION_SYSTEMS_WITH_FIXPOINT) {
-            log.print("System order: ");
-            switch (lr_system_order) {
-            case LabelReductionSystemOrder::REGULAR:
-                log.print("regular");
-                break;
-            case LabelReductionSystemOrder::REVERSE:
-                log.print("reversed");
-                break;
-            case LabelReductionSystemOrder::RANDOM: log.print("random"); break;
-            }
-            log.println();
-        }
-    }
-}
-
 } // namespace probfd::merge_and_shrink

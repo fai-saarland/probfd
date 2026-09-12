@@ -68,8 +68,6 @@ public:
         FactoredTransitionSystem& fts,
         downward::utils::LogProxy& log) const;
 
-    void dump_options(downward::utils::LogProxy& log) const;
-
     bool reduce_before_shrinking() const { return lr_before_shrinking; }
     bool reduce_before_merging() const { return lr_before_merging; }
 };

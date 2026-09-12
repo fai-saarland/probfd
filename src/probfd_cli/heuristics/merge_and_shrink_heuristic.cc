@@ -21,6 +21,8 @@
 
 #include "downward/utils/logging.h"
 #include "downward_cli/utils/logging_options.h"
+#include "probfd/merge_and_shrink/merge_strategy_factory.h"
+#include "probfd/merge_and_shrink/prune_strategy.h"
 
 using namespace std;
 using namespace downward;
@@ -83,7 +85,7 @@ class MergeAndShrinkHeuristicFactory final : public TaskHeuristicFactory {
     std::shared_ptr<PruneStrategy> prune_strategy;
     int max_states;
     int max_states_before_merge;
-    int threshold_before_merge;
+    int shrink_threshold_before_merge;
     utils::Duration main_loop_max_time;
     utils::LogProxy log_;
 
@@ -95,12 +97,15 @@ public:
         std::shared_ptr<PruneStrategy> prune_strategy,
         int max_states,
         int max_states_before_merge,
-        int threshold_before_merge,
+        int shrink_threshold_before_merge,
         utils::Duration main_loop_max_time,
         utils::Verbosity verbosity);
 
     std::unique_ptr<FDRHeuristic>
     create_object(const SharedProbabilisticTask& task) override;
+
+private:
+    void dump_options(utils::LogProxy log) const;
 };
 
 MergeAndShrinkHeuristicFactory::MergeAndShrinkHeuristicFactory(
@@ -110,7 +115,7 @@ MergeAndShrinkHeuristicFactory::MergeAndShrinkHeuristicFactory(
     std::shared_ptr<PruneStrategy> prune_strategy,
     int max_states,
     int max_states_before_merge,
-    int threshold_before_merge,
+    int shrink_threshold_before_merge,
     utils::Duration main_loop_max_time,
     utils::Verbosity verbosity)
     : merge_strategy(std::move(merge_strategy))
@@ -119,7 +124,7 @@ MergeAndShrinkHeuristicFactory::MergeAndShrinkHeuristicFactory(
     , prune_strategy(std::move(prune_strategy))
     , max_states(max_states)
     , max_states_before_merge(max_states_before_merge)
-    , threshold_before_merge(threshold_before_merge)
+    , shrink_threshold_before_merge(shrink_threshold_before_merge)
     , main_loop_max_time(main_loop_max_time)
     , log_(get_log_for_verbosity(verbosity))
 {
@@ -128,6 +133,10 @@ MergeAndShrinkHeuristicFactory::MergeAndShrinkHeuristicFactory(
 std::unique_ptr<FDRHeuristic> MergeAndShrinkHeuristicFactory::create_object(
     const SharedProbabilisticTask& task)
 {
+    log_.println("Initializing merge-and-shrink heuristic...");
+
+    dump_options(log_);
+
     FactoredTransitionSystem fts =
         create_factored_transition_system(to_refs(task), log_);
 
@@ -146,11 +155,9 @@ std::unique_ptr<FDRHeuristic> MergeAndShrinkHeuristicFactory::create_object(
         *prune_strategy,
         max_states,
         max_states_before_merge,
-        threshold_before_merge,
+        shrink_threshold_before_merge,
         main_loop_max_time,
         log_);
-
-    log_.println("Initializing merge-and-shrink heuristic...");
 
     /*
       TODO: This method has quite a bit of fiddling with aspects of
@@ -194,6 +201,38 @@ std::unique_ptr<FDRHeuristic> MergeAndShrinkHeuristicFactory::create_object(
 
     return std::make_unique<MergeAndShrinkHeuristic>(
         std::move(factor_distances));
+}
+
+void MergeAndShrinkHeuristicFactory::dump_options(utils::LogProxy log) const
+{
+    if (log.is_at_least_normal()) {
+        merge_strategy->dump_options();
+        log.println();
+
+        log.println("Options related to size limits and shrinking: {}");
+        log.println("Transition system size limit: {}", max_states);
+        log.println(
+            "Transition system size limit right before merge: {}",
+            max_states_before_merge);
+        log.println(
+            "Threshold to trigger shrinking right before merge: {}",
+            shrink_threshold_before_merge);
+        log.println();
+
+        prune_strategy->dump_options(log);
+
+        log.println();
+
+        if (label_reduction_factory) {
+            label_reduction_factory->dump_options(log);
+        } else {
+            log.println("Label reduction disabled");
+        }
+        log.println();
+
+        log.println("Main loop max time in seconds: {}", main_loop_max_time);
+        log.println();
+    }
 }
 
 class MergeAndShrinkHeuristicFactoryFeature final

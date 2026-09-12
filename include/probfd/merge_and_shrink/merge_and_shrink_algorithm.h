@@ -34,7 +34,7 @@ void run_merge_and_shrink_algorithm(
     PruneStrategy& prune_strategy,
     int max_states,
     int max_states_before_merge,
-    int threshold_before_merge,
+    int shrink_threshold_before_merge,
     downward::utils::Duration main_loop_max_time,
     const downward::utils::LogProxy& log);
 

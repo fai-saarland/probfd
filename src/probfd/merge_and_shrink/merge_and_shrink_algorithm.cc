@@ -106,7 +106,7 @@ public:
         PruneStrategy& prune_strategy,
         int max_states,
         int max_states_before_merge,
-        int threshold_before_merge,
+        int shrink_threshold_before_merge,
         utils::Duration main_loop_max_time);
 
     void run_merge_and_shrink_algorithm(
@@ -115,8 +115,6 @@ public:
         utils::LogProxy log) const;
 
 private:
-    void dump_options(utils::LogProxy log) const;
-
     void warn_on_unusual_options(utils::LogProxy log) const;
 
     void main_loop(
@@ -136,7 +134,7 @@ MergeAndShrinkAlgorithm::MergeAndShrinkAlgorithm(
     PruneStrategy& prune_strategy,
     int max_states,
     int max_states_before_merge,
-    int threshold_before_merge,
+    int shrink_threshold_before_merge,
     utils::Duration main_loop_max_time)
     : merge_strategy_factory(merge_strategy_factory)
     , shrink_strategy(shrink_strategy)
@@ -144,7 +142,7 @@ MergeAndShrinkAlgorithm::MergeAndShrinkAlgorithm(
     , prune_strategy(prune_strategy)
     , max_states(max_states)
     , max_states_before_merge(max_states_before_merge)
-    , shrink_threshold_before_merge(threshold_before_merge)
+    , shrink_threshold_before_merge(shrink_threshold_before_merge)
     , main_loop_max_time(main_loop_max_time)
 {
     assert(max_states_before_merge > 0);
@@ -168,7 +166,6 @@ void MergeAndShrinkAlgorithm::run_merge_and_shrink_algorithm(
     const utils::Timer timer;
     log.println("Running merge-and-shrink algorithm...");
 
-    dump_options(log);
     warn_on_unusual_options(log);
     log.println();
 
@@ -267,38 +264,6 @@ void MergeAndShrinkAlgorithm::run_merge_and_shrink_algorithm(
         loop_timer,
         starting_peak_memory,
         log);
-}
-
-void MergeAndShrinkAlgorithm::dump_options(utils::LogProxy log) const
-{
-    if (log.is_at_least_normal()) {
-        merge_strategy_factory.dump_options();
-        log.println();
-
-        log.println("Options related to size limits and shrinking: {}");
-        log.println("Transition system size limit: {}", max_states);
-        log.println(
-            "Transition system size limit right before merge: {}",
-            max_states_before_merge);
-        log.println(
-            "Threshold to trigger shrinking right before merge: {}",
-            shrink_threshold_before_merge);
-        log.println();
-
-        prune_strategy.dump_options(log);
-
-        log.println();
-
-        if (label_reduction) {
-            label_reduction->dump_options(log);
-        } else {
-            log.println("Label reduction disabled");
-        }
-        log.println();
-
-        log.println("Main loop max time in seconds: {}", main_loop_max_time);
-        log.println();
-    }
 }
 
 void MergeAndShrinkAlgorithm::warn_on_unusual_options(utils::LogProxy log) const
@@ -532,7 +497,7 @@ void run_merge_and_shrink_algorithm(
     PruneStrategy& prune_strategy,
     int max_states,
     int max_states_before_merge,
-    int threshold_before_merge,
+    int shrink_threshold_before_merge,
     utils::Duration main_loop_max_time,
     const utils::LogProxy& log)
 {
@@ -543,7 +508,7 @@ void run_merge_and_shrink_algorithm(
         prune_strategy,
         max_states,
         max_states_before_merge,
-        threshold_before_merge,
+        shrink_threshold_before_merge,
         main_loop_max_time);
 
     algorithm.run_merge_and_shrink_algorithm(fts, task, log);
