@@ -12,9 +12,7 @@ CountdownTimer::CountdownTimer(Duration max_time)
 {
 }
 
-CountdownTimer::~CountdownTimer()
-{
-}
+CountdownTimer::~CountdownTimer() = default;
 
 bool CountdownTimer::is_expired() const
 {
@@ -28,7 +26,9 @@ bool CountdownTimer::is_expired() const
 
 void CountdownTimer::throw_if_expired() const
 {
-    if (is_expired()) { throw TimeoutException(); }
+    if (is_expired()) {
+        throw TimeoutException();
+    }
 }
 
 Duration CountdownTimer::get_elapsed_time() const
@@ -46,4 +46,5 @@ ostream& operator<<(ostream& os, const CountdownTimer& cd_timer)
     os << cd_timer.timer;
     return os;
 }
+
 } // namespace downward::utils

@@ -26,6 +26,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <numbers>
 #include <string>
 
 using namespace std;
@@ -66,6 +67,20 @@ void log_progress(
     log.println("M&S algorithm timer: {} ({})", timer(), msg);
 }
 
+void report_peak_memory_delta(
+    utils::Kibibytes starting_peak_memory,
+    utils::LogProxy& log,
+    bool final = false)
+{
+    if (final)
+        log.print("Final");
+    else
+        log.print("Current");
+    log.println(
+        " peak memory increase of merge-and-shrink algorithm: {}",
+        utils::get_peak_memory_in_kib() - starting_peak_memory);
+}
+
 class MergeAndShrinkAlgorithm {
     MergeStrategyFactory& merge_strategy_factory;
     ShrinkStrategy& shrink_strategy;
@@ -82,8 +97,6 @@ class MergeAndShrinkAlgorithm {
     const int shrink_threshold_before_merge;
 
     const utils::Duration main_loop_max_time;
-
-    utils::Kibibytes starting_peak_memory;
 
 public:
     MergeAndShrinkAlgorithm(
@@ -102,9 +115,6 @@ public:
         utils::LogProxy log);
 
 private:
-    void
-    report_peak_memory_delta(utils::LogProxy log, bool final = false) const;
-
     void dump_options(utils::LogProxy log) const;
 
     void warn_on_unusual_options(utils::LogProxy log) const;
@@ -115,6 +125,7 @@ private:
         bool compute_liveness,
         bool compute_goal_distances,
         const utils::CountdownTimer& timer,
+        utils::Kibibytes starting_peak_memory,
         utils::LogProxy log);
 };
 
@@ -135,7 +146,6 @@ MergeAndShrinkAlgorithm::MergeAndShrinkAlgorithm(
     , max_states_before_merge(max_states_before_merge)
     , shrink_threshold_before_merge(threshold_before_merge)
     , main_loop_max_time(main_loop_max_time)
-    , starting_peak_memory(0)
 {
     assert(max_states_before_merge > 0);
     assert(max_states >= max_states_before_merge);
@@ -153,12 +163,7 @@ void MergeAndShrinkAlgorithm::run_merge_and_shrink_algorithm(
     downward::task_properties::verify_no_axioms(axioms);
     task_properties::verify_no_conditional_effects(operators);
 
-    if (starting_peak_memory.count() > 0) {
-        throw utils::CriticalError(
-            "Calling build_factored_transition_system twice is not supported!");
-    }
-
-    starting_peak_memory = utils::get_peak_memory_in_kib();
+    utils::Kibibytes starting_peak_memory = utils::get_peak_memory_in_kib();
 
     const utils::Timer timer;
     log.println("Running merge-and-shrink algorithm...");
@@ -168,7 +173,7 @@ void MergeAndShrinkAlgorithm::run_merge_and_shrink_algorithm(
     log.println();
 
     scope_exit scope([&] {
-        report_peak_memory_delta(log, true);
+        report_peak_memory_delta(starting_peak_memory, log, true);
         log.println("Merge-and-shrink algorithm runtime: {}", timer());
         log.println();
     });
@@ -263,20 +268,8 @@ void MergeAndShrinkAlgorithm::run_merge_and_shrink_algorithm(
         compute_liveness,
         compute_goal_distances,
         loop_timer,
+        starting_peak_memory,
         log);
-}
-
-void MergeAndShrinkAlgorithm::report_peak_memory_delta(
-    utils::LogProxy log,
-    bool final) const
-{
-    if (final)
-        log.print("Final");
-    else
-        log.print("Current");
-    log.println(
-        " peak memory increase of merge-and-shrink algorithm: {}",
-        utils::get_peak_memory_in_kib() - starting_peak_memory);
 }
 
 void MergeAndShrinkAlgorithm::dump_options(utils::LogProxy log) const
@@ -345,6 +338,7 @@ void MergeAndShrinkAlgorithm::main_loop(
     bool compute_liveness,
     bool compute_goal_distances,
     const utils::CountdownTimer& timer,
+    utils::Kibibytes starting_peak_memory,
     utils::LogProxy log)
 {
     if (log.is_at_least_normal()) {
@@ -371,163 +365,154 @@ void MergeAndShrinkAlgorithm::main_loop(
             msg);
     };
 
-    auto ran_out_of_time = [&](const auto& t) {
-        if (t.is_expired()) {
+    try {
+        while (fts.get_num_active_entries() > 1) {
+            // Choose next transition systems to merge
+            const auto index_pair = merge_strategy.get_next();
+            const auto [merge_index1, merge_index2] = index_pair;
+
+            timer.throw_if_expired();
+
+            assert(merge_index1 != merge_index2);
             if (log.is_at_least_normal()) {
-                log.println("Ran out of time, stopping computation.");
-                log.println();
+                log.println("Next pair of indices: {}", index_pair);
+                if (log.is_at_least_verbose()) {
+                    fts.statistics(merge_index1, log);
+                    fts.statistics(merge_index2, log);
+                }
+                log_main_loop_progress("after computation of next merge");
             }
-            return true;
-        }
-        return false;
-    };
 
-    while (fts.get_num_active_entries() > 1) {
-        // Choose next transition systems to merge
-        const auto index_pair = merge_strategy.get_next();
-        const auto [merge_index1, merge_index2] = index_pair;
-
-        if (ran_out_of_time(timer)) {
-            break;
-        }
-
-        assert(merge_index1 != merge_index2);
-        if (log.is_at_least_normal()) {
-            log.println("Next pair of indices: {}", index_pair);
-            if (log.is_at_least_verbose()) {
-                fts.statistics(merge_index1, log);
-                fts.statistics(merge_index2, log);
+            // Label reduction (before shrinking)
+            if (label_reduction && label_reduction->reduce_before_shrinking()) {
+                const bool reduced = label_reduction->reduce(
+                    merge_index1,
+                    merge_index2,
+                    fts,
+                    log);
+                if (log.is_at_least_normal() && reduced) {
+                    log_main_loop_progress("after label reduction");
+                }
             }
-            log_main_loop_progress("after computation of next merge");
-        }
 
-        // Label reduction (before shrinking)
-        if (label_reduction && label_reduction->reduce_before_shrinking()) {
-            const bool reduced =
-                label_reduction->reduce(merge_index1, merge_index2, fts, log);
-            if (log.is_at_least_normal() && reduced) {
-                log_main_loop_progress("after label reduction");
-            }
-        }
+            timer.throw_if_expired();
 
-        if (ran_out_of_time(timer)) {
-            break;
-        }
-
-        // Shrinking
-        const bool shrunk = shrink_before_merge_step(
-            fts,
-            merge_index1,
-            merge_index2,
-            max_states,
-            max_states_before_merge,
-            shrink_threshold_before_merge,
-            shrink_strategy,
-            compute_goal_distances,
-            compute_liveness,
-            log);
-        if (log.is_at_least_normal() && shrunk) {
-            log_main_loop_progress("after shrinking");
-        }
-
-        if (ran_out_of_time(timer)) {
-            break;
-        }
-
-        // Label reduction (before merging)
-        if (label_reduction && label_reduction->reduce_before_merging()) {
-            const bool reduced =
-                label_reduction->reduce(merge_index1, merge_index2, fts, log);
-            if (log.is_at_least_normal() && reduced) {
-                log_main_loop_progress("after label reduction");
-            }
-        }
-
-        if (ran_out_of_time(timer)) {
-            break;
-        }
-
-        // Merging
-        auto&& [left_factor, right_factor, factor, merged_index] =
-            fts.merge(merge_index1, merge_index2, log);
-
-        // Restore the invariant that distances are computed.
-        if (compute_goal_distances) {
-            const MergeHeuristic heuristic(
-                static_cast<const FactoredMappingMerge&>(
-                    *factor.factored_mapping),
-                *left_factor.distances,
-                *right_factor.distances);
-
-            factor.distances->compute_distances(
-                fts.get_labels(),
-                *factor.transition_system,
+            // Shrinking
+            const bool shrunk = shrink_before_merge_step(
+                fts,
+                merge_index1,
+                merge_index2,
+                max_states,
+                max_states_before_merge,
+                shrink_threshold_before_merge,
+                shrink_strategy,
+                compute_goal_distances,
                 compute_liveness,
-                log,
-                heuristic);
-        }
-
-        if (const int abs_size =
-                fts.get_transition_system(merged_index).get_size();
-            abs_size > maximum_intermediate_size) {
-            maximum_intermediate_size = abs_size;
-        }
-
-        if (log.is_at_least_normal()) {
-            if (log.is_at_least_verbose()) {
-                fts.statistics(merged_index, log);
+                log);
+            if (log.is_at_least_normal() && shrunk) {
+                log_main_loop_progress("after shrinking");
             }
-            log_main_loop_progress("after merging");
-        }
 
-        if (ran_out_of_time(timer)) {
-            break;
-        }
+            timer.throw_if_expired();
 
-        // Pruning
-        auto pruning_relation = prune_strategy.compute_pruning_abstraction(
-            fts.get_transition_system(merged_index),
-            fts.get_distances(merged_index),
-            log);
-
-        const bool pruned = fts.apply_abstraction(
-            merged_index,
-            pruning_relation,
-            compute_goal_distances,
-            compute_liveness,
-            log);
-
-        if (log.is_at_least_normal() && pruned) {
-            if (log.is_at_least_verbose()) {
-                fts.statistics(merged_index, log);
+            // Label reduction (before merging)
+            if (label_reduction && label_reduction->reduce_before_merging()) {
+                const bool reduced = label_reduction->reduce(
+                    merge_index1,
+                    merge_index2,
+                    fts,
+                    log);
+                if (log.is_at_least_normal() && reduced) {
+                    log_main_loop_progress("after label reduction");
+                }
             }
-            log_main_loop_progress("after pruning");
-        }
 
-        /*
-          NOTE: both the shrink strategy classes and the construction
-          of the composite transition system require the input
-          transition systems to be non-empty, i.e. the initial state
-          not to be pruned/not to be evaluated as infinity.
-        */
-        if (!fts.is_factor_solvable(merged_index)) {
+            timer.throw_if_expired();
+
+            // Merging
+            auto&& [left_factor, right_factor, factor, merged_index] =
+                fts.merge(merge_index1, merge_index2, log);
+
+            // Restore the invariant that distances are computed.
+            if (compute_goal_distances) {
+                const MergeHeuristic heuristic(
+                    static_cast<const FactoredMappingMerge&>(
+                        *factor.factored_mapping),
+                    *left_factor.distances,
+                    *right_factor.distances);
+
+                factor.distances->compute_distances(
+                    fts.get_labels(),
+                    *factor.transition_system,
+                    compute_liveness,
+                    log,
+                    heuristic);
+            }
+
+            if (const int abs_size =
+                    fts.get_transition_system(merged_index).get_size();
+                abs_size > maximum_intermediate_size) {
+                maximum_intermediate_size = abs_size;
+            }
+
             if (log.is_at_least_normal()) {
-                log.println(
-                    "Abstract problem is unsolvable, stopping computation.");
+                if (log.is_at_least_verbose()) {
+                    fts.statistics(merged_index, log);
+                }
+                log_main_loop_progress("after merging");
+            }
+
+            timer.throw_if_expired();
+
+            // Pruning
+            auto pruning_relation = prune_strategy.compute_pruning_abstraction(
+                fts.get_transition_system(merged_index),
+                fts.get_distances(merged_index),
+                log);
+
+            const bool pruned = fts.apply_abstraction(
+                merged_index,
+                pruning_relation,
+                compute_goal_distances,
+                compute_liveness,
+                log);
+
+            if (log.is_at_least_normal() && pruned) {
+                if (log.is_at_least_verbose()) {
+                    fts.statistics(merged_index, log);
+                }
+                log_main_loop_progress("after pruning");
+            }
+
+            /*
+              NOTE: both the shrink strategy classes and the construction
+              of the composite transition system require the input
+              transition systems to be non-empty, i.e. the initial state
+              not to be pruned/not to be evaluated as infinity.
+            */
+            if (!fts.is_factor_solvable(merged_index)) {
+                if (log.is_at_least_normal()) {
+                    log.println(
+                        "Abstract problem is unsolvable, stopping "
+                        "computation.");
+                    log.println();
+                }
+                break;
+            }
+
+            timer.throw_if_expired();
+
+            // End-of-iteration output.
+            if (log.is_at_least_verbose()) {
+                report_peak_memory_delta(starting_peak_memory, log);
+            }
+            if (log.is_at_least_normal()) {
                 log.println();
             }
-            break;
         }
-
-        if (ran_out_of_time(timer)) {
-            break;
-        }
-
-        // End-of-iteration output.
-        if (log.is_at_least_verbose()) {
-            report_peak_memory_delta(log);
-        }
+    } catch (const utils::TimeoutException&) {
         if (log.is_at_least_normal()) {
+            log.println("Ran out of time, stopping computation.");
             log.println();
         }
     }
