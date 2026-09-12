@@ -132,7 +132,7 @@ void HPOMConstraintGenerator::generate_hpom_lp(
     // Prepare fact variable offsets
     offset_.reserve(num_variables);
 
-    const auto num_ocm_vars = static_cast<std::size_t>(lp_variables.size());
+    const auto num_ocm_vars = lp_variables.size();
 
     assert(num_ocm_vars == operators.size());
 
