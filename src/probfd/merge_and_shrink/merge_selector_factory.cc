@@ -1,18 +1,20 @@
-#include "probfd/merge_and_shrink/merge_scoring_function.h"
+#include "probfd/merge_and_shrink/merge_selector_factory.h"
 
 #include "downward/utils/logging.h"
+
+#include <cassert>
 
 using namespace std;
 using namespace downward;
 
 namespace probfd::merge_and_shrink {
 
-void MergeScoringFunction::dump_options(utils::LogProxy& log) const
+void MergeSelectorFactory::dump_options(utils::LogProxy& log) const
 {
     if (log.is_at_least_normal()) {
-        log.println("Merge scoring function:");
+        log.println("Merge selector options:");
         log.println("Name: {}", name());
-        dump_function_specific_options(log);
+        dump_selector_specific_options(log);
     }
 }
 

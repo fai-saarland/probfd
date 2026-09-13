@@ -1,9 +1,9 @@
-#include "probfd_cli/merge_and_shrink/merge_scoring_function_dfp.h"
+#include "probfd_cli/merge_and_shrink/merge_scoring_function_factory_dfp.h"
 
 #include "language/plugins/plugin.h"
 #include "language/plugins/raw_registry.h"
 
-#include "probfd/merge_and_shrink/merge_scoring_function_dfp.h"
+#include "probfd/merge_and_shrink/merge_scoring_function_factory_dfp.h"
 
 #include "probfd/merge_and_shrink/distances.h"
 #include "probfd/merge_and_shrink/transition_system.h"
@@ -19,7 +19,7 @@ using namespace language::plugins;
 
 namespace {
 class MergeScoringFunctionDFPFeature
-    : public TypedFeature<MergeScoringFunction> {
+    : public TypedFeature<MergeScoringFunctionFactory> {
 public:
     MergeScoringFunctionDFPFeature()
         : TypedFeature("pdfp")
@@ -62,10 +62,10 @@ public:
             "\n}}}");
     }
 
-    shared_ptr<MergeScoringFunction>
+    shared_ptr<MergeScoringFunctionFactory>
     create_component(const Options&, const Context&) const override
     {
-        return make_shared<MergeScoringFunctionDFP>();
+        return make_shared<MergeScoringFunctionFactoryDFP>();
     }
 };
 } // namespace

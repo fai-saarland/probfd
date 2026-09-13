@@ -98,9 +98,4 @@ vector<double> MergeScoringFunctionDFP::compute_scores(
     return scores;
 }
 
-string MergeScoringFunctionDFP::name() const
-{
-    return "dfp";
-}
-
 } // namespace probfd::merge_and_shrink

@@ -1,11 +1,11 @@
-#include "probfd_cli/merge_and_shrink/merge_scoring_function_single_random.h"
+#include "probfd_cli/merge_and_shrink/merge_scoring_function_factory_single_random.h"
 
 #include "language/plugins/plugin.h"
 #include "language/plugins/raw_registry.h"
 
 #include "downward_cli/utils/rng_options.h"
 
-#include "probfd/merge_and_shrink/merge_scoring_function_single_random.h"
+#include "probfd/merge_and_shrink/merge_scoring_function_factory_single_random.h"
 
 #include "downward/utils/logging.h"
 
@@ -18,7 +18,7 @@ using namespace language::plugins;
 
 namespace {
 class MergeScoringFunctionSingleRandomFeature
-    : public TypedFeature<MergeScoringFunction> {
+    : public TypedFeature<MergeScoringFunctionFactory> {
 public:
     MergeScoringFunctionSingleRandomFeature()
         : TypedFeature("psingle_random")
@@ -32,12 +32,12 @@ public:
         downward::cli::utils::add_rng_options_to_feature(*this);
     }
 
-protected:
-    shared_ptr<MergeScoringFunction>
+    shared_ptr<MergeScoringFunctionFactory>
     create_component(const Options& options, const Context& context)
         const override
     {
-        return make_shared_from_arg_tuples<MergeScoringFunctionSingleRandom>(
+        return make_shared_from_arg_tuples<
+            MergeScoringFunctionFactorySingleRandom>(
             downward::cli::utils::get_rng_arguments_from_options(
                 context,
                 options));

@@ -1,21 +1,24 @@
-#ifndef PROBFD_MERGE_AND_SHRINK_MERGE_STRATEGY_FACTORY_STATELESS_H
-#define PROBFD_MERGE_AND_SHRINK_MERGE_STRATEGY_FACTORY_STATELESS_H
+#ifndef PROBFD_MERGE_AND_SHRINK_MERGE_STRATEGY_FACTORY_SCCS_SELECTOR_H
+#define PROBFD_MERGE_AND_SHRINK_MERGE_STRATEGY_FACTORY_SCCS_SELECTOR_H
 
 #include "probfd/merge_and_shrink/merge_strategy_factory.h"
 
+#include "probfd/merge_and_shrink/merge_strategy_factory_sccs_order.h"
+
 namespace probfd::merge_and_shrink {
-class MergeSelectorFactory;
-}
+class MergeTreeFactory;
+} // namespace probfd::merge_and_shrink
 
 namespace probfd::merge_and_shrink {
 
-class MergeStrategyFactoryStateless : public MergeStrategyFactory {
-    std::shared_ptr<MergeSelectorFactory> merge_selector_factory;
+class MergeStrategyFactorySCCsTree : public MergeStrategyFactorySCCs {
+    std::shared_ptr<MergeTreeFactory> merge_tree_factory;
 
 public:
-    MergeStrategyFactoryStateless(
+    MergeStrategyFactorySCCsTree(
         downward::utils::Verbosity verbosity,
-        std::shared_ptr<MergeSelectorFactory> merge_selector_factory);
+        OrderOfSCCs order_of_sccs,
+        std::shared_ptr<MergeTreeFactory> merge_tree_factory);
 
     std::unique_ptr<MergeStrategy> compute_merge_strategy(
         const SharedProbabilisticTask& task,
@@ -26,7 +29,6 @@ public:
 
 protected:
     std::string name() const override;
-
     void dump_strategy_specific_options() const override;
 };
 

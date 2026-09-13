@@ -22,23 +22,17 @@ public:
 
     virtual std::pair<int, int> select_merge(
         const FactoredTransitionSystem& fts,
-        const std::vector<int>& indices_subset = std::vector<int>()) const = 0;
+        const std::vector<int>& indices_subset) const = 0;
 
-    virtual void initialize(const ProbabilisticTaskTuple& task) = 0;
-
-    void dump_options(downward::utils::LogProxy& log) const;
+    std::pair<int, int> select_merge(const FactoredTransitionSystem& fts) const
+    {
+        return select_merge(fts, {});
+    }
 
     virtual bool requires_liveness() const = 0;
     virtual bool requires_goal_distances() const = 0;
 
 protected:
-    virtual std::string name() const = 0;
-
-    virtual void
-    dump_selector_specific_options(downward::utils::LogProxy&) const
-    {
-    }
-
     static std::vector<std::pair<int, int>> compute_merge_candidates(
         const FactoredTransitionSystem& fts,
         const std::vector<int>& indices_subset);

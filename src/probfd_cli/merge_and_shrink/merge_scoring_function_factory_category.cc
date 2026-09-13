@@ -1,7 +1,9 @@
+#include "probfd_cli/merge_and_shrink/merge_scoring_function_factory_category.h"
+
 #include "language/plugins/plugin.h"
 #include "language/plugins/raw_registry.h"
 
-#include "probfd/merge_and_shrink/merge_scoring_function.h"
+#include "probfd/merge_and_shrink/merge_scoring_function_factory.h"
 
 using namespace language::plugins;
 using namespace probfd::merge_and_shrink;
@@ -10,8 +12,9 @@ namespace probfd::cli::merge_and_shrink {
 
 void add_merge_scoring_function_category(RawRegistry& raw_registry)
 {
-    auto& category = raw_registry.insert_category_plugin<MergeScoringFunction>(
-        "PMergeScoringFunction");
+    auto& category =
+        raw_registry.insert_category_plugin<MergeScoringFunctionFactory>(
+            "PMergeScoringFunction");
     category.document_synopsis(
         "This page describes various merge scoring functions. A scoring "
         "function, "

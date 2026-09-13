@@ -1,33 +1,24 @@
-#ifndef PROBFD_MERGE_AND_SHRINK_MERGE_STRATEGY_FACTORY_SCCS_H
-#define PROBFD_MERGE_AND_SHRINK_MERGE_STRATEGY_FACTORY_SCCS_H
+#ifndef PROBFD_MERGE_AND_SHRINK_MERGE_STRATEGY_FACTORY_SCCS_SELECTOR_H
+#define PROBFD_MERGE_AND_SHRINK_MERGE_STRATEGY_FACTORY_SCCS_SELECTOR_H
 
 #include "probfd/merge_and_shrink/merge_strategy_factory.h"
 
+#include "probfd/merge_and_shrink/merge_strategy_factory_sccs_order.h"
+
 namespace probfd::merge_and_shrink {
-class MergeTreeFactory;
-class MergeSelector;
+class MergeSelectorFactory;
 } // namespace probfd::merge_and_shrink
 
 namespace probfd::merge_and_shrink {
 
-enum class OrderOfSCCs {
-    TOPOLOGICAL,
-    REVERSE_TOPOLOGICAL,
-    DECREASING,
-    INCREASING
-};
-
-class MergeStrategyFactorySCCs : public MergeStrategyFactory {
-    OrderOfSCCs order_of_sccs;
-    std::shared_ptr<MergeTreeFactory> merge_tree_factory;
-    std::shared_ptr<MergeSelector> merge_selector;
+class MergeStrategyFactorySCCsSelector : public MergeStrategyFactorySCCs {
+    std::shared_ptr<MergeSelectorFactory> merge_selector_factory;
 
 public:
-    MergeStrategyFactorySCCs(
+    MergeStrategyFactorySCCsSelector(
         downward::utils::Verbosity verbosity,
         OrderOfSCCs order_of_sccs,
-        std::shared_ptr<MergeTreeFactory> merge_tree_factory,
-        std::shared_ptr<MergeSelector> merge_selector);
+        std::shared_ptr<MergeSelectorFactory> merge_selector_factory);
 
     std::unique_ptr<MergeStrategy> compute_merge_strategy(
         const SharedProbabilisticTask& task,

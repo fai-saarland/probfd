@@ -1,11 +1,11 @@
-#include "probfd_cli/merge_and_shrink/merge_scoring_function_total_order.h"
+#include "probfd_cli/merge_and_shrink/merge_scoring_function_factory_total_order.h"
 
 #include "language/plugins/plugin.h"
 #include "language/plugins/raw_registry.h"
 
 #include "downward_cli/utils/rng_options.h"
 
-#include "probfd/merge_and_shrink/merge_scoring_function_total_order.h"
+#include "probfd/merge_and_shrink/merge_scoring_function_factory_total_order.h"
 
 #include "probfd/merge_and_shrink/factored_transition_system.h"
 #include "probfd/merge_and_shrink/transition_system.h"
@@ -23,7 +23,7 @@ using namespace language::plugins;
 
 namespace {
 class MergeScoringFunctionTotalOrderFeature
-    : public TypedFeature<MergeScoringFunction> {
+    : public TypedFeature<MergeScoringFunctionFactory> {
 public:
     MergeScoringFunctionTotalOrderFeature()
         : TypedFeature("ptotal_order")
@@ -76,12 +76,12 @@ public:
         downward::cli::utils::add_rng_options_to_feature(*this);
     }
 
-protected:
-    shared_ptr<MergeScoringFunction>
+    shared_ptr<MergeScoringFunctionFactory>
     create_component(const Options& options, const Context& context)
         const override
     {
-        return make_shared_from_arg_tuples<MergeScoringFunctionTotalOrder>(
+        return make_shared_from_arg_tuples<
+            MergeScoringFunctionFactoryTotalOrder>(
             options.get<AtomicTSOrder>(context, "atomic_ts_order"),
             options.get<ProductTSOrder>(context, "product_ts_order"),
             options.get<bool>(context, "atomic_before_product"),

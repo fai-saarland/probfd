@@ -1,11 +1,11 @@
-#include "probfd_cli/merge_and_shrink/merge_selector_score_based_filtering.h"
+#include "probfd_cli/merge_and_shrink/merge_selector_factory_score_based_filtering.h"
 
 #include "language/plugins/plugin.h"
 #include "language/plugins/raw_registry.h"
 
-#include "probfd/merge_and_shrink/merge_selector_score_based_filtering.h"
+#include "probfd/merge_and_shrink/merge_selector_factory_score_based_filtering.h"
 
-#include "probfd/merge_and_shrink/merge_scoring_function.h"
+#include "probfd/merge_and_shrink/merge_scoring_function_factory.h"
 
 using namespace std;
 using namespace downward;
@@ -16,7 +16,7 @@ using namespace language::plugins;
 
 namespace {
 class MergeSelectorScoreBasedFilteringFeature
-    : public TypedFeature<MergeSelector> {
+    : public TypedFeature<MergeSelectorFactory> {
 public:
     MergeSelectorScoreBasedFilteringFeature()
         : TypedFeature("pscore_based_filtering")
@@ -29,19 +29,18 @@ public:
             "keeping the best "
             "ones (with minimal scores) until only one is left.");
 
-        add_list_option<shared_ptr<MergeScoringFunction>>(
+        add_list_option<shared_ptr<MergeScoringFunctionFactory>>(
             "scoring_functions",
             "The list of scoring functions used to compute scores for "
             "candidates.");
     }
 
-protected:
-    shared_ptr<MergeSelector>
+    shared_ptr<MergeSelectorFactory>
     create_component(const Options& options, const Context& context)
         const override
     {
-        return make_shared_from_arg_tuples<MergeSelectorScoreBasedFiltering>(
-            options.get_list<std::shared_ptr<MergeScoringFunction>>(
+        return std::make_shared<MergeSelectorFactoryScoreBasedFiltering>(
+            options.get_list<std::shared_ptr<MergeScoringFunctionFactory>>(
                 context,
                 "scoring_functions"));
     }

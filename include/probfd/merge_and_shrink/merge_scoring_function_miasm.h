@@ -26,6 +26,7 @@ class MergeScoringFunctionMIASM : public MergeScoringFunction {
 
 public:
     MergeScoringFunctionMIASM(
+        const ProbabilisticTaskTuple& task,
         bool use_caching,
         std::shared_ptr<ShrinkStrategy> shrink_strategy,
         int max_states,
@@ -36,16 +37,9 @@ public:
         const FactoredTransitionSystem& fts,
         const std::vector<std::pair<int, int>>& merge_candidates) override;
 
-    void initialize(const ProbabilisticTaskTuple& task) override;
-
     bool requires_liveness() const override { return true; }
 
     bool requires_goal_distances() const override { return true; }
-
-private:
-    std::string name() const override;
-    void dump_function_specific_options(
-        downward::utils::LogProxy& log) const override;
 };
 
 } // namespace probfd::merge_and_shrink

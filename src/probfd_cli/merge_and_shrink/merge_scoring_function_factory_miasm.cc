@@ -1,9 +1,9 @@
-#include "probfd_cli/merge_and_shrink/merge_scoring_function_miasm.h"
+#include "probfd_cli/merge_and_shrink/merge_scoring_function_factory_miasm.h"
 
 #include "language/plugins/plugin.h"
 #include "language/plugins/raw_registry.h"
 
-#include "probfd/merge_and_shrink/merge_scoring_function_miasm.h"
+#include "probfd/merge_and_shrink/merge_scoring_function_factory_miasm.h"
 
 #include "probfd/merge_and_shrink/distances.h"
 #include "probfd/merge_and_shrink/shrink_strategy.h"
@@ -24,7 +24,7 @@ using namespace language::plugins;
 
 namespace {
 class MergeScoringFunctionMIASMFeature
-    : public TypedFeature<MergeScoringFunction> {
+    : public TypedFeature<MergeScoringFunctionFactory> {
 public:
     MergeScoringFunctionMIASMFeature()
         : TypedFeature("psf_miasm")
@@ -112,7 +112,7 @@ public:
             "true");
     }
 
-    shared_ptr<MergeScoringFunction>
+    shared_ptr<MergeScoringFunctionFactory>
     create_component(const Options& options, const Context& context)
         const override
     {
@@ -131,7 +131,7 @@ public:
             threshold,
             context);
 
-        return make_shared_from_arg_tuples<MergeScoringFunctionMIASM>(
+        return make_shared_from_arg_tuples<MergeScoringFunctionFactoryMIASM>(
             options.get<bool>(context, "use_caching"),
             options.get<shared_ptr<ShrinkStrategy>>(context, "shrink_strategy"),
             size_args);

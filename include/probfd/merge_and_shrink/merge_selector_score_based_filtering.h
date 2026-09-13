@@ -21,19 +21,10 @@ public:
 
     std::pair<int, int> select_merge(
         const FactoredTransitionSystem& fts,
-        const std::vector<int>& indices_subset =
-            std::vector<int>()) const override;
-
-    void initialize(const ProbabilisticTaskTuple& task) override;
+        const std::vector<int>& indices_subset) const override;
 
     bool requires_liveness() const override;
     bool requires_goal_distances() const override;
-
-protected:
-    std::string name() const override;
-
-    void dump_selector_specific_options(
-        downward::utils::LogProxy& log) const override;
 };
 
 } // namespace probfd::merge_and_shrink

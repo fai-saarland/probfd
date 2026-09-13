@@ -18,6 +18,7 @@ using namespace downward;
 namespace probfd::merge_and_shrink {
 
 MergeScoringFunctionTotalOrder::MergeScoringFunctionTotalOrder(
+    const ProbabilisticTaskTuple& task,
     AtomicTSOrder atomic_ts_order,
     ProductTSOrder product_ts_order,
     bool atomic_before_product,
@@ -28,48 +29,6 @@ MergeScoringFunctionTotalOrder::MergeScoringFunctionTotalOrder(
     , random_seed(random_seed)
     , rng(utils::get_rng(random_seed))
 {
-}
-
-static std::pair<int, int> rotate(const std::pair<int, int>& p)
-{
-    return std::make_pair(p.second, p.first);
-}
-
-vector<double> MergeScoringFunctionTotalOrder::compute_scores(
-    const FactoredTransitionSystem&,
-    const vector<pair<int, int>>& merge_candidates)
-{
-    assert(initialized);
-
-    vector<double> scores;
-    scores.reserve(merge_candidates.size());
-
-    for (size_t candidate_index = 0; candidate_index < merge_candidates.size();
-         ++candidate_index) {
-        auto merge_candidate = merge_candidates[candidate_index];
-        for (size_t merge_candidate_order_index = 0;
-             merge_candidate_order_index < merge_candidate_order.size();
-             ++merge_candidate_order_index) {
-            auto other_candidate =
-                merge_candidate_order[merge_candidate_order_index];
-            if (merge_candidate == other_candidate ||
-                merge_candidate == rotate(other_candidate)) {
-                // use the index in the merge candidate order as score
-                scores.push_back(merge_candidate_order_index);
-                break;
-            }
-        }
-        // We must have inserted a score for the current candidate.
-        assert(scores.size() == candidate_index + 1);
-    }
-    return scores;
-}
-
-void MergeScoringFunctionTotalOrder::initialize(
-    const ProbabilisticTaskTuple& task)
-{
-    initialized = true;
-
     const auto& variables = get_variables(task);
 
     const int num_variables = variables.size();
@@ -119,37 +78,37 @@ void MergeScoringFunctionTotalOrder::initialize(
     }
 }
 
-string MergeScoringFunctionTotalOrder::name() const
+static std::pair<int, int> rotate(const std::pair<int, int>& p)
 {
-    return "total order";
+    return std::make_pair(p.second, p.first);
 }
 
-void MergeScoringFunctionTotalOrder::dump_function_specific_options(
-    utils::LogProxy& log) const
+vector<double> MergeScoringFunctionTotalOrder::compute_scores(
+    const FactoredTransitionSystem&,
+    const vector<pair<int, int>>& merge_candidates)
 {
-    if (log.is_at_least_normal()) {
-        log.print("Atomic transition system order: ");
-        switch (atomic_ts_order) {
-        case AtomicTSOrder::REVERSE_LEVEL: log.print("reverse level"); break;
-        case AtomicTSOrder::LEVEL: log.print("level"); break;
-        case AtomicTSOrder::RANDOM: log.print("random"); break;
-        }
-        log.println();
+    vector<double> scores;
+    scores.reserve(merge_candidates.size());
 
-        log.print("Product transition system order: ");
-        switch (product_ts_order) {
-        case ProductTSOrder::OLD_TO_NEW: log.print("old to new"); break;
-        case ProductTSOrder::NEW_TO_OLD: log.print("new to old"); break;
-        case ProductTSOrder::RANDOM: log.print("random"); break;
+    for (size_t candidate_index = 0; candidate_index < merge_candidates.size();
+         ++candidate_index) {
+        auto merge_candidate = merge_candidates[candidate_index];
+        for (size_t merge_candidate_order_index = 0;
+             merge_candidate_order_index < merge_candidate_order.size();
+             ++merge_candidate_order_index) {
+            auto other_candidate =
+                merge_candidate_order[merge_candidate_order_index];
+            if (merge_candidate == other_candidate ||
+                merge_candidate == rotate(other_candidate)) {
+                // use the index in the merge candidate order as score
+                scores.push_back(merge_candidate_order_index);
+                break;
+            }
         }
-        log.println();
-
-        log.println(
-            "Consider {} transition systems",
-            atomic_before_product ? "atomic before product"
-                                  : "product before atomic");
-        log.println("Random seed: {}", random_seed);
+        // We must have inserted a score for the current candidate.
+        assert(scores.size() == candidate_index + 1);
     }
+    return scores;
 }
 
 } // namespace probfd::merge_and_shrink

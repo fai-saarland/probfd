@@ -62,29 +62,6 @@ pair<int, int> MergeSelectorScoreBasedFiltering::select_merge(
     return merge_candidates.front();
 }
 
-void MergeSelectorScoreBasedFiltering::initialize(
-    const ProbabilisticTaskTuple& task)
-{
-    for (const auto& scoring_function : merge_scoring_functions) {
-        scoring_function->initialize(task);
-    }
-}
-
-string MergeSelectorScoreBasedFiltering::name() const
-{
-    return "score based filtering";
-}
-
-void MergeSelectorScoreBasedFiltering::dump_selector_specific_options(
-    utils::LogProxy& log) const
-{
-    if (log.is_at_least_normal()) {
-        for (const auto& scoring_function : merge_scoring_functions) {
-            scoring_function->dump_options(log);
-        }
-    }
-}
-
 bool MergeSelectorScoreBasedFiltering::requires_liveness() const
 {
     for (const auto& scoring_function : merge_scoring_functions) {

@@ -1,14 +1,16 @@
-#include "probfd_cli/merge_and_shrink/merge_strategy_factory_sccs.h"
+#include "probfd_cli/merge_and_shrink/merge_strategy_factory_sccs_tree.h"
+
+#include "probfd_cli/merge_and_shrink/merge_strategy_factory_sccs_options.h"
 
 #include "language/plugins/plugin.h"
 #include "language/plugins/raw_registry.h"
 
 #include "downward_cli/utils/logging_options.h"
 
-#include "probfd/merge_and_shrink/merge_strategy_factory_sccs.h"
+#include "probfd/merge_and_shrink/merge_strategy_factory_sccs_tree.h"
 
 #include "probfd/merge_and_shrink/merge_selector.h"
-#include "probfd/merge_and_shrink/merge_strategy_sccs.h"
+#include "probfd/merge_and_shrink/merge_strategy_sccs_selector.h"
 #include "probfd/merge_and_shrink/merge_tree_factory.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
@@ -26,13 +28,13 @@ using namespace language;
 using namespace language::plugins;
 
 namespace {
-class MergeStrategyFactorySCCsFeature
+class MergeStrategyFactorySCCsTreeFeature
     : public TypedFeature<MergeStrategyFactory> {
 public:
-    MergeStrategyFactorySCCsFeature()
-        : TypedFeature("pmerge_sccs")
+    MergeStrategyFactorySCCsTreeFeature()
+        : TypedFeature("pmerge_sccs_tree")
     {
-        document_title("Merge strategy SSCs");
+        document_title("Merge strategy SCCs-Tree");
         document_synopsis(
             "This merge strategy implements the algorithm described in the "
             "paper " +
@@ -57,69 +59,37 @@ public:
             "the final abstraction, again using the specified fallback merge "
             "strategy and the configurable order of the SCCs.");
 
-        add_option<OrderOfSCCs>(
-            "order_of_sccs",
-            "how the SCCs should be ordered",
-            "topological");
+        add_merge_strategy_options_to_feature(*this);
+        add_merge_strategy_sccs_options_to_feature(*this);
         add_option<shared_ptr<MergeTreeFactory>>(
             "merge_tree",
             "the fallback merge strategy to use if a precomputed strategy "
             "should "
             "be used.",
             ArgumentInfo::NO_DEFAULT);
-        add_option<shared_ptr<MergeSelector>>(
-            "merge_selector",
-            "the fallback merge strategy to use if a stateless strategy should "
-            "be used.",
-            ArgumentInfo::NO_DEFAULT);
-        add_merge_strategy_options_to_feature(*this);
     }
 
     shared_ptr<MergeStrategyFactory>
     create_component(const Options& options, const Context& context)
         const override
     {
-        if (options.contains("merge_selector") ==
-            options.contains("merge_tree")) {
-            context.error(
-                "You have to specify exactly one of the options merge_tree "
-                "and merge_selector!");
-        }
-
-        return make_shared_from_arg_tuples<MergeStrategyFactorySCCs>(
+        return make_shared_from_arg_tuples<MergeStrategyFactorySCCsTree>(
             downward::cli::utils::get_log_arguments_from_options(
                 context,
                 options),
-            options.get<OrderOfSCCs>(context, "order_of_sccs"),
+            get_merge_strategy_sccs_args_from_options(context, options),
             options.get<shared_ptr<MergeTreeFactory>>(
                 context,
-                "merge_tree",
-                nullptr),
-            options.get<shared_ptr<MergeSelector>>(
-                context,
-                "merge_selector",
-                nullptr));
+                "merge_tree"));
     }
 };
 } // namespace
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_merge_strategy_factory_sccs_feature(RawRegistry& raw_registry)
+void add_merge_strategy_factory_sccs_tree_feature(RawRegistry& raw_registry)
 {
-    raw_registry.insert_feature_plugin<MergeStrategyFactorySCCsFeature>();
-
-    raw_registry.insert_enum_plugin<OrderOfSCCs>(
-        {{"topological",
-          "according to the topological ordering of the directed graph "
-          "where each obtained SCC is a 'supervertex'"},
-         {"reverse_topological",
-          "according to the reverse topological ordering of the directed "
-          "graph where each obtained SCC is a 'supervertex'"},
-         {"decreasing",
-          "biggest SCCs first, using 'topological' as tie-breaker"},
-         {"increasing",
-          "smallest SCCs first, using 'topological' as tie-breaker"}});
+    raw_registry.insert_feature_plugin<MergeStrategyFactorySCCsTreeFeature>();
 }
 
 } // namespace probfd::cli::merge_and_shrink

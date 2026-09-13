@@ -145,17 +145,18 @@
 #include "probfd_cli/heuristics/ucp_heuristic.h"
 
 #include "probfd_cli/merge_and_shrink/label_reduction_feature.h"
-#include "probfd_cli/merge_and_shrink/merge_scoring_function_category.h"
-#include "probfd_cli/merge_and_shrink/merge_scoring_function_dfp.h"
-#include "probfd_cli/merge_and_shrink/merge_scoring_function_goal_relevance.h"
-#include "probfd_cli/merge_and_shrink/merge_scoring_function_miasm.h"
-#include "probfd_cli/merge_and_shrink/merge_scoring_function_single_random.h"
-#include "probfd_cli/merge_and_shrink/merge_scoring_function_total_order.h"
-#include "probfd_cli/merge_and_shrink/merge_selector_category.h"
-#include "probfd_cli/merge_and_shrink/merge_selector_score_based_filtering.h"
+#include "probfd_cli/merge_and_shrink/merge_scoring_function_factory_category.h"
+#include "probfd_cli/merge_and_shrink/merge_scoring_function_factory_dfp.h"
+#include "probfd_cli/merge_and_shrink/merge_scoring_function_factory_goal_relevance.h"
+#include "probfd_cli/merge_and_shrink/merge_scoring_function_factory_miasm.h"
+#include "probfd_cli/merge_and_shrink/merge_scoring_function_factory_single_random.h"
+#include "probfd_cli/merge_and_shrink/merge_scoring_function_factory_total_order.h"
+#include "probfd_cli/merge_and_shrink/merge_selector_factory_category.h"
+#include "probfd_cli/merge_and_shrink/merge_selector_factory_score_based_filtering.h"
 #include "probfd_cli/merge_and_shrink/merge_strategy_factory_category.h"
 #include "probfd_cli/merge_and_shrink/merge_strategy_factory_precomputed.h"
-#include "probfd_cli/merge_and_shrink/merge_strategy_factory_sccs.h"
+#include "probfd_cli/merge_and_shrink/merge_strategy_factory_sccs_selector.h"
+#include "probfd_cli/merge_and_shrink/merge_strategy_factory_sccs_tree.h"
 #include "probfd_cli/merge_and_shrink/merge_strategy_factory_stateless.h"
 #include "probfd_cli/merge_and_shrink/merge_tree_factory_category.h"
 #include "probfd_cli/merge_and_shrink/merge_tree_factory_linear.h"
@@ -213,6 +214,7 @@
 
 #include "probfd_cli/transition_sorters/subcategory.h"
 
+#include "probfd_cli/merge_and_shrink/merge_strategy_factory_sccs_order.h"
 #include "probfd_cli/task_state_space_factory_category.h"
 #include "probfd_cli/task_state_space_factory_features.h"
 
@@ -222,8 +224,7 @@ using namespace downward::cli;
 
 namespace probfd {
 
-static void
-register_fast_downward_definitions(RawRegistry& raw_registry)
+static void register_fast_downward_definitions(RawRegistry& raw_registry)
 {
     // Cartesian abstractions
     cartesian_abstractions::add_subtask_generator_category(raw_registry);
@@ -430,8 +431,12 @@ static void register_probfd_definitions(RawRegistry& raw_registry)
         raw_registry);
     probfd::cli::merge_and_shrink::
         add_merge_strategy_factory_precomputed_feature(raw_registry);
-    probfd::cli::merge_and_shrink::add_merge_strategy_factory_sccs_feature(
+    probfd::cli::merge_and_shrink::add_merge_strategy_factory_sccs_order(
         raw_registry);
+    probfd::cli::merge_and_shrink::add_merge_strategy_factory_sccs_tree_feature(
+        raw_registry);
+    probfd::cli::merge_and_shrink::
+        add_merge_strategy_factory_sccs_selector_feature(raw_registry);
     probfd::cli::merge_and_shrink::add_merge_strategy_factory_stateless_feature(
         raw_registry);
     probfd::cli::merge_and_shrink::add_merge_tree_factory_category(
@@ -512,10 +517,12 @@ static void register_probfd_definitions(RawRegistry& raw_registry)
     probfd::cli::solvers::add_topological_value_iteration_feature(raw_registry);
 
     // Successor Samplers
-    probfd::cli::successor_samplers::add_successor_sampler_features(raw_registry);
+    probfd::cli::successor_samplers::add_successor_sampler_features(
+        raw_registry);
 
     // Transition Sorters
-    probfd::cli::transiton_sorters::add_transition_sorter_features(raw_registry);
+    probfd::cli::transiton_sorters::add_transition_sorter_features(
+        raw_registry);
 
     // Task State Spaces
     probfd::cli::add_task_state_space_factory_category(raw_registry);

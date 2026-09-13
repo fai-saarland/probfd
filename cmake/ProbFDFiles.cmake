@@ -355,22 +355,32 @@ create_library(
         probfd/merge_and_shrink/label_reduction
         probfd/merge_and_shrink/labels
         probfd/merge_and_shrink/merge_and_shrink_algorithm
-        probfd/merge_and_shrink/merge_scoring_function
         probfd/merge_and_shrink/merge_scoring_function_dfp
         probfd/merge_and_shrink/merge_scoring_function_goal_relevance
         probfd/merge_and_shrink/merge_scoring_function_miasm
         probfd/merge_and_shrink/merge_scoring_function_miasm_utils
         probfd/merge_and_shrink/merge_scoring_function_single_random
         probfd/merge_and_shrink/merge_scoring_function_total_order
+    probfd/merge_and_shrink/merge_scoring_function_factory
+    probfd/merge_and_shrink/merge_scoring_function_factory_dfp
+    probfd/merge_and_shrink/merge_scoring_function_factory_goal_relevance
+    probfd/merge_and_shrink/merge_scoring_function_factory_miasm
+    probfd/merge_and_shrink/merge_scoring_function_factory_single_random
+    probfd/merge_and_shrink/merge_scoring_function_factory_total_order
         probfd/merge_and_shrink/merge_selector
+    probfd/merge_and_shrink/merge_selector_factory
         probfd/merge_and_shrink/merge_selector_score_based_filtering
+    probfd/merge_and_shrink/merge_selector_factory_score_based_filtering
         probfd/merge_and_shrink/merge_strategy
         probfd/merge_and_shrink/merge_strategy_factory
         probfd/merge_and_shrink/merge_strategy_factory_precomputed
         probfd/merge_and_shrink/merge_strategy_factory_sccs
+    probfd/merge_and_shrink/merge_strategy_factory_sccs_selector
+    probfd/merge_and_shrink/merge_strategy_factory_sccs_tree
         probfd/merge_and_shrink/merge_strategy_factory_stateless
         probfd/merge_and_shrink/merge_strategy_precomputed
-        probfd/merge_and_shrink/merge_strategy_sccs
+    probfd/merge_and_shrink/merge_strategy_sccs_selector
+    probfd/merge_and_shrink/merge_strategy_sccs_tree
         probfd/merge_and_shrink/merge_strategy_stateless
         probfd/merge_and_shrink/merge_tree
         probfd/merge_and_shrink/merge_tree_factory

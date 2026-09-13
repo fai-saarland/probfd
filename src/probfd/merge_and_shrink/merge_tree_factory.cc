@@ -21,9 +21,9 @@ MergeTreeFactory::MergeTreeFactory(int random_seed, UpdateOption update_option)
 
 void MergeTreeFactory::dump_options(utils::LogProxy& log) const
 {
-    log.println("Merge tree options: {}");
+    log.println("Merge tree options:");
     log.println("Type: {}", name());
-    log.print("Update option: {}");
+    log.print("Update option: ");
 
     switch (update_option) {
     case UpdateOption::USE_FIRST: log.print("use first"); break;

@@ -1,4 +1,4 @@
-#include "probfd/merge_and_shrink/merge_strategy_sccs.h"
+#include "probfd/merge_and_shrink/merge_strategy_sccs_tree.h"
 
 #include "probfd/merge_and_shrink/factored_transition_system.h"
 #include "probfd/merge_and_shrink/merge_selector.h"
@@ -13,25 +13,23 @@ using namespace std;
 
 namespace probfd::merge_and_shrink {
 
-MergeStrategySCCs::MergeStrategySCCs(
+MergeStrategySCCsTree::MergeStrategySCCsTree(
     const FactoredTransitionSystem& fts,
     SharedProbabilisticTask task,
     const shared_ptr<MergeTreeFactory>& merge_tree_factory,
-    const shared_ptr<MergeSelector>& merge_selector,
     vector<vector<int>>&& non_singleton_cg_sccs)
     : MergeStrategy(fts)
     , task(std::move(task))
     , merge_tree_factory(merge_tree_factory)
-    , merge_selector(merge_selector)
     , non_singleton_cg_sccs(std::move(non_singleton_cg_sccs))
     , current_merge_tree(nullptr)
 {
     std::ranges::reverse(non_singleton_cg_sccs);
 }
 
-MergeStrategySCCs::~MergeStrategySCCs() = default;
+MergeStrategySCCsTree::~MergeStrategySCCsTree() = default;
 
-pair<int, int> MergeStrategySCCs::get_next()
+pair<int, int> MergeStrategySCCsTree::get_next()
 {
     if (current_ts_indices.empty()) {
         /*
@@ -56,31 +54,23 @@ pair<int, int> MergeStrategySCCs::get_next()
             non_singleton_cg_sccs.pop_back();
         }
 
-        // If using a merge tree factory, compute a merge tree for this set.
-        if (merge_tree_factory) {
-            current_merge_tree = merge_tree_factory->compute_merge_tree(
-                task,
-                fts,
-                current_ts_indices);
-        }
+        // Compute a merge tree for this set.
+        current_merge_tree = merge_tree_factory->compute_merge_tree(
+            task,
+            fts,
+            current_ts_indices);
     } else {
         // Add the most recent product to the current index set.
         current_ts_indices.push_back(fts.get_size() - 1);
     }
 
-    // Select the next merge from the current index set, either using the
-    // tree or the selector.
-    pair<int, int> next_pair;
+    // Select the next merge from the current index set, using the tree.
     const int merged_ts_index = fts.get_size();
-    if (current_merge_tree) {
-        assert(!current_merge_tree->done());
-        next_pair = current_merge_tree->get_next_merge(merged_ts_index);
-        if (current_merge_tree->done()) {
-            current_merge_tree.release();
-        }
-    } else {
-        assert(merge_selector);
-        next_pair = merge_selector->select_merge(fts, current_ts_indices);
+    assert(!current_merge_tree->done());
+    const pair<int, int> next_pair =
+        current_merge_tree->get_next_merge(merged_ts_index);
+    if (current_merge_tree->done()) {
+        current_merge_tree.release();
     }
 
     // Remove the two merged indices from the current index set.

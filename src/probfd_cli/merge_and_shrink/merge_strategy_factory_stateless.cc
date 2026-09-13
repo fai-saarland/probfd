@@ -33,7 +33,7 @@ public:
             "transition "
             "system, not requiring any additional information.");
 
-        add_option<shared_ptr<MergeSelector>>(
+        add_option<shared_ptr<MergeSelectorFactory>>(
             "merge_selector",
             "The merge selector to be used.");
 
@@ -67,7 +67,9 @@ protected:
     {
         return make_shared_from_arg_tuples<MergeStrategyFactoryStateless>(
             get_merge_strategy_args_from_options(context, options),
-            options.get<shared_ptr<MergeSelector>>(context, "merge_selector"));
+            options.get<shared_ptr<MergeSelectorFactory>>(
+                context,
+                "merge_selector"));
     }
 };
 } // namespace

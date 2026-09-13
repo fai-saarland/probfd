@@ -1,9 +1,9 @@
-#include "probfd_cli/merge_and_shrink/merge_scoring_function_goal_relevance.h"
+#include "probfd_cli/merge_and_shrink/merge_scoring_function_factory_goal_relevance.h"
 
 #include "language/plugins/plugin.h"
 #include "language/plugins/raw_registry.h"
 
-#include "probfd/merge_and_shrink/merge_scoring_function_goal_relevance.h"
+#include "probfd/merge_and_shrink/merge_scoring_function_factory_goal_relevance.h"
 
 #include "probfd/merge_and_shrink/transition_system.h"
 
@@ -16,7 +16,7 @@ using namespace language::plugins;
 
 namespace {
 class MergeScoringFunctionGoalRelevanceFeature
-    : public TypedFeature<MergeScoringFunction> {
+    : public TypedFeature<MergeScoringFunctionFactory> {
 public:
     MergeScoringFunctionGoalRelevanceFeature()
         : TypedFeature("pgoal_relevance")
@@ -31,10 +31,10 @@ public:
             "All other candidates get a score of positive infinity.");
     }
 
-    shared_ptr<MergeScoringFunction>
+    shared_ptr<MergeScoringFunctionFactory>
     create_component(const Options&, const Context&) const override
     {
-        return make_shared<MergeScoringFunctionGoalRelevance>();
+        return make_shared<MergeScoringFunctionFactoryGoalRelevance>();
     }
 };
 } // namespace

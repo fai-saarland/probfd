@@ -1,9 +1,9 @@
-#include "probfd_cli/merge_and_shrink/merge_selector_category.h"
+#include "probfd_cli/merge_and_shrink/merge_selector_factory_category.h"
 
 #include "language/plugins/plugin.h"
 #include "language/plugins/raw_registry.h"
 
-#include "probfd/merge_and_shrink/merge_selector.h"
+#include "probfd/merge_and_shrink/merge_selector_factory.h"
 
 using namespace language::plugins;
 using namespace probfd::merge_and_shrink;
@@ -13,7 +13,8 @@ namespace probfd::cli::merge_and_shrink {
 void add_merge_selector_category(RawRegistry& raw_registry)
 {
     auto& category =
-        raw_registry.insert_category_plugin<MergeSelector>("PMergeSelector");
+        raw_registry.insert_category_plugin<MergeSelectorFactory>(
+        "PMergeSelector");
     category.document_synopsis(
         "This page describes the available merge selectors. They are used "
         "to "

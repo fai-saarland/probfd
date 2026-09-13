@@ -609,7 +609,8 @@ create_library(
     NAME pmerge_strategy_factory_sccs
     HELP "Enables merge strategy factory SCC plugin"
     SOURCES
-    probfd_cli/merge_and_shrink/merge_strategy_factory_sccs
+    probfd_cli/merge_and_shrink/merge_strategy_factory_sccs_options
+    probfd_cli/merge_and_shrink/merge_strategy_factory_sccs_order
     DEPENDS
         pmerge_strategy_factory_category
         pmerge_strategy_factory_options
@@ -618,6 +619,32 @@ create_library(
         plugins
     TARGET
         probfd
+)
+
+create_library(
+    NAME pmerge_strategy_factory_sccs_selector
+    HELP "Enables merge strategy factory SCC selector plugin"
+    SOURCES
+    probfd_cli/merge_and_shrink/merge_strategy_factory_sccs_selector
+    DEPENDS
+    pmerge_strategy_factory_sccs
+    parser
+    plugins
+    TARGET
+    probfd
+)
+
+create_library(
+    NAME pmerge_strategy_factory_sccs_tree
+    HELP "Enables merge strategy factory SCC tree plugin"
+    SOURCES
+    probfd_cli/merge_and_shrink/merge_strategy_factory_sccs_tree
+    DEPENDS
+    pmerge_strategy_factory_sccs
+    parser
+    plugins
+    TARGET
+    probfd
 )
 
 create_library(
@@ -639,7 +666,7 @@ create_library(
     NAME pmerge_selector_category
     HELP "Enables merge selector category plugin"
     SOURCES
-    probfd_cli/merge_and_shrink/merge_selector_category
+    probfd_cli/merge_and_shrink/merge_selector_factory_category
     DEPENDS
         pa_merge_and_shrink
         parser
@@ -652,7 +679,7 @@ create_library(
     NAME pmerge_selector_score_based_filtering_feature
     HELP "Enables merge selector score-based plugin"
     SOURCES
-    probfd_cli/merge_and_shrink/merge_selector_score_based_filtering
+    probfd_cli/merge_and_shrink/merge_selector_factory_score_based_filtering
     DEPENDS
         pa_merge_and_shrink
         parser
@@ -665,7 +692,7 @@ create_library(
     NAME pmerge_scoring_function_category
     HELP "Enables merge scoring function category plugin"
     SOURCES
-    probfd_cli/merge_and_shrink/merge_scoring_function_category
+    probfd_cli/merge_and_shrink/merge_scoring_function_factory_category
     DEPENDS
         pa_merge_and_shrink
         parser
@@ -678,7 +705,7 @@ create_library(
     NAME pmerge_scoring_function_dfp_feature
     HELP "Enables merge scoring function dfp plugin"
     SOURCES
-    probfd_cli/merge_and_shrink/merge_scoring_function_dfp
+    probfd_cli/merge_and_shrink/merge_scoring_function_factory_dfp
     DEPENDS
         pmerge_scoring_function_category
         pa_merge_and_shrink
@@ -692,7 +719,7 @@ create_library(
     NAME pmerge_scoring_function_goal_relevance_feature
     HELP "Enables merge scoring function goal relevance plugin"
     SOURCES
-    probfd_cli/merge_and_shrink/merge_scoring_function_goal_relevance
+    probfd_cli/merge_and_shrink/merge_scoring_function_factory_goal_relevance
     DEPENDS
         pmerge_scoring_function_category
         pa_merge_and_shrink
@@ -706,7 +733,7 @@ create_library(
     NAME pmerge_scoring_function_miasm_feature
     HELP "Enables merge scoring function miasm plugin"
     SOURCES
-    probfd_cli/merge_and_shrink/merge_scoring_function_miasm
+    probfd_cli/merge_and_shrink/merge_scoring_function_factory_miasm
     DEPENDS
         pmerge_scoring_function_category
         pa_merge_and_shrink
@@ -720,7 +747,7 @@ create_library(
     NAME pmerge_scoring_function_single_random_feature
     HELP "Enables merge scoring function single random plugin"
     SOURCES
-    probfd_cli/merge_and_shrink/merge_scoring_function_single_random
+    probfd_cli/merge_and_shrink/merge_scoring_function_factory_single_random
     DEPENDS
         pmerge_scoring_function_category
         pa_merge_and_shrink
@@ -734,7 +761,7 @@ create_library(
     NAME pmerge_scoring_function_total_order_feature
     HELP "Enables merge scoring function total order plugin"
     SOURCES
-    probfd_cli/merge_and_shrink/merge_scoring_function_total_order
+    probfd_cli/merge_and_shrink/merge_scoring_function_factory_total_order
     DEPENDS
         pmerge_scoring_function_category
         pa_merge_and_shrink

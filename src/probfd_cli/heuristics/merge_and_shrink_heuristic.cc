@@ -209,7 +209,7 @@ void MergeAndShrinkHeuristicFactory::dump_options(utils::LogProxy log) const
         merge_strategy->dump_options();
         log.println();
 
-        log.println("Options related to size limits and shrinking: {}");
+        log.println("Options related to size limits and shrinking:");
         log.println("Transition system size limit: {}", max_states);
         log.println(
             "Transition system size limit right before merge: {}",
