@@ -25,7 +25,7 @@ class MergeScoringFunctionTotalOrder : public MergeScoringFunction {
 
 public:
     MergeScoringFunctionTotalOrder(
-        const ProbabilisticTaskTuple& task,
+        const FactoredTransitionSystem& fts,
         AtomicTSOrder atomic_ts_order,
         ProductTSOrder product_ts_order,
         bool atomic_before_product,

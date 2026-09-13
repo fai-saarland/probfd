@@ -1,7 +1,7 @@
 #include "probfd/merge_and_shrink/merge_strategy_factory_stateless.h"
 
-#include "probfd/merge_and_shrink/merge_selector_factory.h"
 #include "probfd/merge_and_shrink/merge_selector.h"
+#include "probfd/merge_and_shrink/merge_selector_factory.h"
 #include "probfd/merge_and_shrink/merge_strategy_stateless.h"
 
 using namespace std;
@@ -18,15 +18,12 @@ MergeStrategyFactoryStateless::MergeStrategyFactoryStateless(
 }
 
 unique_ptr<MergeStrategy> MergeStrategyFactoryStateless::compute_merge_strategy(
-    const SharedProbabilisticTask& task,
+    const SharedProbabilisticTask&,
     const FactoredTransitionSystem& fts)
 {
-    auto merge_selector =
-        merge_selector_factory->compute_selector(to_refs(task));
+    auto merge_selector = merge_selector_factory->compute_selector(fts);
 
-    return std::make_unique<MergeStrategyStateless>(
-        fts,
-        std::move(merge_selector));
+    return std::make_unique<MergeStrategyStateless>(std::move(merge_selector));
 }
 
 string MergeStrategyFactoryStateless::name() const

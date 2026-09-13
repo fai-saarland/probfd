@@ -16,7 +16,7 @@ using namespace downward;
 namespace probfd::merge_and_shrink {
 
 MergeScoringFunctionMIASM::MergeScoringFunctionMIASM(
-    const ProbabilisticTaskTuple& task,
+    const FactoredTransitionSystem& fts,
     bool use_caching,
     shared_ptr<ShrinkStrategy> shrink_strategy,
     int max_states,
@@ -29,9 +29,7 @@ MergeScoringFunctionMIASM::MergeScoringFunctionMIASM(
     , shrink_threshold_before_merge(threshold_before_merge)
     , silent_log(utils::get_silent_log())
 {
-    const auto& variables = get_variables(task);
-
-    const int num_variables = variables.size();
+    const int num_variables = fts.get_size();
     const int max_factor_index = 2 * num_variables - 1;
     cached_scores_by_merge_candidate_indices.resize(
         max_factor_index,

@@ -330,7 +330,7 @@ void MergeAndShrinkAlgorithm::main_loop(
     try {
         while (fts.get_num_active_entries() > 1) {
             // Choose next transition systems to merge
-            const auto index_pair = merge_strategy.get_next();
+            const auto index_pair = merge_strategy.get_next(fts);
             const auto [merge_index1, merge_index2] = index_pair;
 
             timer.throw_if_expired();

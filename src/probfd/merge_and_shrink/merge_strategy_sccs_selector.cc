@@ -14,13 +14,9 @@ using namespace std;
 namespace probfd::merge_and_shrink {
 
 MergeStrategySCCsSelector::MergeStrategySCCsSelector(
-    const FactoredTransitionSystem& fts,
-    SharedProbabilisticTask task,
     const shared_ptr<MergeSelector>& merge_selector,
     vector<vector<int>>&& non_singleton_cg_sccs)
-    : MergeStrategy(fts)
-    , task(std::move(task))
-    , merge_selector(merge_selector)
+    : merge_selector(merge_selector)
     , non_singleton_cg_sccs(std::move(non_singleton_cg_sccs))
 {
     std::ranges::reverse(non_singleton_cg_sccs);
@@ -28,7 +24,8 @@ MergeStrategySCCsSelector::MergeStrategySCCsSelector(
 
 MergeStrategySCCsSelector::~MergeStrategySCCsSelector() = default;
 
-pair<int, int> MergeStrategySCCsSelector::get_next()
+pair<int, int>
+MergeStrategySCCsSelector::get_next(const FactoredTransitionSystem& fts)
 {
     if (current_ts_indices.empty()) {
         /*

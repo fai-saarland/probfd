@@ -26,7 +26,7 @@ class MergeScoringFunctionMIASM : public MergeScoringFunction {
 
 public:
     MergeScoringFunctionMIASM(
-        const ProbabilisticTaskTuple& task,
+        const FactoredTransitionSystem& fts,
         bool use_caching,
         std::shared_ptr<ShrinkStrategy> shrink_strategy,
         int max_states,

@@ -13,6 +13,7 @@ class RandomNumberGenerator;
 } // namespace utils
 
 namespace downward::variable_order_finder {
+
 enum VariableOrderType {
     CG_GOAL_LEVEL,
     CG_GOAL_RANDOM,
@@ -39,16 +40,18 @@ class VariableOrderFinder {
     std::vector<bool> is_goal_variable;
     std::vector<bool> is_causal_predecessor;
 
-    void select_next(int position, int var_no);
-
 public:
     VariableOrderFinder(
         const AbstractTaskTuple& task,
         VariableOrderType variable_order_type,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng = nullptr);
-    ~VariableOrderFinder() = default;
+
     bool done() const;
+
     int next();
+
+private:
+    void select_next(int position, int var_no);
 };
 } // namespace variable_order_finder
 

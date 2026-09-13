@@ -31,7 +31,7 @@ public:
         int shrink_threshold_before_merge);
 
     std::unique_ptr<MergeScoringFunction>
-    compute_scoring_function(const ProbabilisticTaskTuple& task) override;
+    compute_scoring_function(const FactoredTransitionSystem& fts) override;
 
 private:
     std::string name() const override;

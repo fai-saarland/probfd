@@ -33,10 +33,10 @@ MergeScoringFunctionFactoryMIASM::MergeScoringFunctionFactoryMIASM(
 
 std::unique_ptr<MergeScoringFunction>
 MergeScoringFunctionFactoryMIASM::compute_scoring_function(
-    const ProbabilisticTaskTuple& task)
+    const FactoredTransitionSystem& fts)
 {
     return std::make_unique<MergeScoringFunctionMIASM>(
-        task,
+        fts,
         use_caching,
         shrink_strategy,
         max_states,

@@ -42,14 +42,11 @@ namespace probfd::merge_and_shrink {
   See also the documentation in merge_tree.h.
 */
 class MergeStrategy {
-protected:
-    const FactoredTransitionSystem& fts;
-
 public:
-    explicit MergeStrategy(const FactoredTransitionSystem& fts);
     virtual ~MergeStrategy() = default;
 
-    virtual std::pair<int, int> get_next() = 0;
+    virtual std::pair<int, int>
+    get_next(const FactoredTransitionSystem& fts) = 0;
 };
 
 } // namespace probfd::merge_and_shrink

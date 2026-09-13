@@ -20,10 +20,9 @@ MergeStrategyFactoryPrecomputed::MergeStrategyFactoryPrecomputed(
 unique_ptr<MergeStrategy>
 MergeStrategyFactoryPrecomputed::compute_merge_strategy(
     const SharedProbabilisticTask& task,
-    const FactoredTransitionSystem& fts)
+    const FactoredTransitionSystem&)
 {
     return std::make_unique<MergeStrategyPrecomputed>(
-        fts,
         merge_tree_factory->compute_merge_tree(task));
 }
 

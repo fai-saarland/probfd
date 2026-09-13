@@ -113,11 +113,9 @@ MergeStrategyFactorySCCsSelector::compute_merge_strategy(
     }
 
     auto merge_selector =
-        merge_selector_factory->compute_selector(to_refs(task));
+        merge_selector_factory->compute_selector(fts);
 
     return std::make_unique<MergeStrategySCCsSelector>(
-        fts,
-        task,
         std::move(merge_selector),
         std::move(non_singleton_cg_sccs));
 }

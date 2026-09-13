@@ -14,12 +14,10 @@ using namespace std;
 namespace probfd::merge_and_shrink {
 
 MergeStrategySCCsTree::MergeStrategySCCsTree(
-    const FactoredTransitionSystem& fts,
     SharedProbabilisticTask task,
     const shared_ptr<MergeTreeFactory>& merge_tree_factory,
     vector<vector<int>>&& non_singleton_cg_sccs)
-    : MergeStrategy(fts)
-    , task(std::move(task))
+    : task(std::move(task))
     , merge_tree_factory(merge_tree_factory)
     , non_singleton_cg_sccs(std::move(non_singleton_cg_sccs))
     , current_merge_tree(nullptr)
@@ -29,7 +27,8 @@ MergeStrategySCCsTree::MergeStrategySCCsTree(
 
 MergeStrategySCCsTree::~MergeStrategySCCsTree() = default;
 
-pair<int, int> MergeStrategySCCsTree::get_next()
+pair<int, int>
+MergeStrategySCCsTree::get_next(const FactoredTransitionSystem& fts)
 {
     if (current_ts_indices.empty()) {
         /*

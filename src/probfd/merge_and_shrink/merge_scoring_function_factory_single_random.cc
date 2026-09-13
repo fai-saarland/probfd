@@ -21,7 +21,7 @@ MergeScoringFunctionFactorySingleRandom::
 
 std::unique_ptr<MergeScoringFunction>
 MergeScoringFunctionFactorySingleRandom::compute_scoring_function(
-    const ProbabilisticTaskTuple&)
+    const FactoredTransitionSystem&)
 {
     return std::make_unique<MergeScoringFunctionSingleRandom>(random_seed);
 }

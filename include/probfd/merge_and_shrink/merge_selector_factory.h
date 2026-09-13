@@ -11,6 +11,7 @@ class LogProxy;
 }
 
 namespace probfd::merge_and_shrink {
+class FactoredTransitionSystem;
 class MergeSelector;
 }
 
@@ -21,7 +22,7 @@ public:
     virtual ~MergeSelectorFactory() = default;
 
     virtual std::unique_ptr<MergeSelector>
-    compute_selector(const ProbabilisticTaskTuple& task) = 0;
+    compute_selector(const FactoredTransitionSystem&) = 0;
 
     virtual bool requires_liveness() const = 0;
 

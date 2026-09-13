@@ -371,7 +371,6 @@ create_library(
     probfd/merge_and_shrink/merge_selector_factory
         probfd/merge_and_shrink/merge_selector_score_based_filtering
     probfd/merge_and_shrink/merge_selector_factory_score_based_filtering
-        probfd/merge_and_shrink/merge_strategy
         probfd/merge_and_shrink/merge_strategy_factory
         probfd/merge_and_shrink/merge_strategy_factory_precomputed
         probfd/merge_and_shrink/merge_strategy_factory_sccs

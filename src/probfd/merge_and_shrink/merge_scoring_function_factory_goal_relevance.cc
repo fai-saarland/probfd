@@ -8,7 +8,7 @@ namespace probfd::merge_and_shrink {
 
 std::unique_ptr<MergeScoringFunction>
 MergeScoringFunctionFactoryGoalRelevance::compute_scoring_function(
-    const ProbabilisticTaskTuple&)
+    const FactoredTransitionSystem&)
 {
     return std::make_unique<MergeScoringFunctionGoalRelevance>();
 }

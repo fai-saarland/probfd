@@ -11,6 +11,7 @@ class LogProxy;
 }
 
 namespace probfd::merge_and_shrink {
+class FactoredTransitionSystem;
 class MergeScoringFunction;
 }
 
@@ -21,7 +22,7 @@ public:
     virtual ~MergeScoringFunctionFactory() = default;
 
     virtual std::unique_ptr<MergeScoringFunction>
-    compute_scoring_function(const ProbabilisticTaskTuple& task) = 0;
+    compute_scoring_function(const FactoredTransitionSystem& fts) = 0;
 
     void dump_options(downward::utils::LogProxy& log) const;
 

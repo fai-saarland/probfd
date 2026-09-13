@@ -18,7 +18,7 @@ using namespace downward;
 namespace probfd::merge_and_shrink {
 
 MergeScoringFunctionTotalOrder::MergeScoringFunctionTotalOrder(
-    const ProbabilisticTaskTuple& task,
+    const FactoredTransitionSystem& fts,
     AtomicTSOrder atomic_ts_order,
     ProductTSOrder product_ts_order,
     bool atomic_before_product,
@@ -29,9 +29,7 @@ MergeScoringFunctionTotalOrder::MergeScoringFunctionTotalOrder(
     , random_seed(random_seed)
     , rng(utils::get_rng(random_seed))
 {
-    const auto& variables = get_variables(task);
-
-    const int num_variables = variables.size();
+    const int num_variables = fts.get_size();
     const int max_transition_system_count = num_variables * 2 - 1;
 
     // Compute the order in which atomic transition systems are considered
@@ -90,9 +88,7 @@ vector<double> MergeScoringFunctionTotalOrder::compute_scores(
     vector<double> scores;
     scores.reserve(merge_candidates.size());
 
-    for (size_t candidate_index = 0; candidate_index < merge_candidates.size();
-         ++candidate_index) {
-        auto merge_candidate = merge_candidates[candidate_index];
+    for (auto merge_candidate : merge_candidates) {
         for (size_t merge_candidate_order_index = 0;
              merge_candidate_order_index < merge_candidate_order.size();
              ++merge_candidate_order_index) {
@@ -101,7 +97,8 @@ vector<double> MergeScoringFunctionTotalOrder::compute_scores(
             if (merge_candidate == other_candidate ||
                 merge_candidate == rotate(other_candidate)) {
                 // use the index in the merge candidate order as score
-                scores.push_back(merge_candidate_order_index);
+                scores.push_back(
+                    static_cast<double>(merge_candidate_order_index));
                 break;
             }
         }

@@ -16,8 +16,6 @@ class MergeTree;
 namespace probfd::merge_and_shrink {
 
 class MergeStrategySCCsSelector : public MergeStrategy {
-    SharedProbabilisticTask task;
-
     std::shared_ptr<MergeSelector> merge_selector;
     std::vector<std::vector<int>> non_singleton_cg_sccs;
 
@@ -25,14 +23,12 @@ class MergeStrategySCCsSelector : public MergeStrategy {
 
 public:
     MergeStrategySCCsSelector(
-        const FactoredTransitionSystem& fts,
-        SharedProbabilisticTask task,
         const std::shared_ptr<MergeSelector>& merge_selector,
         std::vector<std::vector<int>>&& non_singleton_cg_sccs);
 
     ~MergeStrategySCCsSelector() override;
 
-    std::pair<int, int> get_next() override;
+    std::pair<int, int> get_next(const FactoredTransitionSystem& fts) override;
 };
 
 } // namespace probfd::merge_and_shrink

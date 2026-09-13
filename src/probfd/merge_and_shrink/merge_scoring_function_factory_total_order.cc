@@ -33,10 +33,10 @@ MergeScoringFunctionFactoryTotalOrder::MergeScoringFunctionFactoryTotalOrder(
 
 std::unique_ptr<MergeScoringFunction>
 MergeScoringFunctionFactoryTotalOrder::compute_scoring_function(
-    const ProbabilisticTaskTuple& task)
+    const FactoredTransitionSystem& fts)
 {
     return std::make_unique<MergeScoringFunctionTotalOrder>(
-        task,
+        fts,
         atomic_ts_order,
         product_ts_order,
         atomic_before_product,

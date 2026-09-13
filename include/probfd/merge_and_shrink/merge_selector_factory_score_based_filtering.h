@@ -22,7 +22,7 @@ public:
             merge_scoring_function_factories);
 
     std::unique_ptr<MergeSelector>
-    compute_selector(const ProbabilisticTaskTuple& task) override;
+    compute_selector(const FactoredTransitionSystem& fts) override;
 
     bool requires_liveness() const override
     {

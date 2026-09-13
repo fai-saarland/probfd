@@ -23,13 +23,13 @@ MergeSelectorFactoryScoreBasedFiltering::
 
 std::unique_ptr<MergeSelector>
 MergeSelectorFactoryScoreBasedFiltering::compute_selector(
-    const ProbabilisticTaskTuple& task)
+    const FactoredTransitionSystem& fts)
 {
     return std::make_unique<MergeSelectorScoreBasedFiltering>(
         merge_scoring_function_factories |
         std::views::transform(
             [&](const auto& factory) -> std::shared_ptr<MergeScoringFunction> {
-                return factory->compute_scoring_function(task);
+                return factory->compute_scoring_function(fts);
             }) |
         std::ranges::to<std::vector>());
 }
