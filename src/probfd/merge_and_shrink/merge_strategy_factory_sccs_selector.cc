@@ -1,7 +1,8 @@
 #include "probfd/merge_and_shrink/merge_strategy_factory_sccs_selector.h"
 
-#include "downward/variable_space.h"
+#include "probfd/merge_and_shrink/factored_transition_system.h"
 #include "probfd/merge_and_shrink/merge_selector.h"
+#include "probfd/merge_and_shrink/merge_selector_factory.h"
 #include "probfd/merge_and_shrink/merge_strategy_sccs_selector.h"
 #include "probfd/merge_and_shrink/merge_tree_factory.h"
 #include "probfd/merge_and_shrink/transition_system.h"
@@ -14,7 +15,8 @@
 #include "downward/task_utils/causal_graph.h"
 
 #include "downward/utils/logging.h"
-#include "probfd/merge_and_shrink/merge_selector_factory.h"
+
+#include "downward/variable_space.h"
 
 #include <algorithm>
 #include <cassert>
@@ -48,25 +50,20 @@ MergeStrategyFactorySCCsSelector::MergeStrategyFactorySCCsSelector(
 
 unique_ptr<MergeStrategy>
 MergeStrategyFactorySCCsSelector::compute_merge_strategy(
-    const SharedProbabilisticTask& task,
+    const SharedProbabilisticTask&,
     const FactoredTransitionSystem& fts)
 {
-    const auto& variables = get_variables(task);
-    const auto& axioms = get_axioms(task);
-    const auto& operators = get_operators(task);
+    const causal_graph::ProbabilisticCausalGraph cgraph(fts);
 
-    const auto& cgraph =
-        causal_graph::get_causal_graph(variables, axioms, operators);
-
-    const std::size_t num_vars = variables.size();
+    const int num_vars = static_cast<int>(fts.get_size());
 
     // Compute SCCs of the causal graph.
     vector<vector<int>> cg;
     cg.reserve(num_vars);
-    for (VariableProxy var : variables) {
-        const vector<int>& successors = cgraph.get_successors(var.get_id());
-        cg.push_back(successors);
+    for (int i = 0; i != num_vars; ++i) {
+        cg.push_back(cgraph.get_successors(i));
     }
+
     vector<vector<int>> sccs = sccs::compute_maximal_sccs(cg);
 
     // Put the SCCs in the desired order.
@@ -112,8 +109,7 @@ MergeStrategyFactorySCCsSelector::compute_merge_strategy(
         assert(non_singleton_cg_sccs.empty());
     }
 
-    auto merge_selector =
-        merge_selector_factory->compute_selector(fts);
+    auto merge_selector = merge_selector_factory->compute_selector(fts);
 
     return std::make_unique<MergeStrategySCCsSelector>(
         std::move(merge_selector),

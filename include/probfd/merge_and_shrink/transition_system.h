@@ -147,28 +147,6 @@ class TransitionSystem {
     int init_state;
     std::vector<bool> goal_states;
 
-    /*
-     * Check if two or more labels are locally equivalent to each other, and
-     * if so, update the label equivalence relation.
-     */
-    void compute_equivalent_local_labels(const Labels& labels);
-
-    // Statistics and output
-    int compute_total_transitions() const;
-
-    /*
-     * The transitions for every group of locally equivalent labels are
-     * sorted (by source, by target) and there are no duplicates.
-     */
-    bool are_local_labels_consistent() const;
-
-    /*
-      The mapping label_to_local_label is consistent with local_label_infos.
-    */
-    bool is_label_mapping_consistent(const Labels& labels) const;
-
-    void dump_label_mapping(const Labels& labels, std::ostream& out) const;
-
 public:
     explicit TransitionSystem(const json::JsonObject& object);
 
@@ -262,6 +240,29 @@ public:
 
     friend std::unique_ptr<json::JsonObject>
     to_json(const TransitionSystem& info);
+
+private:
+    /*
+     * Check if two or more labels are locally equivalent to each other, and
+     * if so, update the label equivalence relation.
+     */
+    void compute_equivalent_local_labels(const Labels& labels);
+
+    // Statistics and output
+    int compute_total_transitions() const;
+
+    /*
+     * The transitions for every group of locally equivalent labels are
+     * sorted (by source, by target) and there are no duplicates.
+     */
+    bool are_local_labels_consistent() const;
+
+    /*
+      The mapping label_to_local_label is consistent with local_label_infos.
+    */
+    bool is_label_mapping_consistent(const Labels& labels) const;
+
+    void dump_label_mapping(const Labels& labels, std::ostream& out) const;
 };
 
 } // namespace probfd::merge_and_shrink

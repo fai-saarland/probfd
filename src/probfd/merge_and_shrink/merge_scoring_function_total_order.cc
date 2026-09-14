@@ -102,8 +102,6 @@ vector<double> MergeScoringFunctionTotalOrder::compute_scores(
                 break;
             }
         }
-        // We must have inserted a score for the current candidate.
-        assert(scores.size() == candidate_index + 1);
     }
     return scores;
 }

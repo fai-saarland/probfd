@@ -145,7 +145,10 @@ public:
     // Used by LabelReduction and MergeScoringFunctionDFP
     const Labels& get_labels() const { return labels; }
 
-    int get_size() const { return factors.size(); }
+    std::size_t get_size() const
+    {
+        return factors.size();
+    }
 
     /*
       A factor is solvable iff the distance of the initial state to some goal

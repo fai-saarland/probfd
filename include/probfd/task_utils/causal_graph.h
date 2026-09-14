@@ -14,6 +14,10 @@ namespace downward::utils {
 class LogProxy;
 }
 
+namespace probfd::merge_and_shrink {
+class FactoredTransitionSystem;
+}
+
 namespace probfd::causal_graph {
 
 using IntRelation = std::vector<std::vector<int>>;
@@ -26,10 +30,6 @@ class ProbabilisticCausalGraph {
     IntRelation successors;
     IntRelation predecessors;
 
-    void dump(
-        const downward::VariableSpace& variables,
-        downward::utils::LogProxy& log) const;
-
 public:
     /* Use the factory function get_causal_graph to create causal graphs
        to avoid creating more than one causal graph per AbstractTask. */
@@ -37,6 +37,9 @@ public:
         const downward::VariableSpace& variables,
         const downward::AxiomSpace& axioms,
         const ProbabilisticOperatorSpace& operators);
+
+    explicit ProbabilisticCausalGraph(
+        const merge_and_shrink::FactoredTransitionSystem& fts);
 
     /*
       All below methods querying neighbors (of some sort or other) of
@@ -86,12 +89,20 @@ public:
         return predecessors[var];
     }
 
-    const std::vector<std::vector<int>>& get_arcs() const { return successors; }
+    const std::vector<std::vector<int>>& get_arcs() const
+    {
+        return successors;
+    }
 
     const std::vector<std::vector<int>>& get_inverse_arcs() const
     {
         return predecessors;
     }
+
+private:
+    void dump(
+        const downward::VariableSpace& variables,
+        downward::utils::LogProxy& log) const;
 };
 
 /* Create or retrieve a causal graph from cache. If causal graphs are created

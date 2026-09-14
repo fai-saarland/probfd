@@ -1,3 +1,4 @@
 {
-  "foo" : "ilao(heuristic=ppdbs())"
+  "st": "pshrink_bisimulation()",
+  "too": "tailao(heuristic=pa_merge_and_shrink(merge_strategy=pmerge_sccs_selector(merge_selector=pscore_based_filtering([psf_miasm(shrink_strategy=st), psingle_random()])), shrink_strategy=st))"
 }

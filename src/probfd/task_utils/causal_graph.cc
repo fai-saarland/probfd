@@ -1,11 +1,15 @@
 #include "probfd/task_utils/causal_graph.h"
 
-#include "downward/axiom_space.h"
-#include "downward/variable_space.h"
+#include "probfd/merge_and_shrink/factored_transition_system.h"
+
+#include "probfd/probabilistic_operator_space.h"
 #include "probfd/probabilistic_task.h"
 
+#include "downward/axiom_space.h"
+#include "downward/variable_space.h"
+
 #include "downward/utils/logging.h"
-#include "probfd/probabilistic_operator_space.h"
+#include "probfd/merge_and_shrink/transition_system.h"
 
 #include <algorithm>
 #include <cassert>
@@ -45,25 +49,26 @@ static utils::HashMap<
   - O(K + M + N log D) construction time
 */
 
+namespace {
 class IntRelationBuilder {
     typedef std::unordered_set<int> IntSet;
     vector<IntSet> int_sets;
 
-    int get_range() const;
+    std::size_t get_range() const;
 
 public:
-    explicit IntRelationBuilder(int range);
+    explicit IntRelationBuilder(std::size_t range);
 
     void add_pair(int u, int v);
     void compute_relation(IntRelation& result) const;
 };
 
-IntRelationBuilder::IntRelationBuilder(int range)
+IntRelationBuilder::IntRelationBuilder(std::size_t range)
     : int_sets(range)
 {
 }
 
-int IntRelationBuilder::get_range() const
+std::size_t IntRelationBuilder::get_range() const
 {
     return int_sets.size();
 }
@@ -77,12 +82,12 @@ void IntRelationBuilder::add_pair(int u, int v)
 
 void IntRelationBuilder::compute_relation(IntRelation& result) const
 {
-    int range = get_range();
+    const std::size_t range = get_range();
     result.clear();
     result.resize(range);
-    for (int i = 0; i < range; ++i) {
-        result[i].assign(int_sets[i].begin(), int_sets[i].end());
-        sort(result[i].begin(), result[i].end());
+    for (std::size_t i = 0; i < range; ++i) {
+        result[i].assign_range(int_sets[i]);
+        ranges::sort(result[i]);
     }
 }
 
@@ -94,7 +99,7 @@ struct ProbabilisticCausalGraphBuilder {
     IntRelationBuilder succ_builder;
     IntRelationBuilder pred_builder;
 
-    explicit ProbabilisticCausalGraphBuilder(int var_count)
+    explicit ProbabilisticCausalGraphBuilder(std::size_t var_count)
         : pre_eff_builder(var_count)
         , eff_pre_builder(var_count)
         , eff_eff_builder(var_count)
@@ -103,33 +108,13 @@ struct ProbabilisticCausalGraphBuilder {
     {
     }
 
-    void handle_pre_eff_arc(int u, int v)
-    {
-        assert(u != v);
-        pre_eff_builder.add_pair(u, v);
-        succ_builder.add_pair(u, v);
-        eff_pre_builder.add_pair(v, u);
-        pred_builder.add_pair(v, u);
-    }
-
-    void handle_eff_eff_edge(int u, int v)
-    {
-        assert(u != v);
-        eff_eff_builder.add_pair(u, v);
-        eff_eff_builder.add_pair(v, u);
-        succ_builder.add_pair(u, v);
-        succ_builder.add_pair(v, u);
-        pred_builder.add_pair(u, v);
-        pred_builder.add_pair(v, u);
-    }
-
     void handle_operator(const ProbabilisticOperatorProxy& op)
     {
         auto outcomes = op.get_outcomes();
 
         // Handle pre->eff links from preconditions.
-        for (FactPair pre : op.get_preconditions()) {
-            int pre_var_id = pre.var;
+        for (const FactPair pre : op.get_preconditions()) {
+            const int pre_var_id = pre.var;
             for (auto outcome : outcomes) {
                 for (ProbabilisticEffectProxy eff : outcome.get_effects()) {
                     if (const int eff_var_id = eff.get_fact().var;
@@ -146,7 +131,7 @@ struct ProbabilisticCausalGraphBuilder {
             for (ProbabilisticEffectProxy eff : outcome.get_effects()) {
                 int eff_var_id = eff.get_fact().var;
                 eff_vars.insert(eff_var_id);
-                for (FactPair pre : eff.get_conditions()) {
+                for (const FactPair pre : eff.get_conditions()) {
                     if (const int pre_var_id = pre.var;
                         pre_var_id != eff_var_id)
                         handle_pre_eff_arc(pre_var_id, eff_var_id);
@@ -167,10 +152,10 @@ struct ProbabilisticCausalGraphBuilder {
         auto effects = op.get_effects();
 
         // Handle pre->eff links from preconditions.
-        for (FactPair pre : op.get_preconditions()) {
-            int pre_var_id = pre.var;
+        for (const FactPair pre : op.get_preconditions()) {
+            const int pre_var_id = pre.var;
             for (auto eff : effects) {
-                int eff_var_id = eff.get_fact().var;
+                const int eff_var_id = eff.get_fact().var;
                 if (pre_var_id != eff_var_id)
                     handle_pre_eff_arc(pre_var_id, eff_var_id);
             }
@@ -178,9 +163,9 @@ struct ProbabilisticCausalGraphBuilder {
 
         // Handle pre->eff links from effect conditions.
         for (auto eff : effects) {
-            int eff_var_id = eff.get_fact().var;
-            for (FactPair pre : eff.get_conditions()) {
-                int pre_var_id = pre.var;
+            const int eff_var_id = eff.get_fact().var;
+            for (const FactPair pre : eff.get_conditions()) {
+                const int pre_var_id = pre.var;
                 if (pre_var_id != eff_var_id)
                     handle_pre_eff_arc(pre_var_id, eff_var_id);
             }
@@ -188,28 +173,124 @@ struct ProbabilisticCausalGraphBuilder {
 
         // Handle eff->eff links.
         for (size_t i = 0; i < effects.size(); ++i) {
-            int eff1_var_id = effects[i].get_fact().var;
+            const int eff1_var_id = effects[i].get_fact().var;
             for (size_t j = i + 1; j < effects.size(); ++j) {
-                int eff2_var_id = effects[j].get_fact().var;
+                const int eff2_var_id = effects[j].get_fact().var;
                 if (eff1_var_id != eff2_var_id)
                     handle_eff_eff_edge(eff1_var_id, eff2_var_id);
             }
         }
     }
+
+    void handle_operator(
+        const std::set<int>& pre_factors,
+        const std::set<int>& state_change_factors)
+    {
+        // Handle pre->eff links from preconditions.
+        for (const int pre_var_id : pre_factors) {
+            for (const int eff_var_id : state_change_factors) {
+                if (pre_var_id != eff_var_id) {
+                    handle_pre_eff_arc(pre_var_id, eff_var_id);
+                }
+            }
+        }
+
+        // Handle eff->eff links.
+        for (auto it = state_change_factors.begin();
+             it != state_change_factors.end();
+             ++it) {
+            for (auto it2 = std::next(it); it2 != state_change_factors.end();
+                 ++it2) {
+                handle_eff_eff_edge(*it, *it2);
+            }
+        }
+    }
+
+private:
+    void handle_pre_eff_arc(int u, int v)
+    {
+        assert(u != v);
+        pre_eff_builder.add_pair(u, v);
+        succ_builder.add_pair(u, v);
+        eff_pre_builder.add_pair(v, u);
+        pred_builder.add_pair(v, u);
+    }
+
+    void handle_eff_eff_edge(int u, int v)
+    {
+        assert(u != v);
+        eff_eff_builder.add_pair(u, v);
+        eff_eff_builder.add_pair(v, u);
+        succ_builder.add_pair(u, v);
+        succ_builder.add_pair(v, u);
+        pred_builder.add_pair(u, v);
+        pred_builder.add_pair(v, u);
+    }
 };
+} // namespace
 
 ProbabilisticCausalGraph::ProbabilisticCausalGraph(
     const VariableSpace& variables,
     const AxiomSpace& axioms,
     const ProbabilisticOperatorSpace& operators)
 {
-    int num_variables = variables.size();
+    const std::size_t num_variables = variables.size();
     ProbabilisticCausalGraphBuilder cg_builder(num_variables);
 
     for (ProbabilisticOperatorProxy op : operators)
         cg_builder.handle_operator(op);
 
     for (AxiomProxy op : axioms) cg_builder.handle_operator(op);
+
+    cg_builder.pre_eff_builder.compute_relation(pre_to_eff);
+    cg_builder.eff_pre_builder.compute_relation(eff_to_pre);
+    cg_builder.eff_eff_builder.compute_relation(eff_to_eff);
+
+    cg_builder.pred_builder.compute_relation(predecessors);
+    cg_builder.succ_builder.compute_relation(successors);
+}
+
+ProbabilisticCausalGraph::ProbabilisticCausalGraph(
+    const merge_and_shrink::FactoredTransitionSystem& fts)
+{
+    assert(fts.get_num_active_entries() == fts.get_size());
+
+    const std::size_t num_labels = fts.get_labels().get_num_total_labels();
+
+    std::vector<std::set<int>> lbl_to_pre_factors(num_labels);
+    std::vector<std::set<int>> lbl_to_state_change_factors(num_labels);
+
+    for (int factor_idx : fts) {
+        const auto& factor = fts.get_transition_system(factor_idx);
+        for (const auto& local_label_info : factor.label_infos()) {
+            std::unordered_set<int> source_states;
+            for (const auto& transition : local_label_info.get_transitions()) {
+                source_states.insert(transition.src);
+                for (const int target : transition.targets) {
+                    if (target != transition.src) {
+                        for (const int label :
+                             local_label_info.get_label_group()) {
+                            lbl_to_state_change_factors[label].insert(
+                                factor_idx);
+                        }
+                    }
+                }
+            }
+
+            if (source_states.size() != factor.get_size()) {
+                for (const int label : local_label_info.get_label_group()) {
+                    lbl_to_pre_factors[label].insert(factor_idx);
+                }
+            }
+        }
+    }
+
+    ProbabilisticCausalGraphBuilder cg_builder(fts.get_size());
+
+    for (const auto& [pre_factors, state_change_factors] :
+         std::views::zip(lbl_to_pre_factors, lbl_to_state_change_factors)) {
+        cg_builder.handle_operator(pre_factors, state_change_factors);
+    }
 
     cg_builder.pre_eff_builder.compute_relation(pre_to_eff);
     cg_builder.eff_pre_builder.compute_relation(eff_to_pre);
