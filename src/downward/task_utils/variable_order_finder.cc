@@ -27,7 +27,7 @@ VariableOrderFinder::VariableOrderFinder(
 {
     const auto& [variables, goals] = slice<VariableSpace&, GoalFactList&>(task);
 
-    int var_count = variables.size();
+    const int var_count = variables.size();
     if (variable_order_type == REVERSE_LEVEL) {
         for (int i = 0; i < var_count; ++i) remaining_vars.push_back(i);
     } else {
@@ -47,17 +47,16 @@ VariableOrderFinder::VariableOrderFinder(
 
     is_causal_predecessor.resize(var_count, false);
     is_goal_variable.resize(var_count, false);
-    for (FactPair goal : goals) is_goal_variable[goal.var] = true;
+    for (const FactPair goal : goals) is_goal_variable[goal.var] = true;
 }
 
 void VariableOrderFinder::select_next(int position, int var_no)
 {
     assert(remaining_vars[position] == var_no);
     remaining_vars.erase(remaining_vars.begin() + position);
-    selected_vars.push_back(var_no);
     const causal_graph::CausalGraph& cg = causal_graph::get_causal_graph(task);
     const vector<int>& new_vars = cg.get_eff_to_pre(var_no);
-    for (int new_var : new_vars) is_causal_predecessor[new_var] = true;
+    for (const int new_var : new_vars) is_causal_predecessor[new_var] = true;
 }
 
 bool VariableOrderFinder::done() const
@@ -72,7 +71,7 @@ int VariableOrderFinder::next()
         variable_order_type == CG_GOAL_RANDOM) {
         // First run: Try to find a causally connected variable.
         for (size_t i = 0; i < remaining_vars.size(); ++i) {
-            int var_no = remaining_vars[i];
+            const int var_no = remaining_vars[i];
             if (is_causal_predecessor[var_no]) {
                 select_next(i, var_no);
                 return var_no;
@@ -80,7 +79,7 @@ int VariableOrderFinder::next()
         }
         // Second run: Try to find a goal variable.
         for (size_t i = 0; i < remaining_vars.size(); ++i) {
-            int var_no = remaining_vars[i];
+            const int var_no = remaining_vars[i];
             if (is_goal_variable[var_no]) {
                 select_next(i, var_no);
                 return var_no;
@@ -89,7 +88,7 @@ int VariableOrderFinder::next()
     } else if (variable_order_type == GOAL_CG_LEVEL) {
         // First run: Try to find a goal variable.
         for (size_t i = 0; i < remaining_vars.size(); ++i) {
-            int var_no = remaining_vars[i];
+            const int var_no = remaining_vars[i];
             if (is_goal_variable[var_no]) {
                 select_next(i, var_no);
                 return var_no;
@@ -97,7 +96,7 @@ int VariableOrderFinder::next()
         }
         // Second run: Try to find a causally connected variable.
         for (size_t i = 0; i < remaining_vars.size(); ++i) {
-            int var_no = remaining_vars[i];
+            const int var_no = remaining_vars[i];
             if (is_causal_predecessor[var_no]) {
                 select_next(i, var_no);
                 return var_no;
@@ -106,7 +105,7 @@ int VariableOrderFinder::next()
     } else if (
         variable_order_type == RANDOM || variable_order_type == LEVEL ||
         variable_order_type == REVERSE_LEVEL) {
-        int var_no = remaining_vars[0];
+        const int var_no = remaining_vars[0];
         select_next(0, var_no);
         return var_no;
     }

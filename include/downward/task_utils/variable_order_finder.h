@@ -35,7 +35,6 @@ extern void dump_variable_order_type(
 class VariableOrderFinder {
     const AbstractTaskTuple& task;
     const VariableOrderType variable_order_type;
-    std::vector<int> selected_vars;
     std::vector<int> remaining_vars;
     std::vector<bool> is_goal_variable;
     std::vector<bool> is_causal_predecessor;
