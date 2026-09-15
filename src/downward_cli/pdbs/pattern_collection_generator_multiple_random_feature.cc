@@ -19,7 +19,7 @@ using namespace language::plugins;
 
 namespace {
 class PatternCollectionGeneratorMultipleRandomFeature
-    : public TypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorMultipleRandomFeature()
         : TypedFeature("random_patterns")

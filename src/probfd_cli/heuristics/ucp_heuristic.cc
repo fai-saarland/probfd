@@ -19,7 +19,8 @@ using namespace language;
 using namespace language::plugins;
 
 namespace {
-class UCPHeuristicFactoryFeature : public TypedFeature<TaskHeuristicFactory> {
+class UCPHeuristicFactoryFeature
+    : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     UCPHeuristicFactoryFeature()
         : TypedFeature("ucp_heuristic")

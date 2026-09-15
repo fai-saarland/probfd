@@ -21,7 +21,7 @@ using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
 class MergeScoringFunctionSingleRandomFeature
-    : public TypedFeature<MergeScoringFunction> {
+    : public SharedTypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionSingleRandomFeature()
         : TypedFeature("single_random")

@@ -15,7 +15,7 @@ using namespace language::plugins;
 
 namespace {
 
-class VDiffSorterFeature : public TypedFeature<FDRTransitionSorter> {
+class VDiffSorterFeature : public SharedTypedFeature<FDRTransitionSorter> {
 public:
     VDiffSorterFeature()
         : TypedFeature("value_gap_sort")

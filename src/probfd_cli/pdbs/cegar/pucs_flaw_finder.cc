@@ -14,7 +14,7 @@ using namespace language;
 using namespace language::plugins;
 
 namespace {
-class PUCSFlawFinderFeature : public TypedFeature<FlawFindingStrategy> {
+class PUCSFlawFinderFeature : public SharedTypedFeature<FlawFindingStrategy> {
 public:
     PUCSFlawFinderFeature()
         : TypedFeature("pucs_flaw_finder")

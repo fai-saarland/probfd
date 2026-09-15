@@ -21,7 +21,7 @@ using namespace language::plugins;
 
 namespace {
 class StubbornSetsAtomCentricFeature
-    : public TypedFeature<downward::PruningMethod> {
+    : public SharedTypedFeature<downward::PruningMethod> {
 public:
     StubbornSetsAtomCentricFeature()
         : TypedFeature("atom_centric_stubborn_sets")

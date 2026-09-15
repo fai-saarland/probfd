@@ -56,7 +56,7 @@ public:
 };
 
 class BlindSearchHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     BlindSearchHeuristicFeature()
         : TypedFeature("blind")

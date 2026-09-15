@@ -23,7 +23,7 @@ using downward::cli::utils::get_rng_arguments_from_options;
 namespace {
 
 class SplitSelectorRandomFactoryFeature
-    : public TypedFeature<SplitSelectorFactory> {
+    : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorRandomFactoryFeature()
         : TypedFeature("random")
@@ -43,7 +43,7 @@ public:
 };
 
 class SplitSelectorMinUnwantedFactoryFeature
-    : public TypedFeature<SplitSelectorFactory> {
+    : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMinUnwantedFactoryFeature()
         : TypedFeature("min_unwanted")
@@ -62,7 +62,7 @@ public:
 };
 
 class SplitSelectorMaxUnwantedFactoryFeature
-    : public TypedFeature<SplitSelectorFactory> {
+    : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMaxUnwantedFactoryFeature()
         : TypedFeature("max_unwanted")
@@ -81,7 +81,7 @@ public:
 };
 
 class SplitSelectorMinRefinedFactoryFeature
-    : public TypedFeature<SplitSelectorFactory> {
+    : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMinRefinedFactoryFeature()
         : TypedFeature("min_refined")
@@ -100,7 +100,7 @@ public:
 };
 
 class SplitSelectorMaxRefinedFactoryFeature
-    : public TypedFeature<SplitSelectorFactory> {
+    : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMaxRefinedFactoryFeature()
         : TypedFeature("max_refined")
@@ -119,7 +119,7 @@ public:
 };
 
 class SplitSelectorMinHAddFactoryFeature
-    : public TypedFeature<SplitSelectorFactory> {
+    : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMinHAddFactoryFeature()
         : TypedFeature("min_hadd")
@@ -137,7 +137,7 @@ public:
 };
 
 class SplitSelectorMaxHAddFactoryFeature
-    : public TypedFeature<SplitSelectorFactory> {
+    : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMaxHAddFactoryFeature()
         : TypedFeature("max_hadd")

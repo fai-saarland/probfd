@@ -73,7 +73,7 @@ public:
 
 template <bool Bisimulation, bool Fret>
 class ArbitraryTieBreakerFeature
-    : public TypedFeature<PolicyPicker<Bisimulation, Fret>> {
+    : public SharedTypedFeature<PolicyPicker<Bisimulation, Fret>> {
     using R = Wrapper<ArbitraryTiebreaker, Bisimulation, Fret>;
 
 public:
@@ -92,7 +92,7 @@ public:
     }
 };
 
-class OperatorIDTieBreakerFeature : public TypedFeature<FDRPolicyPicker> {
+class OperatorIDTieBreakerFeature : public SharedTypedFeature<FDRPolicyPicker> {
 public:
     OperatorIDTieBreakerFeature()
         : TypedFeature("operator_id_policy_tiebreaker")
@@ -112,7 +112,7 @@ public:
 
 template <bool Bisimulation, bool Fret>
 class RandomTieBreakerFeature
-    : public TypedFeature<PolicyPicker<Bisimulation, Fret>> {
+    : public SharedTypedFeature<PolicyPicker<Bisimulation, Fret>> {
 
     using R = Wrapper<RandomTiebreaker, Bisimulation, Fret>;
 
@@ -137,7 +137,7 @@ public:
 
 template <bool Bisimulation, bool Fret>
 class ValueGapTieBreakerFeature
-    : public TypedFeature<PolicyPicker<Bisimulation, Fret>> {
+    : public SharedTypedFeature<PolicyPicker<Bisimulation, Fret>> {
     using R = Wrapper<VDiffTiebreaker, Bisimulation, Fret>;
 
 public:

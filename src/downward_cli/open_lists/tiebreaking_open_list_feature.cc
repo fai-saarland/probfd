@@ -22,7 +22,7 @@ using downward::cli::get_open_list_arguments_from_options;
 namespace {
 template <typename T>
 class TieBreakingOpenListFeature
-    : public TypedFeature<
+    : public SharedTypedFeature<
           downward::TaskDependentFactory<downward::OpenList<T>>> {
 public:
     TieBreakingOpenListFeature()

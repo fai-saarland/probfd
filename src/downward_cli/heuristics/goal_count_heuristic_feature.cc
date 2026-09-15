@@ -57,7 +57,7 @@ public:
 };
 
 class GoalCountHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     GoalCountHeuristicFeature()
         : TypedFeature("goalcount")

@@ -55,7 +55,7 @@ public:
 };
 
 template <bool Bisimulation>
-class AOStarSolverFeature : public TypedFeature<TaskSolverFactory> {
+class AOStarSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
     using Sampler = SuccessorSampler<ActionType<Bisimulation, false>>;
 
 public:

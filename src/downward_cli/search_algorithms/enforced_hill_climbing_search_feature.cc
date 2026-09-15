@@ -78,7 +78,7 @@ public:
 };
 
 class EnforcedHillClimbingSearchFeature
-    : public TypedFeature<TaskDependentFactory<SearchAlgorithm>> {
+    : public SharedTypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     EnforcedHillClimbingSearchFeature()
         : TypedFeature("ehc")

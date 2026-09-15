@@ -20,7 +20,8 @@ using namespace language;
 using namespace language::plugins;
 
 namespace {
-class StubbornSetsSimpleFeature : public TypedFeature<downward::PruningMethod> {
+class StubbornSetsSimpleFeature
+    : public SharedTypedFeature<downward::PruningMethod> {
 public:
     StubbornSetsSimpleFeature()
         : TypedFeature("stubborn_sets_simple")

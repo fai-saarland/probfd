@@ -15,7 +15,7 @@ using namespace language::plugins;
 
 namespace {
 class AdditiveMaxOrthogonalityFinderFactoryFeature
-    : public TypedFeature<SubCollectionFinderFactory> {
+    : public SharedTypedFeature<SubCollectionFinderFactory> {
 public:
     AdditiveMaxOrthogonalityFinderFactoryFeature()
         : TypedFeature("additive_max_orthogonality_factory")
@@ -30,7 +30,7 @@ public:
 };
 
 class MultiplicativeMaxOrthogonalityFinderFactoryFeature
-    : public TypedFeature<SubCollectionFinderFactory> {
+    : public SharedTypedFeature<SubCollectionFinderFactory> {
 public:
     MultiplicativeMaxOrthogonalityFinderFactoryFeature()
         : TypedFeature("multiplicative_max_orthogonality_factory")

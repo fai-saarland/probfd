@@ -83,7 +83,7 @@ public:
     }
 };
 
-class AcyclicVISolverFeature : public TypedFeature<TaskSolverFactory> {
+class AcyclicVISolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     AcyclicVISolverFeature()
         : TypedFeature("acyclic_value_iteration")

@@ -21,7 +21,7 @@ using namespace language::plugins;
 
 namespace {
 class ProbabilityAwarePDBHeuristicFactoryFeature
-    : public TypedFeature<TaskHeuristicFactory> {
+    : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     ProbabilityAwarePDBHeuristicFactoryFeature()
         : TypedFeature("ppdbs")

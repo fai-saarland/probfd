@@ -57,7 +57,7 @@ public:
     }
 };
 
-class IDualSolverFeature : public TypedFeature<TaskSolverFactory> {
+class IDualSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     IDualSolverFeature()
         : TypedFeature("idual")

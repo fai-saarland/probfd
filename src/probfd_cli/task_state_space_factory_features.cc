@@ -60,7 +60,7 @@ public:
 };
 
 class DefaultTaskStateSpaceFactoryFeature
-    : public TypedFeature<TaskStateSpaceFactory> {
+    : public SharedTypedFeature<TaskStateSpaceFactory> {
 public:
     DefaultTaskStateSpaceFactoryFeature()
         : TypedFeature("default_state_space")
@@ -85,7 +85,7 @@ public:
 };
 
 class CachingTaskStateSpaceFactoryFeature
-    : public TypedFeature<TaskStateSpaceFactory> {
+    : public SharedTypedFeature<TaskStateSpaceFactory> {
 public:
     CachingTaskStateSpaceFactoryFeature()
         : TypedFeature("caching_state_space")

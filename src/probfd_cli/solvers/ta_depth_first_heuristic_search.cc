@@ -86,7 +86,8 @@ public:
     }
 };
 
-class TrapAwareDFHSSolverFeature : public TypedFeature<TaskSolverFactory> {
+class TrapAwareDFHSSolverFeature
+    : public SharedTypedFeature<TaskSolverFactory> {
 public:
     TrapAwareDFHSSolverFeature()
         : TypedFeature("tadfhs")
@@ -149,7 +150,8 @@ protected:
     }
 };
 
-class TrapAwareILAOSolverFeature : public TypedFeature<TaskSolverFactory> {
+class TrapAwareILAOSolverFeature
+    : public SharedTypedFeature<TaskSolverFactory> {
 public:
     TrapAwareILAOSolverFeature()
         : TypedFeature("tailao")
@@ -192,7 +194,8 @@ public:
     }
 };
 
-class TrapAwareLILAOSolverFeature : public TypedFeature<TaskSolverFactory> {
+class TrapAwareLILAOSolverFeature
+    : public SharedTypedFeature<TaskSolverFactory> {
 public:
     TrapAwareLILAOSolverFeature()
         : TypedFeature("talilao")
@@ -238,7 +241,7 @@ public:
     }
 };
 
-class TrapAwareHDPSolverFeature : public TypedFeature<TaskSolverFactory> {
+class TrapAwareHDPSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     TrapAwareHDPSolverFeature()
         : TypedFeature("tahdp")

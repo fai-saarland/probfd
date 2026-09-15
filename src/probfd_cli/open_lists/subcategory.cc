@@ -50,7 +50,7 @@ public:
 };
 
 template <bool Fret>
-class FifoOpenListFeature : public TypedFeature<OpenList<Fret>> {
+class FifoOpenListFeature : public SharedTypedFeature<OpenList<Fret>> {
 public:
     FifoOpenListFeature()
         : FifoOpenListFeature::TypedFeature(
@@ -67,7 +67,7 @@ public:
 };
 
 template <bool Fret>
-class LifoOpenListFeature : public TypedFeature<OpenList<Fret>> {
+class LifoOpenListFeature : public SharedTypedFeature<OpenList<Fret>> {
 public:
     LifoOpenListFeature()
         : LifoOpenListFeature::TypedFeature(

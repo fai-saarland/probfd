@@ -17,7 +17,7 @@ using namespace language::plugins;
 
 namespace {
 class FromFileMutexFactoryFeature
-    : public TypedFeature<TaskDependentFactory<MutexInformation>> {
+    : public SharedTypedFeature<TaskDependentFactory<MutexInformation>> {
 public:
     FromFileMutexFactoryFeature()
         : TypedFeature("mutexes_from_file")

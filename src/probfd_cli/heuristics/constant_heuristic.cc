@@ -15,7 +15,8 @@ using namespace language;
 using namespace language::plugins;
 
 namespace {
-class BlindHeuristicFactoryFeature : public TypedFeature<TaskHeuristicFactory> {
+class BlindHeuristicFactoryFeature
+    : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     BlindHeuristicFactoryFeature()
         : TypedFeature("blind_heuristic")

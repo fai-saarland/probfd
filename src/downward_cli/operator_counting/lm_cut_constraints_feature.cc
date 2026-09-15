@@ -15,7 +15,7 @@ using namespace language;
 using namespace language::plugins;
 
 namespace {
-class LMCutConstraintsFeature : public TypedFeature<ConstraintGenerator> {
+class LMCutConstraintsFeature : public SharedTypedFeature<ConstraintGenerator> {
 public:
     LMCutConstraintsFeature()
         : TypedFeature("lmcut_constraints")

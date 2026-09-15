@@ -48,7 +48,7 @@ public:
 };
 
 class CostAdaptedTaskTransformationFeature
-    : public TypedFeature<TaskTransformation> {
+    : public SharedTypedFeature<TaskTransformation> {
 public:
     CostAdaptedTaskTransformationFeature()
         : TypedFeature("adapt_costs")

@@ -15,7 +15,7 @@ using namespace language::plugins;
 
 namespace {
 class AStarFlawGeneratorFactoryFeature
-    : public TypedFeature<FlawGeneratorFactory> {
+    : public SharedTypedFeature<FlawGeneratorFactory> {
 public:
     AStarFlawGeneratorFactoryFeature()
         : TypedFeature("flaws_astar")

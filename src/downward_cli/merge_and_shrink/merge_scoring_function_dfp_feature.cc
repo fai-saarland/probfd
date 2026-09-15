@@ -16,7 +16,7 @@ using namespace language::plugins;
 
 namespace {
 class MergeScoringFunctionDFPFeature
-    : public TypedFeature<MergeScoringFunction> {
+    : public SharedTypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionDFPFeature()
         : TypedFeature("dfp")

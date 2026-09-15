@@ -74,7 +74,7 @@ public:
 };
 
 class OperatorCountingHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     OperatorCountingHeuristicFeature()
         : TypedFeature("operatorcounting")

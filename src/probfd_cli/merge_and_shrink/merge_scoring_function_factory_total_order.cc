@@ -23,7 +23,7 @@ using namespace language::plugins;
 
 namespace {
 class MergeScoringFunctionTotalOrderFeature
-    : public TypedFeature<MergeScoringFunctionFactory> {
+    : public SharedTypedFeature<MergeScoringFunctionFactory> {
 public:
     MergeScoringFunctionTotalOrderFeature()
         : TypedFeature("ptotal_order")

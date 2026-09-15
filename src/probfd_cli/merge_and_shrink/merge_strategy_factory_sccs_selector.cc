@@ -29,7 +29,7 @@ using namespace language::plugins;
 
 namespace {
 class MergeStrategyFactorySCCsSelectorFeature
-    : public TypedFeature<MergeStrategyFactory> {
+    : public SharedTypedFeature<MergeStrategyFactory> {
 public:
     MergeStrategyFactorySCCsSelectorFeature()
         : TypedFeature("pmerge_sccs_selector")

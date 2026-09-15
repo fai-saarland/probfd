@@ -19,7 +19,7 @@ using namespace language::plugins;
 
 namespace {
 class MergeScoringFunctionDFPFeature
-    : public TypedFeature<MergeScoringFunctionFactory> {
+    : public SharedTypedFeature<MergeScoringFunctionFactory> {
 public:
     MergeScoringFunctionDFPFeature()
         : TypedFeature("pdfp")

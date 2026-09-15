@@ -42,7 +42,7 @@ public:
 };
 
 class PrefEvaluatorFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     PrefEvaluatorFeature()
         : TypedFeature("pref")

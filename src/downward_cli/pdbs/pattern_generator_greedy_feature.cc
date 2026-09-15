@@ -17,7 +17,8 @@ using namespace language;
 using namespace language::plugins;
 
 namespace {
-class PatternGeneratorGreedyFeature : public TypedFeature<PatternGenerator> {
+class PatternGeneratorGreedyFeature
+    : public SharedTypedFeature<PatternGenerator> {
 public:
     PatternGeneratorGreedyFeature()
         : TypedFeature("greedy")

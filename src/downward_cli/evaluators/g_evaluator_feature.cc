@@ -41,7 +41,8 @@ public:
     }
 };
 
-class GEvaluatorFeature : public TypedFeature<TaskDependentFactory<Evaluator>> {
+class GEvaluatorFeature
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     GEvaluatorFeature()
         : TypedFeature("g")

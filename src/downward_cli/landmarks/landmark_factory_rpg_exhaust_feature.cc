@@ -19,7 +19,8 @@ using downward::cli::landmarks::get_landmark_factory_arguments_from_options;
 using namespace downward::landmarks;
 
 namespace {
-class LandmarkFactoryRpgExhaustFeature : public TypedFeature<LandmarkFactory> {
+class LandmarkFactoryRpgExhaustFeature
+    : public SharedTypedFeature<LandmarkFactory> {
 public:
     LandmarkFactoryRpgExhaustFeature()
         : TypedFeature("lm_exhaust")

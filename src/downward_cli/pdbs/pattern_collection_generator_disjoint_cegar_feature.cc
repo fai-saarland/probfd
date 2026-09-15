@@ -28,7 +28,7 @@ using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
 class PatternCollectionGeneratorDisjointCegarFeature
-    : public TypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorDisjointCegarFeature()
         : TypedFeature("disjoint_cegar")

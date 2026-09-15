@@ -18,7 +18,7 @@ using namespace language::plugins;
 using namespace downward::merge_and_shrink;
 
 namespace {
-class ShrinkBisimulationFeature : public TypedFeature<ShrinkStrategy> {
+class ShrinkBisimulationFeature : public SharedTypedFeature<ShrinkStrategy> {
 public:
     ShrinkBisimulationFeature()
         : TypedFeature("shrink_bisimulation")

@@ -61,7 +61,7 @@ std::string paper_references()
 }
 
 class PatternCollectionGeneratorHillclimbingFeature
-    : public TypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorHillclimbingFeature()
         : TypedFeature("hillclimbing")

@@ -76,7 +76,7 @@ public:
 };
 
 class LandmarkSumHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     LandmarkSumHeuristicFeature()
         : TypedFeature("landmark_sum")

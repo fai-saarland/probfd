@@ -90,7 +90,7 @@ public:
 };
 
 class DiversePotentialMaxHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     DiversePotentialMaxHeuristicFeature()
         : TypedFeature("diverse_potentials")

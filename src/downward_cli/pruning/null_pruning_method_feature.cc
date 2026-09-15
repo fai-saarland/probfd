@@ -19,7 +19,8 @@ using namespace language;
 using namespace language::plugins;
 
 namespace {
-class NullPruningMethodFeature : public TypedFeature<downward::PruningMethod> {
+class NullPruningMethodFeature
+    : public SharedTypedFeature<downward::PruningMethod> {
 public:
     NullPruningMethodFeature()
         : TypedFeature("null")

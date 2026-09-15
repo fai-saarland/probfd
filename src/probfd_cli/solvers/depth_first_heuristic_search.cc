@@ -77,7 +77,7 @@ public:
 };
 
 template <bool Bisimulation, bool Fret>
-class DFHSSolverFeature : public TypedFeature<TaskSolverFactory> {
+class DFHSSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     DFHSSolverFeature()
         : DFHSSolverFeature::TypedFeature(
@@ -156,7 +156,7 @@ protected:
 };
 
 template <bool Bisimulation, bool Fret>
-class ILAOSolverFeature : public TypedFeature<TaskSolverFactory> {
+class ILAOSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     ILAOSolverFeature()
         : ILAOSolverFeature::TypedFeature(
@@ -188,7 +188,7 @@ public:
 };
 
 template <bool Bisimulation, bool Fret>
-class LILAOSolverFeature : public TypedFeature<TaskSolverFactory> {
+class LILAOSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     LILAOSolverFeature()
         : LILAOSolverFeature::TypedFeature(
@@ -220,7 +220,7 @@ public:
 };
 
 template <bool Bisimulation, bool Fret>
-class HDPSolverFeature : public TypedFeature<TaskSolverFactory> {
+class HDPSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     HDPSolverFeature()
         : HDPSolverFeature::TypedFeature(

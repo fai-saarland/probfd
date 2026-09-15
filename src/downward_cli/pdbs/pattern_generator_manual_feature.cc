@@ -17,7 +17,8 @@ using namespace language;
 using namespace language::plugins;
 
 namespace {
-class PatternGeneratorManualFeature : public TypedFeature<PatternGenerator> {
+class PatternGeneratorManualFeature
+    : public SharedTypedFeature<PatternGenerator> {
 public:
     PatternGeneratorManualFeature()
         : TypedFeature("manual_pattern")

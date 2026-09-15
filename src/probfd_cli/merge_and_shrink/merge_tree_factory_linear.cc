@@ -31,7 +31,8 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-class MergeTreeFactoryLinearFeature : public TypedFeature<MergeTreeFactory> {
+class MergeTreeFactoryLinearFeature
+    : public SharedTypedFeature<MergeTreeFactory> {
 public:
     MergeTreeFactoryLinearFeature()
         : TypedFeature("plinear")
@@ -73,7 +74,7 @@ protected:
 };
 
 class TaskVariableOrderFactoryLevelFeature
-    : public TypedFeature<TaskVariableOrderFactory> {
+    : public SharedTypedFeature<TaskVariableOrderFactory> {
 public:
     TaskVariableOrderFactoryLevelFeature()
         : TypedFeature("plevel")
@@ -92,7 +93,7 @@ public:
 };
 
 class TaskVariableOrderFactoryReverseLevelFeature
-    : public TypedFeature<TaskVariableOrderFactory> {
+    : public SharedTypedFeature<TaskVariableOrderFactory> {
 public:
     TaskVariableOrderFactoryReverseLevelFeature()
         : TypedFeature("preverse_level")
@@ -111,7 +112,7 @@ public:
 };
 
 class TaskVariableOrderFactoryRandomFeature
-    : public TypedFeature<TaskVariableOrderFactory> {
+    : public SharedTypedFeature<TaskVariableOrderFactory> {
 public:
     TaskVariableOrderFactoryRandomFeature()
         : TypedFeature("prandom")
@@ -132,7 +133,7 @@ public:
 };
 
 class TaskVariableOrderFactoryCGGoalLevelFeature
-    : public TypedFeature<TaskVariableOrderFactory> {
+    : public SharedTypedFeature<TaskVariableOrderFactory> {
 public:
     TaskVariableOrderFactoryCGGoalLevelFeature()
         : TypedFeature("pcg_goal_level")
@@ -152,7 +153,7 @@ public:
 };
 
 class TaskVariableOrderFactoryGoalCGLevelFeature
-    : public TypedFeature<TaskVariableOrderFactory> {
+    : public SharedTypedFeature<TaskVariableOrderFactory> {
 public:
     TaskVariableOrderFactoryGoalCGLevelFeature()
         : TypedFeature("pgoal_cg_level")
@@ -172,7 +173,7 @@ public:
 };
 
 class TaskVariableOrderFactoryGoalCGRandomFeature
-    : public TypedFeature<TaskVariableOrderFactory> {
+    : public SharedTypedFeature<TaskVariableOrderFactory> {
 public:
     TaskVariableOrderFactoryGoalCGRandomFeature()
         : TypedFeature("pcg_goal_random")

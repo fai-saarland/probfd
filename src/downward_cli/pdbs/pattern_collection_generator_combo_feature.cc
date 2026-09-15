@@ -19,7 +19,7 @@ using downward::cli::pdbs::get_generator_arguments_from_options;
 
 namespace {
 class PatternCollectionGeneratorComboFeature
-    : public TypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorComboFeature()
         : TypedFeature("combo")

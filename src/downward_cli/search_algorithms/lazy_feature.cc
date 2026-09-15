@@ -89,7 +89,7 @@ public:
 };
 
 class LazySearchFeature
-    : public TypedFeature<TaskDependentFactory<SearchAlgorithm>> {
+    : public SharedTypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     LazySearchFeature()
         : TypedFeature("lazy")

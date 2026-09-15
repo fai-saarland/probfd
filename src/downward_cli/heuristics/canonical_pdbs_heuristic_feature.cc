@@ -68,7 +68,7 @@ public:
 };
 
 class CanonicalPDBsHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     CanonicalPDBsHeuristicFeature()
         : TypedFeature("cpdbs")

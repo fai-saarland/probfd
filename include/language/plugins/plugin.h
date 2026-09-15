@@ -95,9 +95,12 @@ public:
         return {this->create_component(options, context)};
     }
 
-    virtual std::shared_ptr<ReturnType>
+    virtual ReturnType
     create_component(const Options&, const Context&) const = 0;
 };
+
+template <typename ReturnType>
+using SharedTypedFeature = TypedFeature<std::shared_ptr<ReturnType>>;
 
 /*
   Expects constructor arguments of T. Consecutive arguments may be

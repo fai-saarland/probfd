@@ -101,7 +101,7 @@ public:
 };
 
 class EagerWAstarSearchFeature
-    : public TypedFeature<TaskDependentFactory<SearchAlgorithm>> {
+    : public SharedTypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     EagerWAstarSearchFeature()
         : TypedFeature("eager_wastar")

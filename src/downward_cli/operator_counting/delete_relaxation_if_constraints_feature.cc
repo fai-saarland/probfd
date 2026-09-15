@@ -18,7 +18,7 @@ using namespace language::plugins;
 
 namespace {
 class DeleteRelaxationIFConstraintsFeature
-    : public TypedFeature<ConstraintGenerator> {
+    : public SharedTypedFeature<ConstraintGenerator> {
 public:
     DeleteRelaxationIFConstraintsFeature()
         : TypedFeature("delete_relaxation_if_constraints")

@@ -60,7 +60,7 @@ public:
 };
 
 class HMHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     HMHeuristicFeature()
         : TypedFeature("hm")

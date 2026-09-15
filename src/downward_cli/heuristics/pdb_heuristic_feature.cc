@@ -59,7 +59,7 @@ public:
 };
 
 class PDBHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     PDBHeuristicFeature()
         : TypedFeature("pdb")

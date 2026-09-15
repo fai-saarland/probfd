@@ -16,7 +16,7 @@ using namespace language::plugins;
 
 namespace {
 class MergeSelectorScoreBasedFilteringFeature
-    : public TypedFeature<MergeSelectorFactory> {
+    : public SharedTypedFeature<MergeSelectorFactory> {
 public:
     MergeSelectorScoreBasedFilteringFeature()
         : TypedFeature("pscore_based_filtering")

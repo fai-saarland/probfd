@@ -47,7 +47,8 @@ public:
     }
 };
 
-class TATopologicalVISolverFeature : public TypedFeature<TaskSolverFactory> {
+class TATopologicalVISolverFeature
+    : public SharedTypedFeature<TaskSolverFactory> {
 public:
     TATopologicalVISolverFeature()
         : TypedFeature("ta_topological_value_iteration")

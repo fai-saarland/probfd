@@ -15,7 +15,7 @@ using namespace language::plugins;
 
 namespace {
 class DeadEndPruningHeuristicFactoryFeature
-    : public TypedFeature<TaskHeuristicFactory> {
+    : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     DeadEndPruningHeuristicFactoryFeature()
         : TypedFeature("prune_dead_ends")

@@ -46,7 +46,7 @@ public:
 };
 
 class ConstEvaluatorFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     ConstEvaluatorFeature()
         : TypedFeature("const")

@@ -19,7 +19,7 @@ using namespace language;
 using namespace language::plugins;
 
 namespace {
-class ShrinkRandomFeature : public TypedFeature<ShrinkStrategy> {
+class ShrinkRandomFeature : public SharedTypedFeature<ShrinkStrategy> {
 public:
     ShrinkRandomFeature()
         : TypedFeature("pshrink_random")

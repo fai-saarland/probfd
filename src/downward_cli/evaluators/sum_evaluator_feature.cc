@@ -59,7 +59,7 @@ public:
 };
 
 class SumEvaluatorFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     SumEvaluatorFeature()
         : TypedFeature("sum")

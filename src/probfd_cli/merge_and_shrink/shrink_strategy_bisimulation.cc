@@ -22,7 +22,7 @@ using namespace language;
 using namespace language::plugins;
 
 namespace {
-class ShrinkBisimulationFeature : public TypedFeature<ShrinkStrategy> {
+class ShrinkBisimulationFeature : public SharedTypedFeature<ShrinkStrategy> {
 public:
     ShrinkBisimulationFeature()
         : TypedFeature("pshrink_bisimulation")

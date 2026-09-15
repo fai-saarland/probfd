@@ -59,7 +59,7 @@ public:
 
 template <bool Fret>
 class ArbitrarySuccessorSamplerFeature
-    : public TypedFeature<SuccessorSampler<Fret>> {
+    : public SharedTypedFeature<SuccessorSampler<Fret>> {
 public:
     ArbitrarySuccessorSamplerFeature()
         : ArbitrarySuccessorSamplerFeature::TypedFeature(
@@ -78,7 +78,7 @@ public:
 
 template <bool Fret>
 class MostLikelySuccessorSamplerFeature
-    : public TypedFeature<SuccessorSampler<Fret>> {
+    : public SharedTypedFeature<SuccessorSampler<Fret>> {
 public:
     MostLikelySuccessorSamplerFeature()
         : MostLikelySuccessorSamplerFeature::TypedFeature(
@@ -97,7 +97,7 @@ public:
 
 template <bool Fret>
 class UniformSuccessorSamplerFeature
-    : public TypedFeature<SuccessorSampler<Fret>> {
+    : public SharedTypedFeature<SuccessorSampler<Fret>> {
 public:
     UniformSuccessorSamplerFeature()
         : UniformSuccessorSamplerFeature::TypedFeature(
@@ -118,7 +118,7 @@ public:
 
 template <bool Fret>
 class RandomSuccessorSamplerFeature
-    : public TypedFeature<SuccessorSampler<Fret>> {
+    : public SharedTypedFeature<SuccessorSampler<Fret>> {
 public:
     RandomSuccessorSamplerFeature()
         : RandomSuccessorSamplerFeature::TypedFeature(
@@ -138,7 +138,7 @@ public:
 
 template <bool Fret>
 class VBiasedSuccessorSamplerFeature
-    : public TypedFeature<SuccessorSampler<Fret>> {
+    : public SharedTypedFeature<SuccessorSampler<Fret>> {
 public:
     VBiasedSuccessorSamplerFeature()
         : VBiasedSuccessorSamplerFeature::TypedFeature(
@@ -158,7 +158,7 @@ public:
 
 template <bool Fret>
 class VDiffSuccessorSamplerFeature
-    : public TypedFeature<SuccessorSampler<Fret>> {
+    : public SharedTypedFeature<SuccessorSampler<Fret>> {
 public:
     VDiffSuccessorSamplerFeature()
         : VDiffSuccessorSamplerFeature::TypedFeature(

@@ -16,7 +16,7 @@ using namespace language;
 using namespace language::plugins;
 
 namespace {
-class PhOConstraintsFeature : public TypedFeature<ConstraintGenerator> {
+class PhOConstraintsFeature : public SharedTypedFeature<ConstraintGenerator> {
 public:
     PhOConstraintsFeature()
         : TypedFeature("pho_constraints")

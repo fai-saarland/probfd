@@ -21,7 +21,8 @@ using downward::cli::landmarks::add_landmark_factory_options_to_feature;
 using downward::cli::landmarks::get_landmark_factory_arguments_from_options;
 
 namespace {
-class LandmarkFactoryZhuGivanFeature : public TypedFeature<LandmarkFactory> {
+class LandmarkFactoryZhuGivanFeature
+    : public SharedTypedFeature<LandmarkFactory> {
 public:
     LandmarkFactoryZhuGivanFeature()
         : TypedFeature("lm_zg")

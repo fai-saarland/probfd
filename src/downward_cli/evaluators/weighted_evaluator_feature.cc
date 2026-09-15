@@ -55,7 +55,7 @@ public:
 };
 
 class WeightedEvaluatorFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     WeightedEvaluatorFeature()
         : TypedFeature("weight")

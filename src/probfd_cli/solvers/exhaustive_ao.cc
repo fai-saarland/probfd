@@ -59,7 +59,7 @@ public:
 };
 
 template <bool Bisimulation>
-class ExhaustiveAOSolverFeature : public TypedFeature<TaskSolverFactory> {
+class ExhaustiveAOSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
     using OpenListType = OpenList<ActionType<Bisimulation, false>>;
 
 public:

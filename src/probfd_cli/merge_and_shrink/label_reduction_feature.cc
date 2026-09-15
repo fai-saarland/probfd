@@ -103,7 +103,7 @@ public:
     }
 };
 
-class LabelReductionFeature : public TypedFeature<LabelReductionFactory> {
+class LabelReductionFeature : public SharedTypedFeature<LabelReductionFactory> {
 public:
     LabelReductionFeature()
         : TypedFeature("pexact")

@@ -100,7 +100,7 @@ public:
 };
 
 class InitialStatePotentialHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     InitialStatePotentialHeuristicFeature()
         : TypedFeature("initial_state_potential")
@@ -129,7 +129,7 @@ public:
 };
 
 class AllStatesPotentialHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     AllStatesPotentialHeuristicFeature()
         : TypedFeature("all_states_potential")

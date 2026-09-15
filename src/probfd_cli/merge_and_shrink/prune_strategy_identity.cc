@@ -12,7 +12,7 @@ using namespace language;
 using namespace language::plugins;
 
 namespace {
-class PruneStrategyIdentityFeature : public TypedFeature<PruneStrategy> {
+class PruneStrategyIdentityFeature : public SharedTypedFeature<PruneStrategy> {
 public:
     PruneStrategyIdentityFeature()
         : TypedFeature("prune_identity")

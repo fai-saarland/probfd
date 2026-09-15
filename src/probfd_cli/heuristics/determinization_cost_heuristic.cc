@@ -17,7 +17,7 @@ using namespace language::plugins;
 
 namespace {
 class DeterminizationHeuristicFactoryFeature
-    : public TypedFeature<TaskHeuristicFactory> {
+    : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     DeterminizationHeuristicFactoryFeature()
         : TypedFeature("det")

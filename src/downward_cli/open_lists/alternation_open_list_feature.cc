@@ -15,7 +15,7 @@ using namespace language::plugins;
 namespace {
 template <typename T>
 class AlternationOpenListFeature
-    : public TypedFeature<
+    : public SharedTypedFeature<
           downward::TaskDependentFactory<downward::OpenList<T>>> {
 public:
     AlternationOpenListFeature()

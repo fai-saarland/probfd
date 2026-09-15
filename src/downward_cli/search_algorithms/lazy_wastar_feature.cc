@@ -111,7 +111,7 @@ public:
 };
 
 class LazyWAstarSearchFeature
-    : public TypedFeature<TaskDependentFactory<SearchAlgorithm>> {
+    : public SharedTypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     LazyWAstarSearchFeature()
         : TypedFeature("lazy_wastar")

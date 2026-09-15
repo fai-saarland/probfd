@@ -19,7 +19,8 @@ using namespace language;
 using namespace language::plugins;
 
 namespace {
-class LimitedPruningFeature : public TypedFeature<downward::PruningMethod> {
+class LimitedPruningFeature
+    : public SharedTypedFeature<downward::PruningMethod> {
 public:
     LimitedPruningFeature()
         : TypedFeature("limited_pruning")

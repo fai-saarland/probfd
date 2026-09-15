@@ -13,7 +13,7 @@ using namespace language;
 using namespace language::plugins;
 
 namespace {
-class BFSFlawFinderFeature : public TypedFeature<FlawFindingStrategy> {
+class BFSFlawFinderFeature : public SharedTypedFeature<FlawFindingStrategy> {
 public:
     BFSFlawFinderFeature()
         : TypedFeature("bfs_flaw_finder")

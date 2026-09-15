@@ -41,7 +41,7 @@ using downward::cli::lp::add_lp_solver_option_to_feature;
 using downward::cli::lp::get_lp_solver_arguments_from_options;
 
 namespace {
-class HROCFactoryFeature : public TypedFeature<TaskHeuristicFactory> {
+class HROCFactoryFeature : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     HROCFactoryFeature()
         : TypedFeature("hroc")
@@ -79,7 +79,7 @@ public:
     }
 };
 
-class HPOMFactoryFeature : public TypedFeature<TaskHeuristicFactory> {
+class HPOMFactoryFeature : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     HPOMFactoryFeature()
         : TypedFeature("hpom")
@@ -119,7 +119,7 @@ public:
     }
 };
 
-class HOHPOMFactoryFeature : public TypedFeature<TaskHeuristicFactory> {
+class HOHPOMFactoryFeature : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     HOHPOMFactoryFeature()
         : TypedFeature("ho_hpom")
@@ -163,7 +163,7 @@ public:
     }
 };
 
-class HPHOFactoryFeature : public TypedFeature<TaskHeuristicFactory> {
+class HPHOFactoryFeature : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     HPHOFactoryFeature()
         : TypedFeature("pho")

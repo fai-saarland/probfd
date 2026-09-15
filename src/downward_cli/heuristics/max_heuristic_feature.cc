@@ -54,7 +54,7 @@ public:
 };
 
 class HSPMaxHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     HSPMaxHeuristicFeature()
         : TypedFeature("hmax")

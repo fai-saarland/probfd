@@ -79,7 +79,7 @@ public:
 };
 
 class IteratedSearchFeature
-    : public TypedFeature<TaskDependentFactory<SearchAlgorithm>> {
+    : public SharedTypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     IteratedSearchFeature()
         : TypedFeature("iterated")

@@ -22,7 +22,7 @@ using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
 class MergeScoringFunctionTotalOrderFeature
-    : public TypedFeature<MergeScoringFunction> {
+    : public SharedTypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionTotalOrderFeature()
         : TypedFeature("total_order")

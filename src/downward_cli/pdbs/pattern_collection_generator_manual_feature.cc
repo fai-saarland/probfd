@@ -18,7 +18,7 @@ using namespace language::plugins;
 
 namespace {
 class PatternCollectionGeneratorManualFeature
-    : public TypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorManualFeature()
         : TypedFeature("manual_patterns")

@@ -20,7 +20,8 @@ using namespace language;
 using namespace language::plugins;
 
 namespace {
-class ShrinkStrategyEqualDistanceFeature : public TypedFeature<ShrinkStrategy> {
+class ShrinkStrategyEqualDistanceFeature
+    : public SharedTypedFeature<ShrinkStrategy> {
 public:
     ShrinkStrategyEqualDistanceFeature()
         : TypedFeature("shrink_equal_distance")

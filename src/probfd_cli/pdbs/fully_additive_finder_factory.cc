@@ -15,7 +15,7 @@ using namespace language::plugins;
 
 namespace {
 class FullyAdditiveFinderFactoryFeature
-    : public TypedFeature<SubCollectionFinderFactory> {
+    : public SharedTypedFeature<SubCollectionFinderFactory> {
 public:
     FullyAdditiveFinderFactoryFeature()
         : TypedFeature("fully_additive_factory")

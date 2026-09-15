@@ -21,7 +21,7 @@ using namespace probfd::cli::merge_and_shrink;
 
 namespace {
 class MergeStrategyFactoryStatelessFeature
-    : public TypedFeature<MergeStrategyFactory> {
+    : public SharedTypedFeature<MergeStrategyFactory> {
 public:
     MergeStrategyFactoryStatelessFeature()
         : TypedFeature("pmerge_stateless")

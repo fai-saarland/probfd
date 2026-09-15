@@ -62,7 +62,7 @@ public:
 };
 
 class MaxEvaluatorFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     MaxEvaluatorFeature()
         : TypedFeature("max")

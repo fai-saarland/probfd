@@ -102,7 +102,7 @@ public:
 };
 
 class MergeAndShrinkHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     MergeAndShrinkHeuristicFeature()
         : TypedFeature("merge_and_shrink")

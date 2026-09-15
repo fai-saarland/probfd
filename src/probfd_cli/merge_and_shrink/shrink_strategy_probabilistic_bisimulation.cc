@@ -18,7 +18,7 @@ using namespace language::plugins;
 
 namespace {
 class ShrinkProbabilisticBisimulationFeature
-    : public TypedFeature<ShrinkStrategy> {
+    : public SharedTypedFeature<ShrinkStrategy> {
 public:
     ShrinkProbabilisticBisimulationFeature()
         : TypedFeature("pshrink_probabilistic_bisimulation")

@@ -23,7 +23,7 @@ using downward::cli::merge_and_shrink::
 
 namespace {
 class MergeStrategyFactorySCCsFeature
-    : public TypedFeature<MergeStrategyFactory> {
+    : public SharedTypedFeature<MergeStrategyFactory> {
 public:
     MergeStrategyFactorySCCsFeature()
         : TypedFeature("merge_sccs")

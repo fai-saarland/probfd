@@ -56,7 +56,7 @@ public:
 };
 
 class LandmarkCutHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     LandmarkCutHeuristicFeature()
         : TypedFeature("lmcut")

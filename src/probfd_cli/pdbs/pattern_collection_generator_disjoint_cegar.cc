@@ -74,7 +74,7 @@ void add_pattern_collection_generator_cegar_options_to_feature(Feature& feature)
 }
 
 class PatternCollectionGeneratorDisjointCEGARFeature
-    : public TypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorDisjointCEGARFeature()
         : TypedFeature("ppdbs_disjoint_cegar")

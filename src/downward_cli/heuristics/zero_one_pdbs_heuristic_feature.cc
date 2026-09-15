@@ -59,7 +59,7 @@ public:
 };
 
 class ZeroOnePDBsHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     ZeroOnePDBsHeuristicFeature()
         : TypedFeature("zopdbs")

@@ -29,7 +29,7 @@ using downward::cli::utils::get_rng_arguments_from_options;
 namespace {
 template <typename T>
 class ParetoOpenListFeature
-    : public TypedFeature<
+    : public SharedTypedFeature<
           downward::TaskDependentFactory<downward::OpenList<T>>> {
 public:
     ParetoOpenListFeature()

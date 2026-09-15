@@ -236,7 +236,7 @@ void MergeAndShrinkHeuristicFactory::dump_options(utils::LogProxy log) const
 }
 
 class MergeAndShrinkHeuristicFactoryFeature final
-    : public TypedFeature<TaskHeuristicFactory> {
+    : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     MergeAndShrinkHeuristicFactoryFeature()
         : TypedFeature("pa_merge_and_shrink")

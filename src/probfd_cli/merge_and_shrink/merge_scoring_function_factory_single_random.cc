@@ -18,7 +18,7 @@ using namespace language::plugins;
 
 namespace {
 class MergeScoringFunctionSingleRandomFeature
-    : public TypedFeature<MergeScoringFunctionFactory> {
+    : public SharedTypedFeature<MergeScoringFunctionFactory> {
 public:
     MergeScoringFunctionSingleRandomFeature()
         : TypedFeature("psingle_random")

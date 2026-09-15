@@ -82,7 +82,7 @@ public:
 };
 
 class AStarSearchFeature
-    : public TypedFeature<TaskDependentFactory<SearchAlgorithm>> {
+    : public SharedTypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     AStarSearchFeature()
         : TypedFeature("astar")

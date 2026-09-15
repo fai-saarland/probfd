@@ -21,7 +21,7 @@ namespace downward::cli::merge_and_shrink {
 
 namespace {
 class MergeUpdateStrategyUseFirstFeature
-    : public TypedFeature<MergeUpdateStrategy> {
+    : public SharedTypedFeature<MergeUpdateStrategy> {
 public:
     MergeUpdateStrategyUseFirstFeature()
         : TypedFeature("use_first")
@@ -37,7 +37,7 @@ public:
 };
 
 class MergeUpdateStrategyUseSecondFeature
-    : public TypedFeature<MergeUpdateStrategy> {
+    : public SharedTypedFeature<MergeUpdateStrategy> {
 public:
     MergeUpdateStrategyUseSecondFeature()
         : TypedFeature("use_second")
@@ -53,7 +53,7 @@ public:
 };
 
 class MergeUpdateStrategyUseRandomFeature
-    : public TypedFeature<MergeUpdateStrategy> {
+    : public SharedTypedFeature<MergeUpdateStrategy> {
 public:
     MergeUpdateStrategyUseRandomFeature()
         : TypedFeature("use_random")

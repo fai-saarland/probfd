@@ -62,7 +62,7 @@ public:
 };
 
 template <bool Bisimulation, bool Fret>
-class LRTDPSolverFeature : public TypedFeature<TaskSolverFactory> {
+class LRTDPSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
     using Sampler = SuccessorSampler<ActionType<Bisimulation, Fret>>;
 
 public:

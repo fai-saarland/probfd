@@ -21,7 +21,7 @@ using namespace language::plugins;
 
 namespace {
 class PatternCollectionGeneratorMultipleCegarFeature
-    : public TypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorMultipleCegarFeature()
         : TypedFeature("multiple_cegar")

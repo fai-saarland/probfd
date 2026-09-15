@@ -57,7 +57,7 @@ public:
 };
 
 class ContextEnhancedAdditiveHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     ContextEnhancedAdditiveHeuristicFeature()
         : TypedFeature("cea")

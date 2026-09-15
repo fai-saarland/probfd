@@ -53,7 +53,8 @@ public:
     }
 };
 
-class TopologicalVISolverFeature : public TypedFeature<TaskSolverFactory> {
+class TopologicalVISolverFeature
+    : public SharedTypedFeature<TaskSolverFactory> {
 public:
     TopologicalVISolverFeature()
         : TypedFeature("topological_value_iteration")

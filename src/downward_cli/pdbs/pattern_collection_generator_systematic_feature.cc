@@ -20,7 +20,7 @@ using namespace language::plugins;
 
 namespace {
 class PatternCollectionGeneratorSystematicFeature
-    : public TypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorSystematicFeature()
         : TypedFeature("systematic")

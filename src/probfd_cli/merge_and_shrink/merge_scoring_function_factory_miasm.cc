@@ -24,7 +24,7 @@ using namespace language::plugins;
 
 namespace {
 class MergeScoringFunctionMIASMFeature
-    : public TypedFeature<MergeScoringFunctionFactory> {
+    : public SharedTypedFeature<MergeScoringFunctionFactory> {
 public:
     MergeScoringFunctionMIASMFeature()
         : TypedFeature("psf_miasm")

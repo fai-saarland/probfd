@@ -21,7 +21,7 @@ using namespace language::plugins;
 
 namespace {
 class AdditiveCartesianHeuristicFactoryFeature
-    : public TypedFeature<TaskHeuristicFactory> {
+    : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     AdditiveCartesianHeuristicFactoryFeature()
         : TypedFeature("pcegar")

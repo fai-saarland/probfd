@@ -21,7 +21,7 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-class TaskDuplicatorFeature : public TypedFeature<SubtaskGenerator> {
+class TaskDuplicatorFeature : public SharedTypedFeature<SubtaskGenerator> {
 public:
     TaskDuplicatorFeature()
         : TypedFeature("pcegar_original")
@@ -41,7 +41,7 @@ public:
     }
 };
 
-class GoalDecompositionFeature : public TypedFeature<SubtaskGenerator> {
+class GoalDecompositionFeature : public SharedTypedFeature<SubtaskGenerator> {
 public:
     GoalDecompositionFeature()
         : TypedFeature("pcegar_goals")
@@ -62,7 +62,8 @@ public:
     }
 };
 
-class LandmarkDecompositionFeature : public TypedFeature<SubtaskGenerator> {
+class LandmarkDecompositionFeature
+    : public SharedTypedFeature<SubtaskGenerator> {
 public:
     LandmarkDecompositionFeature()
         : TypedFeature("pcegar_landmarks")

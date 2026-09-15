@@ -28,7 +28,8 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-class MergeTreeFactoryLinearFeature : public TypedFeature<MergeTreeFactory> {
+class MergeTreeFactoryLinearFeature
+    : public SharedTypedFeature<MergeTreeFactory> {
 public:
     MergeTreeFactoryLinearFeature()
         : TypedFeature("linear")
@@ -70,7 +71,8 @@ public:
 };
 
 class TaskVariableOrderFactoryLevelFeature
-    : public TypedFeature<downward::variable_order::TaskVariableOrderFactory> {
+    : public SharedTypedFeature<
+          downward::variable_order::TaskVariableOrderFactory> {
 public:
     TaskVariableOrderFactoryLevelFeature()
         : TypedFeature("vorder_level")
@@ -89,7 +91,8 @@ public:
 };
 
 class TaskVariableOrderFactoryReverseLevelFeature
-    : public TypedFeature<downward::variable_order::TaskVariableOrderFactory> {
+    : public SharedTypedFeature<
+          downward::variable_order::TaskVariableOrderFactory> {
 public:
     TaskVariableOrderFactoryReverseLevelFeature()
         : TypedFeature("vorder_reverse_level")
@@ -109,7 +112,8 @@ public:
 };
 
 class TaskVariableOrderFactoryRandomFeature
-    : public TypedFeature<downward::variable_order::TaskVariableOrderFactory> {
+    : public SharedTypedFeature<
+          downward::variable_order::TaskVariableOrderFactory> {
 public:
     TaskVariableOrderFactoryRandomFeature()
         : TypedFeature("vorder_random")
@@ -130,7 +134,8 @@ public:
 };
 
 class TaskVariableOrderFactoryCGGoalLevelFeature
-    : public TypedFeature<downward::variable_order::TaskVariableOrderFactory> {
+    : public SharedTypedFeature<
+          downward::variable_order::TaskVariableOrderFactory> {
 public:
     TaskVariableOrderFactoryCGGoalLevelFeature()
         : TypedFeature("vorder_cg_goal_level")
@@ -151,7 +156,8 @@ public:
 };
 
 class TaskVariableOrderFactoryGoalCGLevelFeature
-    : public TypedFeature<downward::variable_order::TaskVariableOrderFactory> {
+    : public SharedTypedFeature<
+          downward::variable_order::TaskVariableOrderFactory> {
 public:
     TaskVariableOrderFactoryGoalCGLevelFeature()
         : TypedFeature("vorder_goal_cg_level")
@@ -172,7 +178,8 @@ public:
 };
 
 class TaskVariableOrderFactoryGoalCGRandomFeature
-    : public TypedFeature<downward::variable_order::TaskVariableOrderFactory> {
+    : public SharedTypedFeature<
+          downward::variable_order::TaskVariableOrderFactory> {
 public:
     TaskVariableOrderFactoryGoalCGRandomFeature()
         : TypedFeature("vorder_cg_goal_random")

@@ -93,7 +93,7 @@ public:
 };
 
 class LandmarkCostPartitioningHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     LandmarkCostPartitioningHeuristicFeature()
         : TypedFeature("landmark_cost_partitioning")

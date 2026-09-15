@@ -45,7 +45,7 @@ tuple<FactOrder, int> get_fact_order_arguments_from_options(
         get_rng_arguments_from_options(context, opts));
 }
 
-class TaskDuplicatorFeature : public TypedFeature<SubtaskGenerator> {
+class TaskDuplicatorFeature : public SharedTypedFeature<SubtaskGenerator> {
 public:
     TaskDuplicatorFeature()
         : TypedFeature("original")
@@ -65,7 +65,7 @@ public:
     }
 };
 
-class GoalDecompositionFeature : public TypedFeature<SubtaskGenerator> {
+class GoalDecompositionFeature : public SharedTypedFeature<SubtaskGenerator> {
 public:
     GoalDecompositionFeature()
         : TypedFeature("goals")
@@ -81,7 +81,8 @@ public:
     }
 };
 
-class LandmarkDecompositionFeature : public TypedFeature<SubtaskGenerator> {
+class LandmarkDecompositionFeature
+    : public SharedTypedFeature<SubtaskGenerator> {
 public:
     LandmarkDecompositionFeature()
         : TypedFeature("landmarks")

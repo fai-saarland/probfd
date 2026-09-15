@@ -85,7 +85,7 @@ public:
 };
 
 class EagerSearchFeature
-    : public TypedFeature<TaskDependentFactory<SearchAlgorithm>> {
+    : public SharedTypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     EagerSearchFeature()
         : TypedFeature("eager")

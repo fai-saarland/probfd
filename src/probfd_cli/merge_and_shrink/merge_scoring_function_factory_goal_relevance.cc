@@ -16,7 +16,7 @@ using namespace language::plugins;
 
 namespace {
 class MergeScoringFunctionGoalRelevanceFeature
-    : public TypedFeature<MergeScoringFunctionFactory> {
+    : public SharedTypedFeature<MergeScoringFunctionFactory> {
 public:
     MergeScoringFunctionGoalRelevanceFeature()
         : TypedFeature("pgoal_relevance")

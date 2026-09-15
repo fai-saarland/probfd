@@ -12,7 +12,7 @@ using namespace language;
 using namespace language::plugins;
 
 namespace {
-class PruneStrategySolvableFeature : public TypedFeature<PruneStrategy> {
+class PruneStrategySolvableFeature : public SharedTypedFeature<PruneStrategy> {
 public:
     PruneStrategySolvableFeature()
         : TypedFeature("prune_solvable")

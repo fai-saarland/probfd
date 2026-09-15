@@ -13,7 +13,7 @@ using namespace language::plugins;
 
 namespace {
 class IdentityTaskTransformationFeature
-    : public TypedFeature<TaskTransformation> {
+    : public SharedTypedFeature<TaskTransformation> {
 public:
     IdentityTaskTransformationFeature()
         : TypedFeature("no_transform")

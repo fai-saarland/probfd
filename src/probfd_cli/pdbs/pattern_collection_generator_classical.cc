@@ -22,7 +22,7 @@ using downward::cli::utils::get_log_arguments_from_options;
 
 namespace {
 class PatternCollectionGeneratorClassicalFeature
-    : public TypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorClassicalFeature()
         : TypedFeature("classical_generator")

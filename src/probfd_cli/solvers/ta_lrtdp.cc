@@ -68,7 +68,8 @@ public:
     }
 };
 
-class TrapAwareLRTDPSolverFeature : public TypedFeature<TaskSolverFactory> {
+class TrapAwareLRTDPSolverFeature
+    : public SharedTypedFeature<TaskSolverFactory> {
 public:
     TrapAwareLRTDPSolverFeature()
         : TypedFeature("talrtdp")

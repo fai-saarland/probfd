@@ -56,7 +56,7 @@ public:
 };
 
 class FFHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     FFHeuristicFeature()
         : TypedFeature("ff")

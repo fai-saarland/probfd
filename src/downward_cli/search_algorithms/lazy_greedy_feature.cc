@@ -105,7 +105,7 @@ public:
 };
 
 class LazyGreedySearchFeature
-    : public TypedFeature<TaskDependentFactory<SearchAlgorithm>> {
+    : public SharedTypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     LazyGreedySearchFeature()
         : TypedFeature("lazy_greedy")

@@ -234,7 +234,8 @@ public:
     }
 };
 
-class BisimulationVISolverFeature : public TypedFeature<TaskSolverFactory> {
+class BisimulationVISolverFeature
+    : public SharedTypedFeature<TaskSolverFactory> {
 public:
     BisimulationVISolverFeature()
         : TypedFeature("bisimulation_vi")
@@ -257,7 +258,8 @@ protected:
     }
 };
 
-class BisimulationIISolverFeature : public TypedFeature<TaskSolverFactory> {
+class BisimulationIISolverFeature
+    : public SharedTypedFeature<TaskSolverFactory> {
 public:
     BisimulationIISolverFeature()
         : TypedFeature("bisimulation_ii")
