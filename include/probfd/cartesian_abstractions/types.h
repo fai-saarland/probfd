@@ -1,20 +1,21 @@
 #ifndef PROBFD_CARTESIAN_ABSTRACTIONS_TYPES_H
 #define PROBFD_CARTESIAN_ABSTRACTIONS_TYPES_H
 
-#include "downward/cartesian_abstractions/types.h"
 #include "probfd/probabilistic_task.h"
+
+#include "downward/cartesian_abstractions/types.h"
 
 #include <deque>
 #include <memory>
 #include <vector>
 
 namespace downward {
+class CartesianSet;
 class StateMapping;
 class InverseOperatorMapping;
 }
 
 namespace downward::cartesian_abstractions {
-class CartesianSet;
 class CartesianHeuristicFunction;
 class RefinementHierarchy;
 } // namespace cartesian_abstractions
@@ -30,7 +31,7 @@ struct TransitionOutcome;
 struct ProbabilisticTransition;
 
 // Classed reused from classical implementation
-using CartesianSet = downward::cartesian_abstractions::CartesianSet;
+using CartesianSet = downward::CartesianSet;
 using RefinementHierarchy = downward::cartesian_abstractions::RefinementHierarchy;
 
 // Typedefs reused from classical implementation

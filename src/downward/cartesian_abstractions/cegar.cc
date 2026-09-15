@@ -2,7 +2,6 @@
 
 #include "downward/cartesian_abstractions/abstract_state.h"
 #include "downward/cartesian_abstractions/abstraction.h"
-#include "downward/cartesian_abstractions/cartesian_set.h"
 #include "downward/cartesian_abstractions/transition_system.h"
 #include "downward/cartesian_abstractions/utils.h"
 
@@ -14,6 +13,7 @@
 
 #include "downward/abstract_task.h"
 #include "downward/axioms.h"
+#include "downward/cartesian_set.h"
 #include "downward/initial_state_values.h"
 
 #include <algorithm>
@@ -98,8 +98,7 @@ CEGAR::CEGAR(
     utils::LogProxy& log)
     : task_(to_refs(task))
     , axiom_evaluator(
-          g_axiom_evaluators
-              [get_variables(task_), get_axioms(task_)])
+          g_axiom_evaluators[get_variables(task_), get_axioms(task_)])
     , domain_sizes(get_domain_sizes(get_variables(task_)))
     , max_states(max_states)
     , max_non_looping_transitions(max_non_looping_transitions)
@@ -188,15 +187,16 @@ bool CEGAR::may_keep_refining() const
             log << "Reached maximum number of states." << endl;
         }
         return false;
-    } else if (
-        abstraction->get_transition_system().get_num_non_loops() >=
-        max_non_looping_transitions) {
+    } else if (abstraction->get_transition_system().get_num_non_loops() >=
+               max_non_looping_transitions) {
         if (log.is_at_least_normal()) {
             log << "Reached maximum number of transitions." << endl;
         }
         return false;
     } else if (timer.is_expired()) {
-        if (log.is_at_least_normal()) { log << "Reached time limit." << endl; }
+        if (log.is_at_least_normal()) {
+            log << "Reached time limit." << endl;
+        }
         return false;
     } else if (!utils::extra_memory_padding_is_reserved()) {
         if (log.is_at_least_normal()) {
@@ -218,7 +218,9 @@ void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
       unreachable facts, but calling it unconditionally for subtasks
       with one goal doesn't hurt and simplifies the implementation.
     */
-    if (goals.size() == 1) { separate_facts_unreachable_before_goal(); }
+    if (goals.size() == 1) {
+        separate_facts_unreachable_before_goal();
+    }
 
     utils::Timer find_trace_timer(false);
     utils::Timer find_flaw_timer(false);

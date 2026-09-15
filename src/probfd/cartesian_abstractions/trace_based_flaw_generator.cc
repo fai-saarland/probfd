@@ -11,8 +11,6 @@
 #include "probfd/probabilistic_operator_space.h"
 #include "probfd/probabilistic_task.h"
 
-#include "downward/cartesian_abstractions/cartesian_set.h"
-
 #include "downward/task_utils/task_properties.h"
 
 #include "downward/utils/countdown_timer.h"
@@ -20,6 +18,7 @@
 #include "downward/utils/memory.h"
 
 #include "downward/axioms.h"
+#include "downward/cartesian_set.h"
 #include "downward/initial_state_values.h"
 #include "downward/state.h"
 

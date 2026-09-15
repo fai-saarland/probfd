@@ -1,8 +1,9 @@
 #ifndef CEGAR_ABSTRACT_STATE_H
 #define CEGAR_ABSTRACT_STATE_H
 
-#include "downward/cartesian_abstractions/cartesian_set.h"
 #include "downward/cartesian_abstractions/types.h"
+
+#include "downward/cartesian_set.h"
 
 #include <vector>
 

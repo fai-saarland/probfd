@@ -3,10 +3,9 @@
 
 #include "probfd/cartesian_abstractions/types.h"
 
-#include "downward/cartesian_abstractions/cartesian_set.h"
-
 #include "downward/utils/hash.h"
 
+#include "downward/cartesian_set.h"
 #include "downward/state.h"
 
 #include <memory>

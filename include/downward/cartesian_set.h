@@ -1,5 +1,5 @@
-#ifndef CEGAR_CARTESIAN_SET_H
-#define CEGAR_CARTESIAN_SET_H
+#ifndef CARTESIAN_SET_H
+#define CARTESIAN_SET_H
 
 #include "downward/algorithms/dynamic_bitset.h"
 
@@ -9,7 +9,8 @@
 #include <ranges>
 #include <vector>
 
-namespace downward::cartesian_abstractions {
+namespace downward {
+
 using Bitset = dynamic_bitset::DynamicBitset<unsigned short>;
 
 /*
@@ -71,13 +72,11 @@ public:
     friend std::ostream&
     operator<<(std::ostream& os, const CartesianSet& cartesian_set);
 };
-} // namespace downward::cartesian_abstractions
+} // namespace downward
 
 template <typename Char>
-struct std::formatter<downward::cartesian_abstractions::CartesianSet, Char> {
-    using R =
-        decltype(std::declval<const downward::cartesian_abstractions::Bitset&>()
-                     .set_indices());
+struct std::formatter<downward::CartesianSet, Char> {
+    using R = decltype(std::declval<const downward::Bitset&>().set_indices());
 
     std::range_formatter<R, Char> underlying_;
 
@@ -98,13 +97,11 @@ struct std::formatter<downward::cartesian_abstractions::CartesianSet, Char> {
     }
 
     template <class FmtContext>
-    FmtContext::iterator format(
-        const downward::cartesian_abstractions::CartesianSet& t,
-        FmtContext& ctx) const
+    FmtContext::iterator
+    format(const downward::CartesianSet& t, FmtContext& ctx) const
     {
         auto r = t.domain_subsets |
-                 std::views::transform(
-                     &downward::cartesian_abstractions::Bitset::set_indices);
+                 std::views::transform(&downward::Bitset::set_indices);
         return underlying_.format(r, ctx);
     }
 };
