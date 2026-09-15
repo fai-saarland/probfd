@@ -4,8 +4,10 @@
 #include <algorithm>
 #include <cassert>
 #include <compare>
+#include <concepts>
 #include <format>
 #include <limits>
+#include <numeric>
 #include <ranges>
 #include <tuple>
 #include <vector>
@@ -15,61 +17,289 @@
 */
 
 namespace downward::dynamic_bitset {
-template <typename Block = unsigned int>
+
+template <std::unsigned_integral Block>
 class DynamicBitset {
-    static_assert(
-        !std::numeric_limits<Block>::is_signed,
-        "Block type must be unsigned");
+    template <typename T, typename Char>
+    friend struct std::formatter;
+
+    struct zero_construct_tag {};
+
+    struct one_construct_tag {};
+
+    static constexpr auto construct_all_zeros = zero_construct_tag{};
+    static constexpr auto construct_all_ones = one_construct_tag{};
 
     std::vector<Block> blocks;
-    const std::size_t num_bits;
+    std::size_t num_bits;
 
-    static const Block zeros;
-    static const Block ones;
+    static constexpr Block ZEROS = Block(0);
+    static constexpr Block ONES = Block(~Block(0));
 
-    static const int bits_per_block = std::numeric_limits<Block>::digits;
+    static constexpr std::size_t BITS_PER_BLOCK =
+        std::numeric_limits<Block>::digits;
 
     static int compute_num_blocks(std::size_t num_bits)
     {
-        return num_bits / bits_per_block +
-               static_cast<int>(num_bits % bits_per_block != 0);
+        return num_bits / BITS_PER_BLOCK +
+               static_cast<int>(num_bits % BITS_PER_BLOCK != 0);
     }
 
-    static std::size_t block_index(std::size_t pos)
+    static std::pair<std::size_t, std::size_t> block_bit_index(std::size_t pos)
     {
-        return pos / bits_per_block;
+        return {pos / BITS_PER_BLOCK, pos % BITS_PER_BLOCK};
     }
 
-    static std::size_t bit_index(std::size_t pos)
+    static Block bit_mask(std::size_t bit_index)
     {
-        return pos % bits_per_block;
+        return Block(1) << bit_index;
     }
 
-    static Block bit_mask(std::size_t pos)
+    std::size_t count_bits_in_last_block() const
     {
-        return Block(1) << bit_index(pos);
+        return num_bits % BITS_PER_BLOCK;
     }
-
-    int count_bits_in_last_block() const { return bit_index(num_bits); }
 
     void zero_unused_bits()
     {
-        const int bits_in_last_block = count_bits_in_last_block();
+        const std::size_t bits_in_last_block = count_bits_in_last_block();
 
         if (bits_in_last_block != 0) {
             assert(!blocks.empty());
-            blocks.back() &= ~(ones << bits_in_last_block);
+            blocks.back() &= ~(ONES << bits_in_last_block);
         }
     }
 
-public:
     explicit DynamicBitset(std::size_t num_bits)
-        : blocks(compute_num_blocks(num_bits), zeros)
+        : blocks(compute_num_blocks(num_bits))
+        , num_bits(num_bits)
+    {
+        zero_unused_bits();
+    }
+
+    explicit DynamicBitset(std::size_t num_bits, zero_construct_tag)
+        : blocks(compute_num_blocks(num_bits), ZEROS)
         , num_bits(num_bits)
     {
     }
 
-    std::size_t size() const { return num_bits; }
+    explicit DynamicBitset(std::size_t num_bits, one_construct_tag)
+        : blocks(compute_num_blocks(num_bits), ONES)
+        , num_bits(num_bits)
+    {
+        zero_unused_bits();
+    }
+
+public:
+    class reference {
+        typename std::vector<Block>::iterator block;
+        Block bit_index;
+        Block mask;
+
+    public:
+        reference(
+            typename std::vector<Block>::iterator block,
+            std::size_t bit_index)
+            : block(block)
+            , bit_index(bit_index)
+            , mask(bit_mask(bit_index))
+        {
+        }
+
+        operator bool() const
+        {
+            return (*block & mask) != 0;
+        }
+
+        bool operator~() const
+        {
+            return (*block & mask) == 0;
+        }
+
+        reference& operator=(bool b)
+        {
+            *block = (*block & ~mask) | (static_cast<Block>(b) << bit_index);
+            return *this;
+        }
+
+        reference& flip()
+        {
+            *block ^= mask;
+            return *this;
+        }
+    };
+
+    class iterator {
+        typename std::vector<Block>::iterator block;
+        std::size_t bit_index;
+
+    public:
+        using value_type = reference;
+        using difference_type = std::ptrdiff_t;
+
+        iterator() = default;
+
+        iterator(
+            typename std::vector<Block>::iterator block,
+            std::size_t bit_index)
+            : block(block)
+            , bit_index(bit_index)
+        {
+        }
+
+        friend bool
+        operator==(const iterator& lhs, const iterator& rhs) = default;
+
+        friend bool
+        operator<(const iterator& lhs, const iterator& rhs) = default;
+
+        reference operator*() const
+        {
+            return reference(block, bit_index);
+        }
+
+        iterator& operator++()
+        {
+            if (++bit_index == BITS_PER_BLOCK) {
+                bit_index = 0;
+                ++block;
+            }
+
+            return *this;
+        }
+
+        iterator operator++(int)
+        {
+            iterator it = *this;
+            ++(*this);
+            return it;
+        }
+    };
+
+    class const_iterator {
+        typename std::vector<Block>::const_iterator block;
+        std::size_t bit_index;
+
+    public:
+        using value_type = bool;
+        using difference_type = std::ptrdiff_t;
+
+        const_iterator() = default;
+
+        const_iterator(
+            typename std::vector<Block>::const_iterator block,
+            std::size_t bit_index)
+            : block(block)
+            , bit_index(bit_index)
+        {
+        }
+
+        friend bool
+        operator==(const const_iterator& lhs, const const_iterator& rhs) =
+            default;
+
+        friend bool
+        operator<(const const_iterator& lhs, const const_iterator& rhs) =
+            default;
+
+        bool operator*() const
+        {
+            return (*block & bit_mask(bit_index)) != 0;
+        }
+
+        const_iterator& operator++()
+        {
+            if (++bit_index == BITS_PER_BLOCK) {
+                bit_index = 0;
+                ++block;
+            }
+
+            return *this;
+        }
+
+        const_iterator operator++(int)
+        {
+            const_iterator it = *this;
+            ++*this;
+            return it;
+        }
+    };
+
+    template <std::ranges::input_range R>
+        requires std::
+            convertible_to<std::ranges::range_reference_t<R>, std::size_t>
+        explicit DynamicBitset(std::size_t num_bits, R&& set_bits)
+        : DynamicBitset(num_bits, construct_all_zeros)
+    {
+        for (const auto& i : set_bits) {
+            set(static_cast<std::size_t>(i));
+        }
+    }
+
+    template <std::integral I>
+    explicit DynamicBitset(
+        std::size_t num_bits,
+        std::initializer_list<I> set_bits)
+        : DynamicBitset(num_bits, construct_all_zeros)
+    {
+        for (const std::integral auto i : set_bits) {
+            set(static_cast<std::size_t>(i));
+        }
+    }
+
+    template <std::ranges::input_range R>
+        requires std::convertible_to<std::ranges::range_reference_t<R>, bool>
+    explicit DynamicBitset(std::from_range_t, R&& range)
+        : DynamicBitset(std::ranges::size(range))
+    {
+        const Block num_contiguous_blocks = num_bits / BITS_PER_BLOCK;
+        const Block overhead_bits = num_bits % BITS_PER_BLOCK;
+
+        auto bit = std::ranges::begin(blocks);
+        const auto bend = bit + num_contiguous_blocks;
+
+        auto it = std::ranges::begin(range);
+
+        for (; bit != bend; ++bit) {
+            Block block{};
+
+            for (Block i{}; i != BITS_PER_BLOCK; ++i, ++it) {
+                block |= static_cast<Block>(static_cast<bool>(*it)) << i;
+            }
+
+            *bit = block;
+        }
+
+        if (overhead_bits != 0) {
+            Block block{};
+
+            for (Block i{}; i != overhead_bits; ++i, ++it) {
+                block |= static_cast<Block>(static_cast<bool>(*it)) << i;
+            }
+
+            *bit = block;
+        }
+    }
+
+    static DynamicBitset uninitialized(std::size_t num_bits)
+    {
+        return DynamicBitset(num_bits);
+    }
+
+    static DynamicBitset zeros(std::size_t num_bits)
+    {
+        return DynamicBitset(num_bits, construct_all_zeros);
+    }
+
+    static DynamicBitset ones(std::size_t num_bits)
+    {
+        return DynamicBitset(num_bits, construct_all_ones);
+    }
+
+    std::size_t size() const
+    {
+        return num_bits;
+    }
 
     /*
       Count the number of set bits.
@@ -79,40 +309,54 @@ public:
     */
     int count() const
     {
-        int result = 0;
-        for (std::size_t pos = 0; pos < num_bits; ++pos) {
-            result += static_cast<int>(test(pos));
-        }
-        return result;
+        auto pcs = blocks | std::views::transform(
+                                [](Block b) { return std::popcount(b); });
+
+        return std::accumulate(pcs.begin(), pcs.end(), 0);
     }
 
     void set()
     {
-        std::fill(blocks.begin(), blocks.end(), ones);
+        std::ranges::fill(blocks, ONES);
         zero_unused_bits();
     }
 
-    void reset() { std::fill(blocks.begin(), blocks.end(), zeros); }
+    void reset()
+    {
+        std::ranges::fill(blocks, ZEROS);
+    }
 
     void set(std::size_t pos)
     {
         assert(pos < num_bits);
-        blocks[block_index(pos)] |= bit_mask(pos);
+        const auto [block_index, bit_index] = block_bit_index(pos);
+        blocks[block_index] |= bit_mask(bit_index);
     }
 
     void reset(std::size_t pos)
     {
         assert(pos < num_bits);
-        blocks[block_index(pos)] &= ~bit_mask(pos);
+        const auto [block_index, bit_index] = block_bit_index(pos);
+        blocks[block_index] &= ~bit_mask(bit_index);
     }
 
     bool test(std::size_t pos) const
     {
         assert(pos < num_bits);
-        return (blocks[block_index(pos)] & bit_mask(pos)) != 0;
+        const auto [block_index, bit_index] = block_bit_index(pos);
+        return (blocks[block_index] & bit_mask(bit_index)) != 0;
     }
 
-    bool operator[](std::size_t pos) const { return test(pos); }
+    reference operator[](std::size_t pos)
+    {
+        const auto [block_index, bit_index] = block_bit_index(pos);
+        return reference(blocks.begin() + block_index, bit_index);
+    }
+
+    bool operator[](std::size_t pos) const
+    {
+        return test(pos);
+    }
 
     bool intersects(const DynamicBitset& other) const
     {
@@ -139,53 +383,98 @@ public:
                    [&](std::integral auto i) { return test(i); });
     }
 
-    friend bool operator<(
-        const DynamicBitset<Block>& left,
-        const DynamicBitset<Block>& right)
+    friend auto
+    operator<=>(const DynamicBitset& left, const DynamicBitset& right) =
+        default;
+
+    friend bool
+    operator==(const DynamicBitset& left, const DynamicBitset& right) = default;
+
+    auto begin()
     {
-        return std::tie(left.blocks, left.num_bits) <
-               std::tie(right.blocks, right.num_bits);
+        return iterator(blocks.begin(), 0);
     }
 
-    friend bool operator==(
-        const DynamicBitset<Block>& left,
-        const DynamicBitset<Block>& right)
+    auto end()
     {
-        return std::tie(left.blocks, left.num_bits) ==
-               std::tie(right.blocks, right.num_bits);
+        const auto [block_index, bit_index] = block_bit_index(num_bits);
+        return iterator(blocks.begin() + block_index, bit_index);
+    }
+
+    auto begin() const
+    {
+        return const_iterator(blocks.begin(), 0);
+    }
+
+    auto end() const
+    {
+        const auto [block_index, bit_index] = block_bit_index(num_bits);
+        return const_iterator(blocks.begin() + block_index, bit_index);
     }
 };
 
-template <typename Block>
-const Block DynamicBitset<Block>::zeros = Block(0);
+static_assert(std::ranges::sized_range<DynamicBitset<unsigned int>>);
 
-template <typename Block>
-// MSVC's bitwise negation always returns a signed type.
-const Block DynamicBitset<Block>::ones = Block(~Block(0));
 } // namespace downward::dynamic_bitset
 
 template <typename Block, typename Char>
 struct std::formatter<downward::dynamic_bitset::DynamicBitset<Block>, Char> {
-    std::range_formatter<unsigned int, Char> underlying_;
+    std::formatter<unsigned int, Char> underlying_;
 
     constexpr formatter()
     {
-        underlying_.set_brackets("{", "}");
-        underlying_.set_separator(",");
+        std::basic_format_parse_context<Char> ctx2("b}");
+        underlying_.parse(ctx2);
     }
 
     template <class ParseContext>
     constexpr typename ParseContext::iterator parse(ParseContext& ctx)
     {
-        return underlying_.parse(ctx);
+        if (*ctx.begin() != '}') {
+            throw std::format_error("Expected '}'!");
+        }
+        return ctx.begin();
     }
 
     template <class FmtContext>
     typename FmtContext::iterator format(
         const downward::dynamic_bitset::DynamicBitset<Block>& bs,
         FmtContext& ctx) const
-    {        
-        return underlying_.format(bs.set_indices(), ctx);
+    {
+        const auto num_contiguous_blocks =
+            bs.num_bits /
+            downward::dynamic_bitset::DynamicBitset<Block>::BITS_PER_BLOCK;
+
+        const auto overhead_bits =
+            bs.num_bits %
+            downward::dynamic_bitset::DynamicBitset<Block>::BITS_PER_BLOCK;
+
+        auto bit = std::ranges::begin(bs.blocks);
+        const auto bend = bit + num_contiguous_blocks;
+
+        {
+            constexpr Block l =
+                downward::dynamic_bitset::DynamicBitset<Block>::BITS_PER_BLOCK;
+
+            for (; bit != bend; ++bit) {
+                Block b = *bit;
+                for (Block i = 0; i != l; b >>= 1, ++i) {
+                    ctx.advance_to(underlying_.format(b & 1, ctx));
+                }
+            }
+        }
+
+        if (overhead_bits != 0) {
+            const Block l = static_cast<Block>(overhead_bits);
+
+            Block b = *bit;
+
+            for (Block i = 0; i != l; b >>= 1, ++i) {
+                ctx.advance_to(underlying_.format(b & 1, ctx));
+            }
+        }
+
+        return ctx.out();
     }
 };
 

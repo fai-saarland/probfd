@@ -460,7 +460,7 @@ unsigned int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
                 continue;
             }
 
-            DynamicBitset bitset(variables.size());
+            DynamicBitset bitset = DynamicBitset::zeros(variables.size());
 
             for (int var : pattern) { bitset.set(static_cast<size_t>(var)); }
 

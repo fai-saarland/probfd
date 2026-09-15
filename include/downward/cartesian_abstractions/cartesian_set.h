@@ -30,8 +30,7 @@ public:
     {
         domain_subsets.reserve(domain_sizes.size());
         for (const int domain_size : domain_sizes) {
-            Bitset domain(domain_size);
-            domain.set();
+            Bitset domain = Bitset::ones(domain_size);
             domain_subsets.push_back(std::move(domain));
         }
     }

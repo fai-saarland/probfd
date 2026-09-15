@@ -7,6 +7,7 @@
 #include "probfd/fdr_types.h"
 #include "probfd/value_type.h"
 
+#include <concepts>
 #include <cstdint>
 #include <memory>
 #include <set>
@@ -19,7 +20,7 @@ class RandomNumberGenerator;
 } // namespace downward::utils
 
 namespace downward::dynamic_bitset {
-template <typename>
+template <std::unsigned_integral Block>
 class DynamicBitset;
 }
 
