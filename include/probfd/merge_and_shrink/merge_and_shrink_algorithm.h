@@ -35,7 +35,7 @@ void run_merge_and_shrink_algorithm(
     int max_states,
     int max_states_before_merge,
     int shrink_threshold_before_merge,
-    downward::utils::Duration main_loop_max_time,
+    downward::utils::FSeconds main_loop_max_time,
     const downward::utils::LogProxy& log);
 
 } // namespace probfd::merge_and_shrink

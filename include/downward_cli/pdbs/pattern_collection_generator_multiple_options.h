@@ -29,9 +29,9 @@ add_multiple_options_to_feature(language::plugins::Feature& feature);
 extern std::tuple<
     int,
     int,
-    utils::Duration,
-    utils::Duration,
-    utils::Duration,
+    utils::FSeconds,
+    utils::FSeconds,
+    utils::FSeconds,
     double,
     bool,
     int,

@@ -41,7 +41,7 @@ class AdditiveCartesianHeuristicFactory
     std::vector<std::shared_ptr<SubtaskGenerator>> subtasks;
     int max_states;
     int max_transitions;
-    Duration max_time;
+    FSeconds max_time;
     PickSplit pick;
     bool use_general_costs;
     int random_seed;
@@ -55,7 +55,7 @@ public:
         std::vector<std::shared_ptr<SubtaskGenerator>> subtasks,
         int max_states,
         int max_transitions,
-        Duration max_time,
+        FSeconds max_time,
         PickSplit pick,
         bool use_general_costs,
         int random_seed)
@@ -149,7 +149,7 @@ public:
             " all abstractions",
             "1M",
             Bounds("0", "infinity"));
-        add_option<Duration>(
+        add_option<FSeconds>(
             "max_time",
             "maximum time in seconds for building abstractions",
             "infinity",
@@ -183,7 +183,7 @@ public:
             opts.get_list<shared_ptr<SubtaskGenerator>>(context, "subtasks"),
             opts.get<int>(context, "max_states"),
             opts.get<int>(context, "max_transitions"),
-            opts.get<Duration>(context, "max_time"),
+            opts.get<FSeconds>(context, "max_time"),
             opts.get<PickSplit>(context, "pick"),
             opts.get<bool>(context, "use_general_costs"),
             get_rng_arguments_from_options(context, opts));

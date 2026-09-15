@@ -71,9 +71,9 @@ class IPDBsHeuristicFactory : public TaskDependentFactory<Evaluator> {
     int collection_max_size;
     int num_samples;
     int min_improvement;
-    Duration max_time;
+    FSeconds max_time;
     int random_seed;
-    Duration max_time_dominance_pruning;
+    FSeconds max_time_dominance_pruning;
 
 public:
     IPDBsHeuristicFactory(
@@ -85,9 +85,9 @@ public:
         int collection_max_size,
         int num_samples,
         int min_improvement,
-        Duration max_time,
+        FSeconds max_time,
         int random_seed,
-        Duration max_time_dominance_pruning)
+        FSeconds max_time_dominance_pruning)
         : transformation(std::move(transformation))
         , cache_estimates(cache_estimates)
         , description(std::move(description))
@@ -185,9 +185,9 @@ public:
             opts.get<int>(context, "collection_max_size"),
             opts.get<int>(context, "num_samples"),
             opts.get<int>(context, "min_improvement"),
-            opts.get<Duration>(context, "max_time"),
+            opts.get<FSeconds>(context, "max_time"),
             cli::utils::get_rng_arguments_from_options(context, opts),
-            opts.get<Duration>(context, "max_time_dominance_pruning"));
+            opts.get<FSeconds>(context, "max_time_dominance_pruning"));
     }
 };
 } // namespace

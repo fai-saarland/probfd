@@ -46,7 +46,7 @@ public:
             "variable)",
             "1000000",
             Bounds("1", "infinity"));
-        add_option<downward::utils::Duration>(
+        add_option<downward::utils::FSeconds>(
             "max_time",
             "maximum time in seconds for the pattern generation",
             "infinity",
@@ -63,7 +63,7 @@ public:
     {
         return make_shared_from_arg_tuples<PatternGeneratorRandom>(
             opts.get<int>(context, "max_pdb_size"),
-            opts.get<downward::utils::Duration>(context, "max_time"),
+            opts.get<downward::utils::FSeconds>(context, "max_time"),
             get_random_pattern_bidirectional_arguments_from_options(
                 context,
                 opts),

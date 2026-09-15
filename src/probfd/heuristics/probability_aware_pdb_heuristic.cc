@@ -46,7 +46,7 @@ value_t ProbabilityAwarePDBHeuristic::evaluate(const State& state) const
 
 ProbabilityAwarePDBHeuristicFactory::ProbabilityAwarePDBHeuristicFactory(
     std::shared_ptr<PatternCollectionGenerator> generator,
-    utils::Duration max_time_dominance_pruning,
+    utils::FSeconds max_time_dominance_pruning,
     utils::Verbosity verbosity)
     : generator_(std::move(generator))
     , max_time_dominance_pruning_(max_time_dominance_pruning)
@@ -62,7 +62,7 @@ ProbabilityAwarePDBHeuristicFactory::create_object(
 
     const utils::Timer generator_timer;
     auto pattern_collection_info = generator_->generate(task);
-    const utils::Duration generator_time = generator_timer();
+    const utils::FSeconds generator_time = generator_timer();
 
     std::vector<Pattern> patterns = pattern_collection_info.get_patterns();
 
@@ -72,9 +72,9 @@ ProbabilityAwarePDBHeuristicFactory::create_object(
     auto subcollection_finder =
         pattern_collection_info.get_subcollection_finder();
 
-    utils::Duration dominance_pruning_time = 0s;
+    utils::FSeconds dominance_pruning_time = 0s;
 
-    if (max_time_dominance_pruning_ > utils::Duration::zero()) {
+    if (max_time_dominance_pruning_ > utils::FSeconds::zero()) {
         const auto& variables = get_variables(task);
 
         const utils::Timer timer;
@@ -92,7 +92,7 @@ ProbabilityAwarePDBHeuristicFactory::create_object(
 
     if (log_.is_at_least_normal()) {
         // Gather statistics.
-        const utils::Duration construction_time = construction_timer();
+        const utils::FSeconds construction_time = construction_timer();
 
         size_t largest_pattern = 0;
         size_t variables = 0;

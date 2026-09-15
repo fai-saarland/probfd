@@ -64,7 +64,7 @@ public:
     {
         return make_shared_from_arg_tuples<PatternGeneratorCEGAR>(
             opts.get<int>(context, "max_pdb_size"),
-            opts.get<Duration>(context, "max_time"),
+            opts.get<FSeconds>(context, "max_time"),
             get_cegar_wildcard_arguments_from_options(context, opts),
             get_rng_arguments_from_options(context, opts),
             get_generator_arguments_from_options(context, opts));

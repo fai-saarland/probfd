@@ -34,7 +34,7 @@ tuple<
     shared_ptr<PruningMethod>,
     OperatorCost,
     int,
-    downward::utils::Duration,
+    downward::utils::FSeconds,
     string,
     utils::Verbosity>
 get_eager_search_arguments_from_options(

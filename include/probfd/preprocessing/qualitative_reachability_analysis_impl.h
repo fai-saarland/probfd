@@ -149,7 +149,7 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
     std::output_iterator<StateID> auto dead_out,
     std::output_iterator<StateID> auto unsolvable_out,
     std::output_iterator<StateID> auto solvable_out,
-    downward::utils::Duration max_time)
+    downward::utils::FSeconds max_time)
 {
     assert(expansion_queue_.empty());
 

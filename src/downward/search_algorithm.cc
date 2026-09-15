@@ -49,7 +49,7 @@ SearchAlgorithm::SearchAlgorithm(
     SharedAbstractTask task,
     OperatorCost cost_type,
     int bound,
-    utils::Duration max_time,
+    utils::FSeconds max_time,
     const string& description,
     utils::Verbosity verbosity)
     : description(description)

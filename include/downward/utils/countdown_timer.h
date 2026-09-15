@@ -7,16 +7,16 @@
 namespace downward::utils {
 class CountdownTimer {
     Timer timer;
-    Duration max_time;
+    FSeconds max_time;
 
 public:
-    explicit CountdownTimer(Duration max_time);
+    explicit CountdownTimer(FSeconds max_time);
     ~CountdownTimer();
 
     bool is_expired() const;
     void throw_if_expired() const;
-    Duration get_elapsed_time() const;
-    Duration get_remaining_time() const;
+    FSeconds get_elapsed_time() const;
+    FSeconds get_remaining_time() const;
     friend std::ostream&
     operator<<(std::ostream& os, const CountdownTimer& cd_timer);
 };

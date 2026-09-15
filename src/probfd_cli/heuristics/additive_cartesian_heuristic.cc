@@ -62,7 +62,7 @@ public:
             " all abstractions",
             "1M",
             Bounds("0", "infinity"));
-        add_option<utils::Duration>(
+        add_option<utils::FSeconds>(
             "max_time",
             "maximum time in seconds for building abstractions",
             "infinity",
@@ -89,7 +89,7 @@ public:
                 "split_selector_factory"),
             opts.get<int>(context, "max_states"),
             opts.get<int>(context, "max_transitions"),
-            opts.get<utils::Duration>(context, "max_time"),
+            opts.get<utils::FSeconds>(context, "max_time"),
             opts.get<bool>(context, "use_general_costs"),
             downward::cli::utils::get_log_arguments_from_options(
                 context,

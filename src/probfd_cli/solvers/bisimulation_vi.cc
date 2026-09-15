@@ -46,7 +46,7 @@ using namespace language::plugins;
 namespace {
 void print_bisimulation_stats(
     std::ostream& out,
-    utils::Duration time,
+    utils::FSeconds time,
     unsigned states,
     unsigned transitions)
 {
@@ -74,7 +74,7 @@ public:
     {
     }
 
-    bool solve(downward::utils::Duration max_time) override
+    bool solve(downward::utils::FSeconds max_time) override
     {
         auto determinization = tasks::create_determinization_task(task);
 

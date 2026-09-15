@@ -88,11 +88,11 @@ PatternCollectionGeneratorMultipleArgs get_multiple_arguments_from_options(
         std::make_tuple(
             options.get<int>(context, "max_pdb_size"),
             options.get<int>(context, "max_collection_size"),
-            options.get<utils::Duration>(
+            options.get<utils::FSeconds>(
                 context,
                 "pattern_generation_max_time"),
-            options.get<utils::Duration>(context, "total_max_time"),
-            options.get<utils::Duration>(context, "stagnation_limit"),
+            options.get<utils::FSeconds>(context, "total_max_time"),
+            options.get<utils::FSeconds>(context, "stagnation_limit"),
             options.get<double>(context, "blacklist_trigger_percentage"),
             options.get<bool>(context, "enable_blacklist_on_stagnation"),
             options.get<bool>(context, "use_saturated_costs"),

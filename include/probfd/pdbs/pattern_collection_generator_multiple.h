@@ -31,10 +31,10 @@ namespace probfd::pdbs {
 class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
     const int max_pdb_size_;
     const int max_collection_size_;
-    const downward::utils::Duration pattern_generation_max_time_;
-    const downward::utils::Duration total_max_time_;
-    const downward::utils::Duration stagnation_limit_;
-    const downward::utils::Duration blacklisting_start_time_;
+    const downward::utils::FSeconds pattern_generation_max_time_;
+    const downward::utils::FSeconds total_max_time_;
+    const downward::utils::FSeconds stagnation_limit_;
+    const downward::utils::FSeconds blacklisting_start_time_;
     const bool enable_blacklist_on_stagnation_;
     const bool use_saturated_costs_;
 
@@ -47,7 +47,7 @@ class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
 
     virtual ProjectionTransformation compute_pattern(
         int max_pdb_size,
-        downward::utils::Duration max_time,
+        downward::utils::FSeconds max_time,
         const std::shared_ptr<downward::utils::RandomNumberGenerator>& rng,
         const SharedProbabilisticTask& task,
         const downward::FactPair& goal,
@@ -60,9 +60,9 @@ public:
     explicit PatternCollectionGeneratorMultiple(
         int max_pdb_size,
         int max_collection_size,
-        downward::utils::Duration pattern_generation_max_time,
-        downward::utils::Duration total_max_time,
-        downward::utils::Duration stagnation_limit,
+        downward::utils::FSeconds pattern_generation_max_time,
+        downward::utils::FSeconds total_max_time,
+        downward::utils::FSeconds stagnation_limit,
         double blacklist_trigger_percentage,
         bool enable_blacklist_on_stagnation,
         bool use_saturated_costs,

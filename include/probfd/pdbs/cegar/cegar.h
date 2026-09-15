@@ -88,7 +88,7 @@ public:
         const downward::State& initial_state,
         ProjectionCollection& projections,
         PPDBCollection& pdbs,
-        downward::utils::Duration max_time,
+        downward::utils::FSeconds max_time,
         downward::utils::LogProxy log);
 
 private:

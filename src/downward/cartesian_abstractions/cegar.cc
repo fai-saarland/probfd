@@ -92,7 +92,7 @@ CEGAR::CEGAR(
     SharedAbstractTask task,
     int max_states,
     int max_non_looping_transitions,
-    utils::Duration max_time,
+    utils::FSeconds max_time,
     PickSplit pick,
     utils::RandomNumberGenerator& rng,
     utils::LogProxy& log)

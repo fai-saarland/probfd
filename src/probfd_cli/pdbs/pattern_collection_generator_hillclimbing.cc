@@ -68,7 +68,7 @@ public:
             "as the next pattern collection ",
             "10",
             Bounds("1", "infinity"));
-        add_option<utils::Duration>(
+        add_option<utils::FSeconds>(
             "max_time",
             "maximum time in seconds for improving the initial pattern "
             "collection via hill climbing. If set to 0, no hill climbing "
@@ -104,7 +104,7 @@ public:
             opts.get<int>(context, "collection_max_size"),
             opts.get<int>(context, "num_samples"),
             opts.get<int>(context, "min_improvement"),
-            opts.get<utils::Duration>(context, "max_time"),
+            opts.get<utils::FSeconds>(context, "max_time"),
             opts.get<int>(context, "search_space_max_size"),
             get_rng(std::get<0>(get_rng_arguments_from_options(context, opts))),
             get_pattern_collection_generator_arguments_from_options(

@@ -110,9 +110,9 @@ void add_multiple_options_to_feature(plugins::Feature& feature)
 tuple<
     int,
     int,
-    downward::utils::Duration,
-    downward::utils::Duration,
-    downward::utils::Duration,
+    downward::utils::FSeconds,
+    downward::utils::FSeconds,
+    downward::utils::FSeconds,
     double,
     bool,
     int,
@@ -125,11 +125,11 @@ get_multiple_arguments_from_options(
         make_tuple(
             opts.get<int>(context, "max_pdb_size"),
             opts.get<int>(context, "max_collection_size"),
-            opts.get<downward::utils::Duration>(
+            opts.get<downward::utils::FSeconds>(
                 context,
                 "pattern_generation_max_time"),
-            opts.get<downward::utils::Duration>(context, "total_max_time"),
-            opts.get<downward::utils::Duration>(context, "stagnation_limit"),
+            opts.get<downward::utils::FSeconds>(context, "total_max_time"),
+            opts.get<downward::utils::FSeconds>(context, "stagnation_limit"),
             opts.get<double>(context, "blacklist_trigger_percentage"),
             opts.get<bool>(context, "enable_blacklist_on_stagnation")),
         get_rng_arguments_from_options(context, opts),

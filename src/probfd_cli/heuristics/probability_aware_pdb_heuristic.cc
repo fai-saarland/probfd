@@ -54,7 +54,7 @@ public:
             opts.get<std::shared_ptr<PatternCollectionGenerator>>(
                 context,
                 "patterns"),
-            opts.get<utils::Duration>(context, "max_time_dominance_pruning"),
+            opts.get<utils::FSeconds>(context, "max_time_dominance_pruning"),
             downward::cli::utils::get_log_arguments_from_options(
                 context,
                 opts));

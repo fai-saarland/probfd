@@ -168,7 +168,7 @@ public:
         MDPType& mdp,
         const EvaluatorType* pruning_function,
         ParamType<State> initial_state,
-        downward::utils::Duration max_time = downward::utils::Duration::max());
+        downward::utils::FSeconds max_time = downward::utils::FSeconds::max());
 
     void print_statistics(std::ostream& out) const;
 

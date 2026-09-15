@@ -160,14 +160,14 @@ public:
         HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport progress,
-        downward::utils::Duration max_time) override;
+        downward::utils::FSeconds max_time) override;
 
     Interval solve(
         MDPType& mdp,
         HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport progress,
-        downward::utils::Duration max_time);
+        downward::utils::FSeconds max_time);
 
     void print_statistics(std::ostream& out) const override;
 
@@ -177,7 +177,7 @@ private:
         QHeuristic& heuristic,
         ParamType<QState> state,
         ProgressReport& progress,
-        downward::utils::Duration max_time);
+        downward::utils::FSeconds max_time);
 
     Interval heuristic_search(
         QuotientSystem& quotient,

@@ -40,7 +40,7 @@ public:
         SharedProbabilisticTask task,
         const StateRankingFunction& ranking_function,
         bool operator_pruning = true,
-        downward::utils::Duration max_time = downward::utils::Duration::max());
+        downward::utils::FSeconds max_time = downward::utils::FSeconds::max());
 
     StateID get_state_id(StateRank state) override;
 

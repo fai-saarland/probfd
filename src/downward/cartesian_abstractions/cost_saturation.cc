@@ -88,7 +88,7 @@ CostSaturation::CostSaturation(
     const vector<shared_ptr<SubtaskGenerator>>& subtask_generators,
     int max_states,
     int max_non_looping_transitions,
-    utils::Duration max_time,
+    utils::FSeconds max_time,
     PickSplit pick_split,
     bool use_general_costs,
     utils::RandomNumberGenerator& rng,
@@ -255,7 +255,7 @@ void CostSaturation::build_abstractions(
     }
 }
 
-void CostSaturation::print_statistics(utils::Duration init_time) const
+void CostSaturation::print_statistics(utils::FSeconds init_time) const
 {
     if (log.is_at_least_normal()) {
         log << "Done initializing additive Cartesian heuristic" << endl;

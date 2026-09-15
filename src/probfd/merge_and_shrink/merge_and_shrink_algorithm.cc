@@ -96,7 +96,7 @@ class MergeAndShrinkAlgorithm {
        max_states and max_states_before_merge are not violated. */
     const int shrink_threshold_before_merge;
 
-    const utils::Duration main_loop_max_time;
+    const utils::FSeconds main_loop_max_time;
 
 public:
     MergeAndShrinkAlgorithm(
@@ -107,7 +107,7 @@ public:
         int max_states,
         int max_states_before_merge,
         int shrink_threshold_before_merge,
-        utils::Duration main_loop_max_time);
+        utils::FSeconds main_loop_max_time);
 
     void run_merge_and_shrink_algorithm(
         FactoredTransitionSystem& fts,
@@ -135,7 +135,7 @@ MergeAndShrinkAlgorithm::MergeAndShrinkAlgorithm(
     int max_states,
     int max_states_before_merge,
     int shrink_threshold_before_merge,
-    utils::Duration main_loop_max_time)
+    utils::FSeconds main_loop_max_time)
     : merge_strategy_factory(merge_strategy_factory)
     , shrink_strategy(shrink_strategy)
     , label_reduction(label_reduction)
@@ -241,12 +241,12 @@ void MergeAndShrinkAlgorithm::run_merge_and_shrink_algorithm(
         }
     }
 
-    if (main_loop_max_time == utils::Duration::zero()) return;
+    if (main_loop_max_time == utils::FSeconds::zero()) return;
 
     const utils::CountdownTimer loop_timer(main_loop_max_time);
     if (log.is_at_least_normal()) {
         log.print("Starting main loop ");
-        if (main_loop_max_time == utils::Duration::max()) {
+        if (main_loop_max_time == utils::FSeconds::max()) {
             log.println("without a time limit.");
         } else {
             log.println("with a time limit of {}s.", main_loop_max_time);
@@ -305,7 +305,7 @@ void MergeAndShrinkAlgorithm::main_loop(
 {
     if (log.is_at_least_normal()) {
         log.print("Starting main loop ");
-        if (main_loop_max_time == utils::Duration::max()) {
+        if (main_loop_max_time == utils::FSeconds::max()) {
             log.println("without a time limit.");
         } else {
             log.println("with a time limit of {}.", main_loop_max_time);
@@ -498,7 +498,7 @@ void run_merge_and_shrink_algorithm(
     int max_states,
     int max_states_before_merge,
     int shrink_threshold_before_merge,
-    utils::Duration main_loop_max_time,
+    utils::FSeconds main_loop_max_time,
     const utils::LogProxy& log)
 {
     MergeAndShrinkAlgorithm algorithm(

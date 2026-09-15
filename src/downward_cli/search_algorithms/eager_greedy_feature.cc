@@ -27,7 +27,7 @@ class EagerGreedySearchFactory : public TaskDependentFactory<SearchAlgorithm> {
     std::shared_ptr<PruningMethod> pruning;
     OperatorCost cost_type;
     int bound;
-    utils::Duration max_time;
+    utils::FSeconds max_time;
     const std::string& description;
     utils::Verbosity verbosity;
 
@@ -40,7 +40,7 @@ public:
         std::shared_ptr<PruningMethod> pruning,
         OperatorCost cost_type,
         int bound,
-        utils::Duration max_time,
+        utils::FSeconds max_time,
         const std::string& description,
         utils::Verbosity verbosity)
         : eval_factories(std::move(eval_factories))

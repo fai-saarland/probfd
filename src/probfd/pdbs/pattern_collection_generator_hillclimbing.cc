@@ -387,7 +387,7 @@ PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(
     int collection_max_size,
     int num_samples,
     int min_improvement,
-    utils::Duration max_time,
+    utils::FSeconds max_time,
     int search_space_max_size,
     std::shared_ptr<utils::RandomNumberGenerator> rng,
     utils::Verbosity verbosity)
@@ -837,7 +837,7 @@ PatternCollectionInformation PatternCollectionGeneratorHillclimbing::generate(
         cost_lower_bound,
         termination_cost);
 
-    if (init_h != termination_cost && max_time_ != Duration::max()) {
+    if (init_h != termination_cost && max_time_ != FSeconds::max()) {
         hill_climbing(task, initial_state, current_pdbs, cost_lower_bound);
     }
 

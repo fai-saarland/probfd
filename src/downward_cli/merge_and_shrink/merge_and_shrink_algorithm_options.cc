@@ -59,7 +59,7 @@ void add_merge_and_shrink_algorithm_options_to_feature(Feature& feature)
 
     add_transition_system_size_limit_options_to_feature(feature);
 
-    feature.add_option<utils::Duration>(
+    feature.add_option<utils::FSeconds>(
         "main_loop_max_time",
         "A limit in seconds on the runtime of the main loop of the algorithm. "
         "If the limit is exceeded, the algorithm terminates, potentially "
@@ -80,7 +80,7 @@ tuple<
     int,
     int,
     int,
-    downward::utils::Duration>
+    downward::utils::FSeconds>
 get_merge_and_shrink_algorithm_arguments_from_options(
     const Context& context,
     const Options& opts)
@@ -98,7 +98,7 @@ get_merge_and_shrink_algorithm_arguments_from_options(
             opts.get<bool>(context, "prune_unreachable_states"),
             opts.get<bool>(context, "prune_irrelevant_states")),
         get_transition_system_size_limit_arguments_from_options(context, opts),
-        make_tuple(opts.get<utils::Duration>(context, "main_loop_max_time")));
+        make_tuple(opts.get<utils::FSeconds>(context, "main_loop_max_time")));
 }
 
 void add_transition_system_size_limit_options_to_feature(Feature& feature)

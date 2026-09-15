@@ -117,7 +117,7 @@ PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(
     int collection_max_size,
     int num_samples,
     int min_improvement,
-    utils::Duration max_time,
+    utils::FSeconds max_time,
     int random_seed,
     utils::Verbosity verbosity)
     : PatternCollectionGenerator(verbosity)
@@ -506,7 +506,7 @@ PatternCollectionGeneratorHillclimbing::compute_patterns(
 
     State initial_state = init_vals.get_initial_state();
     if (!current_pdbs->is_dead_end(initial_state) &&
-        max_time > utils::Duration::zero()) {
+        max_time > utils::FSeconds::zero()) {
         hill_climbing(to_refs(task), initial_state);
     }
 

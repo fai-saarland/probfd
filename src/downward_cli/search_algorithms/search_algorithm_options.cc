@@ -53,7 +53,7 @@ void add_search_algorithm_options_to_feature(
         "according to "
         "the real cost, regardless of the cost_type parameter",
         "infinity");
-    feature.add_option<downward::utils::Duration>(
+    feature.add_option<downward::utils::FSeconds>(
         "max_time",
         "maximum time in seconds the search is allowed to run for. The "
         "timeout is only checked after each complete search step "
@@ -74,7 +74,7 @@ void add_search_algorithm_options_to_feature(
 tuple<
     OperatorCost,
     int,
-    downward::utils::Duration,
+    downward::utils::FSeconds,
     string,
     downward::utils::Verbosity>
 get_search_algorithm_arguments_from_options(
@@ -85,7 +85,7 @@ get_search_algorithm_arguments_from_options(
         get_cost_type_arguments_from_options(context, opts),
         make_tuple(
             opts.get<int>(context, "bound"),
-            opts.get<downward::utils::Duration>(context, "max_time"),
+            opts.get<downward::utils::FSeconds>(context, "max_time"),
             opts.get<string>(context, "description")),
         utils::get_log_arguments_from_options(context, opts));
 }

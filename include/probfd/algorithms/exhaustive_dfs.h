@@ -260,7 +260,7 @@ public:
         HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport progress,
-        downward::utils::Duration max_time) override;
+        downward::utils::FSeconds max_time) override;
 
     void print_statistics(std::ostream& out) const override;
 

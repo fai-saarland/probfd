@@ -409,7 +409,7 @@ Interval HeuristicSearchAlgorithm<State, Action, StateInfoT>::solve(
     HeuristicType& h,
     ParamType<State> state,
     ProgressReport progress,
-    downward::utils::Duration max_time)
+    downward::utils::FSeconds max_time)
 {
     HSBase::initialize_initial_state(mdp, h, state);
     return this->do_solve(mdp, h, state, progress, max_time);
@@ -421,7 +421,7 @@ auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
     HeuristicType& h,
     ParamType<State> initial_state,
     ProgressReport progress,
-    downward::utils::Duration max_time) -> std::unique_ptr<PolicyType>
+    downward::utils::FSeconds max_time) -> std::unique_ptr<PolicyType>
 {
     this->solve(mdp, h, initial_state, progress, max_time);
 

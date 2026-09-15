@@ -27,7 +27,7 @@ struct ProjectionTransformation {
         SharedProbabilisticTask task,
         Pattern pattern,
         bool operator_pruning = true,
-        downward::utils::Duration max_time = downward::utils::Duration::max());
+        downward::utils::FSeconds max_time = downward::utils::FSeconds::max());
 
     ProjectionTransformation(ProjectionTransformation&&) noexcept;
     ProjectionTransformation& operator=(ProjectionTransformation&&) noexcept;

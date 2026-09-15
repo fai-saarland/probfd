@@ -86,7 +86,7 @@ class MergeAndShrinkHeuristicFactory final : public TaskHeuristicFactory {
     int max_states;
     int max_states_before_merge;
     int shrink_threshold_before_merge;
-    utils::Duration main_loop_max_time;
+    utils::FSeconds main_loop_max_time;
     utils::LogProxy log_;
 
 public:
@@ -98,7 +98,7 @@ public:
         int max_states,
         int max_states_before_merge,
         int shrink_threshold_before_merge,
-        utils::Duration main_loop_max_time,
+        utils::FSeconds main_loop_max_time,
         utils::Verbosity verbosity);
 
     std::unique_ptr<FDRHeuristic>
@@ -116,7 +116,7 @@ MergeAndShrinkHeuristicFactory::MergeAndShrinkHeuristicFactory(
     int max_states,
     int max_states_before_merge,
     int shrink_threshold_before_merge,
-    utils::Duration main_loop_max_time,
+    utils::FSeconds main_loop_max_time,
     utils::Verbosity verbosity)
     : merge_strategy(std::move(merge_strategy))
     , shrink_strategy(std::move(shrink_strategy))

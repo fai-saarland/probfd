@@ -53,7 +53,7 @@ void add_pattern_collection_generator_cegar_options_to_feature(Feature& feature)
         "applied to initial goal variable pattern(s))",
         "infinity",
         Bounds("1", "infinity"));
-    feature.add_option<utils::Duration>(
+    feature.add_option<utils::FSeconds>(
         "max_time",
         "maximum time in seconds for CEGAR pattern generation. "
         "This includes the creation of the initial PDB collection"
@@ -98,7 +98,7 @@ public:
             opts.get<bool>(context, "single_goal"),
             opts.get<int>(context, "max_pdb_size"),
             opts.get<int>(context, "max_collection_size"),
-            opts.get<utils::Duration>(context, "max_time"),
+            opts.get<utils::FSeconds>(context, "max_time"),
             get_rng(std::get<0>(get_rng_arguments_from_options(context, opts))),
             opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
                 context,

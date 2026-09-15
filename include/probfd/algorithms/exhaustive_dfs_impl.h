@@ -111,7 +111,7 @@ auto ExhaustiveDepthFirstSearch<State, Action, UseInterval>::compute_policy(
     HeuristicType&,
     ParamType<State>,
     ProgressReport,
-    downward::utils::Duration) -> std::unique_ptr<PolicyType>
+    downward::utils::FSeconds) -> std::unique_ptr<PolicyType>
 {
     not_implemented();
 }

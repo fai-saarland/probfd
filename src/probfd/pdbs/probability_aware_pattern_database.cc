@@ -26,7 +26,7 @@ static void compute_distances(
     StateRank abstract_initial_state,
     const Heuristic<StateRank>& heuristic,
     bool operator_pruning,
-    utils::Duration max_time)
+    utils::FSeconds max_time)
 {
     utils::CountdownTimer timer(max_time);
 
@@ -48,7 +48,7 @@ void compute_distances(
     ProjectionStateSpace& mdp,
     StateRank abstract_initial_state,
     const Heuristic<StateRank>& heuristic,
-    utils::Duration max_time)
+    utils::FSeconds max_time)
 {
     utils::CountdownTimer timer(max_time);
 
@@ -66,7 +66,7 @@ void compute_distances(
     StateRank abstract_initial_state,
     const Heuristic<StateRank>& heuristic,
     bool operator_pruning,
-    utils::Duration max_time)
+    utils::FSeconds max_time)
 {
     compute_distances(
         pdb.value_table,

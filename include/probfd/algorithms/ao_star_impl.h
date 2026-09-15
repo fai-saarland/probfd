@@ -31,7 +31,7 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
     HeuristicType& heuristic,
     ParamType<State> initial_state,
     ProgressReport& progress,
-    downward::utils::Duration max_time)
+    downward::utils::FSeconds max_time)
 {
     using namespace std::views;
 
