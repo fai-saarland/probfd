@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <utility>
 
 using namespace std;
 using namespace downward;
@@ -28,7 +29,7 @@ FTSConstIterator::FTSConstIterator(
     const FactoredTransitionSystem& fts,
     bool end)
     : fts(fts)
-    , current_index((end ? fts.get_size() : 0))
+    , current_index(end ? fts.get_size() : 0)
 {
     next_valid_index();
 }
@@ -115,7 +116,7 @@ void FactoredTransitionSystem::apply_label_mapping(
             factors[i].transition_system->apply_label_reduction(
                 labels,
                 label_mapping,
-                static_cast<int>(i) != combinable_index);
+                std::cmp_not_equal(i, combinable_index));
         }
     }
 
@@ -190,10 +191,10 @@ auto FactoredTransitionSystem::merge(
     assert(is_component_valid(new_index));
 
     return {
-        std::move(factors[index1]),
-        std::move(factors[index2]),
-        f,
-        new_index};
+        .left_factor = std::move(factors[index1]),
+            .right_factor = std::move(factors[index2]),
+            .merged_factor = f,
+            .merge_index = new_index};
 }
 
 Factor FactoredTransitionSystem::extract_factor(int index)
