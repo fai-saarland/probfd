@@ -16,11 +16,6 @@ class RandomNumberGenerator;
 namespace probfd::merge_and_shrink {
 
 class MergeScoringFunctionTotalOrder : public MergeScoringFunction {
-    AtomicTSOrder atomic_ts_order;
-    ProductTSOrder product_ts_order;
-    bool atomic_before_product;
-    int random_seed; // only for dump options
-    std::shared_ptr<downward::utils::RandomNumberGenerator> rng;
     std::vector<std::pair<int, int>> merge_candidate_order;
 
 public:
@@ -29,7 +24,7 @@ public:
         AtomicTSOrder atomic_ts_order,
         ProductTSOrder product_ts_order,
         bool atomic_before_product,
-        int random_seed);
+        downward::utils::RandomNumberGenerator& rng);
 
     std::vector<double> compute_scores(
         const FactoredTransitionSystem& fts,

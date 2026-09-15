@@ -22,12 +22,7 @@ MergeScoringFunctionTotalOrder::MergeScoringFunctionTotalOrder(
     AtomicTSOrder atomic_ts_order,
     ProductTSOrder product_ts_order,
     bool atomic_before_product,
-    int random_seed)
-    : atomic_ts_order(atomic_ts_order)
-    , product_ts_order(product_ts_order)
-    , atomic_before_product(atomic_before_product)
-    , random_seed(random_seed)
-    , rng(utils::get_rng(random_seed))
+    utils::RandomNumberGenerator& rng)
 {
     const int num_variables = fts.get_size();
     const int max_transition_system_count = num_variables * 2 - 1;
@@ -38,7 +33,7 @@ MergeScoringFunctionTotalOrder::MergeScoringFunctionTotalOrder(
     if (atomic_ts_order == AtomicTSOrder::LEVEL) {
         ranges::reverse(atomic_tso);
     } else if (atomic_ts_order == AtomicTSOrder::RANDOM) {
-        rng->shuffle(atomic_tso);
+        rng.shuffle(atomic_tso);
     }
 
     // Compute the order in which product transition systems are considered
@@ -49,7 +44,7 @@ MergeScoringFunctionTotalOrder::MergeScoringFunctionTotalOrder(
     if (product_ts_order == ProductTSOrder::NEW_TO_OLD) {
         ranges::reverse(product_tso);
     } else if (product_ts_order == ProductTSOrder::RANDOM) {
-        rng->shuffle(product_tso);
+        rng.shuffle(product_tso);
     }
 
     vector<int> transition_system_order;

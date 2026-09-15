@@ -12,9 +12,8 @@ using namespace downward;
 namespace probfd::merge_and_shrink {
 
 MergeScoringFunctionSingleRandom::MergeScoringFunctionSingleRandom(
-    int random_seed)
-    : random_seed(random_seed)
-    , rng(utils::get_rng(random_seed))
+    std::shared_ptr<utils::RandomNumberGenerator> rng)
+    : rng(std::move(rng))
 {
 }
 

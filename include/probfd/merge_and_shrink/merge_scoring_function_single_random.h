@@ -12,19 +12,25 @@ class RandomNumberGenerator;
 namespace probfd::merge_and_shrink {
 
 class MergeScoringFunctionSingleRandom : public MergeScoringFunction {
-    int random_seed; // only for dump options
     std::shared_ptr<downward::utils::RandomNumberGenerator> rng;
 
 public:
-    explicit MergeScoringFunctionSingleRandom(int random_seed);
+    explicit MergeScoringFunctionSingleRandom(
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng);
 
     std::vector<double> compute_scores(
         const FactoredTransitionSystem& fts,
         const std::vector<std::pair<int, int>>& merge_candidates) override;
 
-    bool requires_liveness() const override { return false; }
+    bool requires_liveness() const override
+    {
+        return false;
+    }
 
-    bool requires_goal_distances() const override { return false; }
+    bool requires_goal_distances() const override
+    {
+        return false;
+    }
 };
 
 } // namespace probfd::merge_and_shrink

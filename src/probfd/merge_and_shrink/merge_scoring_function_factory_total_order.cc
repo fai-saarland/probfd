@@ -40,7 +40,7 @@ MergeScoringFunctionFactoryTotalOrder::compute_scoring_function(
         atomic_ts_order,
         product_ts_order,
         atomic_before_product,
-        random_seed);
+        *utils::get_rng(random_seed));
 }
 
 string MergeScoringFunctionFactoryTotalOrder::name() const

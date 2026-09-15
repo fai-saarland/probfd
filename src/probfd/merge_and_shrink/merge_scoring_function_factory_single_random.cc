@@ -23,7 +23,8 @@ std::unique_ptr<MergeScoringFunction>
 MergeScoringFunctionFactorySingleRandom::compute_scoring_function(
     const FactoredTransitionSystem&)
 {
-    return std::make_unique<MergeScoringFunctionSingleRandom>(random_seed);
+    return std::make_unique<MergeScoringFunctionSingleRandom>(
+        utils::get_rng(random_seed));
 }
 
 string MergeScoringFunctionFactorySingleRandom::name() const
