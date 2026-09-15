@@ -5,8 +5,6 @@
 
 #include "probfd/merge_and_shrink/merge_tree_factory.h"
 
-#include "probfd/merge_and_shrink/merge_tree.h"
-
 #include "downward/utils/logging.h"
 
 using namespace language::plugins;
@@ -28,15 +26,6 @@ void add_merge_tree_factory_category(RawRegistry& raw_registry)
         "'precomputed', but they can also be used as fallback merge "
         "strategies in "
         "'combined' merge strategies.");
-
-    raw_registry.insert_enum_plugin<UpdateOption>(
-        {{"use_first",
-          "the node representing the index that would have been merged earlier "
-          "survives"},
-         {"use_second",
-          "the node representing the index that would have been merged later "
-          "survives"},
-         {"use_random", "a random node (of the above two) survives"}});
 }
 
 } // namespace probfd::cli::merge_and_shrink

@@ -540,10 +540,11 @@ create_library(
 )
 
 create_library(
-    NAME variable_order_finder
-    HELP "Variable order finder"
+    NAME variable_order
+    HELP "Variable order"
     SOURCES
-        downward/task_utils/variable_order_finder
+    downward/task_utils/task_variable_order_factory
+    downward/task_utils/variable_order
 )
 
 create_library(
@@ -619,7 +620,7 @@ create_library(
         priority_queues
         equivalence_relation sccs
         task_properties
-        variable_order_finder
+    variable_order
 )
 
 create_library(
@@ -711,7 +712,7 @@ create_library(
         sampling
         successor_generator
         task_properties
-        variable_order_finder
+    variable_order
 )
 
 create_library(

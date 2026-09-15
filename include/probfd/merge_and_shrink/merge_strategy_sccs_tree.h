@@ -7,10 +7,13 @@
 #include <memory>
 #include <vector>
 
+namespace downward::merge_and_shrink {
+class MergeTree;
+}
+
 namespace probfd::merge_and_shrink {
 class MergeSelector;
 class MergeTreeFactory;
-class MergeTree;
 } // namespace probfd::merge_and_shrink
 
 namespace probfd::merge_and_shrink {
@@ -21,7 +24,7 @@ class MergeStrategySCCsTree : public MergeStrategy {
     std::shared_ptr<MergeTreeFactory> merge_tree_factory;
     std::vector<std::vector<int>> non_singleton_cg_sccs;
 
-    std::unique_ptr<MergeTree> current_merge_tree;
+    std::unique_ptr<downward::merge_and_shrink::MergeTree> current_merge_tree;
     std::vector<int> current_ts_indices;
 
 public:

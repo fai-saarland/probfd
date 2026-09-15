@@ -1,6 +1,6 @@
 #include "probfd/merge_and_shrink/merge_tree_factory.h"
 
-#include "probfd/merge_and_shrink/merge_tree.h"
+#include "downward/merge_and_shrink/merge_tree.h"
 
 #include "downward/utils/logging.h"
 #include "downward/utils/rng_options.h"
@@ -13,9 +13,10 @@ using namespace downward;
 
 namespace probfd::merge_and_shrink {
 
-MergeTreeFactory::MergeTreeFactory(int random_seed, UpdateOption update_option)
-    : rng(utils::get_rng(random_seed))
-    , update_option(update_option)
+MergeTreeFactory::MergeTreeFactory(
+    std::shared_ptr<downward::merge_and_shrink::MergeUpdateStrategy>
+        merge_update_strategy)
+    : merge_update_strategy(std::move(merge_update_strategy))
 {
 }
 
@@ -24,18 +25,13 @@ void MergeTreeFactory::dump_options(utils::LogProxy& log) const
     log.println("Merge tree options:");
     log.println("Type: {}", name());
     log.print("Update option: ");
-
-    switch (update_option) {
-    case UpdateOption::USE_FIRST: log.print("use first"); break;
-    case UpdateOption::USE_SECOND: log.print("use second"); break;
-    case UpdateOption::USE_RANDOM: log.print("use random"); break;
-    }
-
+    merge_update_strategy->dump_options(log);
     log.println();
     dump_tree_specific_options(log);
 }
 
-unique_ptr<MergeTree> MergeTreeFactory::compute_merge_tree(
+unique_ptr<downward::merge_and_shrink::MergeTree>
+MergeTreeFactory::compute_merge_tree(
     const SharedProbabilisticTask&,
     const FactoredTransitionSystem&,
     const vector<int>&)

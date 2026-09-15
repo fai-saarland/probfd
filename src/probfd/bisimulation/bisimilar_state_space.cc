@@ -16,7 +16,8 @@
 #include "downward/merge_and_shrink/transition_system.h"
 #include "downward/merge_and_shrink/types.h"
 
-#include "downward/task_utils/variable_order_finder.h"
+#include "downward/task_utils/task_variable_order_factory.h"
+#include "downward/task_utils/variable_order.h"
 
 #include "downward/utils/logging.h"
 
@@ -132,7 +133,9 @@ void BisimilarStateSpace::generate_applicable_actions(
 {
     const auto& cache = transitions_[std::to_underlying(state)];
     result.reserve(cache.size());
-    for (const auto& t : cache) { result.emplace_back(t.op_id); }
+    for (const auto& t : cache) {
+        result.emplace_back(t.op_id);
+    }
 }
 
 void BisimilarStateSpace::generate_action_transitions(
@@ -251,20 +254,19 @@ unsigned BisimilarStateSpace::num_transitions() const
     return num_cached_transitions_;
 }
 
-merge_and_shrink::Factor
+downward::merge_and_shrink::Factor
 compute_bisimulation_on_determinization(const AbstractTaskTuple& det_task)
 {
     // Construct a linear merge tree
     auto linear_merge_tree_factory = std::make_shared<MergeTreeFactoryLinear>(
-        variable_order_finder::VariableOrderType::LEVEL,
-        -1,
-        UpdateOption::USE_FIRST);
+        variable_order::create_variable_order_level_factory(),
+        create_merge_update_strategy_use_first());
 
     // Construct the merge strategy factory
     auto merge_strategy_factory =
         std::make_shared<MergeStrategyFactoryPrecomputed>(
             linear_merge_tree_factory,
-            utils::Verbosity::SILENT);
+            downward::utils::Verbosity::SILENT);
 
     // Construct a bisimulation-based shrinking strategy
     auto shrinking =
@@ -279,8 +281,8 @@ compute_bisimulation_on_determinization(const AbstractTaskTuple& det_task)
         std::numeric_limits<int>::max(),
         std::numeric_limits<int>::max(),
         std::numeric_limits<int>::max(),
-        utils::Duration::max(),
-        utils::Verbosity::SILENT);
+        downward::utils::Duration::max(),
+        downward::utils::Verbosity::SILENT);
 
     FactoredTransitionSystem fts =
         mns_algorithm.build_factored_transition_system(det_task);

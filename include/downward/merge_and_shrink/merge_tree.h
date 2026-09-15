@@ -7,7 +7,7 @@
 namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
-}
+} // namespace downward::utils
 
 namespace downward::merge_and_shrink {
 extern const int UNINITIALIZED;
@@ -18,40 +18,60 @@ extern const int UNINITIALIZED;
   leaf nodes that are not siblings (see also MergeTree class).
  */
 struct MergeTreeNode {
-    MergeTreeNode *parent;
-    MergeTreeNode *left_child;
-    MergeTreeNode *right_child;
+    MergeTreeNode* parent;
+    MergeTreeNode* left_child;
+    MergeTreeNode* right_child;
     int ts_index;
 
-    MergeTreeNode() = delete;
     // Copy constructor. Does not set parent pointers.
-    MergeTreeNode(const MergeTreeNode &other);
-    MergeTreeNode(int ts_index);
-    MergeTreeNode(MergeTreeNode *left_child, MergeTreeNode *right_child);
+    MergeTreeNode(const MergeTreeNode& other);
+
+    explicit MergeTreeNode(int ts_index);
+
+    MergeTreeNode(MergeTreeNode* left_child, MergeTreeNode* right_child);
+
     ~MergeTreeNode();
 
-    MergeTreeNode *get_left_most_sibling();
-    std::pair<int, int> erase_children_and_set_index(int new_index);
-    // Find the parent node for the given index.
-    MergeTreeNode *get_parent_of_ts_index(int index);
-    int compute_num_internal_nodes() const;
-    void inorder(int offset, int current_indentation, utils::LogProxy &log) const;
+    MergeTreeNode* get_left_most_sibling();
 
-    bool is_leaf() const {
+    std::pair<int, int> erase_children_and_set_index(int new_index);
+
+    // Find the parent node for the given index.
+    MergeTreeNode* get_parent_of_ts_index(int index);
+
+    int compute_num_internal_nodes() const;
+
+    void
+    inorder(int offset, int current_indentation, utils::LogProxy& log) const;
+
+    bool is_leaf() const
+    {
         return !left_child && !right_child;
     }
 
-    bool has_two_leaf_children() const {
-        return left_child && right_child &&
-               left_child->is_leaf() && right_child->is_leaf();
+    bool has_two_leaf_children() const
+    {
+        return left_child && right_child && left_child->is_leaf() &&
+               right_child->is_leaf();
     }
 };
 
-enum class UpdateOption {
-    USE_FIRST,
-    USE_SECOND,
-    USE_RANDOM
+class MergeUpdateStrategy {
+public:
+    virtual ~MergeUpdateStrategy() = default;
+
+    virtual std::pair<MergeTreeNode*, MergeTreeNode*>
+    compute_surviving_removed_node(
+        MergeTreeNode* first_parent,
+        MergeTreeNode* second_parent) = 0;
+
+    virtual void dump_options(utils::LogProxy& log) = 0;
 };
+
+std::unique_ptr<MergeUpdateStrategy> create_merge_update_strategy_use_first();
+std::unique_ptr<MergeUpdateStrategy> create_merge_update_strategy_use_second();
+std::unique_ptr<MergeUpdateStrategy> create_merge_update_strategy_use_random(
+    std::shared_ptr<utils::RandomNumberGenerator> rng);
 
 /*
   This class manages a binary tree data structure (MergeTreeNode) that
@@ -79,23 +99,17 @@ enum class UpdateOption {
   future node representing the merge.
 */
 class MergeTree {
-    MergeTreeNode *root;
+    MergeTreeNode* root;
     std::shared_ptr<utils::RandomNumberGenerator> rng;
-    UpdateOption update_option;
-    /*
-      Find the two parents (can be the same) of the given indices. The first
-      one will correspond to a merge that would have been merged earlier in
-      the merge tree than the second one.
-    */
-    std::pair<MergeTreeNode *, MergeTreeNode *> get_parents_of_ts_indices(
-        const std::pair<int, int> &ts_indices, int new_index);
-    MergeTree() = delete;
+    std::shared_ptr<MergeUpdateStrategy> update_strategy;
+
 public:
     MergeTree(
-        MergeTreeNode *root,
-        const std::shared_ptr<utils::RandomNumberGenerator> &rng,
-        UpdateOption update_option);
+        MergeTreeNode* root,
+        std::shared_ptr<MergeUpdateStrategy> update_strategy);
+
     ~MergeTree();
+
     std::pair<int, int> get_next_merge(int new_index);
     /*
       Inform the merge tree about a merge that happened independently of
@@ -103,19 +117,31 @@ public:
     */
     void update(std::pair<int, int> merge, int new_index);
 
-    bool done() const {
+    bool done() const
+    {
         return root->is_leaf();
     }
 
-    int compute_num_internal_nodes() const {
+    int compute_num_internal_nodes() const
+    {
         return root->compute_num_internal_nodes();
     }
 
     // NOTE: this performs the "inverted" inorder_traversal, i.e. from right
     // to left, so that the printed tree matches the correct left-to-right
     // order.
-    void inorder_traversal(int indentation_offset, utils::LogProxy &log) const;
+    void inorder_traversal(int indentation_offset, utils::LogProxy& log) const;
+
+private:
+    /*
+      Find the two parents (can be the same) of the given indices. The first
+      one will correspond to a merge that would have been merged earlier in
+      the merge tree than the second one.
+    */
+    std::pair<MergeTreeNode*, MergeTreeNode*> get_parents_of_ts_indices(
+        const std::pair<int, int>& ts_indices,
+        int new_index);
 };
-}
+} // namespace downward::merge_and_shrink
 
 #endif

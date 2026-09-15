@@ -5,7 +5,7 @@
 #include "downward/abstract_task.h"
 #include "downward/state.h"
 
-#include "downward/task_utils/variable_order_finder.h"
+#include "downward/task_utils/variable_order.h"
 
 #include "downward/utils/logging.h"
 #include "downward/utils/math.h"
@@ -34,9 +34,10 @@ PatternGeneratorGreedy::compute_pattern(const SharedAbstractTask& task)
     const auto& variables = get_variables(task);
 
     Pattern pattern;
-    variable_order_finder::VariableOrderFinder order(
-        to_refs(task),
-        variable_order_finder::GOAL_CG_LEVEL);
+    variable_order::VariableOrder order =
+        variable_order::create_variable_order_goal_cg_level(
+            to_refs(task),
+            causal_graph::get_causal_graph(to_refs(task)));
 
     int size = 1;
     while (true) {

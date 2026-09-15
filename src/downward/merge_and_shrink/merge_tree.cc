@@ -145,13 +145,86 @@ void MergeTreeNode::inorder(
     }
 }
 
+namespace {
+class MergeUpdateStrategyUseFirst : public MergeUpdateStrategy {
+public:
+    std::pair<MergeTreeNode*, MergeTreeNode*> compute_surviving_removed_node(
+        MergeTreeNode* first_parent,
+        MergeTreeNode* second_parent) override
+    {
+        return {first_parent, second_parent};
+    }
+
+    void dump_options(utils::LogProxy& log) override
+    {
+        log << "use first";
+    }
+};
+
+class MergeUpdateStrategyUseSecond : public MergeUpdateStrategy {
+public:
+    std::pair<MergeTreeNode*, MergeTreeNode*> compute_surviving_removed_node(
+        MergeTreeNode* first_parent,
+        MergeTreeNode* second_parent) override
+    {
+        return {second_parent, first_parent};
+    }
+
+    void dump_options(utils::LogProxy& log) override
+    {
+        log << "use second";
+    }
+};
+
+class MergeUpdateStrategyUseRandom : public MergeUpdateStrategy {
+    std::shared_ptr<utils::RandomNumberGenerator> rng;
+
+public:
+    explicit MergeUpdateStrategyUseRandom(
+        std::shared_ptr<utils::RandomNumberGenerator> rng)
+        : rng(std::move(rng))
+    {
+    }
+
+    std::pair<MergeTreeNode*, MergeTreeNode*> compute_surviving_removed_node(
+        MergeTreeNode* first_parent,
+        MergeTreeNode* second_parent) override
+    {
+        if (rng->random(2)) {
+            return {first_parent, second_parent};
+        }
+
+        return {second_parent, first_parent};
+    }
+
+    void dump_options(utils::LogProxy& log) override
+    {
+        log << "use random";
+    }
+};
+} // namespace
+
+std::unique_ptr<MergeUpdateStrategy> create_merge_update_strategy_use_first()
+{
+    return std::make_unique<MergeUpdateStrategyUseFirst>();
+}
+
+std::unique_ptr<MergeUpdateStrategy> create_merge_update_strategy_use_second()
+{
+    return std::make_unique<MergeUpdateStrategyUseSecond>();
+}
+
+std::unique_ptr<MergeUpdateStrategy> create_merge_update_strategy_use_random(
+    std::shared_ptr<utils::RandomNumberGenerator> rng)
+{
+    return std::make_unique<MergeUpdateStrategyUseRandom>(std::move(rng));
+}
+
 MergeTree::MergeTree(
     MergeTreeNode* root,
-    const shared_ptr<utils::RandomNumberGenerator>& rng,
-    UpdateOption update_option)
+    std::shared_ptr<MergeUpdateStrategy> update_strategy)
     : root(root)
-    , rng(rng)
-    , update_option(update_option)
+    , update_strategy(std::move(update_strategy))
 {
 }
 
@@ -213,29 +286,17 @@ void MergeTree::update(pair<int, int> merge, int new_index)
     int ts_index1 = merge.first;
     int ts_index2 = merge.second;
     assert(root->ts_index != ts_index1 && root->ts_index != ts_index2);
-    pair<MergeTreeNode*, MergeTreeNode*> parents =
+
+    auto [first_parent, second_parent] =
         get_parents_of_ts_indices(merge, new_index);
-    MergeTreeNode* first_parent = parents.first;
-    MergeTreeNode* second_parent = parents.second;
 
     if (first_parent == second_parent) { // given merge already in the tree
         first_parent->erase_children_and_set_index(new_index);
     } else {
-        MergeTreeNode* surviving_node = nullptr;
-        MergeTreeNode* removed_node = nullptr;
-        if (update_option == UpdateOption::USE_FIRST) {
-            surviving_node = first_parent;
-            removed_node = second_parent;
-        } else if (update_option == UpdateOption::USE_SECOND) {
-            surviving_node = second_parent;
-            removed_node = first_parent;
-        } else if (update_option == UpdateOption::USE_RANDOM) {
-            int random = rng->random(2);
-            surviving_node = (random == 0 ? first_parent : second_parent);
-            removed_node = (random == 0 ? second_parent : first_parent);
-        } else {
-            throw utils::CriticalError("Unknown merge tree update option");
-        }
+        auto [surviving_node, removed_node] =
+            update_strategy->compute_surviving_removed_node(
+                first_parent,
+                second_parent);
 
         // Update the leaf node corresponding to one of the indices to
         // correspond to the merged index.
@@ -317,4 +378,4 @@ void MergeTree::inorder_traversal(int indentation_offset, utils::LogProxy& log)
     log << "Merge tree, read from left to right (90° rotated tree): " << endl;
     return root->inorder(indentation_offset, 0, log);
 }
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

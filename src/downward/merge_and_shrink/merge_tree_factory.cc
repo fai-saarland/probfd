@@ -11,9 +11,9 @@
 using namespace std;
 
 namespace downward::merge_and_shrink {
-MergeTreeFactory::MergeTreeFactory(int random_seed, UpdateOption update_option)
-    : rng(utils::get_rng(random_seed))
-    , update_option(update_option)
+MergeTreeFactory::MergeTreeFactory(
+    std::shared_ptr<MergeUpdateStrategy> merge_update_strategy)
+    : merge_update_strategy(std::move(merge_update_strategy))
 {
 }
 
@@ -22,11 +22,7 @@ void MergeTreeFactory::dump_options(utils::LogProxy& log) const
     log << "Merge tree options: " << endl;
     log << "Type: " << name() << endl;
     log << "Update option: ";
-    switch (update_option) {
-    case UpdateOption::USE_FIRST: log << "use first"; break;
-    case UpdateOption::USE_SECOND: log << "use second"; break;
-    case UpdateOption::USE_RANDOM: log << "use random"; break;
-    }
+    merge_update_strategy->dump_options(log);
     log << endl;
     dump_tree_specific_options(log);
 }

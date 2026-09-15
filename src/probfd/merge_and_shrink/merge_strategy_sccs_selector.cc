@@ -2,8 +2,6 @@
 
 #include "probfd/merge_and_shrink/factored_transition_system.h"
 #include "probfd/merge_and_shrink/merge_selector.h"
-#include "probfd/merge_and_shrink/merge_tree.h"
-#include "probfd/merge_and_shrink/merge_tree_factory.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
 #include <cassert>

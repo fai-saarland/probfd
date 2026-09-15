@@ -21,7 +21,7 @@ class State;
 class OperatorID;
 } // namespace downward
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 

@@ -5,16 +5,17 @@
 
 #include <memory>
 
-namespace probfd::merge_and_shrink {
+namespace downward::merge_and_shrink {
 class MergeTree;
 }
 
 namespace probfd::merge_and_shrink {
 class MergeStrategyPrecomputed : public MergeStrategy {
-    std::unique_ptr<MergeTree> merge_tree;
+    std::unique_ptr<downward::merge_and_shrink::MergeTree> merge_tree;
 
 public:
-    explicit MergeStrategyPrecomputed(std::unique_ptr<MergeTree> merge_tree);
+    explicit MergeStrategyPrecomputed(
+        std::unique_ptr<downward::merge_and_shrink::MergeTree> merge_tree);
 
     ~MergeStrategyPrecomputed() override;
 

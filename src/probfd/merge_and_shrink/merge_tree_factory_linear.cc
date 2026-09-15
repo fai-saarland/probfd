@@ -1,10 +1,14 @@
 #include "probfd/merge_and_shrink/merge_tree_factory_linear.h"
 
 #include "probfd/merge_and_shrink/factored_transition_system.h"
-#include "probfd/merge_and_shrink/merge_tree.h"
+#include "probfd/merge_and_shrink/task_variable_order_factory.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
 #include "probfd/tasks/determinization_task.h"
+
+#include "downward/merge_and_shrink/merge_tree.h"
+
+#include "downward/variable_space.h"
 
 #include <algorithm>
 
@@ -13,24 +17,23 @@ using namespace downward;
 
 namespace probfd::merge_and_shrink {
 
+using downward::merge_and_shrink::MergeTree;
+using downward::merge_and_shrink::MergeTreeNode;
+
 MergeTreeFactoryLinear::MergeTreeFactoryLinear(
-    int random_seed,
-    UpdateOption update_option,
-    variable_order_finder::VariableOrderType variable_order)
-    : MergeTreeFactory(random_seed, update_option)
-    , variable_order_type(variable_order)
+    std::shared_ptr<downward::merge_and_shrink::MergeUpdateStrategy>
+        merge_update_strategy,
+    std::shared_ptr<TaskVariableOrderFactory> variable_order_factory)
+    : MergeTreeFactory(std::move(merge_update_strategy))
+    , variable_order_factory(std::move(variable_order_factory))
 {
 }
 
-unique_ptr<MergeTree> MergeTreeFactoryLinear::compute_merge_tree(
-    const SharedProbabilisticTask& task)
+unique_ptr<downward::merge_and_shrink::MergeTree>
+MergeTreeFactoryLinear::compute_merge_tree(const SharedProbabilisticTask& task)
 {
-    const auto determinization = tasks::create_determinization_task(task);
-
-    variable_order_finder::VariableOrderFinder vof(
-        to_refs(determinization),
-        variable_order_type,
-        rng);
+    variable_order::VariableOrder vof =
+        variable_order_factory->create_variable_order(to_refs(task));
 
     auto* root = new MergeTreeNode(vof.next());
 
@@ -39,7 +42,7 @@ unique_ptr<MergeTree> MergeTreeFactoryLinear::compute_merge_tree(
         root = new MergeTreeNode(root, right_child);
     }
 
-    return std::make_unique<MergeTree>(root, rng, update_option);
+    return std::make_unique<MergeTree>(root, merge_update_strategy);
 }
 
 unique_ptr<MergeTree> MergeTreeFactoryLinear::compute_merge_tree(
@@ -47,9 +50,8 @@ unique_ptr<MergeTree> MergeTreeFactoryLinear::compute_merge_tree(
     const FactoredTransitionSystem& fts,
     const vector<int>& indices_subset)
 {
-    const auto determinization = tasks::create_determinization_task(task);
+    const auto& variables = get_variables(task);
 
-    const auto& variables = get_variables(determinization);
     /*
       Compute a mapping from state variables to transition system indices
       that contain those variables. Also set all indices not contained in
@@ -78,10 +80,8 @@ unique_ptr<MergeTree> MergeTreeFactoryLinear::compute_merge_tree(
      skipping all indices not in indices_subset, because these have been set
      to "used" above.
     */
-    variable_order_finder::VariableOrderFinder vof(
-        to_refs(determinization),
-        variable_order_type,
-        rng);
+    variable_order::VariableOrder vof =
+        variable_order_factory->create_variable_order(to_refs(task));
 
     int next_var;
     int ts_index;
@@ -108,7 +108,7 @@ unique_ptr<MergeTree> MergeTreeFactoryLinear::compute_merge_tree(
         }
     }
 
-    return std::make_unique<MergeTree>(root, rng, update_option);
+    return std::make_unique<MergeTree>(root, merge_update_strategy);
 }
 
 string MergeTreeFactoryLinear::name() const
@@ -120,7 +120,7 @@ void MergeTreeFactoryLinear::dump_tree_specific_options(
     utils::LogProxy& log) const
 {
     if (log.is_at_least_normal()) {
-        dump_variable_order_type(variable_order_type, log);
+        variable_order_factory->dump_options(log);
     }
 }
 

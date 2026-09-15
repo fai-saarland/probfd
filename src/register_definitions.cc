@@ -295,7 +295,7 @@ static void register_fast_downward_definitions(RawRegistry& raw_registry)
     merge_and_shrink::add_merge_strategy_factory_sccs_feature(raw_registry);
     merge_and_shrink::add_merge_strategy_factory_stateless_feature(
         raw_registry);
-    merge_and_shrink::add_merge_tree_factory_category(raw_registry);
+    merge_and_shrink::add_merge_tree_categories(raw_registry);
     merge_and_shrink::add_merge_tree_factory_linear_feature(raw_registry);
     merge_and_shrink::add_shrink_strategy_category(raw_registry);
     merge_and_shrink::add_shrink_bisimulation_feature(raw_registry);

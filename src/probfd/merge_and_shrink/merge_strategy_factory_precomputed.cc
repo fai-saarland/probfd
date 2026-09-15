@@ -1,8 +1,9 @@
 #include "probfd/merge_and_shrink/merge_strategy_factory_precomputed.h"
 
 #include "probfd/merge_and_shrink/merge_strategy_precomputed.h"
-#include "probfd/merge_and_shrink/merge_tree.h"
 #include "probfd/merge_and_shrink/merge_tree_factory.h"
+
+#include "downward/merge_and_shrink/merge_tree.h"
 
 using namespace std;
 using namespace downward;

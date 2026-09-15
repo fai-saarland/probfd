@@ -7,8 +7,7 @@ class RawRegistry;
 
 namespace downward::cli::merge_and_shrink {
 
-void add_merge_tree_factory_category(
-    language::plugins::RawRegistry& raw_registry);
+void add_merge_tree_categories(language::plugins::RawRegistry& raw_registry);
 
 }
 

@@ -3,7 +3,9 @@
 
 #include "downward/merge_and_shrink/merge_tree_factory.h"
 
-#include "downward/task_utils/variable_order_finder.h"
+namespace downward::variable_order {
+class TaskVariableOrderFactory;
+}
 
 namespace downward::utils {
 class RandomNumberGenerator;
@@ -11,8 +13,8 @@ class RandomNumberGenerator;
 
 namespace downward::merge_and_shrink {
 class MergeTreeFactoryLinear : public MergeTreeFactory {
-    variable_order_finder::VariableOrderType variable_order_type;
-    std::shared_ptr<utils::RandomNumberGenerator> rng;
+    std::shared_ptr<variable_order::TaskVariableOrderFactory>
+        variable_order_factory;
 
 protected:
     std::string name() const override;
@@ -20,9 +22,9 @@ protected:
 
 public:
     MergeTreeFactoryLinear(
-        variable_order_finder::VariableOrderType variable_order,
-        int random_seed,
-        UpdateOption update_option);
+        std::shared_ptr<variable_order::TaskVariableOrderFactory>
+            variable_order_factory,
+        std::shared_ptr<MergeUpdateStrategy> merge_update_strategy);
 
     std::unique_ptr<MergeTree>
     compute_merge_tree(const AbstractTaskTuple& task) override;
@@ -32,9 +34,15 @@ public:
         const FactoredTransitionSystem& fts,
         const std::vector<int>& indices_subset) override;
 
-    bool requires_init_distances() const override { return false; }
+    bool requires_init_distances() const override
+    {
+        return false;
+    }
 
-    bool requires_goal_distances() const override { return false; }
+    bool requires_goal_distances() const override
+    {
+        return false;
+    }
 };
 } // namespace downward::merge_and_shrink
 

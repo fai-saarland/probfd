@@ -8,38 +8,44 @@
 #include <tuple>
 #include <vector>
 
+namespace downward::merge_and_shrink {
+class MergeUpdateStrategy;
+class MergeTree;
+} // namespace downward::merge_and_shrink
+
 namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
-} // namespace utils
+} // namespace downward::utils
 
 namespace probfd::merge_and_shrink {
 class FactoredTransitionSystem;
-class MergeTree;
-enum class UpdateOption;
 } // namespace probfd::merge_and_shrink
 
 namespace probfd::merge_and_shrink {
 
 class MergeTreeFactory {
 protected:
-    std::shared_ptr<downward::utils::RandomNumberGenerator> rng;
-    UpdateOption update_option;
+    std::shared_ptr<downward::merge_and_shrink::MergeUpdateStrategy>
+        merge_update_strategy;
 
 public:
-    MergeTreeFactory(int random_seed, UpdateOption update_option);
+    explicit MergeTreeFactory(
+        std::shared_ptr<downward::merge_and_shrink::MergeUpdateStrategy>
+            merge_update_strategy);
 
     virtual ~MergeTreeFactory() = default;
 
     void dump_options(downward::utils::LogProxy& log) const;
 
     // Compute a merge tree for the given entire task.
-    virtual std::unique_ptr<MergeTree>
+    virtual std::unique_ptr<downward::merge_and_shrink::MergeTree>
     compute_merge_tree(const SharedProbabilisticTask& task) = 0;
 
     /* Compute a merge tree for the given current factored transition,
        system, possibly for a subset of indices. */
-    virtual std::unique_ptr<MergeTree> compute_merge_tree(
+    virtual std::unique_ptr<downward::merge_and_shrink::MergeTree>
+    compute_merge_tree(
         const SharedProbabilisticTask& task,
         const FactoredTransitionSystem& fts,
         const std::vector<int>& indices_subset);
@@ -50,7 +56,9 @@ public:
 protected:
     virtual std::string name() const = 0;
 
-    virtual void dump_tree_specific_options(downward::utils::LogProxy&) const {}
+    virtual void dump_tree_specific_options(downward::utils::LogProxy&) const
+    {
+    }
 };
 
 } // namespace probfd::merge_and_shrink

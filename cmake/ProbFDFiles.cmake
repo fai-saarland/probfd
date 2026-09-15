@@ -381,7 +381,6 @@ create_library(
     probfd/merge_and_shrink/merge_strategy_sccs_selector
     probfd/merge_and_shrink/merge_strategy_sccs_tree
         probfd/merge_and_shrink/merge_strategy_stateless
-        probfd/merge_and_shrink/merge_tree
         probfd/merge_and_shrink/merge_tree_factory
         probfd/merge_and_shrink/merge_tree_factory_linear
         probfd/merge_and_shrink/shrink_strategy
@@ -393,6 +392,7 @@ create_library(
         probfd/merge_and_shrink/prune_strategy_identity
         probfd/merge_and_shrink/prune_strategy_alive
         probfd/merge_and_shrink/prune_strategy_solvable
+    probfd/merge_and_shrink/task_variable_order_factory
         probfd/merge_and_shrink/transition_system
         probfd/merge_and_shrink/transition
         probfd/merge_and_shrink/types
@@ -404,7 +404,7 @@ create_library(
         equivalence_relation
         sccs
         task_properties
-        variable_order_finder
+    variable_order
 )
 
 create_library(

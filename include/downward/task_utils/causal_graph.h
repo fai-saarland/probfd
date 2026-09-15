@@ -79,8 +79,6 @@ public:
         const AxiomSpace& axioms,
         const ClassicalOperatorSpace& operators);
 
-    ~CausalGraph();
-
     /*
       All below methods querying neighbors (of some sort or other) of
       var guarantee that:

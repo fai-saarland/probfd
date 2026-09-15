@@ -15,18 +15,21 @@ class RandomNumberGenerator;
 namespace downward::merge_and_shrink {
 class FactoredTransitionSystem;
 class MergeTree;
-enum class UpdateOption;
+class MergeUpdateStrategy;
 
 class MergeTreeFactory {
 protected:
-    std::shared_ptr<utils::RandomNumberGenerator> rng;
-    UpdateOption update_option;
+    std::shared_ptr<MergeUpdateStrategy> merge_update_strategy;
+
     virtual std::string name() const = 0;
 
-    virtual void dump_tree_specific_options(utils::LogProxy&) const {}
+    virtual void dump_tree_specific_options(utils::LogProxy&) const
+    {
+    }
 
 public:
-    MergeTreeFactory(int random_seed, UpdateOption update_option);
+    explicit MergeTreeFactory(
+        std::shared_ptr<MergeUpdateStrategy> merge_update_strategy);
 
     virtual ~MergeTreeFactory() = default;
 

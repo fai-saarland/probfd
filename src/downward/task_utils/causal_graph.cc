@@ -194,10 +194,6 @@ CausalGraph::CausalGraph(
     cg_builder.succ_builder.compute_relation(successors);
 }
 
-CausalGraph::~CausalGraph()
-{
-}
-
 void CausalGraph::dump(const VariableSpace& variables, utils::LogProxy log)
     const
 {

@@ -3,38 +3,48 @@
 
 #include "probfd/merge_and_shrink/merge_tree_factory.h"
 
-#include "downward/task_utils/variable_order_finder.h"
+#include "downward/task_utils/variable_order.h"
 
 namespace downward::utils {
 class RandomNumberGenerator;
 }
 
 namespace probfd::merge_and_shrink {
+class TaskVariableOrderFactory;
+}
+
+namespace probfd::merge_and_shrink {
 
 class MergeTreeFactoryLinear : public MergeTreeFactory {
-    downward::variable_order_finder::VariableOrderType variable_order_type;
-    std::shared_ptr<downward::utils::RandomNumberGenerator> rng;
+    std::shared_ptr<TaskVariableOrderFactory> variable_order_factory;
 
 public:
     MergeTreeFactoryLinear(
-        int random_seed,
-        UpdateOption update_option,
-        downward::variable_order_finder::VariableOrderType variable_order);
+        std::shared_ptr<downward::merge_and_shrink::MergeUpdateStrategy>
+            merge_update_strategy,
+        std::shared_ptr<TaskVariableOrderFactory> variable_order_factory);
 
-    std::unique_ptr<MergeTree>
+    std::unique_ptr<downward::merge_and_shrink::MergeTree>
     compute_merge_tree(const SharedProbabilisticTask& task) override;
 
-    std::unique_ptr<MergeTree> compute_merge_tree(
+    std::unique_ptr<downward::merge_and_shrink::MergeTree> compute_merge_tree(
         const SharedProbabilisticTask& task,
         const FactoredTransitionSystem& fts,
         const std::vector<int>& indices_subset) override;
 
-    bool requires_liveness() const override { return false; }
+    bool requires_liveness() const override
+    {
+        return false;
+    }
 
-    bool requires_goal_distances() const override { return false; }
+    bool requires_goal_distances() const override
+    {
+        return false;
+    }
 
 protected:
     std::string name() const override;
+
     void
     dump_tree_specific_options(downward::utils::LogProxy& log) const override;
 };

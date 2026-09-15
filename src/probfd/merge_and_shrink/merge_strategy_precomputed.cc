@@ -1,7 +1,8 @@
 #include "probfd/merge_and_shrink/merge_strategy_precomputed.h"
 
 #include "probfd/merge_and_shrink/factored_transition_system.h"
-#include "probfd/merge_and_shrink/merge_tree.h"
+
+#include "downward/merge_and_shrink/merge_tree.h"
 
 #include <cassert>
 
@@ -11,7 +12,7 @@ using namespace downward;
 namespace probfd::merge_and_shrink {
 
 MergeStrategyPrecomputed::MergeStrategyPrecomputed(
-    unique_ptr<MergeTree> merge_tree)
+    unique_ptr<downward::merge_and_shrink::MergeTree> merge_tree)
     : merge_tree(std::move(merge_tree))
 {
 }
