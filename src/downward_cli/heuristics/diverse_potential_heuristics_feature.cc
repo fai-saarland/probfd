@@ -12,6 +12,7 @@
 #include "downward/potentials/potential_max_heuristic.h"
 
 #include "downward/utils/logging.h"
+#include "downward/utils/validation.h"
 
 #include "downward/tasks/root_task.h"
 
@@ -40,7 +41,7 @@ class DiversePotentialMaxHeuristicFactory
     int max_num_heuristics;
     double max_potential;
     lp::LPSolverType lp_solver;
-    int random_seed;
+    std::shared_ptr<RandomNumberGenerator> rng;
 
 public:
     DiversePotentialMaxHeuristicFactory(
@@ -52,7 +53,7 @@ public:
         int max_num_heuristics,
         double max_potential,
         lp::LPSolverType lp_solver,
-        int random_seed)
+        std::shared_ptr<RandomNumberGenerator> rng)
         : transformation(std::move(transformation))
         , cache_estimates(cache_estimates)
         , description(std::move(description))
@@ -61,8 +62,13 @@ public:
         , max_num_heuristics(max_num_heuristics)
         , max_potential(max_potential)
         , lp_solver(lp_solver)
-        , random_seed(random_seed)
+        , rng(std::move(rng))
     {
+        utils::validate_param_non_negative("max_potential", max_potential);
+        utils::validate_param_non_negative("num_samples", num_samples);
+        utils::validate_param_non_negative(
+            "max_num_heuristics",
+            max_num_heuristics);
     }
 
     unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
@@ -75,7 +81,7 @@ public:
             max_potential,
             lp_solver,
             transformation_result.transformed_task,
-            random_seed,
+            rng,
             verbosity);
         auto functions = dph.find_functions();
 
@@ -99,16 +105,11 @@ public:
         document_title("Diverse potential heuristics");
         document_synopsis(get_admissible_potentials_reference());
 
-        add_option<int>(
-            "num_samples",
-            "Number of states to sample",
-            "1000",
-            Bounds("0", "infinity"));
+        add_option<int>("num_samples", "Number of states to sample", "1000");
         add_option<int>(
             "max_num_heuristics",
             "maximum number of potential heuristics",
-            "infinity",
-            Bounds("0", "infinity"));
+            "infinity");
         add_admissible_potentials_options_to_feature(
             *this,
             "diverse_potentials");
@@ -118,7 +119,7 @@ public:
     shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const Context& context) const override
     {
-        return make_shared<DiversePotentialMaxHeuristicFactory>(
+        return make_shared_from_arg_tuples<DiversePotentialMaxHeuristicFactory>(
             opts.get<shared_ptr<TaskTransformation>>(context, "transform"),
             opts.get<bool>(context, "cache_estimates"),
             opts.get<string>(context, "description"),
@@ -127,7 +128,7 @@ public:
             opts.get<int>(context, "max_num_heuristics"),
             opts.get<double>(context, "max_potential"),
             opts.get<lp::LPSolverType>(context, "lpsolver"),
-            opts.get<int>(context, "random_seed"));
+            get_rng_arguments_from_options(context, opts));
     }
 };
 } // namespace

@@ -52,7 +52,7 @@ protected:
 public:
     explicit TypeBasedOpenList(
         const std::vector<std::shared_ptr<Evaluator>>& evaluators,
-        int random_seed);
+        std::shared_ptr<utils::RandomNumberGenerator> rng);
 
     virtual Entry remove_min() override;
     virtual bool empty() const override;
@@ -90,9 +90,9 @@ void TypeBasedOpenList<Entry>::do_insertion(
 template <class Entry>
 TypeBasedOpenList<Entry>::TypeBasedOpenList(
     const std::vector<std::shared_ptr<Evaluator>>& evaluators,
-    int random_seed)
+    std::shared_ptr<utils::RandomNumberGenerator> rng)
     : evaluators(evaluators)
-    , rng(utils::get_rng(random_seed))
+    , rng(std::move(rng))
 {
 }
 
@@ -166,21 +166,21 @@ void TypeBasedOpenList<Entry>::get_path_dependent_evaluators(
 template <typename T>
 class TypeBasedOpenListFactory : public TaskDependentFactory<OpenList<T>> {
     std::vector<std::shared_ptr<Evaluator>> evaluators;
-    int random_seed;
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng;
 
 public:
     TypeBasedOpenListFactory(
         const std::vector<std::shared_ptr<Evaluator>>& evaluators,
-        int random_seed)
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng)
         : evaluators(evaluators)
-        , random_seed(random_seed)
+        , rng(std::move(rng))
     {
     }
 
     std::unique_ptr<OpenList<T>>
     create_object(const SharedAbstractTask&) override
     {
-        return std::make_unique<TypeBasedOpenList<T>>(evaluators, random_seed);
+        return std::make_unique<TypeBasedOpenList<T>>(evaluators, rng);
     }
 };
 } // namespace downward::type_based_open_list

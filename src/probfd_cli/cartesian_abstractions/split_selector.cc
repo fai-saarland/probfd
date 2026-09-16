@@ -37,8 +37,8 @@ public:
     std::shared_ptr<SplitSelectorFactory>
     create_component(const Options& opts, const Context& context) const override
     {
-        return make_shared_from_arg_tuples<SplitSelectorRandomFactory>(get_rng(
-            std::get<0>(get_rng_arguments_from_options(context, opts))));
+        return make_shared_from_arg_tuples<SplitSelectorRandomFactory>(
+            get_rng_arguments_from_options(context, opts));
     }
 };
 

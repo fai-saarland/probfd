@@ -8,6 +8,7 @@
 #include "downward/evaluators/const_evaluator.h"
 
 #include "downward/utils/logging.h"
+#include "downward/utils/validation.h"
 
 #include "downward/task_dependent_factory.h"
 
@@ -37,6 +38,7 @@ public:
         , verbosity(verbosity)
         , value(value)
     {
+        utils::validate_param_non_negative("value", value);
     }
 
     unique_ptr<Evaluator> create_object(const SharedAbstractTask&) override
@@ -55,11 +57,7 @@ public:
         document_title("Constant evaluator");
         document_synopsis("Returns a constant value.");
 
-        add_option<int>(
-            "value",
-            "the constant value",
-            "1",
-            Bounds("0", "infinity"));
+        add_option<int>("value", "the constant value", "1");
         add_evaluator_options_to_feature(*this, "const");
     }
 

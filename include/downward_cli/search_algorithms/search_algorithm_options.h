@@ -25,6 +25,10 @@ class Options;
 class Feature;
 } // namespace language::plugins
 
+namespace downward::utils {
+class RandomNumberGenerator;
+}
+
 namespace downward::cli {
 
 extern void
@@ -52,9 +56,11 @@ get_search_algorithm_arguments_from_options(
 extern void
 add_successors_order_options_to_feature(language::plugins::Feature& feature);
 
-extern std::tuple<bool, bool, int> get_successors_order_arguments_from_options(
-    const language::Context& context,
-    const language::plugins::Options& opts);
+extern std::
+    tuple<bool, bool, std::shared_ptr<downward::utils::RandomNumberGenerator>>
+    get_successors_order_arguments_from_options(
+        const language::Context& context,
+        const language::plugins::Options& opts);
 
 } // namespace downward::cli
 

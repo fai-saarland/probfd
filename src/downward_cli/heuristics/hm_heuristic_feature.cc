@@ -8,6 +8,7 @@
 #include "downward/heuristics/hm_heuristic.h"
 
 #include "downward/utils/logging.h"
+#include "downward/utils/validation.h"
 
 #include "downward/task_dependent_factory.h"
 #include "downward/task_transformation.h"
@@ -44,6 +45,7 @@ public:
         , verbosity(verbosity)
         , m(m)
     {
+        utils::validate_param_geq("m", m, 1);
     }
 
     unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
@@ -67,7 +69,7 @@ public:
     {
         document_title("h^m heuristic");
 
-        add_option<int>("m", "subset size", "2", Bounds("1", "infinity"));
+        add_option<int>("m", "subset size", "2");
         add_heuristic_options_to_feature(*this, "hm");
 
         document_language_support("action costs", "supported");

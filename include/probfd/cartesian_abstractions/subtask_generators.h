@@ -63,7 +63,9 @@ class GoalDecomposition : public SubtaskGenerator {
     std::shared_ptr<downward::utils::RandomNumberGenerator> rng_;
 
 public:
-    explicit GoalDecomposition(FactOrder order, int random_seed);
+    explicit GoalDecomposition(
+        FactOrder order,
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng);
 
     SharedTasks get_subtasks(
         const SharedProbabilisticTask& task,
@@ -87,7 +89,7 @@ public:
             downward::MutexInformation>> mutex_factory,
         FactOrder order,
         bool combine_facts,
-        int random_seed);
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng);
 
     SharedTasks get_subtasks(
         const SharedProbabilisticTask& task,

@@ -132,12 +132,11 @@ LabelReduction::LabelReduction(
     bool before_merging,
     LabelReductionMethod method,
     LabelReductionSystemOrder system_order,
-    int random_seed)
+    utils::RandomNumberGenerator& rng)
     : lr_before_shrinking(before_shrinking)
     , lr_before_merging(before_merging)
     , lr_method(method)
     , lr_system_order(system_order)
-    , rng(utils::get_rng(random_seed))
 {
     const VariableSpace& variables = get_variables(task);
 
@@ -150,7 +149,7 @@ LabelReduction::LabelReduction(
         for (int i = 0; i < max_transition_system_count; ++i)
             transition_system_order.push_back(i);
         if (lr_system_order == LabelReductionSystemOrder::RANDOM) {
-            rng->shuffle(transition_system_order);
+            rng.shuffle(transition_system_order);
         }
     } else {
         assert(lr_system_order == LabelReductionSystemOrder::REVERSE);

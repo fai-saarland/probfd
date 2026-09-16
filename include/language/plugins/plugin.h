@@ -46,8 +46,7 @@ public:
     void add_option(
         const std::string& key,
         const std::string& help = "",
-        const std::string& default_value = "",
-        const Bounds& bounds = Bounds::unlimited());
+        const std::string& default_value = "");
 
     template <typename T>
     void add_list_option(
@@ -81,11 +80,9 @@ public:
 
 template <typename ReturnType>
 class TypedFeature : public Feature {
-    using BasePtr = std::shared_ptr<ReturnType>;
-
 public:
     explicit TypedFeature(const std::string& key)
-        : Feature(TypeRegistry::instance()->get_type<BasePtr>(), key)
+        : Feature(TypeRegistry::instance()->get_type<ReturnType>(), key)
     {
     }
 
@@ -236,8 +233,7 @@ template <typename T>
 void Feature::add_option(
     const std::string& key,
     const std::string& help,
-    const std::string& default_value,
-    const Bounds& bounds)
+    const std::string& default_value)
 {
     using U = std::conditional_t<
         std::is_same_v<T, std::chrono::duration<double>>,
@@ -248,8 +244,7 @@ void Feature::add_option(
         key,
         help,
         TypeRegistry::instance()->get_type<U>(),
-        default_value,
-        bounds);
+        default_value);
 }
 
 template <typename T>
@@ -263,7 +258,7 @@ void Feature::add_list_option(
         double,
         T>;
 
-    add_option<std::vector<U>>(key, help, default_value, Bounds::unlimited());
+    add_option<std::vector<U>>(key, help, default_value);
 }
 } // namespace language::plugins
 

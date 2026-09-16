@@ -5,14 +5,19 @@
 
 #include <memory>
 
+namespace downward::utils {
+class RandomNumberGenerator;
+}
+
 namespace probfd::merge_and_shrink {
 
 class MergeScoringFunctionFactorySingleRandom
     : public MergeScoringFunctionFactory {
-    int random_seed;
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng;
 
 public:
-    explicit MergeScoringFunctionFactorySingleRandom(int random_seed);
+    explicit MergeScoringFunctionFactorySingleRandom(
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng);
 
     std::unique_ptr<MergeScoringFunction>
     compute_scoring_function(const FactoredTransitionSystem& fts) override;

@@ -18,6 +18,7 @@
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
 #include "downward/utils/timer.h"
+#include "downward/utils/validation.h"
 
 #include <algorithm>
 #include <cassert>
@@ -28,10 +29,13 @@
 using namespace std;
 
 namespace downward::pdbs {
+
+namespace {
 /* Since this exception class is only used for control flow and thus has no need
    for an error message, we use a standalone class instead of inheriting from
    utils::Exception. */
 class HillClimbingTimeout {};
+} // namespace
 
 static vector<int> get_goal_variables(const GoalFactList& goals)
 {
@@ -118,7 +122,7 @@ PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(
     int num_samples,
     int min_improvement,
     utils::FSeconds max_time,
-    int random_seed,
+    std::shared_ptr<utils::RandomNumberGenerator> rng,
     utils::Verbosity verbosity)
     : PatternCollectionGenerator(verbosity)
     , pdb_max_size(pdb_max_size)
@@ -126,10 +130,15 @@ PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(
     , num_samples(num_samples)
     , min_improvement(min_improvement)
     , max_time(max_time)
-    , rng(utils::get_rng(random_seed))
+    , rng(std::move(rng))
     , num_rejected(0)
     , hill_climbing_timer(nullptr)
 {
+    utils::validate_param_geq("pdb_max_size", pdb_max_size, 1);
+    utils::validate_param_geq("collection_max_size", collection_max_size, 1);
+    utils::validate_param_geq("num_samples", num_samples, 1);
+    utils::validate_param_geq("min_improvement", min_improvement, 1);
+    utils::validate_param_non_negative("max_time", max_time.count());
 }
 
 PatternCollectionGeneratorHillclimbing::

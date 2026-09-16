@@ -7,11 +7,18 @@ namespace probfd::merge_and_shrink {
 
 class ShrinkStrategyRandom : public ShrinkStrategyBucketBased {
 public:
-    explicit ShrinkStrategyRandom(int random_seed);
+    explicit ShrinkStrategyRandom(
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng);
 
-    bool requires_liveness() const override { return false; }
+    bool requires_liveness() const override
+    {
+        return false;
+    }
 
-    bool requires_goal_distances() const override { return false; }
+    bool requires_goal_distances() const override
+    {
+        return false;
+    }
 
 protected:
     std::vector<Bucket> partition_into_buckets(

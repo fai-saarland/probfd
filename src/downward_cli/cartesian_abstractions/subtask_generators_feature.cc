@@ -36,7 +36,8 @@ void add_fact_order_option(Feature& feature)
     add_rng_options_to_feature(feature);
 }
 
-tuple<FactOrder, int> get_fact_order_arguments_from_options(
+tuple<FactOrder, std::shared_ptr<downward::utils::RandomNumberGenerator>>
+get_fact_order_arguments_from_options(
     const Context& context,
     const Options& opts)
 {
@@ -50,11 +51,7 @@ public:
     TaskDuplicatorFeature()
         : TypedFeature("original")
     {
-        add_option<int>(
-            "copies",
-            "number of task copies",
-            "1",
-            Bounds("1", "infinity"));
+        add_option<int>("copies", "number of task copies", "1");
     }
 
     shared_ptr<SubtaskGenerator>

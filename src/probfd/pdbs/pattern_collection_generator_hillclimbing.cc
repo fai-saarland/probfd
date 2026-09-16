@@ -23,6 +23,7 @@
 #include "downward/utils/logging.h"
 #include "downward/utils/math.h"
 #include "downward/utils/timer.h"
+#include "downward/utils/validation.h"
 
 #include <algorithm>
 #include <cassert>
@@ -40,7 +41,9 @@ static std::vector<int> get_goal_variables(const GoalFactList& goals)
 {
     std::vector<int> goal_vars;
     goal_vars.reserve(goals.size());
-    for (FactPair goal : goals) { goal_vars.push_back(goal.var); }
+    for (FactPair goal : goals) {
+        goal_vars.push_back(goal.var);
+    }
     assert(utils::is_sorted_unique(goal_vars));
     return goal_vars;
 }
@@ -49,7 +52,9 @@ static unsigned long long compute_total_pdb_size(const PPDBCollection& pdbs)
 {
     unsigned long long size = 0;
 
-    for (const auto& pdb : pdbs) { size += pdb->num_states(); }
+    for (const auto& pdb : pdbs) {
+        size += pdb->num_states();
+    }
 
     return size;
 }
@@ -343,7 +348,9 @@ bool PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::
 {
     const value_t h_pattern = pdb.lookup_estimate(sample.state);
 
-    if (h_pattern == termination_cost) { return true; }
+    if (h_pattern == termination_cost) {
+        return true;
+    }
 
     // h_collection: h-value of the current collection heuristic
     const value_t h_collection = sample.h;
@@ -403,6 +410,15 @@ PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(
     , remaining_states_(search_space_max_size)
     , num_rejected_(0)
 {
+    utils::validate_param_geq("pdb_max_size", pdb_max_size_, 1);
+    utils::validate_param_geq("collection_max_size", collection_max_size_, 1);
+    utils::validate_param_geq(
+        "search_space_max_size",
+        search_space_max_size,
+        1);
+    utils::validate_param_geq("num_samples", num_samples_, 1);
+    utils::validate_param_geq("min_improvement", min_improvement_, 1);
+    utils::validate_param_geq("max_time", max_time_.count(), 1);
 }
 
 PatternCollectionGeneratorHillclimbing::
@@ -462,7 +478,9 @@ unsigned int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
 
             DynamicBitset bitset = DynamicBitset::zeros(variables.size());
 
-            for (int var : pattern) { bitset.set(static_cast<size_t>(var)); }
+            for (int var : pattern) {
+                bitset.set(static_cast<size_t>(var));
+            }
 
             bitset.set(static_cast<size_t>(rel_var_id));
 
@@ -705,7 +723,9 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
                 }
             }
 
-            if (initial_dead) { break; }
+            if (initial_dead) {
+                break;
+            }
 
             sample_states(
                 initial_state,

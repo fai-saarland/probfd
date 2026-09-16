@@ -208,22 +208,5 @@ public:
         const override;
 };
 
-class DecoratedCheckBoundsExpression : public DecoratedExpression {
-    std::unique_ptr<DecoratedExpression> value;
-    std::unique_ptr<DecoratedExpression> min_value;
-    std::unique_ptr<DecoratedExpression> max_value;
-
-public:
-    DecoratedCheckBoundsExpression(
-        std::unique_ptr<DecoratedExpression> value,
-        std::unique_ptr<DecoratedExpression> min_value,
-        std::unique_ptr<DecoratedExpression> max_value);
-
-    std::any construct(ConstructContext& context) const override;
-
-    void print(std::ostream& out, std::size_t indent, bool print_default_args)
-        const override;
-};
-
 } // namespace language::parser
 #endif

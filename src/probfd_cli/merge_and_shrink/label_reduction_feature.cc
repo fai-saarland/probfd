@@ -30,7 +30,7 @@ class DefaultLabelReductionFactory : public LabelReductionFactory {
     bool before_merging;
     LabelReductionMethod method;
     LabelReductionSystemOrder system_order;
-    int random_seed;
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng;
 
 public:
     DefaultLabelReductionFactory(
@@ -38,12 +38,12 @@ public:
         bool before_merging,
         LabelReductionMethod method,
         LabelReductionSystemOrder system_order,
-        int random_seed)
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng)
         : before_shrinking(before_shrinking)
         , before_merging(before_merging)
         , method(method)
         , system_order(system_order)
-        , random_seed(random_seed)
+        , rng(std::move(rng))
     {
     }
 
@@ -56,7 +56,7 @@ public:
             before_merging,
             method,
             system_order,
-            random_seed);
+            *rng);
     }
 
     void dump_options(utils::LogProxy& log) const override

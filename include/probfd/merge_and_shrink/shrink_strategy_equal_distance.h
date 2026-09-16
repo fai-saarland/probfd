@@ -26,11 +26,19 @@ private:
     const Priority h_start;
 
 public:
-    ShrinkStrategyEqualDistance(int random_seed, Priority high_low);
+    ShrinkStrategyEqualDistance(
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng,
+        Priority high_low);
 
-    bool requires_liveness() const override { return false; }
+    bool requires_liveness() const override
+    {
+        return false;
+    }
 
-    bool requires_goal_distances() const override { return true; }
+    bool requires_goal_distances() const override
+    {
+        return true;
+    }
 
 protected:
     std::string name() const override;

@@ -33,7 +33,7 @@ public:
     generate(const SharedProbabilisticTask& task) override;
 
 private:
-    void enqueue_pattern_if_new(
+    static void enqueue_pattern_if_new(
         const Pattern& pattern,
         PatternCollection& patterns,
         PatternSet& pattern_set);
@@ -42,7 +42,7 @@ private:
         const downward::GoalFactList& goals,
         const causal_graph::ProbabilisticCausalGraph& cg,
         PatternCollection& patterns,
-        PatternSet& pattern_set);
+        PatternSet& pattern_set) const;
 
     void build_patterns(
         const downward::VariableSpace& variables,

@@ -10,6 +10,7 @@
 #include "downward/potentials/potential_optimizer.h"
 
 #include "downward/utils/system.h"
+#include "downward/utils/validation.h"
 
 #include "downward/tasks/root_task.h"
 
@@ -77,6 +78,7 @@ public:
         , lp_solver(lp_solver)
         , mode(mode)
     {
+        utils::validate_param_non_negative("max_potential", max_potential);
     }
 
     unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override

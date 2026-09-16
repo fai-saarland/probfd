@@ -16,8 +16,11 @@
 using namespace std;
 
 namespace downward::merge_and_shrink {
-ShrinkFH::ShrinkFH(HighLow shrink_f, HighLow shrink_h, int random_seed)
-    : ShrinkBucketBased(random_seed)
+ShrinkFH::ShrinkFH(
+    HighLow shrink_f,
+    HighLow shrink_h,
+    std::shared_ptr<utils::RandomNumberGenerator> rng)
+    : ShrinkBucketBased(std::move(rng))
     , f_start(shrink_f)
     , h_start(shrink_h)
 {
@@ -202,4 +205,4 @@ void ShrinkFH::dump_strategy_specific_options(utils::LogProxy& log) const
     }
 }
 
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

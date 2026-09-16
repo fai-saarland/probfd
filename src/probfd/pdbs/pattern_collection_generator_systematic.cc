@@ -10,6 +10,7 @@
 #include "downward/task_utils/causal_graph.h"
 
 #include "downward/utils/logging.h"
+#include "downward/utils/validation.h"
 
 #include "downward/goal_fact_list.h"
 
@@ -33,7 +34,8 @@ patterns_are_disjoint(const Pattern& pattern1, const Pattern& pattern2)
         int val2 = pattern2[j];
         if (val1 == val2)
             return false;
-        else if (val1 < val2)
+
+        if (val1 < val2)
             ++i;
         else
             ++j;
@@ -47,12 +49,7 @@ static void compute_union_pattern(
 {
     result.clear();
     result.reserve(pattern1.size() + pattern2.size());
-    set_union(
-        pattern1.begin(),
-        pattern1.end(),
-        pattern2.begin(),
-        pattern2.end(),
-        back_inserter(result));
+    std::ranges::set_union(pattern1, pattern2, back_inserter(result));
 }
 
 PatternCollectionGeneratorSystematic::PatternCollectionGeneratorSystematic(
@@ -63,6 +60,7 @@ PatternCollectionGeneratorSystematic::PatternCollectionGeneratorSystematic(
     , max_pattern_size(pattern_max_size)
     , only_interesting_patterns(only_interesting_patterns)
 {
+    utils::validate_param_geq("pattern_max_size", pattern_max_size, 1);
 }
 
 static void compute_eff_pre_neighbors(
@@ -82,7 +80,9 @@ static void compute_eff_pre_neighbors(
     }
 
     // Remove elements of pattern.
-    for (int var : pattern) { candidates.erase(var); }
+    for (int var : pattern) {
+        candidates.erase(var);
+    }
 
     result.assign(candidates.begin(), candidates.end());
 }
@@ -140,7 +140,7 @@ void PatternCollectionGeneratorSystematic::build_sga_patterns(
     const GoalFactList& goals,
     const causal_graph::ProbabilisticCausalGraph& cg,
     PatternCollection& patterns,
-    PatternSet& pattern_set)
+    PatternSet& pattern_set) const
 {
     assert(max_pattern_size >= 1);
     assert(pattern_set.empty());

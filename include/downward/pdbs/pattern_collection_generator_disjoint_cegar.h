@@ -30,7 +30,7 @@ public:
         int max_collection_size,
         utils::FSeconds max_time,
         bool use_wildcard_plans,
-        int random_seed,
+        std::shared_ptr<utils::RandomNumberGenerator> rng,
         utils::Verbosity verbosity);
 };
 } // namespace downward::pdbs

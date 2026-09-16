@@ -8,6 +8,7 @@
 #include "probfd/task_heuristic_factory.h"
 
 #include "downward/utils/logging.h"
+#include "downward/utils/validation.h"
 
 #include <cassert>
 #include <ostream>
@@ -61,10 +62,12 @@ AdditiveCartesianHeuristicFactory::AdditiveCartesianHeuristicFactory(
     , use_general_costs(use_general_costs)
     , log_(get_log_for_verbosity(verbosity))
 {
+    utils::validate_param_geq("max_states", max_states, 1);
+    utils::validate_param_non_negative("max_transitions", max_transitions);
+    utils::validate_param_non_negative("max_time", max_time.count());
 }
 
-std::unique_ptr<FDRHeuristic>
-AdditiveCartesianHeuristicFactory::create_object(
+std::unique_ptr<FDRHeuristic> AdditiveCartesianHeuristicFactory::create_object(
     const SharedProbabilisticTask& task)
 {
     if (log_.is_at_least_normal()) {

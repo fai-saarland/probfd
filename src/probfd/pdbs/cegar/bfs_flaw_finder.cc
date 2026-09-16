@@ -7,14 +7,15 @@
 #include "probfd/pdbs/projection_state_space.h"
 
 #include "probfd/multi_policy.h"
+#include "probfd/probabilistic_operator_space.h"
 #include "probfd/probabilistic_task.h"
 
 #include "probfd/utils/guards.h"
 
 #include "downward/utils/countdown_timer.h"
+#include "downward/utils/validation.h"
 
 #include "downward/state_registry.h"
-#include "probfd/probabilistic_operator_space.h"
 
 #include <cassert>
 #include <utility>
@@ -30,6 +31,7 @@ BFSFlawFinder::BFSFlawFinder(int max_search_states)
     : closed_(false)
     , max_search_states_(max_search_states)
 {
+    utils::validate_param_non_negative("max_search_states", max_search_states_);
 }
 
 bool BFSFlawFinder::apply_policy(
@@ -99,7 +101,9 @@ bool BFSFlawFinder::apply_policy(
                     local_flaws,
                     accept_flaw);
 
-                if (flaw_suppressed) { any_flaw_suppressed = true; }
+                if (flaw_suppressed) {
+                    any_flaw_suppressed = true;
+                }
 
                 // was a flaw added?
                 if (s != local_flaws.size()) {

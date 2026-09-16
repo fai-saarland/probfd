@@ -11,8 +11,9 @@
 using namespace std;
 
 namespace downward::merge_and_shrink {
-ShrinkBucketBased::ShrinkBucketBased(int random_seed)
-    : rng(utils::get_rng(random_seed))
+ShrinkBucketBased::ShrinkBucketBased(
+    std::shared_ptr<utils::RandomNumberGenerator> rng)
+    : rng(std::move(rng))
 {
 }
 
@@ -105,4 +106,4 @@ StateEquivalenceRelation ShrinkBucketBased::compute_equivalence_relation(
     return compute_abstraction(buckets, target_size, log);
 }
 
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

@@ -7,6 +7,7 @@
 #include "downward/merge_and_shrink/transition_system.h"
 
 #include "downward/utils/logging.h"
+#include "downward/utils/validation.h"
 
 #include "downward/abstract_task.h"
 #include "downward/state.h"
@@ -27,6 +28,22 @@ MergeScoringFunctionMIASM::MergeScoringFunctionMIASM(
     , shrink_threshold_before_merge(threshold_before_merge)
     , silent_log(utils::get_silent_log())
 {
+    utils::validate_param_gt(
+        "max_states_before_merge",
+        max_states_before_merge,
+        0);
+
+    if (max_states >= max_states_before_merge) {
+        throw std::invalid_argument(
+            "Argument 'max_states' must be >= argument "
+            "'max_states_before_merge'");
+    }
+
+    if (shrink_threshold_before_merge <= max_states_before_merge) {
+        throw std::invalid_argument(
+            "Argument 'shrink_threshold_before_merge' must be <= argument "
+            "'max_states_before_merge'");
+    }
 }
 
 vector<double> MergeScoringFunctionMIASM::compute_scores(

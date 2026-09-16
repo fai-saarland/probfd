@@ -67,8 +67,7 @@ void add_merge_and_shrink_algorithm_options_to_feature(Feature& feature)
         "note that the time limit is only checked between transformations "
         "of the main loop, but not during, so it can be exceeded if a "
         "transformation is runtime-intense.",
-        "infinity",
-        Bounds("0.0", "infinity"));
+        "infinity");
 }
 
 tuple<
@@ -106,21 +105,18 @@ void add_transition_system_size_limit_options_to_feature(Feature& feature)
     feature.add_option<int>(
         "max_states",
         "maximum transition system size allowed at any time point.",
-        "-1",
-        Bounds("-1", "infinity"));
+        "-1");
     feature.add_option<int>(
         "max_states_before_merge",
         "maximum transition system size allowed for two transition systems "
         "before being merged to form the synchronized product.",
-        "-1",
-        Bounds("-1", "infinity"));
+        "-1");
     feature.add_option<int>(
         "threshold_before_merge",
         "If a transition system, before being merged, surpasses this soft "
         "transition system size limit, the shrink strategy is called to "
         "possibly shrink the transition system.",
-        "-1",
-        Bounds("-1", "infinity"));
+        "-1");
 }
 
 tuple<int, int, int> get_transition_system_size_limit_arguments_from_options(

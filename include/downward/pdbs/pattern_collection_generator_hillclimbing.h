@@ -141,7 +141,7 @@ public:
         int num_samples,
         int min_improvement,
         utils::FSeconds max_time,
-        int random_seed,
+        std::shared_ptr<utils::RandomNumberGenerator> rng,
         utils::Verbosity verbosity);
 
     ~PatternCollectionGeneratorHillclimbing() override;

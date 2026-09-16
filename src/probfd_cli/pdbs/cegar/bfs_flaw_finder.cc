@@ -22,8 +22,7 @@ public:
             "max_search_states",
             "Maximal number of generated states after which the flaw search is "
             "aborted.",
-            "20M",
-            Bounds("0", "infinity"));
+            "20M");
     }
 
 protected:

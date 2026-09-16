@@ -10,6 +10,7 @@
 #include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
+#include "downward/utils/validation.h"
 
 #include <vector>
 
@@ -20,14 +21,16 @@ PatternGeneratorRandom::PatternGeneratorRandom(
     int max_pdb_size,
     utils::FSeconds max_time,
     bool bidirectional,
-    int random_seed,
+    std::shared_ptr<utils::RandomNumberGenerator> rng,
     utils::Verbosity verbosity)
     : PatternGenerator(verbosity)
     , max_pdb_size(max_pdb_size)
     , max_time(max_time)
     , bidirectional(bidirectional)
-    , rng(utils::get_rng(random_seed))
+    , rng(std::move(rng))
 {
+    utils::validate_param_geq("max_pdb_size", max_pdb_size, 1);
+    utils::validate_param_non_negative("max_time", max_time.count());
 }
 
 string PatternGeneratorRandom::name() const
@@ -40,8 +43,7 @@ PatternGeneratorRandom::compute_pattern(const SharedAbstractTask& task)
 {
     vector<vector<int>> cg_neighbors =
         compute_cg_neighbors(task, bidirectional);
-    vector<FactPair> goals =
-        get_goals_in_random_order(get_goal(task), *rng);
+    vector<FactPair> goals = get_goals_in_random_order(get_goal(task), *rng);
 
     Pattern pattern = generate_random_pattern(
         max_pdb_size,

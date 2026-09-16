@@ -15,12 +15,17 @@ class Feature;
 class Options;
 } // namespace language::plugins
 
+namespace downward::utils {
+class RandomNumberGenerator;
+}
+
 namespace probfd::cli::merge_and_shrink {
 
 extern void
 add_bucket_based_shrink_options_to_feature(language::plugins::Feature& feature);
 
-extern std::tuple<int> get_bucket_based_shrink_args_from_options(
+extern std::tuple<std::shared_ptr<downward::utils::RandomNumberGenerator>>
+get_bucket_based_shrink_args_from_options(
     const language::Context& context,
     const language::plugins::Options& options);
 

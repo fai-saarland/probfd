@@ -9,9 +9,11 @@
 
 #include "probfd/probabilistic_task.h"
 
+#include "downward/utils/countdown_timer.h"
+#include "downward/utils/validation.h"
+
 #include "downward/abstract_task.h"
 #include "downward/initial_state_values.h"
-#include "downward/utils/countdown_timer.h"
 
 using namespace std;
 using namespace downward;
@@ -51,6 +53,8 @@ PatternCollectionGeneratorMultipleCegar::
     , flaw_strategy_(std::move(flaw_strategy))
     , use_wildcard_policies_(use_wildcard_policies)
 {
+    utils::validate_param_gt("convergence_epsilon", convergence_epsilon_, 1);
+    utils::validate_param_non_null("flaw_strategy", flaw_strategy_);
 }
 
 ProjectionTransformation

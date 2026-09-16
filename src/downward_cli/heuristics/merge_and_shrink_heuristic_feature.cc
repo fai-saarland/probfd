@@ -10,6 +10,7 @@
 #include "downward/merge_and_shrink/merge_and_shrink_heuristic.h"
 
 #include "downward/utils/markup.h"
+#include "downward/utils/validation.h"
 
 #include "downward/task_dependent_factory.h"
 #include "downward/task_transformation.h"
@@ -78,6 +79,22 @@ public:
         , threshold_before_merge(threshold_before_merge)
         , main_loop_max_time(main_loop_max_time)
     {
+        utils::validate_param_gt(
+            "max_states_before_merge",
+            max_states_before_merge,
+            0);
+
+        if (max_states >= max_states_before_merge) {
+            throw std::invalid_argument(
+                "Argument 'max_states' must be >= argument "
+                "'max_states_before_merge'");
+        }
+
+        if (threshold_before_merge <= max_states_before_merge) {
+            throw std::invalid_argument(
+                "Argument 'threshold_before_merge' must be <= argument "
+                "'max_states_before_merge'");
+        }
     }
 
     unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override

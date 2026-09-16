@@ -14,8 +14,9 @@ using namespace downward;
 namespace probfd::merge_and_shrink {
 
 MergeScoringFunctionFactorySingleRandom::
-    MergeScoringFunctionFactorySingleRandom(int random_seed)
-    : random_seed(random_seed)
+    MergeScoringFunctionFactorySingleRandom(
+        std::shared_ptr<utils::RandomNumberGenerator> rng)
+    : rng(std::move(rng))
 {
 }
 
@@ -23,8 +24,7 @@ std::unique_ptr<MergeScoringFunction>
 MergeScoringFunctionFactorySingleRandom::compute_scoring_function(
     const FactoredTransitionSystem&)
 {
-    return std::make_unique<MergeScoringFunctionSingleRandom>(
-        utils::get_rng(random_seed));
+    return std::make_unique<MergeScoringFunctionSingleRandom>(rng);
 }
 
 string MergeScoringFunctionFactorySingleRandom::name() const
@@ -33,11 +33,8 @@ string MergeScoringFunctionFactorySingleRandom::name() const
 }
 
 void MergeScoringFunctionFactorySingleRandom::dump_function_specific_options(
-    utils::LogProxy& log) const
+    utils::LogProxy&) const
 {
-    if (log.is_at_least_normal()) {
-        log.println("Random seed: {}", random_seed);
-    }
 }
 
 } // namespace probfd::merge_and_shrink

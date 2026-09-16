@@ -8,6 +8,7 @@
 #include "downward/state.h"
 
 #include "downward/utils/logging.h"
+#include "downward/utils/validation.h"
 
 #include <iostream>
 #include <memory>
@@ -23,6 +24,7 @@ PatternCollectionGeneratorCombo::PatternCollectionGeneratorCombo(
     , max_states(max_states)
     , verbosity(verbosity)
 {
+    utils::validate_param_geq("max_states", max_states, 1);
 }
 
 string PatternCollectionGeneratorCombo::name() const

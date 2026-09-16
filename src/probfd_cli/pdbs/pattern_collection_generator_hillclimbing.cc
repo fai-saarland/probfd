@@ -43,31 +43,26 @@ public:
         add_option<int>(
             "pdb_max_size",
             "maximal number of states per pattern database ",
-            "2M",
-            Bounds("1", "infinity"));
+            "2M");
         add_option<int>(
             "collection_max_size",
             "maximal number of states in the pattern collection",
-            "10M",
-            Bounds("1", "infinity"));
+            "10M");
         add_option<int>(
             "search_space_max_size",
             "maximal number of states in the pattern search space",
-            "30M",
-            Bounds("1", "infinity"));
+            "30M");
         add_option<int>(
             "num_samples",
             "number of samples (random states) on which to evaluate each "
             "candidate pattern collection",
-            "1000",
-            Bounds("1", "infinity"));
+            "1000");
         add_option<int>(
             "min_improvement",
             "minimum number of samples on which a candidate pattern "
             "collection must improve on the current one to be considered "
             "as the next pattern collection ",
-            "10",
-            Bounds("1", "infinity"));
+            "10");
         add_option<utils::FSeconds>(
             "max_time",
             "maximum time in seconds for improving the initial pattern "
@@ -75,8 +70,7 @@ public:
             "is performed at all. Note that this limit only affects hill "
             "climbing. Use max_time_dominance_pruning to limit the time "
             "spent for pruning dominated patterns.",
-            "infinity",
-            Bounds("0.0", "infinity"));
+            "infinity");
 
         add_rng_options_to_feature(*this);
         add_pattern_collection_generator_options_to_feature(*this);
@@ -106,7 +100,7 @@ public:
             opts.get<int>(context, "min_improvement"),
             opts.get<utils::FSeconds>(context, "max_time"),
             opts.get<int>(context, "search_space_max_size"),
-            get_rng(std::get<0>(get_rng_arguments_from_options(context, opts))),
+            get_rng_arguments_from_options(context, opts),
             get_pattern_collection_generator_arguments_from_options(
                 context,
                 opts));

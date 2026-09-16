@@ -9,6 +9,7 @@
 
 #include "downward/utils/logging.h"
 #include "downward/utils/math.h"
+#include "downward/utils/validation.h"
 
 #include <iostream>
 
@@ -21,6 +22,7 @@ PatternGeneratorGreedy::PatternGeneratorGreedy(
     : PatternGenerator(verbosity)
     , max_states(max_states)
 {
+    utils::validate_param_geq("max_pdb_size", max_states, 1);
 }
 
 string PatternGeneratorGreedy::name() const

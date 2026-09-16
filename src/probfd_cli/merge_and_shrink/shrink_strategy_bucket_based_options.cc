@@ -22,7 +22,8 @@ void add_bucket_based_shrink_options_to_feature(Feature& feature)
     downward::cli::utils::add_rng_options_to_feature(feature);
 }
 
-tuple<int> get_bucket_based_shrink_args_from_options(
+tuple<std::shared_ptr<downward::utils::RandomNumberGenerator>>
+get_bucket_based_shrink_args_from_options(
     const Context& context,
     const Options& options)
 {

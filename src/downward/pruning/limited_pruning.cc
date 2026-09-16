@@ -1,6 +1,7 @@
 #include "downward/pruning/limited_pruning.h"
 
 #include "downward/utils/logging.h"
+#include "downward/utils/validation.h"
 
 using namespace std;
 
@@ -18,6 +19,14 @@ LimitedPruning::LimitedPruning(
     , num_pruning_calls(0)
     , is_pruning_disabled(false)
 {
+    utils::validate_param_in_range(
+        "min_required_pruning_ratio",
+        min_required_pruning_ratio,
+        0.0,
+        1.0);
+    utils::validate_param_non_negative(
+        "expansions_before_checking_pruning_ratio",
+        expansions_before_checking_pruning_ratio);
 }
 
 void LimitedPruning::initialize(const SharedAbstractTask& task)
@@ -58,4 +67,4 @@ void LimitedPruning::prune(const State& state, vector<OperatorID>& op_ids)
     pruning_method->prune(state, op_ids);
 }
 
-} // namespace limited_pruning
+} // namespace downward::limited_pruning

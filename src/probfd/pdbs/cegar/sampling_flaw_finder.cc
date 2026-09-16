@@ -11,12 +11,13 @@
 
 #include "probfd/distribution.h"
 #include "probfd/multi_policy.h"
+#include "probfd/probabilistic_operator_space.h"
 #include "probfd/probabilistic_task.h"
 
 #include "downward/utils/countdown_timer.h"
+#include "downward/utils/validation.h"
 
 #include "downward/state_registry.h"
-#include "probfd/probabilistic_operator_space.h"
 
 #include <cassert>
 #include <utility>
@@ -33,6 +34,7 @@ SamplingFlawFinder::SamplingFlawFinder(
     : rng_(std::move(rng))
     , max_search_states_(max_search_states)
 {
+    utils::validate_param_non_negative("max_search_states", max_search_states_);
 }
 
 SamplingFlawFinder::~SamplingFlawFinder() = default;
@@ -106,7 +108,9 @@ bool SamplingFlawFinder::apply_policy(
                     local_flaws,
                     accept_flaw);
 
-                if (flaw_suppressed) { any_flaw_suppressed = true; }
+                if (flaw_suppressed) {
+                    any_flaw_suppressed = true;
+                }
 
                 // was a flaw added?
                 if (s != local_flaws.size()) {
@@ -163,7 +167,9 @@ bool SamplingFlawFinder::apply_policy(
             do {
                 stk_.pop_back();
 
-                if (stk_.empty()) { return !any_flaw_suppressed; }
+                if (stk_.empty()) {
+                    return !any_flaw_suppressed;
+                }
 
                 current = &stk_.back();
                 einfo = &einfos_[StateID(current->get_id())];

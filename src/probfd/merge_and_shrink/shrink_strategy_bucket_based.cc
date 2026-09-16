@@ -13,8 +13,9 @@ using namespace downward;
 
 namespace probfd::merge_and_shrink {
 
-ShrinkStrategyBucketBased::ShrinkStrategyBucketBased(int random_seed)
-    : rng(utils::get_rng(random_seed))
+ShrinkStrategyBucketBased::ShrinkStrategyBucketBased(
+    std::shared_ptr<utils::RandomNumberGenerator> rng)
+    : rng(std::move(rng))
 {
 }
 
@@ -75,7 +76,9 @@ StateEquivalenceRelation ShrinkStrategyBucketBased::compute_abstraction(
             while (static_cast<int>(groups.size()) > budget_for_this_bucket) {
                 auto it1 = rng->choose(groups);
                 auto it2 = it1;
-                while (it1 == it2) { it2 = rng->choose(groups); }
+                while (it1 == it2) {
+                    it2 = rng->choose(groups);
+                }
                 it1->splice_after(it1->before_begin(), *it2);
                 swap(*it2, groups.back());
                 assert(groups.back().empty());

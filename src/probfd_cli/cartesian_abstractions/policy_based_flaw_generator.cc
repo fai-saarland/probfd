@@ -28,10 +28,8 @@ public:
         add_option<int>(
             "max_search_states",
             "maximum number of concrete states allowed to be generated during "
-            "flaw "
-            "search before giving up",
-            "infinity",
-            Bounds("1", "infinity"));
+            "flaw search before giving up",
+            "infinity");
     }
 
     std::shared_ptr<FlawGeneratorFactory>

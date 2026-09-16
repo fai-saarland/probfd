@@ -112,7 +112,8 @@ void add_successors_order_options_to_feature(plugins::Feature& feature)
     utils::add_rng_options_to_feature(feature);
 }
 
-tuple<bool, bool, int> get_successors_order_arguments_from_options(
+tuple<bool, bool, std::shared_ptr<downward::utils::RandomNumberGenerator>>
+get_successors_order_arguments_from_options(
     const Context& context,
     const plugins::Options& opts)
 {

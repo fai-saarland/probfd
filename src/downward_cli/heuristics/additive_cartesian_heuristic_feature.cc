@@ -14,6 +14,7 @@
 #include "downward/utils/logging.h"
 #include "downward/utils/markup.h"
 #include "downward/utils/rng_options.h"
+#include "downward/utils/validation.h"
 
 #include "downward/task_dependent_factory.h"
 #include "downward/task_transformation.h"
@@ -44,7 +45,7 @@ class AdditiveCartesianHeuristicFactory
     FSeconds max_time;
     PickSplit pick;
     bool use_general_costs;
-    int random_seed;
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng;
 
 public:
     AdditiveCartesianHeuristicFactory(
@@ -58,7 +59,7 @@ public:
         FSeconds max_time,
         PickSplit pick,
         bool use_general_costs,
-        int random_seed)
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng)
         : transformation(std::move(transformation))
         , cache_estimates(cache_estimates)
         , description(std::move(description))
@@ -69,8 +70,11 @@ public:
         , max_time(max_time)
         , pick(pick)
         , use_general_costs(use_general_costs)
-        , random_seed(random_seed)
+        , rng(rng)
     {
+        validate_param_geq("max_states", max_states, 1);
+        validate_param_non_negative("max_transitions", max_transitions);
+        validate_param_non_negative("max_time", max_time.count());
     }
 
     unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
@@ -83,7 +87,7 @@ public:
             max_time,
             pick,
             use_general_costs,
-            random_seed,
+            *rng,
             task,
             std::move(transformation_result),
             cache_estimates,
@@ -141,19 +145,16 @@ public:
         add_option<int>(
             "max_states",
             "maximum sum of abstract states over all abstractions",
-            "infinity",
-            Bounds("1", "infinity"));
+            "infinity");
         add_option<int>(
             "max_transitions",
             "maximum sum of real transitions (excluding self-loops) over "
             " all abstractions",
-            "1M",
-            Bounds("0", "infinity"));
+            "1M");
         add_option<FSeconds>(
             "max_time",
             "maximum time in seconds for building abstractions",
-            "infinity",
-            Bounds("0.0", "infinity"));
+            "infinity");
         add_option<PickSplit>(
             "pick",
             "how to choose on which variable to split the flaw state",

@@ -128,8 +128,7 @@ public:
     create_component(const Options& opts, const Context& context) const override
     {
         return downward::variable_order::create_variable_order_random_factory(
-            make_shared_from_arg_tuples<RandomNumberGenerator>(
-                get_rng_arguments_from_options(context, opts)));
+            get<0>(get_rng_arguments_from_options(context, opts)));
     }
 };
 
@@ -198,8 +197,7 @@ public:
     {
         return downward::variable_order::
             create_variable_order_cg_goal_random_factory(
-                make_shared_from_arg_tuples<RandomNumberGenerator>(
-                    get_rng_arguments_from_options(context, opts)));
+                get<0>(get_rng_arguments_from_options(context, opts)));
     }
 };
 

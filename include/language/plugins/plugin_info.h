@@ -1,7 +1,6 @@
 #ifndef LANGUAGE_PLUGINS_PLUGIN_INFO_H
 #define LANGUAGE_PLUGINS_PLUGIN_INFO_H
 
-#include "language/plugins/bounds.h"
 #include "language/plugins/types.h"
 
 #include <string>
@@ -14,7 +13,6 @@ struct ArgumentInfo {
     std::string help;
     const Type& type;
     std::string default_value;
-    Bounds bounds;
 
     static const std::string NO_DEFAULT;
 
@@ -22,8 +20,7 @@ struct ArgumentInfo {
         const std::string& key,
         const std::string& help,
         const Type& type,
-        const std::string& default_value,
-        const Bounds& bounds);
+        const std::string& default_value);
 
     bool is_optional() const;
     bool has_default() const;

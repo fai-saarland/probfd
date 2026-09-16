@@ -243,29 +243,6 @@ bool FunctionCallExpression::collect_argument(
     std::unique_ptr<DecoratedExpression> decorated_arg =
         decorate_and_convert(arg, arg_info.type, context);
 
-    if (arg_info.bounds.has_bound()) {
-        std::unique_ptr<DecoratedExpression> decorated_min_expression;
-        {
-            TraceBlock block(context, "Handling lower bound");
-            const std::unique_ptr<Expression> min_expression =
-                parse_expression(arg_info.bounds.min, context);
-            decorated_min_expression =
-                decorate_and_convert(*min_expression, arg_info.type, context);
-        }
-        std::unique_ptr<DecoratedExpression> decorated_max_expression;
-        {
-            TraceBlock block(context, "Handling upper bound");
-            const std::unique_ptr<Expression> max_expression =
-                parse_expression(arg_info.bounds.max, context);
-            decorated_max_expression =
-                decorate_and_convert(*max_expression, arg_info.type, context);
-        }
-        decorated_arg = std::make_unique<DecoratedCheckBoundsExpression>(
-            std::move(decorated_arg),
-            std::move(decorated_min_expression),
-            std::move(decorated_max_expression));
-    }
-
     arguments.emplace(
         std::piecewise_construct,
         std::forward_as_tuple(key),

@@ -1,6 +1,7 @@
 #ifndef DOWNWARD_PLUGINS_MERGE_AND_SHRINK_SHRINK_BUCKET_BASED_H
 #define DOWNWARD_PLUGINS_MERGE_AND_SHRINK_SHRINK_BUCKET_BASED_H
 
+#include <memory>
 #include <tuple>
 
 namespace language {
@@ -12,12 +13,17 @@ class Feature;
 class Options;
 } // namespace language::plugins
 
+namespace downward::utils {
+class RandomNumberGenerator;
+}
+
 namespace downward::cli::merge_and_shrink {
 
 extern void
 add_shrink_bucket_options_to_feature(language::plugins::Feature& feature);
 
-extern std::tuple<int> get_shrink_bucket_arguments_from_options(
+extern std::tuple<std::shared_ptr<downward::utils::RandomNumberGenerator>>
+get_shrink_bucket_arguments_from_options(
     const language::Context& context,
     const language::plugins::Options& opts);
 

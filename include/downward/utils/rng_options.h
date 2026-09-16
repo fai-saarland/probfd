@@ -7,6 +7,10 @@ namespace downward::utils {
 
 class RandomNumberGenerator;
 
+
+/// Return global RNG.
+extern std::shared_ptr<RandomNumberGenerator> get_default_rng();
+
 /*
   Return an RNG for the given seed, which can either be the global
   RNG or a local one with a user-specified seed. Only use this together

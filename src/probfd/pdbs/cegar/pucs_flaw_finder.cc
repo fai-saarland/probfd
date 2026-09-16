@@ -10,12 +10,13 @@
 #include "probfd/utils/guards.h"
 
 #include "probfd/multi_policy.h"
+#include "probfd/probabilistic_operator_space.h"
 #include "probfd/probabilistic_task.h"
 
 #include "downward/utils/countdown_timer.h"
+#include "downward/utils/validation.h"
 
 #include "downward/state_registry.h"
-#include "probfd/probabilistic_operator_space.h"
 
 #include <cassert>
 
@@ -28,6 +29,7 @@ namespace probfd::pdbs::cegar {
 PUCSFlawFinder::PUCSFlawFinder(int max_search_states)
     : max_search_states_(max_search_states)
 {
+    utils::validate_param_non_negative("max_search_states", max_search_states_);
 }
 
 bool PUCSFlawFinder::apply_policy(
@@ -74,7 +76,9 @@ bool PUCSFlawFinder::apply_policy(
         assert(!info.expanded);
 
         // TODO remove this once we have a real priority queue...
-        if (path_probability < info.path_probability) { continue; }
+        if (path_probability < info.path_probability) {
+            continue;
+        }
 
         info.expanded = true;
 
@@ -107,7 +111,9 @@ bool PUCSFlawFinder::apply_policy(
                 local_flaws,
                 accept_flaw);
 
-            if (flaw_suppressed) { any_flaw_suppressed = true; }
+            if (flaw_suppressed) {
+                any_flaw_suppressed = true;
+            }
 
             // was a flaw added?
             if (s != local_flaws.size()) {

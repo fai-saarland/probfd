@@ -63,8 +63,7 @@ public:
         this->template add_option<double>(
             "epsilon",
             "probability for choosing the next entry randomly",
-            "0.2",
-            Bounds("0.0", "1.0"));
+            "0.2");
         add_rng_options_to_feature(*this);
         add_open_list_options_to_feature(*this);
     }
@@ -100,8 +99,7 @@ public:
         this->template add_option<double>(
             "epsilon",
             "probability for choosing the next entry randomly",
-            "0.2",
-            Bounds("0.0", "1.0"));
+            "0.2");
         add_rng_options_to_feature(*this);
         add_open_list_options_to_feature(*this);
     }

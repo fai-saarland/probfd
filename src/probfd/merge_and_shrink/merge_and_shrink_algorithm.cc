@@ -24,6 +24,7 @@
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/system.h"
 #include "downward/utils/timer.h"
+#include "downward/utils/validation.h"
 
 #include <cassert>
 #include <iostream>
@@ -146,9 +147,22 @@ MergeAndShrinkAlgorithm::MergeAndShrinkAlgorithm(
     , shrink_threshold_before_merge(shrink_threshold_before_merge)
     , main_loop_max_time(main_loop_max_time)
 {
-    assert(max_states_before_merge > 0);
-    assert(max_states >= max_states_before_merge);
-    assert(shrink_threshold_before_merge <= max_states_before_merge);
+    utils::validate_param_gt(
+        "max_states_before_merge",
+        max_states_before_merge,
+        0);
+
+    if (max_states < max_states_before_merge) {
+        throw std::invalid_argument(
+            "Argument 'max_states' must be >= argument "
+            "'max_states_before_merge'");
+    }
+
+    if (shrink_threshold_before_merge > max_states_before_merge) {
+        throw std::invalid_argument(
+            "Argument 'shrink_threshold_before_merge' must be <= argument "
+            "'max_states_before_merge'");
+    }
 }
 
 void MergeAndShrinkAlgorithm::run_merge_and_shrink_algorithm(

@@ -26,11 +26,7 @@ public:
     TaskDuplicatorFeature()
         : TypedFeature("pcegar_original")
     {
-        add_option<int>(
-            "copies",
-            "number of task copies",
-            "1",
-            Bounds("1", "infinity"));
+        add_option<int>("copies", "number of task copies", "1");
     }
 
     std::shared_ptr<SubtaskGenerator>

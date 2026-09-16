@@ -1,6 +1,5 @@
 #include "probfd/pdbs/pattern_collection_generator_multiple.h"
 
-#include "downward/initial_state_values.h"
 #include "probfd/pdbs/fully_additive_finder.h"
 #include "probfd/pdbs/pattern_collection_information.h"
 #include "probfd/pdbs/probability_aware_pattern_database.h"
@@ -10,6 +9,7 @@
 
 #include "probfd/tasks/range_operator_cost_function.h"
 
+#include "probfd/probabilistic_operator_space.h"
 #include "probfd/probabilistic_task.h"
 #include "probfd/termination_cost_function.h"
 
@@ -18,7 +18,9 @@
 #include "downward/utils/collections.h"
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/rng.h"
-#include "probfd/probabilistic_operator_space.h"
+#include "downward/utils/validation.h"
+
+#include "downward/initial_state_values.h"
 
 #include <cassert>
 #include <ostream>
@@ -48,12 +50,16 @@ vector<int> get_non_goal_variables(
 {
     size_t num_vars = variables.size();
     vector<bool> is_goal(num_vars, false);
-    for (FactPair goal : goals) { is_goal[goal.var] = true; }
+    for (FactPair goal : goals) {
+        is_goal[goal.var] = true;
+    }
 
     vector<int> non_goal_variables;
     non_goal_variables.reserve(num_vars - goals.size());
     for (int var_id = 0; var_id < static_cast<int>(num_vars); ++var_id) {
-        if (!is_goal[var_id]) { non_goal_variables.push_back(var_id); }
+        if (!is_goal[var_id]) {
+            non_goal_variables.push_back(var_id);
+        }
     }
     return non_goal_variables;
 }
@@ -84,6 +90,23 @@ PatternCollectionGeneratorMultiple::PatternCollectionGeneratorMultiple(
     , rng_(std::move(rng))
     , implementation_name_(std::move(implementation_name))
 {
+    utils::validate_param_geq("max_pdb_size", max_pdb_size, 1);
+    utils::validate_param_geq("max_collection_size", max_collection_size, 1);
+    utils::validate_param_non_negative(
+        "pattern_generation_max_time",
+        pattern_generation_max_time.count());
+    utils::validate_param_non_negative(
+        "total_max_time",
+        total_max_time.count());
+    utils::validate_param_geq(
+        "stagnation_limit",
+        stagnation_limit.count(),
+        1.0);
+    utils::validate_param_in_range(
+        "blacklist_trigger_percentage",
+        blacklist_trigger_percentage,
+        0.0,
+        1.0);
 }
 
 bool PatternCollectionGeneratorMultiple::collection_size_limit_reached(
@@ -108,7 +131,9 @@ bool PatternCollectionGeneratorMultiple::time_limit_reached(
     const utils::CountdownTimer& timer) const
 {
     if (timer.is_expired()) {
-        if (log_.is_at_least_normal()) { log_.println("time limit reached"); }
+        if (log_.is_at_least_normal()) {
+            log_.println("time limit reached");
+        }
         return true;
     }
     return false;
@@ -330,7 +355,9 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
             assert(utils::in_bounds(goal_index, goals));
         }
     } catch (const utils::TimeoutException&) {
-        if (log_.is_at_least_normal()) { log_.println("time limit reached"); }
+        if (log_.is_at_least_normal()) {
+            log_.println("time limit reached");
+        }
     }
 
     PatternCollection patterns;

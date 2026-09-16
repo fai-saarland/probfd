@@ -8,6 +8,7 @@
 #include "downward/heuristics/cg_heuristic.h"
 
 #include "downward/utils/logging.h"
+#include "downward/utils/validation.h"
 
 #include "downward/task_dependent_factory.h"
 #include "downward/task_transformation.h"
@@ -44,6 +45,7 @@ public:
         , verbosity(verbosity)
         , max_cache_size(max_cache_size)
     {
+        utils::validate_param_non_negative("max_cache_size", max_cache_size);
     }
 
     unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
@@ -71,8 +73,7 @@ public:
             "max_cache_size",
             "maximum number of cached entries per variable (set to 0 to "
             "disable cache)",
-            "1000000",
-            Bounds("0", "infinity"));
+            "1000000");
         add_heuristic_options_to_feature(*this, "cg");
 
         document_language_support("action costs", "supported");

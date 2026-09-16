@@ -1,6 +1,7 @@
 #include "probfd/pdbs/pattern_collection_generator_disjoint_cegar.h"
 
 #include "downward/initial_state_values.h"
+#include "downward/utils/validation.h"
 #include "probfd/pdbs/cegar/cegar.h"
 #include "probfd/pdbs/pattern_collection_information.h"
 #include "probfd/pdbs/probability_aware_pattern_database.h"
@@ -42,6 +43,9 @@ PatternCollectionGeneratorDisjointCegar::
     , subcollection_finder_factory_(subcollection_finder_factory)
     , flaw_strategy_(flaw_strategy)
 {
+    utils::validate_param_geq("max_pdb_size", max_pdb_size_, 1);
+    utils::validate_param_geq("max_collection_size", max_collection_size_, 1);
+    utils::validate_param_non_negative("max_time", max_time_.count());
 }
 
 PatternCollectionInformation PatternCollectionGeneratorDisjointCegar::generate(

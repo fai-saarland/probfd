@@ -34,7 +34,7 @@ class LazySearchFactory : public TaskDependentFactory<SearchAlgorithm> {
     vector<shared_ptr<TaskDependentFactory<Evaluator>>> preferred_factories;
     bool randomize_successors;
     bool preferred_successors_first;
-    int random_seed;
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng;
 
 public:
     explicit LazySearchFactory(
@@ -48,7 +48,7 @@ public:
         vector<shared_ptr<TaskDependentFactory<Evaluator>>> preferred_factories,
         bool randomize_successors,
         bool preferred_successors_first,
-        int random_seed)
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng)
         : cost_type(cost_type)
         , bound(bound)
         , max_time(max_time)
@@ -59,7 +59,7 @@ public:
         , preferred_factories(std::move(preferred_factories))
         , randomize_successors(randomize_successors)
         , preferred_successors_first(preferred_successors_first)
-        , random_seed(random_seed)
+        , rng(std::move(rng))
     {
     }
 
@@ -78,7 +78,7 @@ public:
             std::move(preferred),
             randomize_successors,
             preferred_successors_first,
-            random_seed,
+            rng,
             task,
             cost_type,
             bound,

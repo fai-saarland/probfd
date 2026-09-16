@@ -51,7 +51,6 @@ class LabelReduction {
     bool lr_before_merging;
     LabelReductionMethod lr_method;
     LabelReductionSystemOrder lr_system_order;
-    std::shared_ptr<downward::utils::RandomNumberGenerator> rng;
 
 public:
     LabelReduction(
@@ -60,7 +59,7 @@ public:
         bool before_merging,
         LabelReductionMethod method,
         LabelReductionSystemOrder system_order,
-        int random_seed);
+        downward::utils::RandomNumberGenerator& rng);
 
     bool reduce(
         int merge_index_left,

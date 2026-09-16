@@ -46,7 +46,9 @@ std::vector<std::string_view> split_lines(const std::string& s, int line_wrap)
         if (l == end) {
             auto ll = std::ranges::find(n, prev, ' ');
 
-            if (ll == end) { break; }
+            if (ll == end) {
+                break;
+            }
 
             lines.emplace_back(it, ll);
             it = ll;
@@ -69,7 +71,9 @@ std::vector<std::string_view> split_lines(const std::string& s, int line_wrap)
             if (l == end) {
                 auto ll = std::ranges::find(n, pos, ' ');
 
-                if (ll == end) { break; }
+                if (ll == end) {
+                    break;
+                }
 
                 lines.emplace_back(prev, ll);
                 prev = ll;
@@ -187,17 +191,10 @@ protected:
         std::vector<std::string> arg_strings;
 
         for (const ArgumentInfo& arg_info : feature.get_arguments()) {
-            std::string* s;
+            std::string& s = arg_strings.emplace_back(
+                std::format("{} : {}", arg_info.key, arg_info.type.name()));
 
-            if (arg_info.bounds.has_bound()) {
-                s = &arg_strings.emplace_back(
-                    std::format("{} : {}", arg_info.key, arg_info.bounds));
-            } else {
-                s = &arg_strings.emplace_back(
-                    std::format("{} : {}", arg_info.key, arg_info.type.name()));
-            }
-
-            if (const auto width = static_cast<int>(s->size());
+            if (const auto width = static_cast<int>(s.size());
                 width > max_width)
                 max_width = width;
         }
@@ -332,7 +329,9 @@ protected:
         std::println(os);
     }
 
-    void print_category_footer() const override {}
+    void print_category_footer() const override
+    {
+    }
 };
 
 } // namespace

@@ -7,6 +7,7 @@
 
 namespace downward::utils {
 enum class Verbosity;
+class RandomNumberGenerator;
 }
 
 namespace language {
@@ -34,7 +35,7 @@ extern std::tuple<
     utils::FSeconds,
     double,
     bool,
-    int,
+    std::shared_ptr<downward::utils::RandomNumberGenerator>,
     utils::Verbosity>
 get_multiple_arguments_from_options(
     const language::Context& context,

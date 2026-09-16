@@ -17,7 +17,6 @@ class MergeScoringFunctionTotalOrder : public MergeScoringFunction {
     AtomicTSOrder atomic_ts_order;
     ProductTSOrder product_ts_order;
     bool atomic_before_product;
-    int random_seed; // only for dump options
     std::shared_ptr<utils::RandomNumberGenerator> rng;
     std::vector<std::pair<int, int>> merge_candidate_order;
 
@@ -29,7 +28,7 @@ public:
         AtomicTSOrder atomic_ts_order,
         ProductTSOrder product_ts_order,
         bool atomic_before_product,
-        int random_seed);
+        std::shared_ptr<utils::RandomNumberGenerator> rng);
 
     std::vector<double> compute_scores(
         const FactoredTransitionSystem& fts,

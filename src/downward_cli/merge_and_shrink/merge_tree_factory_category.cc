@@ -66,8 +66,7 @@ public:
     create_component(const Options& opts, const Context& context) const override
     {
         return create_merge_update_strategy_use_random(
-            make_shared_from_arg_tuples<RandomNumberGenerator>(
-                utils::get_rng_arguments_from_options(context, opts)));
+            get<0>(utils::get_rng_arguments_from_options(context, opts)));
     }
 };
 } // namespace

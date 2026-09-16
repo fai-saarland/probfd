@@ -123,6 +123,7 @@
 #include "downward_cli/tasks/task_transformation_category.h"
 
 #include "downward_cli/utils/verbosity_enum.h"
+#include "downward_cli/utils/rng_options.h"
 
 #include "downward_cli/operator_cost_category.h"
 
@@ -373,6 +374,8 @@ static void register_fast_downward_definitions(RawRegistry& raw_registry)
 
     // Utils
     utils::add_verbosity_enum(raw_registry);
+    utils::add_rng_category(raw_registry);
+    utils::add_rng_features(raw_registry);
 
     // Operator Cost Enum
     add_operator_cost_category(raw_registry);

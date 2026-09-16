@@ -12,6 +12,7 @@
 #include "downward/utils/math.h"
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
+#include "downward/utils/validation.h"
 
 #include <algorithm>
 #include <cassert>
@@ -28,7 +29,7 @@ PatternCollectionGeneratorGenetic::PatternCollectionGeneratorGenetic(
     int num_episodes,
     double mutation_probability,
     bool disjoint,
-    int random_seed,
+    std::shared_ptr<utils::RandomNumberGenerator> rng,
     utils::Verbosity verbosity)
     : PatternCollectionGenerator(verbosity)
     , pdb_max_size(pdb_max_size)
@@ -36,8 +37,16 @@ PatternCollectionGeneratorGenetic::PatternCollectionGeneratorGenetic(
     , num_episodes(num_episodes)
     , mutation_probability(mutation_probability)
     , disjoint_patterns(disjoint)
-    , rng(utils::get_rng(random_seed))
+    , rng(std::move(rng))
 {
+    utils::validate_param_geq("pdb_max_size", pdb_max_size, 1);
+    utils::validate_param_geq("num_collections", num_collections, 1);
+    utils::validate_param_non_negative("num_episodes", num_episodes);
+    utils::validate_param_in_range(
+        "pattern_max_size",
+        mutation_probability,
+        0.0,
+        1.0);
 }
 
 void PatternCollectionGeneratorGenetic::select(
@@ -80,7 +89,9 @@ void PatternCollectionGeneratorGenetic::mutate()
         for (vector<bool>& pattern : collection) {
             for (size_t k = 0; k < pattern.size(); ++k) {
                 double random = rng->random(); // [0..1)
-                if (random < mutation_probability) { pattern[k].flip(); }
+                if (random < mutation_probability) {
+                    pattern[k].flip();
+                }
             }
         }
     }
@@ -237,7 +248,9 @@ void PatternCollectionGeneratorGenetic::bin_packing()
 
     vector<int> variable_ids;
     variable_ids.reserve(variables.size());
-    for (size_t i = 0; i < variables.size(); ++i) { variable_ids.push_back(i); }
+    for (size_t i = 0; i < variables.size(); ++i) {
+        variable_ids.push_back(i);
+    }
 
     for (int i = 0; i < num_collections; ++i) {
         // Use random variable ordering for all pattern collections.
@@ -271,7 +284,9 @@ void PatternCollectionGeneratorGenetic::bin_packing()
           can only be 1 if *all* variables have a domain larger than
           pdb_max_size.
         */
-        if (current_size > 1) { pattern_collection.push_back(pattern); }
+        if (current_size > 1) {
+            pattern_collection.push_back(pattern);
+        }
         pattern_collections.push_back(pattern_collection);
     }
 }

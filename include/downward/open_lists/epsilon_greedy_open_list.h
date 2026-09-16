@@ -8,6 +8,7 @@
 #include "downward/utils/collections.h"
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
+#include "downward/utils/validation.h"
 
 /*
     Epsilon-greedy open list based on Valenzano et al. (ICAPS 2014).
@@ -85,7 +86,7 @@ public:
     EpsilonGreedyOpenList(
         const std::shared_ptr<Evaluator>& eval,
         double epsilon,
-        int random_seed,
+        std::shared_ptr<utils::RandomNumberGenerator> rng,
         bool pref_only);
 
     virtual Entry remove_min() override;
@@ -104,7 +105,9 @@ static void adjust_heap_up(std::vector<HeapNode>& heap, size_t pos)
     assert(utils::in_bounds(pos, heap));
     while (pos != 0) {
         size_t parent_pos = (pos - 1) / 2;
-        if (heap[pos] > heap[parent_pos]) { break; }
+        if (heap[pos] > heap[parent_pos]) {
+            break;
+        }
         std::swap(heap[pos], heap[parent_pos]);
         pos = parent_pos;
     }
@@ -127,10 +130,10 @@ template <class Entry>
 EpsilonGreedyOpenList<Entry>::EpsilonGreedyOpenList(
     const std::shared_ptr<Evaluator>& eval,
     double epsilon,
-    int random_seed,
+    std::shared_ptr<utils::RandomNumberGenerator> rng,
     bool pref_only)
     : OpenList<Entry>(pref_only)
-    , rng(utils::get_rng(random_seed))
+    , rng(std::move(rng))
     , evaluator(eval)
     , epsilon(epsilon)
     , size(0)
@@ -193,20 +196,21 @@ template <typename T>
 class EpsilonGreedyOpenListFactory : public TaskDependentFactory<OpenList<T>> {
     std::shared_ptr<TaskDependentFactory<Evaluator>> eval_factory;
     double epsilon;
-    int random_seed;
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng;
     bool pref_only;
 
 public:
     EpsilonGreedyOpenListFactory(
         const std::shared_ptr<TaskDependentFactory<Evaluator>>& eval_factory,
         double epsilon,
-        int random_seed,
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng,
         bool pref_only)
         : eval_factory(eval_factory)
         , epsilon(epsilon)
-        , random_seed(random_seed)
+        , rng(std::move(rng))
         , pref_only(pref_only)
     {
+        utils::validate_param_in_range("epsilon", epsilon, 0.0, 1.0);
     }
 
     std::unique_ptr<OpenList<T>>
@@ -215,7 +219,7 @@ public:
         return std::make_unique<EpsilonGreedyOpenList<T>>(
             eval_factory->create_object(task),
             epsilon,
-            random_seed,
+            rng,
             pref_only);
     }
 };

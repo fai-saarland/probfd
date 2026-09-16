@@ -24,7 +24,7 @@ PatternCollectionGeneratorMultiple::PatternCollectionGeneratorMultiple(
     utils::FSeconds stagnation_limit,
     double blacklist_trigger_percentage,
     bool enable_blacklist_on_stagnation,
-    int random_seed,
+    std::shared_ptr<utils::RandomNumberGenerator> rng,
     utils::Verbosity verbosity)
     : PatternCollectionGenerator(verbosity)
     , max_pdb_size(max_pdb_size)
@@ -33,7 +33,7 @@ PatternCollectionGeneratorMultiple::PatternCollectionGeneratorMultiple(
     , stagnation_limit(stagnation_limit)
     , blacklisting_start_duration(total_max_time * blacklist_trigger_percentage)
     , enable_blacklist_on_stagnation(enable_blacklist_on_stagnation)
-    , rng(utils::get_rng(random_seed))
+    , rng(std::move(rng))
     , random_seed(random_seed)
     , remaining_collection_size(max_collection_size)
     , blacklisting(false)

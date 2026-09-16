@@ -13,6 +13,7 @@
 
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
+#include "downward/utils/validation.h"
 
 #include "downward/tasks/root_task.h"
 
@@ -44,7 +45,7 @@ class PotentialMaxHeuristicFactory : public TaskDependentFactory<Evaluator> {
     int num_heuristics;
     double max_potential;
     lp::LPSolverType lp_solver;
-    int random_seed;
+    std::shared_ptr<utils::RandomNumberGenerator> rng;
 
 public:
     PotentialMaxHeuristicFactory(
@@ -56,7 +57,7 @@ public:
         int num_heuristics,
         double max_potential,
         lp::LPSolverType lp_solver,
-        int random_seed)
+        std::shared_ptr<utils::RandomNumberGenerator> rng)
         : transformation(std::move(transformation))
         , cache_estimates(cache_estimates)
         , description(std::move(description))
@@ -65,8 +66,11 @@ public:
         , num_heuristics(num_heuristics)
         , max_potential(max_potential)
         , lp_solver(lp_solver)
-        , random_seed(random_seed)
+        , rng(std::move(rng))
     {
+        utils::validate_param_non_negative("max_potential", max_potential);
+        utils::validate_param_non_negative("num_samples", num_samples);
+        utils::validate_param_non_negative("num_heuristics", num_heuristics);
     }
 
     unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
@@ -78,7 +82,6 @@ public:
             transformation_result.transformed_task,
             lp_solver,
             max_potential);
-        const shared_ptr rng(get_rng(random_seed));
 
         for (int i = 0; i < num_heuristics; ++i) {
             vector<State> samples =
@@ -122,13 +125,11 @@ public:
         add_option<int>(
             "num_heuristics",
             "number of potential heuristics",
-            "1",
-            Bounds("0", "infinity"));
+            "1");
         add_option<int>(
             "num_samples",
             "Number of states to sample",
-            "1000",
-            Bounds("0", "infinity"));
+            "1000");
         add_admissible_potentials_options_to_feature(
             *this,
             "sample_based_potentials");
@@ -147,7 +148,7 @@ public:
             opts.get<int>(context, "num_heuristics"),
             opts.get<double>(context, "max_potential"),
             opts.get<downward::lp::LPSolverType>(context, "lpsolver"),
-            opts.get<int>(context, "random_seed"));
+            get_rng(opts.get<int>(context, "random_seed")));
     }
 };
 } // namespace

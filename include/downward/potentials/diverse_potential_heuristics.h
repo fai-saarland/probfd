@@ -56,7 +56,7 @@ public:
         double max_potential,
         lp::LPSolverType lpsolver,
         const SharedAbstractTask& transform,
-        int random_seed,
+        std::shared_ptr<utils::RandomNumberGenerator> rng,
         utils::Verbosity verbosity);
     
     ~DiversePotentialHeuristics();

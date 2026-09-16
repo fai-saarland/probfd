@@ -8,6 +8,7 @@
 #include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
+#include "downward/utils/validation.h"
 
 #include <vector>
 
@@ -18,14 +19,16 @@ PatternGeneratorCEGAR::PatternGeneratorCEGAR(
     int max_pdb_size,
     utils::FSeconds max_time,
     bool use_wildcard_plans,
-    int random_seed,
+    std::shared_ptr<utils::RandomNumberGenerator> rng,
     utils::Verbosity verbosity)
     : PatternGenerator(verbosity)
     , max_pdb_size(max_pdb_size)
     , max_time(max_time)
     , use_wildcard_plans(use_wildcard_plans)
-    , rng(utils::get_rng(random_seed))
+    , rng(std::move(rng))
 {
+    utils::validate_param_geq("max_pdb_size", max_pdb_size, 1);
+    utils::validate_param_non_negative("max_time", max_time.count());
 }
 
 string PatternGeneratorCEGAR::name() const

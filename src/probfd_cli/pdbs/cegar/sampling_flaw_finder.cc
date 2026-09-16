@@ -32,15 +32,14 @@ public:
             "max_search_states",
             "Maximal number of generated states after which the flaw search is "
             "aborted.",
-            "20M",
-            Bounds("0", "infinity"));
+            "20M");
     }
 
     std::shared_ptr<FlawFindingStrategy>
     create_component(const Options& opts, const Context& context) const override
     {
         return make_shared_from_arg_tuples<SamplingFlawFinder>(
-            get_rng(std::get<0>(get_rng_arguments_from_options(context, opts))),
+            get_rng_arguments_from_options(context, opts),
             opts.get<int>(context, "max_search_states"));
     }
 };

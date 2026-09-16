@@ -49,8 +49,7 @@ public:
             "initial collection consisting of a singleton pattern for each "
             "goal "
             "variable)",
-            "1000000",
-            Bounds("1", "infinity"));
+            "1000000");
         add_option<int>(
             "max_collection_size",
             "maximum number of states in the pattern collection (ignored for "
@@ -58,15 +57,13 @@ public:
             "initial collection consisting of a singleton pattern for each "
             "goal "
             "variable)",
-            "10000000",
-            Bounds("1", "infinity"));
+            "10000000");
         add_option<double>(
             "max_time",
             "maximum time in seconds for this pattern collection generator "
             "(ignored for computing the initial collection consisting of a "
             "singleton pattern for each goal variable)",
-            "infinity",
-            Bounds("0.0", "infinity"));
+            "infinity");
         add_cegar_wildcard_option_to_feature(*this);
         add_rng_options_to_feature(*this);
         add_generator_options_to_feature(*this);

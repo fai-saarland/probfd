@@ -9,6 +9,7 @@
 #include "downward/task_utils/causal_graph.h"
 
 #include "downward/utils/logging.h"
+#include "downward/utils/validation.h"
 
 #include <algorithm>
 #include <cassert>
@@ -42,12 +43,7 @@ static void compute_union_pattern(
 {
     result.clear();
     result.reserve(pattern1.size() + pattern2.size());
-    set_union(
-        pattern1.begin(),
-        pattern1.end(),
-        pattern2.begin(),
-        pattern2.end(),
-        back_inserter(result));
+    std::ranges::set_union(pattern1, pattern2, back_inserter(result));
 }
 
 PatternCollectionGeneratorSystematic::PatternCollectionGeneratorSystematic(
@@ -58,6 +54,7 @@ PatternCollectionGeneratorSystematic::PatternCollectionGeneratorSystematic(
     , max_pattern_size(pattern_max_size)
     , only_interesting_patterns(only_interesting_patterns)
 {
+    utils::validate_param_geq("pattern_max_size", pattern_max_size, 1);
 }
 
 void PatternCollectionGeneratorSystematic::compute_eff_pre_neighbors(
@@ -78,7 +75,9 @@ void PatternCollectionGeneratorSystematic::compute_eff_pre_neighbors(
     }
 
     // Remove elements of pattern.
-    for (int var : pattern) { candidates.erase(var); }
+    for (int var : pattern) {
+        candidates.erase(var);
+    }
 
     result.assign(candidates.begin(), candidates.end());
 }

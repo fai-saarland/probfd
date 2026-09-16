@@ -23,11 +23,11 @@ MergeScoringFunctionFactoryTotalOrder::MergeScoringFunctionFactoryTotalOrder(
     AtomicTSOrder atomic_ts_order,
     ProductTSOrder product_ts_order,
     bool atomic_before_product,
-    int random_seed)
+    std::shared_ptr<utils::RandomNumberGenerator> rng)
     : atomic_ts_order(atomic_ts_order)
     , product_ts_order(product_ts_order)
     , atomic_before_product(atomic_before_product)
-    , random_seed(random_seed)
+    , rng(std::move(rng))
 {
 }
 
@@ -40,7 +40,7 @@ MergeScoringFunctionFactoryTotalOrder::compute_scoring_function(
         atomic_ts_order,
         product_ts_order,
         atomic_before_product,
-        *utils::get_rng(random_seed));
+        *rng);
 }
 
 string MergeScoringFunctionFactoryTotalOrder::name() const
@@ -72,7 +72,6 @@ void MergeScoringFunctionFactoryTotalOrder::dump_function_specific_options(
             "Consider {} transition systems",
             atomic_before_product ? "atomic before product"
                                   : "product before atomic");
-        log.println("Random seed: {}", random_seed);
     }
 }
 

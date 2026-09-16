@@ -11,6 +11,7 @@
 #include "probfd/policy.h"
 
 #include "downward/utils/logging.h"
+#include "downward/utils/validation.h"
 
 #include <ostream>
 
@@ -103,6 +104,7 @@ ILAOFlawGeneratorFactory::ILAOFlawGeneratorFactory(
     : convergence_epsilon_(convergence_epsilon)
     , max_search_states_(max_search_states)
 {
+    utils::validate_param_geq("max_search_states", max_search_states, 1);
 }
 
 std::unique_ptr<FlawGenerator> ILAOFlawGeneratorFactory::create_flaw_generator()

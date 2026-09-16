@@ -11,6 +11,7 @@
 #include "downward/merge_and_shrink/transition_system.h"
 
 #include "downward/utils/markup.h"
+#include "downward/utils/rng_options.h"
 
 using namespace std;
 using namespace downward::utils;

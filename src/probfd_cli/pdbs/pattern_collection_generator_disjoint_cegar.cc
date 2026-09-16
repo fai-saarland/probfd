@@ -45,21 +45,18 @@ void add_pattern_collection_generator_cegar_options_to_feature(Feature& feature)
         "max_pdb_size",
         "maximum allowed number of states in a pdb (not applied to initial "
         "goal variable pattern(s))",
-        "1000000",
-        Bounds("1", "infinity"));
+        "1000000");
     feature.add_option<int>(
         "max_collection_size",
         "limit for the total number of PDB entries across all PDBs (not "
         "applied to initial goal variable pattern(s))",
-        "infinity",
-        Bounds("1", "infinity"));
+        "infinity");
     feature.add_option<utils::FSeconds>(
         "max_time",
         "maximum time in seconds for CEGAR pattern generation. "
         "This includes the creation of the initial PDB collection"
         " as well as the creation of the correlation matrix.",
-        "infinity",
-        Bounds("0.0", "infinity"));
+        "infinity");
     feature.add_option<std::shared_ptr<SubCollectionFinderFactory>>(
         "subcollection_finder_factory",
         "The subcollection finder factory.",
@@ -99,7 +96,7 @@ public:
             opts.get<int>(context, "max_pdb_size"),
             opts.get<int>(context, "max_collection_size"),
             opts.get<utils::FSeconds>(context, "max_time"),
-            get_rng(std::get<0>(get_rng_arguments_from_options(context, opts))),
+            get_rng_arguments_from_options(context, opts),
             opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
                 context,
                 "subcollection_finder_factory"),
