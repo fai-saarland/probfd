@@ -15,7 +15,7 @@
 namespace downward::utils {
 class CountdownTimer;
 class LogProxy;
-} // namespace utils
+} // namespace downward::utils
 
 namespace probfd::cartesian_abstractions {
 class AbstractState;
@@ -35,20 +35,6 @@ class TraceBasedFlawGenerator : public FlawGenerator {
     downward::utils::Timer find_trace_timer_ = downward::utils::Timer(false);
     downward::utils::Timer find_flaw_timer_ = downward::utils::Timer(false);
 
-    std::unique_ptr<Trace> find_trace(
-        CartesianAbstraction& abstraction,
-        int init_id,
-        CartesianHeuristic& heuristic,
-        downward::utils::CountdownTimer& timer);
-
-    std::optional<Flaw> find_flaw(
-        const ProbabilisticTaskTuple& task,
-        const std::vector<int>& domain_sizes,
-        const Trace& solution,
-        CartesianAbstraction& abstraction,
-        downward::utils::LogProxy& log,
-        downward::utils::CountdownTimer& timer);
-
 public:
     explicit TraceBasedFlawGenerator(TraceGenerator* trace_generator);
     ~TraceBasedFlawGenerator() override;
@@ -65,6 +51,21 @@ public:
     void notify_split() override;
 
     void print_statistics(downward::utils::LogProxy& log) override;
+
+private:
+    std::unique_ptr<Trace> find_trace(
+        CartesianAbstraction& abstraction,
+        int init_id,
+        CartesianHeuristic& heuristic,
+        downward::utils::CountdownTimer& timer);
+
+    std::optional<Flaw> find_flaw(
+        const ProbabilisticTaskTuple& task,
+        const std::vector<int>& domain_sizes,
+        const Trace& solution,
+        CartesianAbstraction& abstraction,
+        downward::utils::LogProxy& log,
+        downward::utils::CountdownTimer& timer);
 };
 
 class AStarFlawGeneratorFactory : public FlawGeneratorFactory {

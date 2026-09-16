@@ -59,7 +59,7 @@ public:
             "max_transitions",
             "maximum sum of real transitions (excluding self-loops) over "
             " all abstractions",
-            "1M");
+            "1m");
         add_option<utils::FSeconds>(
             "max_time",
             "maximum time in seconds for building abstractions",
@@ -68,7 +68,7 @@ public:
             "use_general_costs",
             "allow negative costs in cost partitioning",
             "true");
-        add_task_dependent_heuristic_options_to_feature(*this);
+        downward::cli::utils::add_log_options_to_feature(*this);
     }
 
     std::shared_ptr<TaskHeuristicFactory>

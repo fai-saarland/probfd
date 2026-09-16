@@ -74,18 +74,17 @@ std::unique_ptr<FDRHeuristic> AdditiveCartesianHeuristicFactory::create_object(
         log_.println("Initializing additive Cartesian heuristic...");
     }
 
-    CostSaturation cost_saturation(
-        subtask_generators,
-        std::move(flaw_generator_factory),
-        std::move(split_selector_factory),
-        max_states,
-        max_transitions,
-        max_time,
-        use_general_costs,
-        log_);
-
     return std::make_unique<AdditiveCartesianHeuristic>(
-        cost_saturation.generate_heuristic_functions(task));
+        generate_heuristic_functions(
+            subtask_generators,
+            *flaw_generator_factory,
+            *split_selector_factory,
+            max_states,
+            max_transitions,
+            max_time,
+            use_general_costs,
+            log_,
+            task));
 }
 
 } // namespace probfd::heuristics

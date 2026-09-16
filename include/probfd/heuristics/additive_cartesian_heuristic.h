@@ -37,7 +37,7 @@ public:
 
     ~AdditiveCartesianHeuristic() override;
 
-    value_t evaluate(const downward::State& ancestor_state) const override;
+    value_t evaluate(const downward::State& state) const override;
 };
 
 class AdditiveCartesianHeuristicFactory final : public TaskHeuristicFactory {

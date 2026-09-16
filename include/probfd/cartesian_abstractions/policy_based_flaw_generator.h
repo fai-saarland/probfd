@@ -16,7 +16,7 @@
 namespace downward::utils {
 class CountdownTimer;
 class LogProxy;
-} // namespace utils
+} // namespace downward::utils
 
 namespace probfd::cartesian_abstractions {
 class AbstractState;
@@ -38,20 +38,6 @@ class PolicyBasedFlawGenerator : public FlawGenerator {
     downward::utils::Timer find_policy_timer_ = downward::utils::Timer(false);
     downward::utils::Timer find_flaw_timer_ = downward::utils::Timer(false);
 
-    std::unique_ptr<Solution> find_solution(
-        CartesianAbstraction& abstraction,
-        const AbstractState* init,
-        CartesianHeuristic& heuristic,
-        downward::utils::CountdownTimer& timer);
-
-    std::optional<Flaw> find_flaw(
-        const ProbabilisticTaskTuple& task,
-        const std::vector<int>& domain_sizes,
-        CartesianAbstraction& abstraction,
-        Solution& solution,
-        downward::utils::LogProxy& log,
-        downward::utils::CountdownTimer& timer);
-
 public:
     PolicyBasedFlawGenerator(
         PolicyGenerator* policy_generator,
@@ -71,6 +57,21 @@ public:
     void notify_split() override;
 
     void print_statistics(downward::utils::LogProxy& log) override;
+
+private:
+    std::unique_ptr<Solution> find_solution(
+        CartesianAbstraction& abstraction,
+        const AbstractState* init,
+        CartesianHeuristic& heuristic,
+        downward::utils::CountdownTimer& timer);
+
+    std::optional<Flaw> find_flaw(
+        const ProbabilisticTaskTuple& task,
+        const std::vector<int>& domain_sizes,
+        CartesianAbstraction& abstraction,
+        Solution& solution,
+        downward::utils::LogProxy& log,
+        downward::utils::CountdownTimer& timer);
 };
 
 class ILAOFlawGeneratorFactory : public FlawGeneratorFactory {

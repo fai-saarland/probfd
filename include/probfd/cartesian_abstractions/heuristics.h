@@ -17,7 +17,9 @@ public:
 
     [[nodiscard]]
     value_t get_h_value(int v) const;
+
     void set_h_value(int v, value_t h);
+
     void on_split(int v);
 };
 

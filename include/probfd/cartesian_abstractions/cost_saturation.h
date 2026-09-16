@@ -12,14 +12,6 @@
 #include <vector>
 
 // Forward Declarations
-namespace downward {
-class State;
-}
-
-namespace downward::utils {
-class CountdownTimer;
-} // namespace downward::utils
-
 namespace probfd::cartesian_abstractions {
 class CartesianHeuristicFunction;
 class FlawGeneratorFactory;
@@ -29,61 +21,16 @@ class SubtaskGenerator;
 
 namespace probfd::cartesian_abstractions {
 
-/*
-  Get subtasks from SubtaskGenerators, reduce their costs by wrapping
-  them in ModifiedOperatorCostsTasks, compute Abstractions, move
-  RefinementHierarchies from Abstractions to
-  CartesianHeuristicFunctions, allow extracting
-  CartesianHeuristicFunctions into AdditiveCartesianHeuristic.
-*/
-class CostSaturation {
-    const std::vector<std::shared_ptr<SubtaskGenerator>> subtask_generators_;
-    const std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory_;
-    const std::shared_ptr<SplitSelectorFactory> split_selector_factory_;
-    const int max_states_;
-    const int max_non_looping_transitions_;
-    const downward::utils::FSeconds max_time_;
-    const bool use_general_costs_;
-    mutable downward::utils::LogProxy log_;
-
-    std::vector<CartesianHeuristicFunction> heuristic_functions_;
-    std::vector<value_t> remaining_costs_;
-    int num_abstractions_;
-    int num_states_;
-    int num_non_looping_transitions_;
-
-public:
-    CostSaturation(
-        const std::vector<std::shared_ptr<SubtaskGenerator>>&
-            subtask_generators,
-        std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory,
-        std::shared_ptr<SplitSelectorFactory> split_selector_factory,
-        int max_states,
-        int max_non_looping_transitions,
-        downward::utils::FSeconds max_time,
-        bool use_general_costs,
-        downward::utils::LogProxy log);
-
-    ~CostSaturation();
-
-    std::vector<CartesianHeuristicFunction>
-    generate_heuristic_functions(const SharedProbabilisticTask& task);
-
-    void reset(
-        const ProbabilisticOperatorSpace& operators,
-        const downward::OperatorCostFunction<value_t>& cost_function);
-
-    void reduce_remaining_costs(const std::vector<value_t>& saturated_costs);
-
-    bool state_is_dead_end(const downward::State& state) const;
-
-    void build_abstractions(
-        const SharedTasks& subtasks,
-        const downward::utils::CountdownTimer& timer,
-        const std::function<bool()>& should_abort);
-
-    void print_statistics(downward::utils::FSeconds init_time) const;
-};
+std::vector<CartesianHeuristicFunction> generate_heuristic_functions(
+    const std::vector<std::shared_ptr<SubtaskGenerator>>& subtask_generators,
+    FlawGeneratorFactory& flaw_generator_factory,
+    SplitSelectorFactory& split_selector_factory,
+    int max_states,
+    int max_non_looping_transitions,
+    downward::utils::FSeconds max_time,
+    bool use_general_costs,
+    downward::utils::LogProxy& log,
+    const SharedProbabilisticTask& task);
 
 } // namespace probfd::cartesian_abstractions
 

@@ -46,38 +46,6 @@ class ProbabilisticTransitionSystem {
 
     size_t num_loops_ = 0;
 
-    // Increases size of incoming and outgoing transition lists by one.
-    void enlarge_vectors_by_one();
-
-    // Construct the trivial abstraction.
-    void construct_trivial_abstraction(const ProbabilisticOperatorSpace& ops);
-
-    [[nodiscard]]
-    int get_precondition_value(int op_id, int var) const;
-
-    [[nodiscard]]
-    int get_postcondition_value(int op_id, std::size_t eff_id, int var) const;
-
-    [[nodiscard]]
-    size_t get_num_operator_outcomes(int op_id) const;
-
-    void add_transition(int src_id, int op_id, std::vector<int> target_ids);
-    void add_loop(int src_id, int op_id);
-
-    void rewire_incoming_transitions(
-        const AbstractStates& states,
-        const AbstractState& v1,
-        const AbstractState& v2,
-        int var);
-    void rewire_outgoing_transitions(
-        const AbstractStates& states,
-        const AbstractState& v1,
-        const AbstractState& v2,
-        int var);
-
-    void
-    rewire_loops(const AbstractState& v1, const AbstractState& v2, int var);
-
 public:
     explicit ProbabilisticTransitionSystem(
         const ProbabilisticOperatorSpace& ops);
@@ -121,6 +89,41 @@ public:
     int get_num_loops() const;
 
     void print_statistics(downward::utils::LogProxy& log) const;
+
+private:
+    // Increases size of incoming and outgoing transition lists by one.
+    void enlarge_vectors_by_one();
+
+    // Construct the trivial abstraction.
+    void construct_trivial_abstraction(const ProbabilisticOperatorSpace& ops);
+
+    [[nodiscard]]
+    int get_precondition_value(int op_id, int var) const;
+
+    [[nodiscard]]
+    int get_postcondition_value(int op_id, std::size_t eff_id, int var) const;
+
+    [[nodiscard]]
+    size_t get_num_operator_outcomes(int op_id) const;
+
+    void add_transition(int src_id, int op_id, std::vector<int> target_ids);
+
+    void add_loop(int src_id, int op_id);
+
+    void rewire_incoming_transitions(
+        const AbstractStates& states,
+        const AbstractState& v1,
+        const AbstractState& v2,
+        int var);
+
+    void rewire_outgoing_transitions(
+        const AbstractStates& states,
+        const AbstractState& v1,
+        const AbstractState& v2,
+        int var);
+
+    void
+    rewire_loops(const AbstractState& v1, const AbstractState& v2, int var);
 };
 
 } // namespace probfd::cartesian_abstractions

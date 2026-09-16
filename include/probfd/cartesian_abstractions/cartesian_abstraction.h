@@ -53,10 +53,6 @@ class CartesianAbstraction
 
     mutable downward::utils::LogProxy log_;
 
-    template <std::ranges::input_range R>
-        requires std::same_as<std::ranges::range_value_t<R>, int>
-    void initialize_trivial_abstraction(const R& domain_sizes);
-
 public:
     CartesianAbstraction(
         const ProbabilisticTaskTuple& task,
@@ -84,9 +80,8 @@ public:
         std::vector<const ProbabilisticTransition*>& aops,
         std::vector<SuccessorDistribution>& successor_dists) override;
 
-    void generate_all_transitions(
-        int state,
-        std::vector<LDistType>& transitions)
+    void
+    generate_all_transitions(int state, std::vector<LDistType>& transitions)
         override;
 
     bool is_goal(int state) const override;
@@ -114,6 +109,11 @@ public:
         const std::vector<int>& wanted);
 
     void print_statistics() const override;
+
+private:
+    template <std::ranges::input_range R>
+        requires std::same_as<std::ranges::range_value_t<R>, int>
+    void initialize_trivial_abstraction(const R& domain_sizes);
 };
 
 } // namespace probfd::cartesian_abstractions

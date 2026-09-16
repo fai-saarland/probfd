@@ -32,16 +32,6 @@ class AStarTraceGenerator : public TraceGenerator {
     downward::priority_queues::HeapQueue<value_t, int> open_queue_;
     std::vector<AbstractSearchInfo> search_info_;
 
-    std::unique_ptr<Trace> extract_solution(
-        int init_id,
-        int goal_id,
-        downward::utils::CountdownTimer& timer) const;
-
-    void update_heuristic(
-        CartesianAbstraction& abstraction,
-        CartesianHeuristic& heuristic,
-        const Trace& solution) const;
-
 public:
     AStarTraceGenerator();
 
@@ -52,6 +42,17 @@ public:
         downward::utils::CountdownTimer& timer) override;
 
     void notify_split() override;
+
+private:
+    std::unique_ptr<Trace> extract_solution(
+        int init_id,
+        int goal_id,
+        downward::utils::CountdownTimer& timer) const;
+
+    void update_heuristic(
+        CartesianAbstraction& abstraction,
+        CartesianHeuristic& heuristic,
+        const Trace& solution) const;
 };
 
 } // namespace probfd::cartesian_abstractions

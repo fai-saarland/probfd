@@ -15,7 +15,7 @@ class VariableSpace;
 
 namespace downward::utils {
 class Timer;
-} // namespace utils
+} // namespace downward::utils
 
 namespace probfd::cartesian_abstractions {
 class AbstractState;
@@ -23,9 +23,7 @@ class CartesianAbstraction;
 class CartesianHeuristic;
 struct Flaw;
 class FlawGenerator;
-class FlawGeneratorFactory;
 class SplitSelector;
-class SplitSelectorFactory;
 } // namespace probfd::cartesian_abstractions
 
 namespace probfd::cartesian_abstractions {
@@ -43,75 +41,14 @@ struct CEGARResult {
     ~CEGARResult();
 };
 
-/*
-  Iteratively refine a Cartesian abstraction with counterexample-guided
-  abstraction refinement (CEGAR).
-
-  Computes the abstraction, uses FlawGenerator to find flaws, uses SplitSelector
-  to select splits in case of ambiguities and break spurious solutions.
-*/
-class CEGAR {
-    const int max_states_;
-    const int max_non_looping_transitions_;
-    const downward::utils::FSeconds max_time_;
-    const std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory_;
-    const std::shared_ptr<SplitSelectorFactory> split_selector_factory_;
-
-    mutable downward::utils::LogProxy log_;
-
-public:
-    CEGAR(
-        int max_states,
-        int max_non_looping_transitions,
-        downward::utils::FSeconds max_time,
-        std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory,
-        std::shared_ptr<SplitSelectorFactory> split_selector_factory,
-        downward::utils::LogProxy log);
-
-    ~CEGAR();
-
-    // Build abstraction.
-    CEGARResult
-    run_refinement_loop(const SharedProbabilisticTask& task);
-
-private:
-    bool may_keep_refining(const CartesianAbstraction& abstraction) const;
-
-    /*
-        Map all states that can only be reached after reaching the goal
-        fact to arbitrary goal states.
-
-        We need this method only for landmark subtasks, but calling it
-        for other subtasks with a single goal fact doesn't hurt and
-        simplifies the implementation.
-    */
-    void separate_facts_unreachable_before_goal(
-        const ProbabilisticTaskTuple& task,
-        FlawGenerator& flaw_generator,
-        RefinementHierarchy& refinement_hierarchy,
-        CartesianAbstraction& abstraction,
-        CartesianHeuristic& heuristic,
-        downward::utils::Timer& timer);
-
-    void refine_abstraction(
-        const downward::VariableSpace& variables,
-        FlawGenerator& flaw_generator,
-        SplitSelector& split_selector,
-        RefinementHierarchy& refinement_hierarchy,
-        CartesianAbstraction& abstraction,
-        CartesianHeuristic& heuristic,
-        const Flaw& flaw,
-        downward::utils::Timer& timer);
-
-    void refine_abstraction(
-        FlawGenerator& flaw_generator,
-        RefinementHierarchy& refinement_hierarchy,
-        CartesianAbstraction& abstraction,
-        CartesianHeuristic& heuristic,
-        const AbstractState& abstract_state,
-        int split_var,
-        const std::vector<int>& wanted);
-};
+CEGARResult run_refinement_loop(
+    int max_states,
+    int max_non_looping_transitions,
+    downward::utils::FSeconds max_time,
+    FlawGenerator& flaw_generator_factory,
+    SplitSelector& split_selector_factory,
+    const downward::utils::LogProxy& log,
+    const ProbabilisticTaskTuple& task);
 
 } // namespace probfd::cartesian_abstractions
 
