@@ -16,19 +16,6 @@ namespace downward::utils {
 /// Constructor tag for parameter-validating vs. non-validating constructors.
 struct validation_tag {};
 
-template <std::integral T1, std::integral T2, typename F>
-void validate_param_geq(std::string_view arg_name, T1 x, T2 lb, F&& f)
-{
-    if (std::cmp_less(x, lb)) {
-        throw std::out_of_range(
-            std::format(
-                "Argument {} with value {} is not >= {}",
-                arg_name,
-                x,
-                lb));
-    }
-}
-
 template <std::integral T1, std::integral T2>
 void validate_param_geq(std::string_view arg_name, T1 x, T2 lb)
 {
