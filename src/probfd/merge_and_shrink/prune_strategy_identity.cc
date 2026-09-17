@@ -13,7 +13,7 @@ StateEquivalenceRelation PruneStrategyIdentity::compute_pruning_abstraction(
 
 {
     StateEquivalenceRelation relation;
-    for (int index = 0; index != ts.get_size(); ++index) {
+    for (int index = 0; std::cmp_not_equal(index, ts.get_size()); ++index) {
         relation.push_back({index});
     }
     return relation;

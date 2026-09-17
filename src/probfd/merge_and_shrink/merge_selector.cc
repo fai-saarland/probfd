@@ -16,9 +16,11 @@ vector<pair<int, int>> MergeSelector::compute_merge_candidates(
     vector<pair<int, int>> merge_candidates;
 
     if (indices_subset.empty()) {
-        for (int ts_index1 = 0; ts_index1 < fts.get_size(); ++ts_index1) {
+        for (int ts_index1 = 0; std::cmp_less(ts_index1, fts.get_size());
+             ++ts_index1) {
             if (!fts.is_active(ts_index1)) continue;
-            for (int ts_index2 = ts_index1 + 1; ts_index2 < fts.get_size();
+            for (int ts_index2 = ts_index1 + 1;
+                 std::cmp_less(ts_index2, fts.get_size());
                  ++ts_index2) {
                 if (fts.is_active(ts_index2)) {
                     merge_candidates.emplace_back(ts_index1, ts_index2);

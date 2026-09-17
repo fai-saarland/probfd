@@ -232,7 +232,8 @@ void MergeAndShrinkAlgorithm::run_merge_and_shrink_algorithm(
             }
         });
 
-        for (int index = 0; index < fts.get_size(); ++index) {
+        for (int index = 0; std::cmp_not_equal(index, fts.get_size());
+             ++index) {
             assert(fts.is_active(index));
 
             auto& ts = fts.get_transition_system(index);
@@ -328,7 +329,7 @@ void MergeAndShrinkAlgorithm::main_loop(
     }
 
     int maximum_intermediate_size = 0;
-    for (int i = 0; i < fts.get_size(); ++i) {
+    for (int i = 0; std::cmp_not_equal(i, fts.get_size()); ++i) {
         if (const int size = fts.get_transition_system(i).get_size();
             size > maximum_intermediate_size) {
             maximum_intermediate_size = size;

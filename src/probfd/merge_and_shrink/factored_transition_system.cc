@@ -37,7 +37,8 @@ FTSConstIterator::FTSConstIterator(
 
 void FTSConstIterator::next_valid_index()
 {
-    while (current_index < fts.get_size() && !fts.is_active(current_index)) {
+    while (std::cmp_less(current_index, fts.get_size()) &&
+           !fts.is_active(current_index)) {
         ++current_index;
     }
 }
@@ -135,7 +136,7 @@ bool FactoredTransitionSystem::apply_abstraction(
 
     auto&& [ts, fm, distances] = factors[index];
 
-    if (const int new_num_states = state_equivalence_relation.size();
+    if (const auto new_num_states = state_equivalence_relation.size();
         new_num_states == ts->get_size()) {
         return false;
     }
@@ -191,8 +192,7 @@ auto FactoredTransitionSystem::merge(
 
     assert(is_component_valid(new_index));
 
-    return {
-        .left_factor = std::move(factors[index1]),
+    return {.left_factor = std::move(factors[index1]),
             .right_factor = std::move(factors[index2]),
             .merged_factor = f,
             .merge_index = new_index};
@@ -227,7 +227,9 @@ void FactoredTransitionSystem::dump(int index, utils::LogProxy& log) const
 void FactoredTransitionSystem::dump(utils::LogProxy& log) const
 {
     if (log.is_at_least_debug()) {
-        for (const int index : *this) { dump(index, log); }
+        for (const int index : *this) {
+            dump(index, log);
+        }
     }
 }
 
@@ -243,10 +245,14 @@ bool FactoredTransitionSystem::is_factor_trivial(int index) const
     assert(is_component_valid(index));
     const Factor& factor = factors[index];
 
-    if (!factor.factored_mapping->is_total()) { return false; }
+    if (!factor.factored_mapping->is_total()) {
+        return false;
+    }
     const TransitionSystem& ts = *factor.transition_system;
-    for (int state = 0; state < ts.get_size(); ++state) {
-        if (!ts.is_goal_state(state)) { return false; }
+    for (int state = 0; std::cmp_not_equal(state, ts.get_size()); ++state) {
+        if (!ts.is_goal_state(state)) {
+            return false;
+        }
     }
     return true;
 }

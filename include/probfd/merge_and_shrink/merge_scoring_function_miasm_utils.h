@@ -25,9 +25,9 @@ extern std::unique_ptr<TransitionSystem> shrink_before_merge_externally(
     int index1,
     int index2,
     const ShrinkStrategy& shrink_strategy,
-    int max_states,
-    int max_states_before_merge,
-    int shrink_threshold_before_merge,
+    size_t max_states,
+    size_t max_states_before_merge,
+    size_t shrink_threshold_before_merge,
     downward::utils::LogProxy& log);
 
 } // namespace probfd::merge_and_shrink

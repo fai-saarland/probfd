@@ -34,7 +34,6 @@ PatternCollectionGeneratorMultiple::PatternCollectionGeneratorMultiple(
     , blacklisting_start_duration(total_max_time * blacklist_trigger_percentage)
     , enable_blacklist_on_stagnation(enable_blacklist_on_stagnation)
     , rng(std::move(rng))
-    , random_seed(random_seed)
     , remaining_collection_size(max_collection_size)
     , blacklisting(false)
     , time_point_of_last_new_pattern(0.0)
@@ -211,8 +210,6 @@ PatternCollectionGeneratorMultiple::compute_patterns(
     set<Pattern> generated_patterns;
     shared_ptr<PDBCollection> generated_pdbs = make_shared<PDBCollection>();
 
-    shared_ptr<utils::RandomNumberGenerator> pattern_computation_rng =
-        make_shared<utils::RandomNumberGenerator>(random_seed);
     int num_iterations = 1;
     int goal_index = 0;
     while (true) {
@@ -228,7 +225,7 @@ PatternCollectionGeneratorMultiple::compute_patterns(
         PatternInformation pattern_info = compute_pattern(
             remaining_pdb_size,
             remaining_time,
-            pattern_computation_rng,
+            rng,
             task,
             goal_facts[goal_index],
             std::move(blacklisted_variables));

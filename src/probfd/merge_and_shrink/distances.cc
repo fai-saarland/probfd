@@ -70,15 +70,21 @@ public:
         }
 
         // Set up goal state flags
-        for (int i = 0; i != transition_system.get_size(); ++i) {
+        for (int i = 0; std::cmp_not_equal(i, transition_system.get_size());
+             ++i) {
             goal_flags_[i] = transition_system.is_goal_state(i);
         }
     }
 
-    StateID get_state_id(int state) override { return StateID(state); }
+    StateID get_state_id(int state) override
+    {
+        return StateID(state);
+    }
 
     int get_state(StateID state_id) override
-    { return static_cast<int>(state_id.id); }
+    {
+        return static_cast<int>(state_id.id);
+    }
 
     void generate_applicable_actions(
         int state,
@@ -118,9 +124,8 @@ public:
         }
     }
 
-    void generate_all_transitions(
-        int state,
-        std::vector<LDistType>& transitions)
+    void
+    generate_all_transitions(int state, std::vector<LDistType>& transitions)
         override
     {
         transitions.reserve(transitions_[state].size());
@@ -141,7 +146,9 @@ public:
     }
 
     value_t get_action_cost(const ProbabilisticTransition* action) override
-    { return action->cost; }
+    {
+        return action->cost;
+    }
 };
 } // namespace
 
@@ -172,7 +179,9 @@ void Distances::compute_distances(
       states.
     */
 
-    if (log.is_at_least_verbose()) { log.print(transition_system.tag()); }
+    if (log.is_at_least_verbose()) {
+        log.print(transition_system.tag());
+    }
 
     const int num_states = transition_system.get_size();
 
@@ -187,7 +196,9 @@ void Distances::compute_distances(
 
     if (log.is_at_least_verbose()) {
         log.print("computing ");
-        if (compute_liveness) { log.print("liveness and "); }
+        if (compute_liveness) {
+            log.print("liveness and ");
+        }
         log.println("goal distances");
     }
 
@@ -227,11 +238,15 @@ void Distances::apply_abstraction(
     const std::size_t new_num_states = state_equivalence_relation.size();
 
     // identity transformation, nothing to recompute
-    if (new_num_states == goal_distances.size()) { return; }
+    if (new_num_states == goal_distances.size()) {
+        return;
+    }
 
     vector<bool> new_liveness;
     vector new_goal_distances(new_num_states, DISTANCE_UNKNOWN);
-    if (compute_liveness) { new_liveness.resize(new_num_states, false); }
+    if (compute_liveness) {
+        new_liveness.resize(new_num_states, false);
+    }
 
     bool recompute_goal_distances = false;
     bool recompute_liveness = false;
@@ -321,7 +336,9 @@ void Distances::apply_abstraction(
 void Distances::dump(utils::LogProxy& log) const
 {
     if (log.is_at_least_debug()) {
-        if (is_liveness_computed()) { log.println("Liveness: {}", liveness); }
+        if (is_liveness_computed()) {
+            log.println("Liveness: {}", liveness);
+        }
         if (are_goal_distances_computed()) {
             log.println("Goal Distances: {}", goal_distances);
         }
@@ -376,7 +393,7 @@ void compute_goal_distances(
 
     std::ranges::fill(distances, DISTANCE_UNKNOWN);
 
-    for (int i = 0; i != transition_system.get_size(); ++i) {
+    for (int i = 0; std::cmp_not_equal(i, transition_system.get_size()); ++i) {
         if (!std::isnan(distances[i])) continue; // Already seen
         tatvi.solve(explicit_mdp, heuristic, i, distances);
     }

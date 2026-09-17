@@ -460,7 +460,7 @@ void TransitionSystem::apply_abstraction(
     const vector<int>& abstraction_mapping,
     utils::LogProxy& log)
 {
-    const int new_num_states = state_equivalence_relation.size();
+    const std::size_t new_num_states = state_equivalence_relation.size();
     assert(new_num_states <= get_size());
     if (log.is_at_least_verbose()) {
         log.print(tag());
@@ -481,7 +481,8 @@ void TransitionSystem::apply_abstraction(
     auto new_goal_states =
         dynamic_bitset::DynamicBitset<uint64_t>::zeros(new_num_states);
 
-    for (int new_state = 0; new_state < new_num_states; ++new_state) {
+    for (int new_state = 0; std::cmp_less(new_state, new_num_states);
+         ++new_state) {
         const auto& state_eqv_class = state_equivalence_relation[new_state];
         assert(!state_eqv_class.empty());
 
@@ -734,7 +735,7 @@ void TransitionSystem::dump_dot_graph(utils::LogProxy& log) const
         for (int var : incorporated_variables) log.print("_{}", var);
         log.println(" {");
         log.println("    node [shape = none] start;");
-        for (int i = 0; i < get_size(); ++i) {
+        for (std::size_t i = 0; i != get_size(); ++i) {
             log.println(
                 "    node [shape = {}] node{};",
                 goal_states[i] ? "doublecircle" : "circle",

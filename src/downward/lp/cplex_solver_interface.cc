@@ -159,8 +159,8 @@ void CplexSolverInterface::CplexMatrix::assign_column_by_column(
         starts[var] -= counts[var];
     }
 
-    assert(starts.size() == num_cols);
-    assert(counts.size() == num_cols);
+    assert(std::cmp_equal(starts.size(), num_cols));
+    assert(std::cmp_equal(counts.size(), num_cols));
     assert(indices.size() == coefficients.size());
 }
 

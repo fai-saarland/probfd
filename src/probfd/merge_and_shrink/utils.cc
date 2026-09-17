@@ -17,23 +17,23 @@ using namespace downward;
 
 namespace probfd::merge_and_shrink {
 
-pair<int, int> compute_shrink_sizes(
-    int size1,
-    int size2,
-    int max_states_before_merge,
-    int max_states_after_merge)
+pair<size_t, size_t> compute_shrink_sizes(
+    size_t size1,
+    size_t size2,
+    size_t max_states_before_merge,
+    size_t max_states_after_merge)
 {
     // Bound both sizes by max allowed size before merge.
-    int new_size1 = min(size1, max_states_before_merge);
-    int new_size2 = min(size2, max_states_before_merge);
+    std::size_t new_size1 = min(size1, max_states_before_merge);
+    std::size_t new_size2 = min(size2, max_states_before_merge);
 
     if (!utils::is_product_within_limit(
             new_size1,
             new_size2,
             max_states_after_merge)) {
 
-        if (const int balanced_size =
-                static_cast<int>(sqrt(max_states_after_merge));
+        if (const std::size_t balanced_size =
+                static_cast<std::size_t>(sqrt(max_states_after_merge));
             new_size1 <= balanced_size) {
             // Size of the first transition system is small enough. Use whatever
             // is left for the second transition system.
@@ -72,8 +72,8 @@ pair<int, int> compute_shrink_sizes(
 static bool shrink_factor(
     FactoredTransitionSystem& fts,
     int index,
-    int new_size,
-    int shrink_threshold_before_merge,
+    std::size_t new_size,
+    std::size_t shrink_threshold_before_merge,
     const ShrinkStrategy& shrink_strategy,
     bool compute_goal_distances,
     bool compute_liveness,
@@ -84,7 +84,7 @@ static bool shrink_factor(
       function copy_and_shrink_ts in merge_scoring_function_miasm_utils.cc.
     */
     const TransitionSystem& ts = fts.get_transition_system(index);
-    if (const int num_states = ts.get_size();
+    if (const std::size_t num_states = ts.get_size();
         num_states > min(new_size, shrink_threshold_before_merge)) {
         if (log.is_at_least_verbose()) {
             log.print("{} current size: {}", ts.tag(), num_states);
@@ -122,9 +122,9 @@ bool shrink_before_merge_step(
     FactoredTransitionSystem& fts,
     int index1,
     int index2,
-    int max_states,
-    int max_states_before_merge,
-    int shrink_threshold_before_merge,
+    size_t max_states,
+    size_t max_states_before_merge,
+    size_t shrink_threshold_before_merge,
     const ShrinkStrategy& shrink_strategy,
     bool do_compute_goal_distances,
     bool compute_liveness,

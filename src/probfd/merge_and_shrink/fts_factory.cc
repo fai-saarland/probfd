@@ -192,7 +192,7 @@ void build_transitions_for_operator(
             label_cost);
     }
 
-    for (; var_id != variables.size(); ++var_id) {
+    for (; std::cmp_not_equal(var_id, variables.size()); ++var_id) {
         on_no_precondition(var_id);
     }
 }

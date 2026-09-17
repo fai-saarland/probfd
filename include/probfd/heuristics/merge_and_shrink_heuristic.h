@@ -6,6 +6,7 @@
 #include "probfd/heuristic.h"
 
 #include <memory>
+#include <vector>
 
 namespace probfd::merge_and_shrink {
 class Distances;

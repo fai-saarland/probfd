@@ -10,6 +10,8 @@
 #include "downward/utils/exceptions.h"
 #include "downward/utils/logging.h"
 
+#include <algorithm>
+
 using namespace std;
 
 namespace downward::lp {

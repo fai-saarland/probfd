@@ -36,7 +36,7 @@ static unique_ptr<TransitionSystem> copy_and_shrink_ts(
     // TODO: We currently violate this; see issue250
     // assert(equivalence_relation.size() <= target_size);
 
-    if (const int new_num_states = equivalence_relation.size();
+    if (const std::size_t new_num_states = equivalence_relation.size();
         new_num_states >= ts.get_size())
         return nullptr;
 
@@ -61,9 +61,9 @@ unique_ptr<TransitionSystem> shrink_before_merge_externally(
     int index1,
     int index2,
     const ShrinkStrategy& shrink_strategy,
-    int max_states,
-    int max_states_before_merge,
-    int shrink_threshold_before_merge,
+    size_t max_states,
+    size_t max_states_before_merge,
+    size_t shrink_threshold_before_merge,
     utils::LogProxy& log)
 {
     const TransitionSystem& original_ts1 = fts.get_transition_system(index1);

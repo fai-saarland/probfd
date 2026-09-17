@@ -41,7 +41,7 @@ compute_label_ranks(const FactoredTransitionSystem& fts, int index)
         const auto& transitions = local_label_info.get_transitions();
 
         const bool group_relevant =
-            static_cast<int>(transitions.size()) != ts.get_size() ||
+            transitions.size() != ts.get_size() ||
             !ranges::all_of(transitions, is_self_loop);
 
         double label_rank;

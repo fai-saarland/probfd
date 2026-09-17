@@ -37,7 +37,6 @@ class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
     const utils::FSeconds blacklisting_start_duration;
     const bool enable_blacklist_on_stagnation;
     std::shared_ptr<utils::RandomNumberGenerator> rng;
-    const int random_seed;
 
     // Variables used in the main loop.
     int remaining_collection_size;

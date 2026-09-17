@@ -101,7 +101,7 @@ static int initialize_groups(
     std::map<value_t, int> h_to_group;
     int num_groups = 1; // Group 0 is for goal states.
 
-    for (int state = 0; state < ts.get_size(); ++state) {
+    for (int state = 0; std::cmp_less(state, ts.get_size()); ++state) {
         if (ts.is_goal_state(state)) {
             assert(distances.get_goal_distance(state) == 0);
             state_to_group[state] = 0;
@@ -138,7 +138,7 @@ static void compute_signatures(
     assert(signatures.empty());
 
     // Step 1: Compute bare state signatures (without transition information).
-    for (int state = 0; state < ts.get_size(); ++state) {
+    for (int state = 0; std::cmp_less(state, ts.get_size()); ++state) {
         signatures.emplace_back(state_to_group[state], state);
     }
 

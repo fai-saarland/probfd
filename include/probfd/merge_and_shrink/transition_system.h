@@ -92,11 +92,20 @@ public:
     void deactivate();
 
     // A local label is active as long as it represents labels (in label_group).
-    bool is_active() const { return !label_group.empty(); }
+    bool is_active() const
+    {
+        return !label_group.empty();
+    }
 
-    const LabelGroup& get_label_group() const { return label_group; }
+    const LabelGroup& get_label_group() const
+    {
+        return label_group;
+    }
 
-    std::vector<Transition>& get_transitions() { return transitions; }
+    std::vector<Transition>& get_transitions()
+    {
+        return transitions;
+    }
 
     const std::vector<Transition>& get_transitions() const
     {
@@ -109,9 +118,15 @@ public:
         return labels.get_label_probabilities(label_group.front());
     }
 
-    value_t get_cost() const { return cost; }
+    value_t get_cost() const
+    {
+        return cost;
+    }
 
-    std::size_t get_num_transitions() const { return transitions.size(); }
+    std::size_t get_num_transitions() const
+    {
+        return transitions.size();
+    }
 
     bool is_consistent() const;
 
@@ -159,11 +174,20 @@ public:
         int init_state,
         downward::dynamic_bitset::DynamicBitset<uint64_t> goal_states);
 
-    int get_size() const { return static_cast<int>(goal_states.size()); }
+    std::size_t get_size() const
+    {
+        return static_cast<int>(goal_states.size());
+    }
 
-    int get_init_state() const { return init_state; }
+    int get_init_state() const
+    {
+        return init_state;
+    }
 
-    bool is_goal_state(int state) const { return goal_states[state]; }
+    bool is_goal_state(int state) const
+    {
+        return goal_states[state];
+    }
 
     const std::vector<int>& get_incorporated_variables() const
     {

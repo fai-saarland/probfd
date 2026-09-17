@@ -75,8 +75,8 @@ std::size_t IntRelationBuilder::get_range() const
 
 void IntRelationBuilder::add_pair(int u, int v)
 {
-    assert(u >= 0 && u < get_range());
-    assert(v >= 0 && v < get_range());
+    assert(u >= 0 && std::cmp_less(u, get_range()));
+    assert(v >= 0 && std::cmp_less(v, get_range()));
     int_sets[u].insert(v);
 }
 

@@ -84,7 +84,7 @@ public:
 private:
     Labels labels;
     std::vector<Factor> factors;
-    int num_active_entries;
+    std::size_t num_active_entries;
 
 public:
     FactoredTransitionSystem(Labels labels, std::vector<Factor>&& factors);
@@ -140,7 +140,7 @@ public:
         return *factors[index].distances;
     }
 
-    int get_num_active_entries() const { return num_active_entries; }
+    std::size_t get_num_active_entries() const { return num_active_entries; }
 
     // Used by LabelReduction and MergeScoringFunctionDFP
     const Labels& get_labels() const { return labels; }

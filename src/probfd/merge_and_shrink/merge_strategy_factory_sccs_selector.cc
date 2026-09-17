@@ -55,12 +55,12 @@ MergeStrategyFactorySCCsSelector::compute_merge_strategy(
 {
     const causal_graph::ProbabilisticCausalGraph cgraph(fts);
 
-    const int num_vars = static_cast<int>(fts.get_size());
+    const std::size_t num_vars = fts.get_size();
 
     // Compute SCCs of the causal graph.
     vector<vector<int>> cg;
     cg.reserve(num_vars);
-    for (int i = 0; i != num_vars; ++i) {
+    for (int i = 0; std::cmp_not_equal(i, num_vars); ++i) {
         cg.push_back(cgraph.get_successors(i));
     }
 

@@ -30,11 +30,11 @@ namespace probfd::merge_and_shrink {
   case, balanced solutions (where the target sizes are close to each other)
   are preferred over less balanced ones.
 */
-extern std::pair<int, int> compute_shrink_sizes(
-    int size1,
-    int size2,
-    int max_states_before_merge,
-    int max_states_after_merge);
+extern std::pair<unsigned long, unsigned long> compute_shrink_sizes(
+    size_t size1,
+    size_t size2,
+    size_t max_states_before_merge,
+    size_t max_states_after_merge);
 
 /*
   This function first determines if any of the two factors at indices index1
@@ -52,9 +52,9 @@ extern bool shrink_before_merge_step(
     FactoredTransitionSystem& fts,
     int index1,
     int index2,
-    int max_states,
-    int max_states_before_merge,
-    int shrink_threshold_before_merge,
+    size_t max_states,
+    size_t max_states_before_merge,
+    size_t shrink_threshold_before_merge,
     const ShrinkStrategy& shrink_strategy,
     bool compute_goal_distances,
     bool compute_liveness,
