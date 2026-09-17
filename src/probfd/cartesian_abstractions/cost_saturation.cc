@@ -189,7 +189,7 @@ vector<CartesianHeuristicFunction> generate_heuristic_functions(
             const auto split_selector =
                 split_selector_factory.create_split_selector(subtask);
 
-            assert(num_states < max_states_);
+            assert(num_states < max_states);
             auto [refinement_hierarchy, abstraction, heuristic] =
                 run_refinement_loop(
                     max(1, (max_states - num_states) / rem_subtasks),
