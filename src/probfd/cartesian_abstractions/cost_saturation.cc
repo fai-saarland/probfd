@@ -206,7 +206,7 @@ vector<CartesianHeuristicFunction> generate_heuristic_functions(
             num_states += abstraction->get_num_states();
             num_non_looping_transitions +=
                 abstraction->get_transition_system().get_num_non_loops();
-            assert(num_states <= max_states_);
+            assert(num_states <= max_states);
 
             // Compute goal distances.
             vector goal_distances(
