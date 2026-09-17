@@ -3,6 +3,7 @@
 
 #include "probfd/merge_and_shrink/types.h"
 
+#include <cstdint>
 #include <vector>
 
 namespace downward::utils {
@@ -30,11 +31,11 @@ namespace probfd::merge_and_shrink {
   case, balanced solutions (where the target sizes are close to each other)
   are preferred over less balanced ones.
 */
-extern std::pair<unsigned long, unsigned long> compute_shrink_sizes(
-    size_t size1,
-    size_t size2,
-    size_t max_states_before_merge,
-    size_t max_states_after_merge);
+extern std::pair<std::size_t, std::size_t> compute_shrink_sizes(
+    std::size_t size1,
+    std::size_t size2,
+    std::size_t max_states_before_merge,
+    std::size_t max_states_after_merge);
 
 /*
   This function first determines if any of the two factors at indices index1
@@ -52,9 +53,9 @@ extern bool shrink_before_merge_step(
     FactoredTransitionSystem& fts,
     int index1,
     int index2,
-    size_t max_states,
-    size_t max_states_before_merge,
-    size_t shrink_threshold_before_merge,
+    std::size_t max_states,
+    std::size_t max_states_before_merge,
+    std::size_t shrink_threshold_before_merge,
     const ShrinkStrategy& shrink_strategy,
     bool compute_goal_distances,
     bool compute_liveness,

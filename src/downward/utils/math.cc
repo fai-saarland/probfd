@@ -7,13 +7,6 @@
 using namespace std;
 
 namespace downward::utils {
-bool is_product_within_limit(int factor1, int factor2, int limit)
-{
-    assert(factor1 >= 0);
-    assert(factor2 >= 0);
-    assert(limit >= 0);
-    return factor2 == 0 || factor1 <= limit / factor2;
-}
 
 static bool is_product_within_limit_unsigned(
     unsigned int factor1,

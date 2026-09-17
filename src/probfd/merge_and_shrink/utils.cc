@@ -17,11 +17,11 @@ using namespace downward;
 
 namespace probfd::merge_and_shrink {
 
-pair<size_t, size_t> compute_shrink_sizes(
-    size_t size1,
-    size_t size2,
-    size_t max_states_before_merge,
-    size_t max_states_after_merge)
+pair<std::size_t, std::size_t> compute_shrink_sizes(
+    std::size_t size1,
+    std::size_t size2,
+    std::size_t max_states_before_merge,
+    std::size_t max_states_after_merge)
 {
     // Bound both sizes by max allowed size before merge.
     std::size_t new_size1 = min(size1, max_states_before_merge);
@@ -31,8 +31,7 @@ pair<size_t, size_t> compute_shrink_sizes(
             new_size1,
             new_size2,
             max_states_after_merge)) {
-
-        if (const std::size_t balanced_size =
+        if (const auto balanced_size =
                 static_cast<std::size_t>(sqrt(max_states_after_merge));
             new_size1 <= balanced_size) {
             // Size of the first transition system is small enough. Use whatever
@@ -157,7 +156,9 @@ bool shrink_before_merge_step(
         compute_liveness,
         log);
 
-    if (shrunk1) { fts.statistics(index1, log); }
+    if (shrunk1) {
+        fts.statistics(index1, log);
+    }
 
     const bool shrunk2 = shrink_factor(
         fts,
@@ -169,7 +170,9 @@ bool shrink_before_merge_step(
         compute_liveness,
         log);
 
-    if (shrunk2) { fts.statistics(index2, log); }
+    if (shrunk2) {
+        fts.statistics(index2, log);
+    }
 
     return shrunk1 || shrunk2;
 }
@@ -197,7 +200,9 @@ bool is_goal_relevant(const TransitionSystem& ts)
 {
     const int num_states = ts.get_size();
     for (int state = 0; state < num_states; ++state) {
-        if (!ts.is_goal_state(state)) { return true; }
+        if (!ts.is_goal_state(state)) {
+            return true;
+        }
     }
 
     return false;
