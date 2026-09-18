@@ -30,10 +30,12 @@ inline void Statistics::print(std::ostream& out) const
 inline unsigned ValueGroup::get_id(value_t val)
 {
     values_.push_back(val);
-    auto it = indices_.insert(values_.size() - 1);
-    if (!it.second) { values_.pop_back(); }
+    auto [it, inserted] = indices_.insert(values_.size() - 1);
+    if (!inserted) {
+        values_.pop_back();
+    }
 
-    return *it.first;
+    return *it;
 }
 
 template <typename State, typename Action>
@@ -106,8 +108,8 @@ auto IDual<State, Action>::compute_policy(
     // Explore the policy graph and build the inverse edge relation.
     storage::PerStateStorage<std::vector<Edge>> predecessor_edges;
 
-    std::deque<StateID> queue{initial_state_id};
-    std::unordered_set<StateID> visited{initial_state_id};
+    std::deque queue{initial_state_id};
+    std::unordered_set visited{initial_state_id};
 
     std::deque<StateID> back_queue;
 
@@ -152,7 +154,9 @@ auto IDual<State, Action>::compute_policy(
             ++i;
         }
 
-        if (actions == 0) { back_queue.push_back(state_id); }
+        if (actions == 0) {
+            back_queue.push_back(state_id);
+        }
     } while (!queue.empty());
 
     // Now do the backwards exploration and extract a deterministic policy.
@@ -205,7 +209,9 @@ Interval IDual<State, Action>::solve(
         // initialize lp
         const TerminationInfo term = mdp.get_termination_info(initial_state);
 
-        if (term.is_goal_state()) { return Interval(0_vt); }
+        if (term.is_goal_state()) {
+            return Interval(0_vt);
+        }
 
         const value_t term_cost = term.get_cost();
         const value_t estimate = heuristic.evaluate(initial_state);
@@ -265,7 +271,9 @@ Interval IDual<State, Action>::solve(
 
             lp_solver_.set_variable_upper_bound(var_id, t_cost);
 
-            if (term_info.is_goal_state()) { continue; }
+            if (term_info.is_goal_state()) {
+                continue;
+            }
 
             ClearGuard _(transitions);
             mdp.generate_all_transitions(state, transitions);

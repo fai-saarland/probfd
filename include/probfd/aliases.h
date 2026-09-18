@@ -19,7 +19,7 @@ using value_t = double;
  * the concept
  */
 template <typename T>
-using ParamType = typename std::conditional_t<PassedByValue<T>, T, const T&>;
+using ParamType = std::conditional_t<PassedByValue<T>, T, const T&>;
 
 /**
  * @brief Concatenated tuple type of a list of tuple types.

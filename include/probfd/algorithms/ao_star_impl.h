@@ -40,8 +40,7 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
     const StateID initstateid = mdp.get_state_id(initial_state);
     auto& iinfo = this->state_infos_[initstateid];
 
-    progress.register_bound("v", [&iinfo]() {
-        return as_interval(iinfo.value);
+    progress.register_bound("v", [&iinfo] { return as_interval(iinfo.value);
     });
 
     progress.register_print([&](std::ostream& out) {
@@ -70,7 +69,7 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
                     info,
                     transitions_);
 
-                bool value_changed = this->update_value_check_solved(
+                const bool value_changed = this->update_value_check_solved(
                     mdp,
                     state,
                     transitions_,
@@ -178,16 +177,14 @@ bool AOStar<State, Action, UseInterval>::update_value_check_solved(
     std::vector<LabelledSuccessorDistribution<Action>> transitions,
     StateInfo& info)
 {
-    const auto value = this->compute_bellman_and_greedy(
-        state,
-        transitions,
-        mdp,
-        qvalues_);
+    const auto value =
+        this->compute_bellman_and_greedy(state, transitions, mdp, qvalues_);
 
     auto greedy_transition =
         this->select_greedy_transition(mdp, info.get_policy(), transitions_);
 
-    bool value_changed = this->update_value(info, value, this->epsilon).changed;
+    const bool value_changed =
+        this->update_value(info, value, this->epsilon).changed;
     this->update_policy(info, greedy_transition);
 
     bool all_succs_solved = true;

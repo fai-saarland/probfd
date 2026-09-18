@@ -64,17 +64,17 @@ Interval HeuristicDepthFirstSearch<State, Action, UseInterval>::do_solve(
 {
     downward::utils::CountdownTimer timer(max_time);
 
-    const StateID stateid = mdp.get_state_id(state);
-    const StateInfo& state_info = this->state_infos_[stateid];
+    const StateID state_id = mdp.get_state_id(state);
+    const StateInfo& state_info = this->state_infos_[state_id];
 
-    progress.register_bound("v", [&state_info]() {
+    progress.register_bound("v", [&state_info] {
         return as_interval(state_info.value);
     });
 
     if (!label_solved_) {
-        solve_with_vi_termination(mdp, heuristic, stateid, progress, timer);
+        solve_with_vi_termination(mdp, heuristic, state_id, progress, timer);
     } else {
-        solve_without_vi_termination(mdp, heuristic, stateid, progress, timer);
+        solve_without_vi_termination(mdp, heuristic, state_id, progress, timer);
     }
 
     return state_info.get_bounds();
@@ -92,13 +92,13 @@ void HeuristicDepthFirstSearch<State, Action, UseInterval>::
     solve_with_vi_termination(
         MDP& mdp,
         HeuristicType& heuristic,
-        StateID stateid,
+        StateID state_id,
         ProgressReport& progress,
         downward::utils::CountdownTimer& timer)
 {
     bool terminate;
     do {
-        terminate = policy_exploration(mdp, heuristic, stateid, timer) &&
+        terminate = policy_exploration(mdp, heuristic, state_id, timer) &&
                     value_iteration(mdp, visited_states_, timer);
 
         visited_states_.clear();
@@ -112,13 +112,13 @@ void HeuristicDepthFirstSearch<State, Action, UseInterval>::
     solve_without_vi_termination(
         MDP& mdp,
         HeuristicType& heuristic,
-        StateID stateid,
+        StateID state_id,
         ProgressReport& progress,
         downward::utils::CountdownTimer& timer)
 {
     bool terminate;
     do {
-        terminate = policy_exploration(mdp, heuristic, stateid, timer);
+        terminate = policy_exploration(mdp, heuristic, state_id, timer);
         ++statistics_.iterations;
         progress.print();
         assert(visited_states_.empty());
@@ -176,7 +176,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
                 tarjan_stack_.erase(scc.begin(), scc.end());
             }
 
-            DFSExplorationState bt_einfo = std::move(*einfo);
+            const DFSExplorationState bt_einfo = std::move(*einfo);
             dfs_stack_.pop_back();
 
             if (dfs_stack_.empty()) {
@@ -233,7 +233,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::advance(
 
         const auto val_upd =
             this->update_value(state_info, value, this->epsilon);
-        bool policy_changed = this->update_policy(state_info, transition);
+        const bool policy_changed = this->update_policy(state_info, transition);
 
         // Note: it is only necessary to check whether eps-consistency
         // was reached on backward update when both directions are
@@ -253,23 +253,25 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::push_successor(
     MDP& mdp,
     DFSExplorationState& einfo,
     StateInfo& sinfo,
-    downward::utils::CountdownTimer& timer)
+    const downward::utils::CountdownTimer& timer)
 {
     using namespace internal;
 
     do {
         timer.throw_if_expired();
 
-        const StateID succid = einfo.get_current_successor();
-        const uint32_t succ_stack_index = stack_index_[succid];
+        const StateID succ_id = einfo.get_current_successor();
+        const uint32_t succ_stack_index = stack_index_[succ_id];
 
         if (succ_stack_index == NEW) {
-            push(succid);
+            push(succ_id);
             return true;
-        } else if (succ_stack_index == CLOSED) {
+        }
+
+        if (succ_stack_index == CLOSED) {
             if (label_solved_) {
                 einfo.solved =
-                    einfo.solved && this->state_infos_[succid].is_solved();
+                    einfo.solved && this->state_infos_[succ_id].is_solved();
             }
         } else {
             // is on stack
@@ -282,11 +284,11 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::push_successor(
 
 template <typename State, typename Action, bool UseInterval>
 void HeuristicDepthFirstSearch<State, Action, UseInterval>::push(
-    StateID stateid)
+    StateID state_id)
 {
-    dfs_stack_.emplace_back(stateid, tarjan_stack_.size());
-    stack_index_[stateid] = tarjan_stack_.size();
-    tarjan_stack_.emplace_back(stateid);
+    dfs_stack_.emplace_back(state_id, tarjan_stack_.size());
+    stack_index_[state_id] = tarjan_stack_.size();
+    tarjan_stack_.emplace_back(state_id);
 }
 
 template <typename State, typename Action, bool UseInterval>
@@ -375,8 +377,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::value_iteration(
     ++statistics_.convergence_value_iterations;
 
     for (;;) {
-        auto [value_changed, policy_changed] =
-            vi_step(mdp, range, timer);
+        auto [value_changed, policy_changed] = vi_step(mdp, range, timer);
 
         if (policy_changed) return false;
         if (!value_changed) break;
@@ -420,7 +421,7 @@ HeuristicDepthFirstSearch<State, Action, UseInterval>::vi_step(
             transitions_);
 
         auto val_upd = this->update_value(state_info, value, this->epsilon);
-        bool policy_changed = this->update_policy(state_info, transition);
+        const bool policy_changed = this->update_policy(state_info, transition);
         values_not_conv = values_not_conv || !val_upd.converged;
         policy_not_conv = policy_not_conv || policy_changed;
     }

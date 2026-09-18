@@ -8,6 +8,7 @@
 #include "downward/algorithms/segmented_vector.h"
 
 #include <compare>
+#include <limits>
 #include <ranges>
 #include <type_traits>
 #include <unordered_map>
@@ -73,7 +74,6 @@ struct QuotientState {
         MDPType& mdp,
         const QuotientInformationType* quotient);
 
-public:
     template <std::invocable<ParamType<State>> F>
     value_t member_maximum(F&& f) const
         requires(std::is_convertible_v<
@@ -137,7 +137,8 @@ class QuotientSystem
 
     // MASK: bitmask used to obtain the quotient state id, if it exists
     // FLAG: whether a quotient state id exists
-    static constexpr StateID::size_type MASK = (StateID::size_type(-1) >> 1);
+    static constexpr StateID::size_type MASK =
+        std::numeric_limits<StateID::size_type>::max() >> 1U;
     static constexpr StateID::size_type FLAG = ~MASK;
 
 public:
@@ -195,9 +196,9 @@ public:
         std::ranges::range_reference_t<SubMDP> entry);
 
 private:
-    auto partition_actions(
+    static auto partition_actions(
         std::ranges::input_range auto&& aops,
-        const std::ranges::input_range auto& filter) const;
+        const std::ranges::input_range auto& filter);
 
     QuotientInformationType* get_quotient_info(StateID state_id);
     const QuotientInformationType* get_quotient_info(StateID state_id) const;

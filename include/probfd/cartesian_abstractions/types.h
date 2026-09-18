@@ -16,7 +16,6 @@ class InverseOperatorMapping;
 }
 
 namespace downward::cartesian_abstractions {
-class CartesianHeuristicFunction;
 class RefinementHierarchy;
 } // namespace cartesian_abstractions
 

@@ -229,7 +229,7 @@ Interval FRET<NestedAlgorithm, GreedyGraphGenerator>::heuristic_search(
     QHeuristic& heuristic,
     ParamType<QState> state,
     ProgressReport& progress,
-    downward::utils::CountdownTimer& timer)
+    const downward::utils::CountdownTimer& timer)
 {
 #if defined(EXPENSIVE_STATISTICS)
     TimerScope scoped(statistics_.heuristic_search);
@@ -249,7 +249,7 @@ template <
 bool FRET<NestedAlgorithm, GreedyGraphGenerator>::find_and_remove_traps(
     QuotientSystem& quotient,
     ParamType<QState> state,
-    downward::utils::CountdownTimer& timer)
+    const downward::utils::CountdownTimer& timer)
 {
     using namespace internal;
 

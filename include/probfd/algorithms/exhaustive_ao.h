@@ -16,7 +16,7 @@ namespace internal {
 
 template <typename Action, bool UseInterval>
 struct PerStateInformation
-    : public ao_search::PerStateInformation<Action, UseInterval, false> {
+    : ao_search::PerStateInformation<Action, UseInterval, false> {
     unsigned unsolved = 0;
 };
 
@@ -44,14 +44,14 @@ class ExhaustiveAOSearch
           State,
           Action,
           internal::PerStateInformation<Action, UseInterval>> {
-    using Base = typename ExhaustiveAOSearch::AOBase;
+    using Base = ExhaustiveAOSearch::AOBase;
 
     friend Base;
 
-    using MDPType = typename Base::MDPType;
-    using HeuristicType = typename Base::HeuristicType;
-    using PolicyPickerType = typename Base::PolicyPickerType;
-    using StateInfo = typename Base::StateInfo;
+    using MDPType = Base::MDPType;
+    using HeuristicType = Base::HeuristicType;
+    using PolicyPickerType = Base::PolicyPickerType;
+    using StateInfo = Base::StateInfo;
 
     using OpenListType = OpenList<Action>;
 

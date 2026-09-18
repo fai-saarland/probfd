@@ -129,7 +129,7 @@ bool QualitativeReachabilityAnalysis<State, Action>::ExpansionInfo::
 
 template <typename State, typename Action>
 StateID QualitativeReachabilityAnalysis<State, Action>::ExpansionInfo::
-    get_current_successor()
+    get_current_successor() const
 {
     return successor->item;
 }
@@ -237,9 +237,8 @@ bool QualitativeReachabilityAnalysis<State, Action>::initialize(
             ++stats_.terminals;
             return false;
         }
-    } else if (
-        pruning_function != nullptr &&
-        pruning_function->evaluate(state) == term.get_cost()) {
+    } else if (pruning_function != nullptr &&
+               pruning_function->evaluate(state) == term.get_cost()) {
         ++stats_.terminals;
         return false;
     }
@@ -269,7 +268,7 @@ template <typename State, typename Action>
 bool QualitativeReachabilityAnalysis<State, Action>::push_successor(
     MDPType& mdp,
     ExpansionInfo& exp_info,
-    downward::utils::CountdownTimer& timer)
+    const downward::utils::CountdownTimer& timer)
 {
     do {
         timer.throw_if_expired();
@@ -335,8 +334,15 @@ void QualitativeReachabilityAnalysis<State, Action>::scc_found(
             solvable_exits_beg = partition.begin();
         }
 
-        auto solvable_begin() { return solvable_beg; }
-        auto solvable_end() { return partition.end(); }
+        auto solvable_begin()
+        {
+            return solvable_beg;
+        }
+
+        auto solvable_end()
+        {
+            return partition.end();
+        }
 
         auto solvable()
         {
@@ -351,7 +357,7 @@ void QualitativeReachabilityAnalysis<State, Action>::scc_found(
 
         void demote_unsolvable(int s)
         {
-            auto local = scc_index_to_local[s];
+            const auto local = scc_index_to_local[s];
             std::swap(scc_index_to_local[*solvable_beg], scc_index_to_local[s]);
             std::swap(*solvable_beg, *local);
 
@@ -360,7 +366,7 @@ void QualitativeReachabilityAnalysis<State, Action>::scc_found(
 
         void demote_exit_unsolvable(int s)
         {
-            auto local = scc_index_to_local[s];
+            const auto local = scc_index_to_local[s];
             std::swap(
                 scc_index_to_local[*solvable_exits_beg],
                 scc_index_to_local[s]);
@@ -377,7 +383,7 @@ void QualitativeReachabilityAnalysis<State, Action>::scc_found(
 
         void demote_exit_solvable(int s)
         {
-            auto local = scc_index_to_local[s];
+            const auto local = scc_index_to_local[s];
             std::swap(
                 scc_index_to_local[*solvable_exits_beg],
                 scc_index_to_local[s]);
@@ -394,7 +400,7 @@ void QualitativeReachabilityAnalysis<State, Action>::scc_found(
 
             --solvable_beg;
 
-            auto local = scc_index_to_local[s];
+            const auto local = scc_index_to_local[s];
             std::swap(scc_index_to_local[*solvable_beg], scc_index_to_local[s]);
             std::swap(*solvable_beg, *local);
 
@@ -448,8 +454,10 @@ void QualitativeReachabilityAnalysis<State, Action>::scc_found(
             info.active_transitions != 0 || info.active_exit_transitions == 0);
 
         // Transform to local indices
-        for (auto& parent_info : info.parents) {
-            parent_info.parent_idx -= stack_idx;
+        for (auto& parent_idx :
+             info.parents | std::views::transform(
+                                &StackInfo::ParentTransition::parent_idx)) {
+            parent_idx -= stack_idx;
         }
 
         if (info.active_exit_transitions == 0) {
@@ -500,17 +508,16 @@ void QualitativeReachabilityAnalysis<State, Action>::scc_found(
 
                 for (const auto& [parent_idx, tr_idx] : scc_elem.parents) {
                     StackInfo& pinfo = scc[parent_idx];
-                    auto& transition_flags = pinfo.transition_flags[tr_idx];
+                    auto& [is_active_exiting, is_active] =
+                        pinfo.transition_flags[tr_idx];
 
-                    assert(
-                        !transition_flags.is_active_exiting ||
-                        transition_flags.is_active);
+                    assert(!is_active_exiting || is_active);
 
                     if (partition.is_unsolvable(parent_idx)) continue;
 
-                    if (transition_flags.is_active_exiting) {
-                        transition_flags.is_active_exiting = false;
-                        transition_flags.is_active = false;
+                    if (is_active_exiting) {
+                        is_active_exiting = false;
+                        is_active = false;
 
                         --pinfo.active_transitions;
                         --pinfo.active_exit_transitions;
@@ -520,8 +527,8 @@ void QualitativeReachabilityAnalysis<State, Action>::scc_found(
                         } else if (pinfo.active_exit_transitions == 0) {
                             partition.demote_exit_solvable(parent_idx);
                         }
-                    } else if (transition_flags.is_active) {
-                        transition_flags.is_active = false;
+                    } else if (is_active) {
+                        is_active = false;
 
                         --pinfo.active_transitions;
 
@@ -538,8 +545,8 @@ void QualitativeReachabilityAnalysis<State, Action>::scc_found(
     stats_.ones += solvable.size();
 
     // Report the solvable states
-    for (int scc_idx : solvable) {
-        StackInfo& stkinfo = scc[scc_idx];
+    for (const int scc_idx : solvable) {
+        const StackInfo& stkinfo = scc[scc_idx];
         const StateID sid = stkinfo.state_id;
         state_infos_[sid].solvable = true;
         *solvable_out = sid;

@@ -16,11 +16,10 @@ class VDiffSorter : public FDRTransitionSorter {
 public:
     explicit VDiffSorter(value_t favor_large_gaps);
 
-protected:
     void sort(
         const downward::State& state,
         const std::vector<downward::OperatorID>& action_choices,
-        std::vector<SuccessorDistribution>& successor_dist,
+        std::vector<SuccessorDistribution>& successor_dists,
         algorithms::StateProperties& properties) override;
 };
 

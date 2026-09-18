@@ -60,11 +60,11 @@ struct Statistics {
  */
 template <typename State, typename Action>
 class IntervalIteration : public MDPAlgorithm<State, Action> {
-    using Base = typename IntervalIteration::MDPAlgorithm;
+    using Base = IntervalIteration::MDPAlgorithm;
 
-    using MDPType = typename Base::MDPType;
-    using HeuristicType = typename Base::HeuristicType;
-    using PolicyType = typename Base::PolicyType;
+    using MDPType = Base::MDPType;
+    using HeuristicType = Base::HeuristicType;
+    using PolicyType = Base::PolicyType;
 
     using QSystem = quotients::QuotientSystem<State, Action>;
     using QState = quotients::QuotientState<State, Action>;
@@ -123,7 +123,7 @@ private:
         MDPType& mdp,
         HeuristicType& heuristic,
         ParamType<State> state,
-        downward::utils::CountdownTimer& timer);
+        const downward::utils::CountdownTimer& timer);
 
     template <typename ValueStoreT, typename SetLike, typename SetLike2>
     Interval mysolve(

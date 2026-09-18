@@ -23,7 +23,7 @@ struct NoNormalizeTagType {};
 
 /// Disambiguator tag  for Distribution constructor to indicate that
 /// the probabilities are already normalized to one.
-inline constexpr NoNormalizeTagType no_normalize = NoNormalizeTagType{};
+inline constexpr auto no_normalize = NoNormalizeTagType{};
 
 template <typename T>
 class Distribution;
@@ -42,9 +42,8 @@ class Distribution {
     std::vector<ItemProbabilityPair<T>> distribution_;
 
 public:
-    using iterator = typename std::vector<ItemProbabilityPair<T>>::iterator;
-    using const_iterator =
-        typename std::vector<ItemProbabilityPair<T>>::const_iterator;
+    using iterator = std::vector<ItemProbabilityPair<T>>::iterator;
+    using const_iterator = std::vector<ItemProbabilityPair<T>>::const_iterator;
 
     Distribution();
 
@@ -119,12 +118,12 @@ public:
     auto support(this auto&& self);
 
     friend bool
-    operator==(const Distribution<T>&, const Distribution<T>&) = default;
+    operator==(const Distribution&, const Distribution&) = default;
 
     friend auto
-    operator<=>(const Distribution<T>&, const Distribution<T>&) = default;
+    operator<=>(const Distribution&, const Distribution&) = default;
 
-    friend void swap<T>(Distribution<T>& left, Distribution<T>& right) noexcept;
+    friend void swap<T>(Distribution& left, Distribution& right) noexcept;
 };
 
 template <std::ranges::input_range R>
@@ -150,8 +149,10 @@ struct std::formatter<probfd::Distribution<T>, Char> {
     }
 
     template <class ParseContext>
-    constexpr ParseContext::iterator parse(ParseContext& ctx)
-    { return ctx.begin(); }
+    static constexpr ParseContext::iterator parse(ParseContext& ctx)
+    {
+        return ctx.begin();
+    }
 
     template <class FmtContext>
     FmtContext::iterator

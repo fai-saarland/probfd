@@ -82,10 +82,15 @@ public:
     {
     }
 
+    /// Equality comparison.
+    friend bool operator==(
+        const ItemProbabilityPair& left,
+        const ItemProbabilityPair& right) = default;
+
     /// Lexicographical comparison.
     friend auto operator<=>(
-        const ItemProbabilityPair<T, PrType>& left,
-        const ItemProbabilityPair<T, PrType>& right) = default;
+        const ItemProbabilityPair& left,
+        const ItemProbabilityPair& right) = default;
 
     template <typename A, typename B>
         requires(
@@ -138,7 +143,7 @@ public:
 
 template <typename T, typename F>
 struct std::tuple_size<probfd::ItemProbabilityPair<T, F>>
-    : public integral_constant<std::size_t, 2> {};
+    : integral_constant<std::size_t, 2> {};
 
 template <std::size_t I, typename T, typename F>
 struct std::tuple_element<I, probfd::ItemProbabilityPair<T, F>> {
@@ -161,14 +166,14 @@ struct std::formatter<probfd::ItemProbabilityPair<T, F>, Char> {
     std::formatter<std::pair<F, T>, Char> underlying_;
 
     template <class ParseContext>
-    constexpr typename ParseContext::iterator parse(ParseContext& ctx)
+    static constexpr ParseContext::iterator parse(ParseContext& ctx)
     {
         return ctx.begin();
     }
 
     template <class FmtContext>
-    typename FmtContext::iterator format(
-        const probfd::ItemProbabilityPair<T, F> p,
+    FmtContext::iterator
+    format(const probfd::ItemProbabilityPair<T, F> p,
         FmtContext& ctx) const
     {
         return underlying_.format(ctx, std::make_pair(p.item, p.probability));

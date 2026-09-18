@@ -55,25 +55,31 @@ struct Statistics {
 
 template <typename Action, bool UseInterval>
 struct PerStateInformation
-    : public heuristic_search::
-          PerStateBaseInformation<Action, true, UseInterval> {
+    : heuristic_search::PerStateBaseInformation<Action, true, UseInterval> {
 private:
-    using Base = typename heuristic_search::PerStateBaseInformation<Action, true, UseInterval>;
+    using Base =
+        heuristic_search::PerStateBaseInformation<Action, true, UseInterval>;
 
 public:
-    static constexpr uint8_t VISITED = 0b01 << Base::BITS;
-    static constexpr uint8_t SOLVED = 0b10 << Base::BITS;
-    static constexpr uint8_t BITS = Base::BITS + 2;
-    static constexpr uint8_t MASK = 0b11 << Base::BITS;
+    static constexpr unsigned int VISITED = 0b01 << Base::BITS;
+    static constexpr unsigned int SOLVED = 0b10 << Base::BITS;
+    static constexpr unsigned int BITS = Base::BITS + 2;
+    static constexpr unsigned int MASK = 0b11 << Base::BITS;
 
     bool is_solved() const
     {
         return this->info & SOLVED || this->is_goal_or_terminal();
     }
 
-    void mark_solved() { this->info |= SOLVED; }
+    void mark_solved()
+    {
+        this->info |= SOLVED;
+    }
 
-    bool is_on_trial() const { return (this->info & VISITED) != 0; }
+    bool is_on_trial() const
+    {
+        return (this->info & VISITED) != 0;
+    }
 
     void set_on_trial()
     {
@@ -87,7 +93,10 @@ public:
         this->info &= ~VISITED;
     }
 
-    void clear() { this->info &= ~MASK; }
+    void clear()
+    {
+        this->info &= ~MASK;
+    }
 };
 
 } // namespace internal
@@ -127,17 +136,17 @@ class LRTDP
           State,
           Action,
           internal::PerStateInformation<Action, UseInterval>> {
-    using Base = typename LRTDP::HeuristicSearchAlgorithm;
+    using Base = LRTDP::HeuristicSearchAlgorithm;
 
-    using AlgorithmValueType = typename Base::AlgorithmValueType;
+    using AlgorithmValueType = Base::AlgorithmValueType;
 
 public:
-    using StateInfo = typename Base::StateInfo;
+    using StateInfo = Base::StateInfo;
 
 private:
-    using MDPType = typename Base::MDPType;
-    using HeuristicType = typename Base::HeuristicType;
-    using PolicyPickerType = typename Base::PolicyPicker;
+    using MDPType = Base::MDPType;
+    using HeuristicType = Base::HeuristicType;
+    using PolicyPickerType = Base::PolicyPicker;
 
     using SuccessorSamplerType = SuccessorSampler<Action>;
 
@@ -189,7 +198,7 @@ private:
         MDPType& mdp,
         HeuristicType& heuristic,
         StateID init_state_id,
-        downward::utils::CountdownTimer& timer);
+        const downward::utils::CountdownTimer& timer);
 };
 
 } // namespace probfd::algorithms::lrtdp

@@ -26,7 +26,7 @@ namespace probfd::pdbs {
 Pattern extended_pattern(const Pattern& pattern, int add_var);
 
 std::vector<int> get_goals_in_random_order(
-    const downward::GoalFactList& task,
+    const downward::GoalFactList& goals,
     downward::utils::RandomNumberGenerator& rng);
 
 /**

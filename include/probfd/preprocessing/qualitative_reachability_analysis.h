@@ -44,7 +44,9 @@ namespace internal {
 
 struct StateInfo {
     enum { NEW, ONSTACK, CLOSED };
-    static constexpr uint32_t UNDEF = std::numeric_limits<uint32_t>::max() >> 3;
+
+    static constexpr uint32_t UNDEF =
+        std::numeric_limits<uint32_t>::max() >> 3U;
 
     unsigned explored : 1 = 0;
     unsigned dead : 1 = 1;     // dead end flag
@@ -113,7 +115,7 @@ class QualitativeReachabilityAnalysis {
         bool transitions_in_scc : 1 = false;
 
         // Mutable info
-        std::vector<Action> aops;         // Remaining unexpanded operators
+        std::vector<Action> aops;             // Remaining unexpanded operators
         SuccessorDistribution successor_dist; // Currently expanded transition
         // Next state to expand
         Distribution<StateID>::const_iterator successor;
@@ -132,7 +134,7 @@ class QualitativeReachabilityAnalysis {
         bool forward_non_self_loop(MDPType& mdp, const State& state);
         bool next_successor();
 
-        StateID get_current_successor();
+        StateID get_current_successor() const;
     };
 
     const bool expand_goals_;
@@ -165,8 +167,8 @@ private:
 
     bool push_successor(
         MDPType& mdp,
-        ExpansionInfo& e,
-        downward::utils::CountdownTimer& timer);
+        ExpansionInfo& exp_info,
+        const downward::utils::CountdownTimer& timer);
 
     void scc_found(
         unsigned int stack_idx,

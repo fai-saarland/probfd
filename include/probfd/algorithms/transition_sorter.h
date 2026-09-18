@@ -33,8 +33,8 @@ public:
      *
      * @param state - The common source state for all transitions
      * @param aops - The transition actions
-     * @param successors - The successor distributions of the transitions. To be
-     * sorted.
+     * @param successor_dist - The successor distributions of the transitions.
+     * To be sorted.
      * @param properties - The interface to the heuristic search algorithm.
      * Can be used to query additional information about the involved states and
      * actions.

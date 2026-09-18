@@ -16,8 +16,8 @@
 namespace probfd::storage {
 
 template <typename T, typename Alloc>
-struct resizing_vector : public std::vector<T, Alloc> {
-    explicit resizing_vector(
+struct ResizingVector : std::vector<T, Alloc> {
+    explicit ResizingVector(
         const T& default_value = T(),
         const Alloc& allocator = Alloc())
         : std::vector<T, Alloc>(allocator)
@@ -25,16 +25,19 @@ struct resizing_vector : public std::vector<T, Alloc> {
     {
     }
 
-    typename std::vector<T, Alloc>::reference operator[](StateID idx)
+    std::vector<T, Alloc>::reference operator[](StateID idx)
     {
-        if (idx >= this->size()) { this->resize(idx + 1, default_value_); }
+        if (idx >= this->size()) {
+            this->resize(idx + 1, default_value_);
+        }
         return std::vector<T, Alloc>::operator[](idx);
     }
 
-    typename std::vector<T, Alloc>::const_reference
-    operator[](StateID idx) const
+    std::vector<T, Alloc>::const_reference operator[](StateID idx) const
     {
-        if (idx >= this->size()) { return default_value_; }
+        if (idx >= this->size()) {
+            return default_value_;
+        }
         return std::vector<T, Alloc>::operator[](idx);
     }
 
@@ -58,14 +61,18 @@ public:
 
     Element& operator[](size_t index)
     {
-        if (index >= this->size()) { this->resize(index + 1, default_value_); }
+        if (index >= this->size()) {
+            this->resize(index + 1, default_value_);
+        }
         return downward::segmented_vector::SegmentedVector<Element, Allocator>::
         operator[](index);
     }
 
     const Element& operator[](size_t index) const
     {
-        if (index >= this->size()) { return default_value_; }
+        if (index >= this->size()) {
+            return default_value_;
+        }
         return downward::segmented_vector::SegmentedVector<Element, Allocator>::
         operator[](index);
     }
@@ -85,7 +92,7 @@ template <
 class StateHashMap {
 public:
     using iterator =
-        typename std::unordered_map<StateID, T, Hash, Equal, Alloc>::iterator;
+        std::unordered_map<StateID, T, Hash, Equal, Alloc>::iterator;
 
     explicit StateHashMap(
         const T& default_value = T(),
@@ -112,7 +119,7 @@ public:
     [[nodiscard]]
     bool contains(StateID idx) const
     {
-        return store_.find(idx) != store_.end();
+        return store_.contains(idx);
     }
 
     [[nodiscard]]
@@ -127,16 +134,28 @@ public:
         return store_.empty();
     }
 
-    void clear() { store_.clear(); }
+    void clear()
+    {
+        store_.clear();
+    }
 
-    iterator begin() { return store_.begin(); }
+    iterator begin()
+    {
+        return store_.begin();
+    }
 
-    iterator end() { return store_.end(); }
+    iterator end()
+    {
+        return store_.end();
+    }
 
-    iterator erase(iterator it) { return store_.erase(it); }
+    iterator erase(iterator it)
+    {
+        return store_.erase(it);
+    }
 
     template <class Pred>
-    typename std::unordered_map<StateID, T, Hash, Equal, Alloc>::size_type
+    std::unordered_map<StateID, T, Hash, Equal, Alloc>::size_type
     erase_if(Pred pred)
     {
         return std::erase_if(store_, pred);
@@ -148,9 +167,9 @@ private:
 };
 
 template <typename Alloc>
-class PerStateStorage<bool, Alloc> : public resizing_vector<bool, Alloc> {
+class PerStateStorage<bool, Alloc> : public ResizingVector<bool, Alloc> {
 public:
-    using resizing_vector<bool, Alloc>::resizing_vector;
+    using ResizingVector<bool, Alloc>::ResizingVector;
 };
 
 template <typename State>

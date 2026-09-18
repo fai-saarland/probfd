@@ -71,7 +71,7 @@ public:
         double max_rating = std::numeric_limits<double>::lowest();
         const Split* selected_split = nullptr;
         for (const Split& split : splits) {
-            double rating =
+            const double rating =
                 static_cast<const Derived*>(this)->rate_split(state, split);
             if (rating > max_rating) {
                 selected_split = &split;

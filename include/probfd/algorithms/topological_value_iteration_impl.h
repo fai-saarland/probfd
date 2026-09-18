@@ -110,7 +110,7 @@ Action& TopologicalValueIteration<State, Action, UseInterval>::
 template <typename State, typename Action, bool UseInterval>
 ItemProbabilityPair<StateID>
 TopologicalValueIteration<State, Action, UseInterval>::DFSExplorationState::
-    get_current_successor()
+    get_current_successor() const
 {
     return *successor;
 }

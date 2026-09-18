@@ -33,7 +33,7 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
 
     open_list_->push(initstateid);
 
-    progress.register_bound("v", [&state_info]() {
+    progress.register_bound("v", [&state_info] {
         return as_interval(state_info.value);
     });
 
@@ -61,7 +61,7 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
         this->expand_and_initialize(mdp, heuristic, state, info, transitions_);
 
         const auto value = this->compute_bellman(state, transitions_, mdp);
-        bool value_changed =
+        const bool value_changed =
             this->update_value(info, value, this->epsilon).changed;
 
         // Terminal state
@@ -129,7 +129,8 @@ bool ExhaustiveAOSearch<State, Action, UseInterval>::update_value_check_solved(
     assert(!info.is_solved());
 
     const auto value = this->compute_bellman(state, transitions, mdp);
-    bool value_changed = this->update_value(info, value, this->epsilon).changed;
+    const bool value_changed =
+        this->update_value(info, value, this->epsilon).changed;
 
     if (info.unsolved == 0) {
         info.set_solved();

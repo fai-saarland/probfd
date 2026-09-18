@@ -31,8 +31,8 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_optimal_projection_policy(
 {
     using PredecessorEdge = std::pair<State, Action>;
 
-    std::deque<StateID> open = {static_cast<StateID>(initial_state)};
-    std::unordered_set<StateID> closed = {static_cast<StateID>(initial_state)};
+    std::deque open = {static_cast<StateID>(initial_state)};
+    std::unordered_set closed = {static_cast<StateID>(initial_state)};
 
     std::vector<std::vector<PredecessorEdge>> predecessors(value_table.size());
     std::vector<StateID> goals;
@@ -151,8 +151,8 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_greedy_projection_policy(
         &mdp,
         value_table.size());
 
-    std::deque<StateID> open{static_cast<StateID>(initial_state)};
-    std::unordered_set<StateID> closed{static_cast<StateID>(initial_state)};
+    std::deque open{static_cast<StateID>(initial_state)};
+    std::unordered_set closed{static_cast<StateID>(initial_state)};
 
     // Build the greedy policy graph
     while (!open.empty()) {

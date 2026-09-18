@@ -29,7 +29,7 @@ void compute_value_table(
 {
     using namespace algorithms::ta_topological_vi;
 
-    downward::utils::CountdownTimer timer(max_time);
+    const downward::utils::CountdownTimer timer(max_time);
 
     TATopologicalValueIteration<State, Action> vi(epsilon, value_table.size());
     vi.solve(

@@ -198,11 +198,11 @@ ValueUpdateResult HeuristicSearchBase<State, Action, StateInfoT>::update_value(
 template <typename State, typename Action, typename StateInfoT>
 bool HeuristicSearchBase<State, Action, StateInfoT>::update_policy(
     StateInfo& state_info,
-    const std::optional<LDistType>& transition)
+    const std::optional<LDistType>& transition_tail)
     requires(StorePolicy)
 {
     ++statistics_.policy_updates;
-    bool b = state_info.update_policy(transition);
+    const bool b = state_info.update_policy(transition_tail);
     if (b) ++statistics_.policy_changes;
     return b;
 }
@@ -301,7 +301,7 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize(
 
     statistics_.evaluated_states++;
 
-    TerminationInfo term = mdp.get_termination_info(state);
+    const TerminationInfo term = mdp.get_termination_info(state);
     const value_t t_cost = term.get_cost();
 
     if (term.is_goal_state()) {
@@ -329,21 +329,21 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize(
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_qvalue(
-    const LDistType& transition,
+    const LDistType& transition_tail,
     ActionCostFunction<Action>& action_cost_function) const
     -> AlgorithmValueType
 {
     AlgorithmValueType t_value(
-        action_cost_function.get_action_cost(transition.action));
+        action_cost_function.get_action_cost(transition_tail.action));
 
     for (const auto& [succ_id, prob] :
-         transition.successor_dist.non_source_successor_dist) {
+         transition_tail.successor_dist.non_source_successor_dist) {
         t_value += prob * state_infos_[succ_id].value;
     }
 
-    assert(transition.successor_dist.non_source_probability != 0_vt);
+    assert(transition_tail.successor_dist.non_source_probability != 0_vt);
 
-    return t_value / transition.successor_dist.non_source_probability;
+    return t_value / transition_tail.successor_dist.non_source_probability;
 }
 
 template <typename State, typename Action, typename StateInfoT>

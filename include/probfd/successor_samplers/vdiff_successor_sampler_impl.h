@@ -42,7 +42,7 @@ StateID VDiffSuccessorSampler<Action>::sample(
          successors.non_source_successor_dist) {
         const value_t error = properties.lookup_bounds(item).length();
         const value_t p =
-            probability * (prefer_large_gaps_ ? error : (1_vt - error));
+            probability * (prefer_large_gaps_ ? error : 1_vt - error);
         if (p > 0_vt) {
             sum += p;
             biased_.add_probability(item, p);

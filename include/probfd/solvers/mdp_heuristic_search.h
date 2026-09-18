@@ -85,9 +85,9 @@ construct(std::tuple<Args...> args, bool f, std::same_as<bool> auto... flags)
 {
     if (f) {
         return construct<R, T, b..., true>(std::move(args), flags...);
-    } else {
-        return construct<R, T, b..., false>(std::move(args), flags...);
     }
+
+    return construct<R, T, b..., false>(std::move(args), flags...);
 }
 
 template <
@@ -98,8 +98,8 @@ template <
 std::unique_ptr<R> construct(std::tuple<Args...> args)
 {
     return std::apply(
-        [](Args... args) {
-            return std::make_unique<T<b...>>(std::forward<Args>(args)...);
+        [](Args... args2) {
+            return std::make_unique<T<b...>>(std::forward<Args>(args2)...);
         },
         std::move(args));
 }
@@ -132,9 +132,8 @@ public:
         std::shared_ptr<PolicyPicker> policy);
 
     template <template <typename, typename, bool> class S, typename... Args>
-    std::unique_ptr<MDPAlgorithm<State, Action>> create_search_algorithm(
-        const SharedProbabilisticTask&,
-        Args&&... args)
+    std::unique_ptr<MDPAlgorithm<State, Action>>
+    create_search_algorithm(const SharedProbabilisticTask&, Args&&... args)
     {
         return construct<
             MDPAlgorithm<State, Action>,
@@ -167,7 +166,7 @@ class MDPHeuristicSearch<false, false, State, Action>
 
 protected:
     using PolicyPicker =
-        typename MDPHeuristicSearch::MDPHeuristicSearchBase::PolicyPicker;
+        MDPHeuristicSearch::MDPHeuristicSearchBase::PolicyPicker;
 
 public:
     MDPHeuristicSearch(
@@ -211,7 +210,7 @@ class MDPHeuristicSearch<false, true, State, Action>
 
 protected:
     using PolicyPicker =
-        typename MDPHeuristicSearch::MDPHeuristicSearchBase::PolicyPicker;
+        MDPHeuristicSearch::MDPHeuristicSearchBase::PolicyPicker;
 
     const bool fret_on_policy_;
 
@@ -258,7 +257,7 @@ class MDPHeuristicSearch<true, Fret, downward::State, downward::OperatorID>
     using QState = bisimulation::QuotientState;
     using QAction = downward::OperatorID;
 
-    using PolicyPicker = typename Base::PolicyPicker;
+    using PolicyPicker = Base::PolicyPicker;
 
 public:
     using Base::Base;

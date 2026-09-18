@@ -105,7 +105,7 @@ auto IntervalIteration<State, Action>::create_quotient(
     MDPType& mdp,
     HeuristicType& heuristic,
     ParamType<State> state,
-    downward::utils::CountdownTimer& timer) -> std::unique_ptr<QSystem>
+    const downward::utils::CountdownTimer& timer) -> std::unique_ptr<QSystem>
 {
     auto sys = ec_decomposer_.build_quotient_system(
         mdp,

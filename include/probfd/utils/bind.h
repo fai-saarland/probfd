@@ -1,5 +1,5 @@
-#ifndef PROBFD_UTILS_BIND_FRONT_H
-#define PROBFD_UTILS_BIND_FRONT_H
+#ifndef PROBFD_UTILS_BIND_H
+#define PROBFD_UTILS_BIND_H
 
 #if __cpp_lib_bind_back >= 202306L
 
@@ -31,10 +31,13 @@ namespace detail {
 template <class T, class U>
 struct copy_const : std::conditional<std::is_const_v<T>, U const, U> {};
 
+template <class T, class U>
+using copy_const_t = copy_const<T, U>::type;
+
 template <
     class T,
     class U,
-    class X = typename copy_const<std::remove_reference_t<T>, U>::type>
+    class X = copy_const_t<std::remove_reference_t<T>, U>>
 struct copy_value_category
     : std::conditional<std::is_lvalue_reference_v<T&&>, X&, X&&> {};
 
@@ -43,7 +46,7 @@ struct type_forward_like
     : copy_value_category<T, std::remove_reference_t<U>> {};
 
 template <class T, class U>
-using type_forward_like_t = typename type_forward_like<T, U>::type;
+using type_forward_like_t = type_forward_like<T, U>::type;
 } // namespace detail
 
 template <auto ConstFn, class... Args>

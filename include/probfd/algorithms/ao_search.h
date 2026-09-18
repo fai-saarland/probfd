@@ -20,16 +20,16 @@ struct Statistics {
 
 template <typename Action, bool Interval, bool StorePolicy>
 struct PerStateInformation
-    : public heuristic_search::
-          PerStateBaseInformation<Action, StorePolicy, Interval> {
+    : heuristic_search::PerStateBaseInformation<Action, StorePolicy, Interval> {
 private:
-    using Base = heuristic_search::PerStateBaseInformation<Action, StorePolicy, Interval>;
+    using Base = heuristic_search::
+        PerStateBaseInformation<Action, StorePolicy, Interval>;
 
 public:
-    static constexpr uint8_t MARK = 1 << Base::BITS;
-    static constexpr uint8_t SOLVED = 2 << Base::BITS;
-    static constexpr uint8_t MASK = 3 << Base::BITS;
-    static constexpr uint8_t BITS = Base::BITS + 2;
+    static constexpr unsigned int MARK = 1 << Base::BITS;
+    static constexpr unsigned int SOLVED = 2 << Base::BITS;
+    static constexpr unsigned int MASK = 3 << Base::BITS;
+    static constexpr unsigned int BITS = Base::BITS + 2;
 
     unsigned update_order = 0;
     std::vector<StateID> parents;
@@ -64,11 +64,20 @@ public:
         this->info = (this->info & ~MASK) | MARK;
     }
 
-    void unmark() { this->info = (this->info & ~MARK); }
+    void unmark()
+    {
+        this->info = this->info & ~MARK;
+    }
 
-    void set_solved() { this->info = (this->info & ~MASK) | SOLVED; }
+    void set_solved()
+    {
+        this->info = (this->info & ~MASK) | SOLVED;
+    }
 
-    void add_parent(StateID s) { parents.push_back(s); }
+    void add_parent(StateID s)
+    {
+        parents.push_back(s);
+    }
 };
 
 /**
@@ -83,12 +92,12 @@ template <typename State, typename Action, typename StateInfo>
 class AOBase
     : public heuristic_search::
           HeuristicSearchAlgorithm<State, Action, StateInfo> {
-    using Base = typename AOBase::HeuristicSearchAlgorithm;
+    using Base = AOBase::HeuristicSearchAlgorithm;
 
 protected:
-    using MDPType = typename Base::MDPType;
-    using HeuristicType = typename Base::HeuristicType;
-    using PolicyPickerType = typename Base::PolicyPicker;
+    using MDPType = Base::MDPType;
+    using HeuristicType = Base::HeuristicType;
+    using PolicyPickerType = Base::PolicyPicker;
 
 private:
     struct PrioritizedStateID {
@@ -124,9 +133,9 @@ protected:
 
     void backpropagate_update_order(
         StateID tip,
-        StateInfo& info,
+        StateInfo& tip_info,
         unsigned update_order,
-        downward::utils::CountdownTimer& timer);
+        const downward::utils::CountdownTimer& timer);
 
 private:
     void push_parents_to_queue(StateInfo& info);

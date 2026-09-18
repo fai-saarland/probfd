@@ -65,20 +65,20 @@ struct Statistics {
 template <typename State, typename Action, bool UseInterval = false>
 class TATopologicalValueIteration
     : public IterativeMDPAlgorithm<State, Action> {
-    using Base = typename TATopologicalValueIteration::MDPAlgorithm;
+    using Base = TATopologicalValueIteration::MDPAlgorithm;
 
-    using MDPType = typename Base::MDPType;
-    using HeuristicType = typename Base::HeuristicType;
-    using PolicyType = typename Base::PolicyType;
+    using MDPType = Base::MDPType;
+    using HeuristicType = Base::HeuristicType;
+    using PolicyType = Base::PolicyType;
 
-    using AlgorithmValueType = algorithms::AlgorithmValue<UseInterval>;
+    using AlgorithmValueType = AlgorithmValue<UseInterval>;
 
     struct StateInfo {
         // Status Flags
         enum { NEW, CLOSED, ONSTACK };
 
         static constexpr uint32_t UNDEF =
-            std::numeric_limits<uint32_t>::max() >> 1;
+            std::numeric_limits<uint32_t>::max() >> 1U;
         static constexpr uint32_t UNDEF_ECD =
             std::numeric_limits<uint32_t>::max();
 
@@ -153,7 +153,7 @@ class TATopologicalValueIteration
         bool forward_non_loop_transition(MDPType& mdp, const State& state);
         bool next_successor();
 
-        ItemProbabilityPair<StateID> get_current_successor();
+        ItemProbabilityPair<StateID> get_current_successor() const;
     };
 
     struct StackInfo {
@@ -205,8 +205,8 @@ class TATopologicalValueIteration
         unsigned stackidx;
 
         // Exploration state - Action
-        typename std::vector<QValueInfo>::iterator action;
-        typename std::vector<QValueInfo>::iterator end;
+        std::vector<QValueInfo>::iterator action;
+        std::vector<QValueInfo>::iterator end;
 
         // Exploration state - Transition successor
         std::vector<ItemProbabilityPair<StateID>>::iterator successor;
@@ -229,7 +229,7 @@ class TATopologicalValueIteration
         bool next_transition();
         bool next_successor();
 
-        ItemProbabilityPair<StateID> get_current_successor();
+        ItemProbabilityPair<StateID> get_current_successor() const;
     };
 
     struct DecompositionQueue {
@@ -371,7 +371,7 @@ private:
 
     bool push_successor_ecd(
         ECDExplorationInfo& e,
-        downward::utils::CountdownTimer& timer);
+        const downward::utils::CountdownTimer& timer);
 
     void scc_found_ecd(ECDExplorationInfo& e);
 };

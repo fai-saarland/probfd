@@ -28,7 +28,6 @@ public:
         std::shared_ptr<downward::utils::RandomNumberGenerator> rng,
         bool prefer_large_gaps);
 
-protected:
     StateID sample(
         StateID state,
         Action action,

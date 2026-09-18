@@ -42,20 +42,6 @@ class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
 
     const std::string implementation_name_;
 
-    bool collection_size_limit_reached(int remaining_collection_size) const;
-    bool time_limit_reached(const downward::utils::CountdownTimer& timer) const;
-
-    virtual ProjectionTransformation compute_pattern(
-        int max_pdb_size,
-        downward::utils::FSeconds max_time,
-        const std::shared_ptr<downward::utils::RandomNumberGenerator>& rng,
-        const SharedProbabilisticTask& task,
-        const downward::FactPair& goal,
-        std::unordered_set<int>&& blacklisted_variables) = 0;
-
-    PatternCollectionInformation
-    generate(const SharedProbabilisticTask& task) override;
-
 public:
     explicit PatternCollectionGeneratorMultiple(
         int max_pdb_size,
@@ -69,6 +55,21 @@ public:
         std::shared_ptr<downward::utils::RandomNumberGenerator> rng,
         std::string implementation_name,
         downward::utils::Verbosity verbosity);
+
+    PatternCollectionInformation
+    generate(const SharedProbabilisticTask& task) override;
+
+private:
+    virtual ProjectionTransformation compute_pattern(
+        int max_pdb_size,
+        downward::utils::FSeconds max_time,
+        const std::shared_ptr<downward::utils::RandomNumberGenerator>& rng,
+        const SharedProbabilisticTask& task,
+        const downward::FactPair& goal,
+        std::unordered_set<int>&& blacklisted_variables) = 0;
+
+    bool collection_size_limit_reached(int remaining_collection_size) const;
+    bool time_limit_reached(const downward::utils::CountdownTimer& timer) const;
 };
 
 } // namespace probfd::pdbs

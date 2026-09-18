@@ -7,9 +7,9 @@ namespace probfd::successor_samplers {
 
 template <typename Action>
 class MostLikelySuccessorSampler : public algorithms::SuccessorSampler<Action> {
-protected:
+public:
     StateID sample(
-        StateID state,
+        StateID state_id,
         Action action,
         const SuccessorDistribution& successors,
         algorithms::StateProperties& properties) override;

@@ -32,15 +32,13 @@ struct Statistics {
 
 template <typename Action, bool UseInterval>
 struct PerStateInformation
-    : public heuristic_search::
-          PerStateBaseInformation<Action, true, UseInterval> {
+    : heuristic_search::PerStateBaseInformation<Action, true, UseInterval> {
     using Base =
         heuristic_search::PerStateBaseInformation<Action, true, UseInterval>;
 
-public:
-    static constexpr uint8_t SOLVED = 1 << Base::BITS;
-    static constexpr uint8_t MASK = 1 << Base::BITS;
-    static constexpr uint8_t BITS = Base::BITS + 1;
+    static constexpr unsigned int SOLVED = 1 << Base::BITS;
+    static constexpr unsigned int MASK = 1 << Base::BITS;
+    static constexpr unsigned int BITS = Base::BITS + 1;
 
     [[nodiscard]]
     bool is_solved() const
@@ -48,11 +46,20 @@ public:
         return (this->info & SOLVED) != 0 || this->is_goal_or_terminal();
     }
 
-    void set_solved() { this->info |= SOLVED; }
+    void set_solved()
+    {
+        this->info |= SOLVED;
+    }
 
-    void unset_solved() { this->info &= ~SOLVED; }
+    void unset_solved()
+    {
+        this->info &= ~SOLVED;
+    }
 
-    void clear() { this->info &= ~MASK; }
+    void clear()
+    {
+        this->info &= ~MASK;
+    }
 };
 
 struct DFSExplorationState {
@@ -91,18 +98,17 @@ class HeuristicDepthFirstSearch
           State,
           Action,
           internal::PerStateInformation<Action, UseInterval>> {
-    using Base =
-        typename HeuristicDepthFirstSearch::HeuristicSearchAlgorithm;
+    using Base = HeuristicDepthFirstSearch::HeuristicSearchAlgorithm;
 
 public:
-    using StateInfo = typename Base::StateInfo;
+    using StateInfo = Base::StateInfo;
     using AlgorithmValueType = Base::AlgorithmValueType;
 
 private:
-    using MDP = typename Base::MDPType;
-    using HeuristicType = typename Base::HeuristicType;
+    using MDP = Base::MDPType;
+    using HeuristicType = Base::HeuristicType;
 
-    using PolicyPicker = typename Base::PolicyPicker;
+    using PolicyPicker = Base::PolicyPicker;
 
     using Statistics = internal::Statistics;
     using DFSExplorationState = internal::DFSExplorationState;
@@ -155,14 +161,14 @@ private:
     void solve_with_vi_termination(
         MDP& mdp,
         HeuristicType& heuristic,
-        StateID stateid,
+        StateID state_id,
         ProgressReport& progress,
         downward::utils::CountdownTimer& timer);
 
     void solve_without_vi_termination(
         MDP& mdp,
         HeuristicType& heuristic,
-        StateID stateid,
+        StateID state_id,
         ProgressReport& progress,
         downward::utils::CountdownTimer& timer);
 
@@ -178,9 +184,9 @@ private:
         MDP& mdp,
         DFSExplorationState& einfo,
         StateInfo& sinfo,
-        downward::utils::CountdownTimer& timer);
+        const downward::utils::CountdownTimer& timer);
 
-    void push(StateID stateid);
+    void push(StateID state_id);
 
     bool initialize(
         MDP& mdp,

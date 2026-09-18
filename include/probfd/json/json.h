@@ -1,6 +1,6 @@
 
-#ifndef PROBFD_UTILS_JSON_H
-#define PROBFD_UTILS_JSON_H
+#ifndef PROBFD_JSON_JSON_H
+#define PROBFD_JSON_JSON_H
 
 #include "probfd/json/tokenize.h"
 
@@ -90,13 +90,25 @@ public:
     template <typename T>
     read_view_t<T> read_view() const;
 
-    iterator begin() { return members.begin(); }
+    iterator begin()
+    {
+        return members.begin();
+    }
 
-    iterator end() { return members.end(); }
+    iterator end()
+    {
+        return members.end();
+    }
 
-    const_iterator begin() const { return members.begin(); }
+    const_iterator begin() const
+    {
+        return members.begin();
+    }
 
-    const_iterator end() const { return members.end(); }
+    const_iterator end() const
+    {
+        return members.end();
+    }
 
     void print(std::ostream& os, int indent) override;
 };
@@ -125,7 +137,9 @@ public:
     {
         using E = std::ranges::range_reference_t<R>;
 
-        for (E&& elem : range) { elements.push_back(std::forward<E>(elem)); }
+        for (E&& elem : range) {
+            elements.push_back(std::forward<E>(elem));
+        }
     }
 
     template <typename... T>
@@ -144,13 +158,25 @@ public:
     template <typename T>
     read_view_t<T> read_view() const;
 
-    iterator begin() { return elements.begin(); }
+    iterator begin()
+    {
+        return elements.begin();
+    }
 
-    iterator end() { return elements.end(); }
+    iterator end()
+    {
+        return elements.end();
+    }
 
-    const_iterator begin() const { return elements.begin(); }
+    const_iterator begin() const
+    {
+        return elements.begin();
+    }
 
-    const_iterator end() const { return elements.end(); }
+    const_iterator end() const
+    {
+        return elements.end();
+    }
 };
 
 template <typename T, typename It>
@@ -172,7 +198,10 @@ class JsonArrayView {
 
         JsonArrayIterator& operator++();
 
-        void operator++(int) { ++*this; }
+        void operator++(int)
+        {
+            ++*this;
+        }
 
         friend bool operator==(
             const JsonArrayIterator& left,
@@ -187,13 +216,25 @@ public:
     {
     }
 
-    auto begin() { return JsonArrayIterator(array.begin()); }
+    auto begin()
+    {
+        return JsonArrayIterator(array.begin());
+    }
 
-    auto end() { return JsonArrayIterator(array.end()); }
+    auto end()
+    {
+        return JsonArrayIterator(array.end());
+    }
 
-    auto begin() const { return JsonArrayIterator(array.begin()); }
+    auto begin() const
+    {
+        return JsonArrayIterator(array.begin());
+    }
 
-    auto end() const { return JsonArrayIterator(array.end()); }
+    auto end() const
+    {
+        return JsonArrayIterator(array.end());
+    }
 };
 
 template <typename T, typename It>
@@ -215,7 +256,10 @@ class JsonObjectView {
 
         JsonObjectIterator& operator++();
 
-        void operator++(int) { ++*this; }
+        void operator++(int)
+        {
+            ++*this;
+        }
 
         friend bool operator==(
             const JsonObjectIterator& left,
@@ -230,13 +274,25 @@ public:
     {
     }
 
-    auto begin() { return JsonObjectIterator(object.begin()); }
+    auto begin()
+    {
+        return JsonObjectIterator(object.begin());
+    }
 
-    auto end() { return JsonObjectIterator(object.end()); }
+    auto end()
+    {
+        return JsonObjectIterator(object.end());
+    }
 
-    auto begin() const { return JsonObjectIterator(object.begin()); }
+    auto begin() const
+    {
+        return JsonObjectIterator(object.begin());
+    }
 
-    auto end() const { return JsonObjectIterator(object.end()); }
+    auto end() const
+    {
+        return JsonObjectIterator(object.end());
+    }
 };
 
 template <typename T>
@@ -445,22 +501,31 @@ T read(const JsonElement& element)
     } else if constexpr (std::floating_point<T>) {
         if (element.id == JsonElement::ElementID::FLOAT) {
             return static_cast<T>(static_cast<const JsonFloat&>(element).value);
-        } else if (element.id == JsonElement::ElementID::INTEGER) {
+        }
+
+        if (element.id == JsonElement::ElementID::INTEGER) {
             return static_cast<T>(
                 static_cast<const JsonInteger&>(element).value);
-        } else if (element.id == JsonElement::ElementID::STRING) {
-            if (const auto& json_string =
-                    static_cast<const JsonString&>(element);
-                json_string.string == "inf" ||
+        }
+
+        if (element.id == JsonElement::ElementID::STRING) {
+            const auto& json_string = static_cast<const JsonString&>(element);
+
+            if (json_string.string == "inf" ||
                 json_string.string == "infinity") {
                 return std::numeric_limits<T>::infinity();
-            } else if (
-                json_string.string == "-inf" ||
+            }
+
+            if (json_string.string == "-inf" ||
                 json_string.string == "-infinity") {
                 return -std::numeric_limits<T>::infinity();
-            } else if (json_string.string == "NaN") {
+            }
+
+            if (json_string.string == "NaN") {
                 return std::numeric_limits<T>::quiet_NaN();
-            } else if (json_string.string == "-NaN") {
+            }
+
+            if (json_string.string == "-NaN") {
                 return -std::numeric_limits<T>::quiet_NaN();
             }
         }
@@ -637,7 +702,7 @@ auto make_array(const T&... range)
 
 inline auto wrap_pairs()
 {
-    return std::tuple<>();
+    return std::tuple();
 }
 
 template <
@@ -708,4 +773,4 @@ static_assert(PairContainer<std::map<std::string, std::string>>);
 
 } // namespace probfd::json
 
-#endif // PROBFD_UTILS_JSON_H
+#endif

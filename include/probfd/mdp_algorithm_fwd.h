@@ -25,13 +25,11 @@ struct TypesOfS<MDPAlgorithm<State, Action>> {
 
 /// The state type used by a specialization of MDPAlgorithm.
 template <downward::DerivedFromSpecializationOf<MDPAlgorithm> T>
-using StateTypeOf =
-    typename detail::TypesOfS<typename T::MDPAlgorithm>::state_type;
+using StateTypeOf = detail::TypesOfS<typename T::MDPAlgorithm>::state_type;
 
 /// The action type used by a specialization of MDPAlgorithm.
 template <downward::DerivedFromSpecializationOf<MDPAlgorithm> T>
-using ActionTypeOf =
-    typename detail::TypesOfS<typename T::MDPAlgorithm>::action_type;
+using ActionTypeOf = detail::TypesOfS<typename T::MDPAlgorithm>::action_type;
 
 } // namespace probfd
 

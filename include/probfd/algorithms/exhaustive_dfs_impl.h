@@ -66,7 +66,7 @@ ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
         bool path_updates,
         bool only_propagate_when_changed)
     : IterativeMDPAlgorithm<State, Action>(epsilon)
-    , transition_sort_(transition_sorting)
+    , transition_sort_(std::move(transition_sorting))
     , cost_bound_(cost_bound)
     , trivial_bound_([=] {
         if constexpr (UseInterval) {
@@ -127,7 +127,7 @@ template <typename State, typename Action, bool UseInterval>
 void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
     register_value_reports(const SearchNodeInfo& info, ProgressReport& progress)
 {
-    progress.register_bound("v", [info]() {
+    progress.register_bound("v", [info] {
         if constexpr (UseInterval) {
             return info.value;
         } else {
@@ -162,7 +162,7 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
     assert(info.is_new());
     info.value = trivial_bound_;
 
-    TerminationInfo term_info = mdp.get_termination_info(state);
+    const TerminationInfo term_info = mdp.get_termination_info(state);
     const value_t term_cost = term_info.get_cost();
     info.term_cost = term_cost;
 
@@ -226,27 +226,28 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::push_state(
 
     unsigned j = 0;
     for (unsigned i = 0; i < aops.size(); ++i) {
-        auto& succs = successor_dists[i];
+        auto& [non_source_successor_dist, non_source_probability] =
+            successor_dists[i];
         auto& t = si.successors[i];
         const auto& a = aops[i];
 
-        if (succs.non_source_successor_dist.empty()) {
+        if (non_source_successor_dist.empty()) {
             continue;
         }
 
         pure_self_loop = false;
 
-        if (succs.non_source_probability == 0_vt) {
+        if (non_source_probability == 0_vt) {
             update_lower_bound(info.value, mdp.get_action_cost(a));
             continue;
         }
 
-        t.normalization = 1_vt / succs.non_source_probability;
+        t.normalization = 1_vt / non_source_probability;
         t.closed_value = mdp.get_action_cost(a);
 
         bool all_closed = true;
 
-        for (auto& elem : succs.non_source_successor_dist) {
+        for (auto& elem : non_source_successor_dist) {
             const auto [succ_id, prob] = elem;
 
             SearchNodeInfo& succ_info = search_space_[succ_id];
@@ -331,7 +332,7 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
         expanding.all_successors_marked_dead =
             expanding.all_successors_marked_dead && last_all_marked_dead_;
 
-        int idx = stack_info.successors.size() - stack_info.i - 1;
+        const int idx = stack_info.successors.size() - stack_info.i - 1;
         SCCTransition* inc = &stack_info.successors[idx];
         bool val_changed = false;
         bool completely_explored = false;
@@ -396,7 +397,7 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
                 }
 
                 stack_info.successors.pop_back();
-                int t = stack_info.successors.size() - stack_info.i - 1;
+                const int t = stack_info.successors.size() - stack_info.i - 1;
                 inc = &stack_info.successors[t];
             } else {
                 --inc;
@@ -422,7 +423,7 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
                     auto& info = search_space_[rend->state_ref];
                     info.value = AlgorithmValueType(info.term_cost);
                     info.set_dead_end();
-                } while ((rend++)->state_ref != stateid);
+                } while (rend++->state_ref != stateid);
 
                 statistics_.dead_end_sccs++;
                 statistics_.summed_dead_end_scc_sizes += scc_size;
@@ -440,7 +441,7 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
                     if (val_upd.changed) val_changed = true;
 
                     ++scc_size;
-                } while ((rend++)->state_ref != stateid);
+                } while (rend++->state_ref != stateid);
 
                 if (scc_size > 1) {
                     unsigned iterations = 0;
@@ -452,15 +453,16 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
                             StackInformation& s = *it;
                             assert(!s.successors.empty());
                             value_t best = s.successors.back().closed_value;
-                            for (const auto& t :
-                                 std::views::reverse(s.successors)) {
-                                value_t t_first = t.closed_value;
-                                for (auto [succ_id, prob] : t.successors) {
+                            for (
+                                const auto& [successors, closed_value, normalization] :
+                                std::views::reverse(s.successors)) {
+                                value_t t_first = closed_value;
+                                for (auto [succ_id, prob] : successors) {
                                     t_first +=
                                         prob *
                                         search_space_[succ_id].get_value();
                                 }
-                                t_first = t_first * t.normalization;
+                                t_first = t_first * normalization;
                                 best = best > t_first ? best : t_first;
                             }
 

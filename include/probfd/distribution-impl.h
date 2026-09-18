@@ -108,7 +108,7 @@ auto Distribution<T>::find(this auto&& self, const T& t)
     auto it = std::ranges::lower_bound(
         self.distribution_,
         t,
-        std::less<>{},
+        std::less{},
         &ItemProbabilityPair<T>::item);
 
     if (it == self.end() || it->item == t) {

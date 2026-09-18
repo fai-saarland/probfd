@@ -38,7 +38,7 @@ struct RemoveQTypeS<quotients::QuotientAction<Action>> {
 };
 
 template <typename T>
-using RemoveQType = typename RemoveQTypeS<T>::type;
+using RemoveQType = RemoveQTypeS<T>::type;
 
 template <typename T>
 concept QuotientHeuristicSearchAlgorithm =

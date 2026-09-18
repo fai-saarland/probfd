@@ -34,7 +34,10 @@ struct Transition {
 
 template <>
 struct std::formatter<probfd::merge_and_shrink::Transition> {
-    constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
+    static constexpr auto parse(std::format_parse_context& ctx)
+    {
+        return ctx.begin();
+    }
 
     template <typename FormatContext>
     auto

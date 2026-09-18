@@ -106,7 +106,10 @@ public:
         insert_state_node(initial, 0, std::move(name));
     }
 
-    Node& get_node(StateID id) { return *id_to_nodes_[id]; }
+    Node& get_node(StateID id)
+    {
+        return *id_to_nodes_[id];
+    }
 
     std::pair<Node*, bool> insert_node(StateID id)
     {
@@ -120,7 +123,7 @@ public:
 
     Node* create_dummy_node(int rank, std::string name)
     {
-        auto& r =
+        const auto& r =
             dummynodes_.emplace_back(new DummyNode(std::move(name), rank));
         ranked_nodes_[rank].push_back(r.get());
         return r.get();
@@ -128,7 +131,8 @@ public:
 
     Node* create_state_node(StateID id, int rank, std::string name)
     {
-        auto& r = nodes_.emplace_back(new StateNode(std::move(name), rank));
+        const auto& r =
+            nodes_.emplace_back(new StateNode(std::move(name), rank));
         id_to_nodes_[id] = r.get();
         r->rank_ = rank;
 
@@ -145,7 +149,7 @@ public:
     std::pair<Node*, bool>
     insert_state_node(StateID id, int rank, std::string name)
     {
-        auto it = id_to_nodes_.find(id);
+        const auto it = id_to_nodes_.find(id);
 
         if (it != id_to_nodes_.end()) {
             return std::make_pair(it->second, false);
@@ -186,7 +190,9 @@ public:
             emit_attribute(out, "rank", "same");
             out << "; ";
 
-            for (const auto* node : group) { out << node->name_ << "; "; }
+            for (const auto* node : group) {
+                out << node->name_ << "; ";
+            }
 
             out << "}\n";
         }
@@ -238,7 +244,7 @@ private:
         out << "[";
 
         auto it = attributes.begin();
-        auto end = attributes.end();
+        const auto end = attributes.end();
 
         assert(it != end);
 
@@ -259,7 +265,8 @@ private:
         out << attribute << "=\"" << value << "\"";
     }
 
-    static void emit_edge(std::ostream& out, Node& source, Node& target)
+    static void
+    emit_edge(std::ostream& out, const Node& source, const Node& target)
     {
         out << source.name_ << " -> " << target.name_;
     }
@@ -338,16 +345,17 @@ void dump_state_space_dot_graph(
 
         if (term.is_goal_state()) {
             node->set_attribute("peripheries", std::to_string(2));
-        } else if (
-            expand && prune != nullptr &&
-            prune->evaluate(state) == term.get_cost()) {
+        } else if (expand && prune != nullptr &&
+                   prune->evaluate(state) == term.get_cost()) {
             expand = false;
             node->set_attribute("peripheries", std::to_string(3));
         }
 
         open.pop_front();
 
-        if (!expand) { continue; }
+        if (!expand) {
+            continue;
+        }
 
         std::vector<LabelledSuccessorDistribution<Action>> transitions;
         mdp->generate_all_transitions(state, transitions);

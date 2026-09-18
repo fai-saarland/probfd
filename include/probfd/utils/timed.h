@@ -30,8 +30,8 @@ public:
         std::format_string<double> on_fail,
         std::format_string<double> on_success)
         : out(out)
-        , on_fail(std::move(on_fail))
-        , on_success(std::move(on_success))
+        , on_fail(on_fail)
+        , on_success(on_success)
     {
     }
 
@@ -63,7 +63,7 @@ std::invoke_result_t<F, const downward::utils::Timer&, Args...>
 run_log_time(std::ostream& out, F&& f, Args&&... args)
     requires std::invocable<F, const downward::utils::Timer&, Args...>
 {
-    PrintingTimer timer(out);
+    const PrintingTimer timer(out);
     return std::invoke(
         std::forward<F>(f),
         timer.get_timer(),
@@ -91,7 +91,7 @@ run_log_when_done(
     Args&&... args)
     requires std::invocable<F, const downward::utils::Timer&, Args...>
 {
-    PrintingTimer timer(out, on_done, on_done);
+    const PrintingTimer timer(out, on_done, on_done);
     return std::invoke(
         std::forward<F>(f),
         timer.get_timer(),
@@ -103,7 +103,7 @@ std::pair<std::invoke_result_t<F, Args...>, downward::utils::FSeconds>
 run_log_time_r(std::ostream& out, F&& f, Args&&... args)
     requires std::invocable<F, Args...>
 {
-    PrintingTimer timer(out);
+    const PrintingTimer timer(out);
     auto r = std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
     return std::make_pair(r, timer.get_timer().operator()());
 }
@@ -115,7 +115,7 @@ std::pair<
 run_log_time_r(std::ostream& out, F&& f, Args&&... args)
     requires std::invocable<F, const downward::utils::Timer&, Args...>
 {
-    PrintingTimer timer(out);
+    const PrintingTimer timer(out);
     auto r = std::invoke(
         std::forward<F>(f),
         timer.get_timer(),
@@ -123,6 +123,6 @@ run_log_time_r(std::ostream& out, F&& f, Args&&... args)
     return std::make_pair(std::move(r), timer.get_timer().operator()());
 }
 
-}; // namespace probfd
+} // namespace probfd
 
 #endif

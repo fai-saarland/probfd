@@ -171,7 +171,7 @@ struct SearchNodeInformation {
 };
 
 template <bool UseInterval>
-struct SearchNodeInfos : public StateProperties {
+struct SearchNodeInfos : StateProperties {
     storage::PerStateStorage<SearchNodeInformation<UseInterval>> infos;
 
     SearchNodeInformation<UseInterval>& operator[](StateID state_id)
@@ -208,11 +208,11 @@ struct SearchNodeInfos : public StateProperties {
  */
 template <typename State, typename Action, bool UseInterval>
 class ExhaustiveDepthFirstSearch : public IterativeMDPAlgorithm<State, Action> {
-    using Base = typename ExhaustiveDepthFirstSearch::IterativeMDPAlgorithm;
+    using Base = ExhaustiveDepthFirstSearch::IterativeMDPAlgorithm;
 
-    using MDPType = typename Base::MDPType;
-    using HeuristicType = typename Base::HeuristicType;
-    using PolicyType = typename Base::PolicyType;
+    using MDPType = Base::MDPType;
+    using HeuristicType = Base::HeuristicType;
+    using PolicyType = Base::PolicyType;
 
     using TransitionSorterType = TransitionSorter<State, Action>;
 
@@ -265,7 +265,7 @@ public:
     void print_statistics(std::ostream& out) const override;
 
 private:
-    void register_value_reports(
+    static void register_value_reports(
         const SearchNodeInfo& info,
         ProgressReport& progress);
 

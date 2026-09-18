@@ -63,7 +63,10 @@ struct TarjanStateInformation {
         lowlink = x;
     }
 
-    void close() { stack_index = UNDEF; }
+    void close()
+    {
+        stack_index = UNDEF;
+    }
 };
 
 struct ExplorationInfo {
@@ -133,15 +136,15 @@ class FRET
     using State = RemoveQType<QState>;
     using Action = RemoveQType<QAction>;
 
-    using Base = typename FRET::MDPAlgorithm;
+    using Base = FRET::MDPAlgorithm;
 
-    using PolicyType = typename Base::PolicyType;
-    using MDPType = typename Base::MDPType;
-    using HeuristicType = typename Base::HeuristicType;
+    using PolicyType = Base::PolicyType;
+    using MDPType = Base::MDPType;
+    using HeuristicType = Base::HeuristicType;
 
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
 
-    using QHeuristic = probfd::Heuristic<QState>;
+    using QHeuristic = Heuristic<QState>;
 
     using StackInfo = internal::StackInfo<QAction>;
 
@@ -184,12 +187,12 @@ private:
         QHeuristic& heuristic,
         ParamType<QState> state,
         ProgressReport& progress,
-        downward::utils::CountdownTimer& timer);
+        const downward::utils::CountdownTimer& timer);
 
     bool find_and_remove_traps(
         QuotientSystem& quotient,
         ParamType<QState> state,
-        downward::utils::CountdownTimer& timer);
+        const downward::utils::CountdownTimer& timer);
 
     bool push(
         QuotientSystem& quotient,
@@ -210,7 +213,7 @@ class ValueGraph {
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
 
     using AlgorithmValueType =
-        typename NestedAlgorithm::HeuristicSearchBase::AlgorithmValueType;
+        NestedAlgorithm::HeuristicSearchBase::AlgorithmValueType;
 
     std::unordered_set<StateID> ids_;
     std::vector<LabelledSuccessorDistribution<QAction>> opt_transitions_;

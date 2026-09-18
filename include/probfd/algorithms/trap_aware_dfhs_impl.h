@@ -96,7 +96,7 @@ Interval TADFHSImpl<State, Action, UseInterval>::solve_quotient(
     const StateID state_id = quotient.get_state_id(qstate);
     const StateInfo& state_info = this->state_infos_[state_id];
 
-    progress.register_bound("v", [&state_info]() {
+    progress.register_bound("v", [&state_info] {
         return as_interval(state_info.value);
     });
 
@@ -168,7 +168,7 @@ bool TADFHSImpl<State, Action, UseInterval>::advance(
         (backtrack_update_type_ == ON_DEMAND && !einfo.value_converged)) {
         const auto state = quotient.get_state(einfo.state_id);
 
-        ClearGuard _(transitions_, qvalues_);
+        ClearGuard _(transitions_, q_values_);
         this->generate_non_tip_transitions(quotient, state, transitions_);
 
         ++statistics_.backtracking_updates;
@@ -177,7 +177,7 @@ bool TADFHSImpl<State, Action, UseInterval>::advance(
             state,
             transitions_,
             quotient,
-            qvalues_);
+            q_values_);
 
         auto transition = this->select_greedy_transition(
             quotient,
@@ -186,7 +186,7 @@ bool TADFHSImpl<State, Action, UseInterval>::advance(
 
         const auto val_upd =
             this->update_value(state_info, value, this->epsilon_);
-        bool policy_changed = this->update_policy(state_info, transition);
+        const bool policy_changed = this->update_policy(state_info, transition);
 
         // Note: it is only necessary to check whether eps-consistency
         // was reached on backward update when both directions are
@@ -206,7 +206,7 @@ bool TADFHSImpl<State, Action, UseInterval>::push_successor(
     QuotientSystem& quotient,
     DFSExplorationState& einfo,
     StateInfo& sinfo,
-    downward::utils::CountdownTimer& timer)
+    const downward::utils::CountdownTimer& timer)
 {
     do {
         timer.throw_if_expired();
@@ -217,7 +217,9 @@ bool TADFHSImpl<State, Action, UseInterval>::push_successor(
         if (succ_stack_index == NEW) {
             push(succ);
             return true;
-        } else if (succ_stack_index == CLOSED) {
+        }
+
+        if (succ_stack_index == CLOSED) {
             einfo.is_trap = false;
             if (label_solved_) {
                 einfo.solved =
@@ -258,7 +260,7 @@ bool TADFHSImpl<State, Action, UseInterval>::initialize(
     const bool is_tip_state = state_info.is_on_fringe();
 
     if (forward_updates_ || is_tip_state) {
-        ClearGuard _(transitions_, qvalues_);
+        ClearGuard _(transitions_, q_values_);
 
         if (is_tip_state) {
             this->expand_and_initialize(
@@ -277,7 +279,7 @@ bool TADFHSImpl<State, Action, UseInterval>::initialize(
             state,
             transitions_,
             quotient,
-            qvalues_);
+            q_values_);
 
         auto transition = this->select_greedy_transition(
             quotient,
@@ -468,7 +470,7 @@ std::pair<bool, bool> TADFHSImpl<State, Action, UseInterval>::vi_step(
 
         const auto state = quotient.get_state(id);
 
-        ClearGuard _(transitions_, qvalues_);
+        ClearGuard _(transitions_, q_values_);
 
         this->generate_non_tip_transitions(quotient, state, transitions_);
 
@@ -476,7 +478,7 @@ std::pair<bool, bool> TADFHSImpl<State, Action, UseInterval>::vi_step(
             state,
             transitions_,
             quotient,
-            qvalues_);
+            q_values_);
 
         ++statistics_.convergence_updates;
 
@@ -486,7 +488,7 @@ std::pair<bool, bool> TADFHSImpl<State, Action, UseInterval>::vi_step(
             transitions_);
 
         auto val_upd = this->update_value(state_info, value, this->epsilon_);
-        bool policy_changed = this->update_policy(state_info, transition);
+        const bool policy_changed = this->update_policy(state_info, transition);
         values_not_conv = values_not_conv || !val_upd.converged;
         policy_not_conv = policy_not_conv || policy_changed;
     }
@@ -569,8 +571,8 @@ auto TADepthFirstHeuristicSearch<State, Action, UseInterval>::compute_policy(
 
     const StateID initial_state_id = quotient.get_state_id(qinit);
 
-    std::deque<StateID> queue({initial_state_id});
-    std::set<StateID> visited({initial_state_id});
+    std::deque queue({initial_state_id});
+    std::set visited({initial_state_id});
 
     do {
         const StateID quotient_id = queue.front();
@@ -618,8 +620,8 @@ auto TADepthFirstHeuristicSearch<State, Action, UseInterval>::compute_policy(
 
             // Now traverse the inverse graph starting from the exiting
             // state
-            std::deque<StateID> inverse_queue({exiting_id});
-            std::set<StateID> inverse_visited({exiting_id});
+            std::deque inverse_queue({exiting_id});
+            std::set inverse_visited({exiting_id});
 
             do {
                 const StateID next_id = inverse_queue.front();

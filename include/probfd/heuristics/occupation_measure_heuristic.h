@@ -21,7 +21,7 @@ namespace probfd::heuristics {
  */
 class OccupationMeasureHeuristic
     : public LPHeuristic<OccupationMeasureHeuristic> {
-    friend class LPHeuristic<OccupationMeasureHeuristic>;
+    friend class LPHeuristic;
 
 protected:
     std::shared_ptr<occupation_measures::ConstraintGenerator>

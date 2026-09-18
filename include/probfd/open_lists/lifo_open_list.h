@@ -26,7 +26,7 @@ public:
 
     StateID pop() override
     {
-        StateID s = queue_.back();
+        const StateID s = queue_.back();
         queue_.pop_back();
         return s;
     }

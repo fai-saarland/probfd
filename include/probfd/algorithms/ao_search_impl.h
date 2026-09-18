@@ -68,7 +68,7 @@ void AOBase<State, Action, StateInfo>::backpropagate_update_order(
     StateID tip,
     StateInfo& tip_info,
     unsigned update_order,
-    downward::utils::CountdownTimer& timer)
+    const downward::utils::CountdownTimer& timer)
 {
     tip_info.update_order = update_order;
     queue_.emplace(update_order, tip);

@@ -38,8 +38,7 @@ class AbstractState {
 
     CartesianSet cartesian_set_;
 
-    template <typename T, typename Char>
-    friend struct std::formatter;
+    friend std::formatter<AbstractState>;
 
 public:
     AbstractState(int state_id, NodeID node_id, CartesianSet&& cartesian_set);
@@ -106,16 +105,16 @@ public:
 
 } // namespace probfd::cartesian_abstractions
 
-template <typename Char>
-struct std::formatter<probfd::cartesian_abstractions::AbstractState, Char> {
+template <>
+struct std::formatter<probfd::cartesian_abstractions::AbstractState> {
     template <class ParseContext>
-    constexpr typename ParseContext::iterator parse(ParseContext& ctx)
+    static constexpr ParseContext::iterator parse(ParseContext& ctx)
     {
         return ctx.begin();
     }
 
     template <class FmtContext>
-    typename FmtContext::iterator format(
+    FmtContext::iterator format(
         const probfd::cartesian_abstractions::AbstractState& state,
         FmtContext& ctx) const
     {

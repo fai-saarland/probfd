@@ -54,7 +54,7 @@ std::vector<int> get_goals_in_random_order(
 
 void dump_graphviz(
     const ProbabilisticOperatorSpace& operators,
-    ProjectionStateSpace& mdp,
+    ProjectionStateSpace& state_space,
     const ProbabilityAwarePatternDatabase& pdb,
     StateRank initial_state,
     std::ostream& out,
@@ -76,7 +76,7 @@ void dump_graphviz(
     graphviz::dump_state_space_dot_graph<StateRank, const ProjectionOperator*>(
         out,
         initial_state,
-        &mdp,
+        &state_space,
         nullptr,
         sts,
         ats,

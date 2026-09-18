@@ -184,7 +184,7 @@ bool AcyclicValueIteration<State, Action>::push_successor(
     MDPType& mdp,
     MapPolicy* policy,
     DFSExplorationState& e,
-    downward::utils::CountdownTimer& timer)
+    const downward::utils::CountdownTimer& timer)
 {
     using namespace downward::utils;
 

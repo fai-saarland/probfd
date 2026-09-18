@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PROBFD_STORAGE_SEGMENTED_MEMORY_POOL_H
+#define PROBFD_STORAGE_SEGMENTED_MEMORY_POOL_H
 
 #include <cassert>
 #include <memory>
@@ -18,11 +19,12 @@ public:
     ~SegmentedMemoryPool()
     {
         for (void* segment : segments_) {
-            delete[] (reinterpret_cast<char*>(segment));
+            ::operator delete[](segment);
         }
     }
 
     template <typename T>
+        requires std::is_implicit_lifetime_v<T>
     T* allocate(const std::size_t elements)
     {
         const std::size_t size = elements * sizeof(T);
@@ -35,8 +37,8 @@ public:
             segments_.push_back(current_);
         }
 
-        T* res = reinterpret_cast<T*>(current_);
-        current_ = reinterpret_cast<char*>(current_) + size;
+        T* res = static_cast<T*>(current_);
+        current_ = static_cast<char*>(current_) + size;
         space_left_ -= size;
         return res;
     }
@@ -49,3 +51,5 @@ public:
 };
 
 } // namespace probfd::storage
+
+#endif

@@ -81,9 +81,15 @@ class StateInfos : public StateProperties {
     storage::PerStateStorage<StateInfo> state_infos_;
 
 public:
-    StateInfo& operator[](StateID sid) { return state_infos_[sid]; }
+    StateInfo& operator[](StateID sid)
+    {
+        return state_infos_[sid];
+    }
 
-    const StateInfo& operator[](StateID sid) const { return state_infos_[sid]; }
+    const StateInfo& operator[](StateID sid) const
+    {
+        return state_infos_[sid];
+    }
 
     value_t lookup_value(StateID state_id) override
     {
@@ -235,8 +241,8 @@ public:
      */
     std::optional<LDistType> select_greedy_transition(
         MDPType& mdp,
-        std::optional<Action> previous_greedy_action,
-        std::vector<LDistType>& greedy_transition_tails);
+        std::optional<Action> previous_greedy,
+        std::vector<LDistType>& transition_tails);
 
     /**
      * @brief Updates the value of the state associated with the given storage.
@@ -318,21 +324,21 @@ template <typename State, typename Action, typename StateInfoT>
 class HeuristicSearchAlgorithm
     : public IterativeMDPAlgorithm<State, Action>
     , public HeuristicSearchBase<State, Action, StateInfoT> {
-    using AlgorithmBase = typename HeuristicSearchAlgorithm::MDPAlgorithm;
-    using HSBase = typename HeuristicSearchAlgorithm::HeuristicSearchBase;
+    using AlgorithmBase = HeuristicSearchAlgorithm::MDPAlgorithm;
+    using HSBase = HeuristicSearchAlgorithm::HeuristicSearchBase;
 
 public:
-    using LDistType = typename HSBase::LDistType;
-    using AlgorithmValueType = typename HSBase::AlgorithmValueType;
+    using LDistType = HSBase::LDistType;
+    using AlgorithmValueType = HSBase::AlgorithmValueType;
 
 protected:
-    using PolicyType = typename AlgorithmBase::PolicyType;
+    using PolicyType = AlgorithmBase::PolicyType;
 
-    using MDPType = typename AlgorithmBase::MDPType;
-    using HeuristicType = typename AlgorithmBase::HeuristicType;
+    using MDPType = AlgorithmBase::MDPType;
+    using HeuristicType = AlgorithmBase::HeuristicType;
 
-    using StateInfo = typename HSBase::StateInfo;
-    using PolicyPicker = typename HSBase::PolicyPickerType;
+    using StateInfo = HSBase::StateInfo;
+    using PolicyPicker = HSBase::PolicyPickerType;
 
 public:
     HeuristicSearchAlgorithm(
@@ -349,12 +355,13 @@ public:
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
         HeuristicType& h,
-        ParamType<State> state,
+        ParamType<State> initial_state,
         ProgressReport progress,
         downward::utils::FSeconds max_time) final;
 
     void print_statistics(std::ostream& out) const final;
 
+protected:
     /**
      * @brief Solves for the optimal state value of the input state.
      *
@@ -381,4 +388,4 @@ public:
 #include "probfd/algorithms/heuristic_search_base_impl.h"
 #undef GUARD_INCLUDE_PROBFD_ALGORITHMS_HEURISTIC_SEARCH_BASE_H
 
-#endif // __HEURISTIC_SEARCH_BASE_H__
+#endif

@@ -22,11 +22,14 @@ template <typename Action>
 struct StatesPolicy<Action, true> {
     std::optional<Action> policy = std::nullopt;
 
-    std::optional<Action> get_policy() const { return policy; }
+    std::optional<Action> get_policy() const
+    {
+        return policy;
+    }
 
     bool update_policy(const std::optional<Action>& a)
     {
-        bool changed = policy != a;
+        const bool changed = policy != a;
         policy = a;
         return changed;
     }
@@ -45,12 +48,12 @@ struct StatesPolicy<Action, true> {
 };
 
 struct StateFlags {
-    static constexpr uint8_t INITIALIZED = 1;
-    static constexpr uint8_t TERMINAL = 2;
-    static constexpr uint8_t GOAL = 4;
-    static constexpr uint8_t FRINGE = 5;
-    static constexpr uint8_t MASK = 7;
-    static constexpr uint8_t BITS = 3;
+    static constexpr unsigned int INITIALIZED = 1;
+    static constexpr unsigned int TERMINAL = 2;
+    static constexpr unsigned int GOAL = 4;
+    static constexpr unsigned int FRINGE = 5;
+    static constexpr unsigned int MASK = 7;
+    static constexpr unsigned int BITS = 3;
 
     uint8_t info = 0;
 
@@ -112,8 +115,8 @@ struct StateFlags {
 
 template <typename Action, bool StorePolicy_, bool UseInterval_>
 struct PerStateBaseInformation
-    : public StatesPolicy<Action, StorePolicy_>
-    , public StateFlags {
+    : StatesPolicy<Action, StorePolicy_>
+    , StateFlags {
     static constexpr bool StorePolicy = StorePolicy_;
     static constexpr bool UseInterval = UseInterval_;
 

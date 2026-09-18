@@ -25,7 +25,6 @@ public:
     explicit VBiasedSuccessorSampler(
         std::shared_ptr<downward::utils::RandomNumberGenerator> rng);
 
-protected:
     StateID sample(
         StateID state,
         Action action,

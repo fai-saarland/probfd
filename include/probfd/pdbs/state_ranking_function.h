@@ -1,8 +1,8 @@
 #ifndef PROBFD_PDBS_STATE_RANKING_FUNCTION_H
 #define PROBFD_PDBS_STATE_RANKING_FUNCTION_H
 
-#include "probfd/task_utils/assignment_enumerator.h"
 #include "probfd/pdbs/types.h"
+#include "probfd/task_utils/assignment_enumerator.h"
 
 #include "downward/state.h"
 

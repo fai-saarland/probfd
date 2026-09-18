@@ -1,6 +1,6 @@
 
-#ifndef MS_EVENTS_H
-#define MS_EVENTS_H
+#ifndef PROBFD_ALGORITHMS_EVENTS_H
+#define PROBFD_ALGORITHMS_EVENTS_H
 
 namespace downward {
 class State;
@@ -38,4 +38,4 @@ struct AlgorithmEnded {
 
 }
 
-#endif // MS_EVENTS_H
+#endif // PROBFD_ALGORITHMS_EVENTS_H

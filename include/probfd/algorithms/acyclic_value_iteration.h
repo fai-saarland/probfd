@@ -45,7 +45,7 @@ struct DFSExplorationState {
 
     // The current transition and transition successor
     SuccessorDistribution successor_dist;
-    typename Distribution<StateID>::const_iterator successor;
+    Distribution<StateID>::const_iterator successor;
 
     // The current transition Q-value
     value_t t_value;
@@ -93,11 +93,11 @@ class AcyclicValueIteration
           GoalStateExpansion,
           TerminalStateExpansion,
           PruneStateExpansion> {
-    using Base = typename AcyclicValueIteration::MDPAlgorithm;
+    using Base = AcyclicValueIteration::MDPAlgorithm;
 
-    using PolicyType = typename Base::PolicyType;
-    using MDPType = typename Base::MDPType;
-    using HeuristicType = typename Base::HeuristicType;
+    using PolicyType = Base::PolicyType;
+    using MDPType = Base::MDPType;
+    using HeuristicType = Base::HeuristicType;
 
     using MapPolicy = policies::MapPolicy<State, Action>;
 
@@ -134,7 +134,7 @@ private:
         MDPType& mdp,
         MapPolicy* policy,
         DFSExplorationState& e,
-        downward::utils::CountdownTimer& timer);
+        const downward::utils::CountdownTimer& timer);
 
     bool expand_state(
         MDPType& mdp,

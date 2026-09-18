@@ -74,11 +74,11 @@ private:
  */
 template <typename State, typename Action>
 class IDual : public MDPAlgorithm<State, Action> {
-    using Base = typename IDual::MDPAlgorithm;
+    using Base = IDual::MDPAlgorithm;
 
-    using MDPType = typename Base::MDPType;
-    using HeuristicType = typename Base::HeuristicType;
-    using PolicyType = typename Base::PolicyType;
+    using MDPType = Base::MDPType;
+    using HeuristicType = Base::HeuristicType;
+    using PolicyType = Base::PolicyType;
 
     downward::lp::LPSolver lp_solver_;
     const double fp_epsilon_ = 0.001;

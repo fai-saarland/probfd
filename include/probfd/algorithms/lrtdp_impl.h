@@ -48,7 +48,7 @@ Interval LRTDP<State, Action, UseInterval>::do_solve(
     const StateID state_id = mdp.get_state_id(state);
     const StateInfo& state_info = this->state_infos_[state_id];
 
-    progress.register_bound("v", [&state_info]() {
+    progress.register_bound("v", [&state_info] {
         return as_interval(state_info.value);
     });
 
@@ -191,7 +191,7 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
     MDPType& mdp,
     HeuristicType& heuristic,
     StateID init_state_id,
-    downward::utils::CountdownTimer& timer)
+    const downward::utils::CountdownTimer& timer)
 {
     assert(!current_trial_.empty() && policy_queue_.empty());
 

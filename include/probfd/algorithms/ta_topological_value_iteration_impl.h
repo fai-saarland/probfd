@@ -146,7 +146,9 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::
         }
 
         if (exits_only_solvable) {
-            if (leaves_scc) { ++stack_info.active_exit_transitions; }
+            if (leaves_scc) {
+                ++stack_info.active_exit_transitions;
+            }
             ++stack_info.active_transitions;
         }
         stack_info.transition_flags.emplace_back(
@@ -162,7 +164,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::
 template <typename State, typename Action, bool UseInterval>
 ItemProbabilityPair<StateID>
 TATopologicalValueIteration<State, Action, UseInterval>::DFSExplorationState::
-    get_current_successor()
+    get_current_successor() const
 {
     return *successor;
 }
@@ -228,7 +230,9 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::
             return true;
         }
     } else {
-        if (remains_scc) { recurse = true; }
+        if (remains_scc) {
+            recurse = true;
+        }
 
         stack_info.add_non_ec_transition(std::move(*action));
 
@@ -261,7 +265,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::
 template <typename State, typename Action, bool UseInterval>
 ItemProbabilityPair<StateID>
 TATopologicalValueIteration<State, Action, UseInterval>::ECDExplorationInfo::
-    get_current_successor()
+    get_current_successor() const
 {
     return *successor;
 }
@@ -664,9 +668,15 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
             solvable_exits_beg = partition.begin();
         }
 
-        auto solvable_begin() { return solvable_beg; }
+        auto solvable_begin()
+        {
+            return solvable_beg;
+        }
 
-        auto solvable_end() { return partition.end(); }
+        auto solvable_end()
+        {
+            return partition.end();
+        }
 
         auto solvable()
         {
@@ -684,7 +694,7 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
             assert(scc_index_to_local[s] >= solvable_beg);
             assert(scc_index_to_local[s] < solvable_exits_beg);
 
-            auto local = scc_index_to_local[s];
+            const auto local = scc_index_to_local[s];
             std::swap(scc_index_to_local[*solvable_beg], scc_index_to_local[s]);
             std::swap(*solvable_beg, *local);
 
@@ -703,7 +713,7 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
         {
             assert(scc_index_to_local[s] >= solvable_exits_beg);
 
-            auto local = scc_index_to_local[s];
+            const auto local = scc_index_to_local[s];
             std::swap(
                 scc_index_to_local[*solvable_exits_beg],
                 scc_index_to_local[s]);
@@ -717,11 +727,13 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
 
         bool promote_solvable(int s)
         {
-            if (!is_unsolvable(s)) { return false; }
+            if (!is_unsolvable(s)) {
+                return false;
+            }
 
             --solvable_beg;
 
-            auto local = scc_index_to_local[s];
+            const auto local = scc_index_to_local[s];
             std::swap(scc_index_to_local[*solvable_beg], scc_index_to_local[s]);
             std::swap(*solvable_beg, *local);
 
@@ -736,7 +748,7 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
             solvable_beg = solvable_exits_beg;
         }
 
-        bool is_unsolvable(int s)
+        bool is_unsolvable(int s) const
         {
             return scc_index_to_local[s] < solvable_beg;
         }
@@ -980,7 +992,7 @@ template <typename State, typename Action, bool UseInterval>
 bool TATopologicalValueIteration<State, Action, UseInterval>::
     push_successor_ecd(
         ECDExplorationInfo& e,
-        downward::utils::CountdownTimer& timer)
+        const downward::utils::CountdownTimer& timer)
 {
     do {
         timer.throw_if_expired();
@@ -989,6 +1001,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::
         StateInfo& succ_info = state_information_[succ_id];
 
         switch (succ_info.get_ecd_status()) {
+        default: abort();
         case StateInfo::NEW: {
             const auto stack_size = stack_ecd_.size();
             succ_info.explored = 1;
@@ -1017,7 +1030,9 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::initialize_ecd(
 {
     StackInfo& stack_info = exp_info.stack_info;
 
-    if (stack_info.ec_transitions.empty()) { return false; }
+    if (stack_info.ec_transitions.empty()) {
+        return false;
+    }
 
     exp_info.action = stack_info.ec_transitions.begin();
     exp_info.end = stack_info.ec_transitions.end();

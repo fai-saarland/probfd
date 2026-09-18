@@ -1,8 +1,8 @@
 #ifndef PROBFD_MDP_H
 #define PROBFD_MDP_H
 
+#include "probfd/action_cost_function.h"      // IWYU pragma: export
 #include "probfd/state_space.h"               // IWYU pragma: export
-#include "probfd/action_cost_function.h" // IWYU pragma: export
 #include "probfd/termination_cost_function.h" // IWYU pragma: export
 
 namespace probfd {
@@ -15,11 +15,14 @@ class MDP
     : public StateSpace<State, Action>
     , public ActionCostFunction<Action>
     , public TerminationCostFunction<State> {
+public:
     /**
      * @brief Prints statistics, e.g. the number of queries made to the
      * interface.
      */
-    virtual void print_statistics() const {}
+    virtual void print_statistics() const
+    {
+    }
 };
 
 /**

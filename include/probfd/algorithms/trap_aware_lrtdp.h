@@ -44,29 +44,41 @@ struct Statistics {
 
 template <typename Action, bool UseInterval>
 struct PerStateInformation
-    : public heuristic_search::
-          PerStateBaseInformation<Action, true, UseInterval> {
+    : heuristic_search::PerStateBaseInformation<Action, true, UseInterval> {
 private:
     using Base =
         heuristic_search::PerStateBaseInformation<Action, true, UseInterval>;
 
 public:
-    static constexpr uint8_t MARKED_TRIAL = 1 << Base::BITS;
-    static constexpr uint8_t SOLVED = 2 << Base::BITS;
-    static constexpr uint8_t BITS = Base::BITS + 2;
-    static constexpr uint8_t MASK = 3 << Base::BITS;
+    static constexpr unsigned int MARKED_TRIAL = 1 << Base::BITS;
+    static constexpr unsigned int SOLVED = 2 << Base::BITS;
+    static constexpr unsigned int BITS = Base::BITS + 2;
+    static constexpr unsigned int MASK = 3 << Base::BITS;
 
     bool is_solved() const
     {
         return (this->info & MASK) == SOLVED || this->is_goal_or_terminal();
     }
 
-    bool is_on_trial() const { return (this->info & MARKED_TRIAL); }
+    bool is_on_trial() const
+    {
+        return this->info & MARKED_TRIAL;
+    }
 
-    void set_solved() { this->info = (this->info & ~MASK) | SOLVED; }
-    void set_on_trial() { this->info = this->info | MARKED_TRIAL; }
+    void set_solved()
+    {
+        this->info = (this->info & ~MASK) | SOLVED;
+    }
 
-    void clear_trial_flag() { this->info = (this->info & ~MARKED_TRIAL); }
+    void set_on_trial()
+    {
+        this->info = this->info | MARKED_TRIAL;
+    }
+
+    void clear_trial_flag()
+    {
+        this->info = this->info & ~MARKED_TRIAL;
+    }
 };
 
 } // namespace internal
@@ -82,17 +94,17 @@ class TALRTDPImpl
           internal::PerStateInformation<
               quotients::QuotientAction<Action>,
               UseInterval>> {
-    using Base = typename TALRTDPImpl::HeuristicSearchBase;
+    using Base = TALRTDPImpl::HeuristicSearchBase;
 
-    using AlgorithmValueType = typename Base::AlgorithmValueType;
+    using AlgorithmValueType = Base::AlgorithmValueType;
 
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using QState = quotients::QuotientState<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
 
-    using QHeuristic = typename Base::HeuristicType;
-    using QuotientPolicyPicker = typename Base::PolicyPickerType;
-    using StateInfo = typename Base::StateInfo;
+    using QHeuristic = Base::HeuristicType;
+    using QuotientPolicyPicker = Base::PolicyPickerType;
+    using StateInfo = Base::StateInfo;
 
     using QuotientSuccessorSampler = SuccessorSampler<QAction>;
 
@@ -198,20 +210,20 @@ private:
     bool check_and_solve(
         QuotientSystem& quotient,
         QHeuristic& heuristic,
-        StateID state_id,
+        StateID init_state_id,
         downward::utils::CountdownTimer& timer);
 
     bool push_successor(
         QuotientSystem& quotient,
         DFSExplorationState& einfo,
-        downward::utils::CountdownTimer& timer);
+        const downward::utils::CountdownTimer& timer);
 
     void push(StateID state);
 
     bool initialize(
         QuotientSystem& quotient,
         QHeuristic& heuristic,
-        StateID state,
+        StateID state_id,
         StateInfo& state_info,
         DFSExplorationState& e_info);
 
@@ -223,15 +235,15 @@ private:
 
 template <typename State, typename Action, bool UseInterval>
 class TALRTDP : public MDPAlgorithm<State, Action> {
-    using Base = typename TALRTDP::MDPAlgorithm;
+    using Base = TALRTDP::MDPAlgorithm;
 
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using QState = quotients::QuotientState<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
 
-    using MDPType = typename Base::MDPType;
-    using HeuristicType = typename Base::HeuristicType;
-    using PolicyType = typename Base::PolicyType;
+    using MDPType = Base::MDPType;
+    using HeuristicType = Base::HeuristicType;
+    using PolicyType = Base::PolicyType;
 
     using QuotientPolicyPicker = PolicyPicker<QState, QAction>;
     using QuotientSuccessorSampler = SuccessorSampler<QAction>;
@@ -259,7 +271,7 @@ public:
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
         HeuristicType& heuristic,
-        ParamType<State> s,
+        ParamType<State> state,
         ProgressReport progress,
         downward::utils::FSeconds max_time) final;
 

@@ -13,7 +13,6 @@ extern bool is_product_within_limit(T factor1, T factor2)
     if constexpr (std::numeric_limits<T>::is_signed) {
         assert(factor1 >= 0);
         assert(factor2 >= 0);
-        assert(limit >= 0);
     }
 
     return factor2 == 0 || factor1 <= std::numeric_limits<T>::max() / factor2;

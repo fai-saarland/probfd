@@ -92,7 +92,7 @@ class EndComponentDecomposition {
         enum { NEW, ONSTACK, CLOSED };
 
         static constexpr uint32_t UNDEF =
-            std::numeric_limits<uint32_t>::max() >> 2;
+            std::numeric_limits<uint32_t>::max() >> 2U;
 
         unsigned explored : 1 = 0;
         unsigned expandable_goal : 1 = 0; // non-terminal goal?
@@ -140,7 +140,7 @@ class EndComponentDecomposition {
 
         bool next_successor();
 
-        StateID get_current_successor();
+        StateID get_current_successor() const;
         Action& get_current_action();
     };
 

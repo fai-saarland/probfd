@@ -3,10 +3,6 @@
 
 #include "probfd/merge_and_shrink/shrink_strategy.h"
 
-namespace downward::cli::plugins {
-class Options;
-}
-
 namespace probfd::merge_and_shrink {
 
 class ShrinkStrategyBisimulation : public ShrinkStrategy {

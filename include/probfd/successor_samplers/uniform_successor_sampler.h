@@ -22,7 +22,6 @@ public:
     explicit UniformSuccessorSampler(
         std::shared_ptr<downward::utils::RandomNumberGenerator> rng);
 
-protected:
     StateID sample(
         StateID state,
         Action action,

@@ -45,16 +45,15 @@ struct Statistics {
 
 template <typename Action, bool UseInterval>
 struct PerStateInformation
-    : public heuristic_search::
-          PerStateBaseInformation<Action, true, UseInterval> {
+    : heuristic_search::PerStateBaseInformation<Action, true, UseInterval> {
 private:
     using Base =
         heuristic_search::PerStateBaseInformation<Action, true, UseInterval>;
 
 public:
-    static constexpr uint8_t SOLVED = 1 << Base::BITS;
-    static constexpr uint8_t BITS = Base::BITS + 1;
-    static constexpr uint8_t MASK = 1 << Base::BITS;
+    static constexpr unsigned int SOLVED = 1 << Base::BITS;
+    static constexpr unsigned int BITS = Base::BITS + 1;
+    static constexpr unsigned int MASK = 1 << Base::BITS;
 
     [[nodiscard]]
     bool is_solved() const
@@ -62,7 +61,10 @@ public:
         return this->info & SOLVED || this->is_goal_or_terminal();
     }
 
-    void set_solved() { this->info = (this->info & ~MASK) | SOLVED; }
+    void set_solved()
+    {
+        this->info = (this->info & ~MASK) | SOLVED;
+    }
 };
 
 } // namespace internal
@@ -78,7 +80,7 @@ class TADFHSImpl
           internal::PerStateInformation<
               quotients::QuotientAction<Action>,
               UseInterval>> {
-    using Base = typename TADFHSImpl::HeuristicSearchBase;
+    using Base = TADFHSImpl::HeuristicSearchBase;
 
     using AlgorithmValueType = Base::AlgorithmValueType;
 
@@ -86,9 +88,9 @@ class TADFHSImpl
     using QState = quotients::QuotientState<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
 
-    using QHeuristic = typename Base::HeuristicType;
-    using QuotientPolicyPicker = typename Base::PolicyPickerType;
-    using StateInfo = typename Base::StateInfo;
+    using QHeuristic = Base::HeuristicType;
+    using QuotientPolicyPicker = Base::PolicyPickerType;
+    using StateInfo = Base::StateInfo;
 
     using QuotientOpenList = OpenList<QAction>;
 
@@ -168,7 +170,7 @@ class TADFHSImpl
 
     // Re-used buffer
     std::vector<LabelledSuccessorDistribution<QAction>> transitions_;
-    std::vector<AlgorithmValueType> qvalues_;
+    std::vector<AlgorithmValueType> q_values_;
     SuccessorDistribution successor_dist_;
 
     internal::Statistics statistics_;
@@ -220,7 +222,7 @@ private:
         QuotientSystem& quotient,
         DFSExplorationState& einfo,
         StateInfo& sinfo,
-        downward::utils::CountdownTimer& timer);
+        const downward::utils::CountdownTimer& timer);
 
     bool initialize(
         QuotientSystem& quotient,
@@ -249,11 +251,11 @@ private:
 
 template <typename State, typename Action, bool UseInterval>
 class TADepthFirstHeuristicSearch : public MDPAlgorithm<State, Action> {
-    using Base = typename TADepthFirstHeuristicSearch::MDPAlgorithm;
+    using Base = TADepthFirstHeuristicSearch::MDPAlgorithm;
 
-    using PolicyType = typename Base::PolicyType;
-    using MDPType = typename Base::MDPType;
-    using HeuristicType = typename Base::HeuristicType;
+    using PolicyType = Base::PolicyType;
+    using MDPType = Base::MDPType;
+    using HeuristicType = Base::HeuristicType;
 
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using QState = quotients::QuotientState<State, Action>;

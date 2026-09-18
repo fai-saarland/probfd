@@ -51,13 +51,13 @@ struct std::formatter<probfd::cartesian_abstractions::TransitionOutcome> {
     std::formatter<std::tuple<int, int, int>> underlying_;
 
     template <class ParseContext>
-    constexpr typename ParseContext::iterator parse(ParseContext& ctx)
+    constexpr ParseContext::iterator parse(ParseContext& ctx)
     {
         return underlying_.parse(ctx);
     }
 
     template <class FmtContext>
-    typename FmtContext::iterator format(
+    FmtContext::iterator format(
         const probfd::cartesian_abstractions::TransitionOutcome& t,
         FmtContext& ctx) const
     {

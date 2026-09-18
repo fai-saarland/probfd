@@ -83,7 +83,7 @@ Interval TALRTDPImpl<State, Action, UseInterval>::solve_quotient(
     const StateID state_id = quotient.get_state_id(state);
     const StateInfo& state_info = this->state_infos_[state_id];
 
-    progress.register_bound("v", [&state_info]() {
+    progress.register_bound("v", [&state_info] {
         return as_interval(state_info.value);
     });
 
@@ -328,7 +328,7 @@ template <typename State, typename Action, bool UseInterval>
 bool TALRTDPImpl<State, Action, UseInterval>::push_successor(
     QuotientSystem& quotient,
     DFSExplorationState& einfo,
-    downward::utils::CountdownTimer& timer)
+    const downward::utils::CountdownTimer& timer)
 {
     do {
         timer.throw_if_expired();
@@ -339,7 +339,9 @@ bool TALRTDPImpl<State, Action, UseInterval>::push_successor(
         if (sidx == STATE_UNSEEN) {
             push(succ);
             return true;
-        } else if (sidx == STATE_CLOSED) {
+        }
+
+        if (sidx == STATE_CLOSED) {
             einfo.is_trap = false;
             einfo.rv = einfo.rv && this->state_infos_[succ].is_solved();
         } else {
@@ -528,8 +530,8 @@ auto TALRTDP<State, Action, UseInterval>::compute_policy(
 
     const StateID initial_state_id = quotient.get_state_id(qinit);
 
-    std::deque<StateID> queue({initial_state_id});
-    std::set<StateID> visited({initial_state_id});
+    std::deque queue({initial_state_id});
+    std::set visited({initial_state_id});
 
     do {
         const StateID quotient_id = queue.front();
@@ -579,8 +581,8 @@ auto TALRTDP<State, Action, UseInterval>::compute_policy(
 
             // Now traverse the inverse graph starting from the exiting
             // state
-            std::deque<StateID> inverse_queue({exiting_id});
-            std::set<StateID> inverse_visited({exiting_id});
+            std::deque inverse_queue({exiting_id});
+            std::set inverse_visited({exiting_id});
 
             do {
                 const StateID next_id = inverse_queue.front();

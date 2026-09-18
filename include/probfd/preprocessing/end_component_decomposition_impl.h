@@ -104,6 +104,7 @@ bool EndComponentDecomposition<State, Action>::ExpansionInfo::next_successor()
 template <typename State, typename Action>
 StateID
 EndComponentDecomposition<State, Action>::ExpansionInfo::get_current_successor()
+    const
 {
     return successors.back().back();
 }
@@ -210,9 +211,8 @@ bool EndComponentDecomposition<State, Action>::push(
         }
 
         state_info.expandable_goal = 1;
-    } else if (
-        pruning_function != nullptr &&
-        pruning_function->evaluate(state) == term.get_cost()) {
+    } else if (pruning_function != nullptr &&
+               pruning_function->evaluate(state) == term.get_cost()) {
         ++stats_.terminals;
         return false;
     }
@@ -412,6 +412,7 @@ bool EndComponentDecomposition<State, Action>::push_successor(
             StateInfo& succ_info = state_infos_[succ_id];
 
             switch (succ_info.get_status()) {
+            default: abort();
             case StateInfo::NEW:
                 if (push(succ_id, succ_info, mdp_and_h...)) {
                     return true;

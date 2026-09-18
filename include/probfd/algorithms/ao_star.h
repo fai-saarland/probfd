@@ -41,16 +41,16 @@ class AOStar
           State,
           Action,
           PerStateInformation<Action, UseInterval, true>> {
-    using Base = typename AOStar::AOBase;
+    using Base = AOStar::AOBase;
 
     friend Base;
 
-    using AlgorithmValueType = typename Base::AlgorithmValueType;
+    using AlgorithmValueType = Base::AlgorithmValueType;
 
-    using MDPType = typename Base::MDPType;
-    using HeuristicType = typename Base::HeuristicType;
-    using PolicyPickerType = typename Base::PolicyPickerType;
-    using StateInfo = typename Base::StateInfo;
+    using MDPType = Base::MDPType;
+    using HeuristicType = Base::HeuristicType;
+    using PolicyPickerType = Base::PolicyPickerType;
+    using StateInfo = Base::StateInfo;
 
     using SuccessorSamplerType = SuccessorSampler<Action>;
 

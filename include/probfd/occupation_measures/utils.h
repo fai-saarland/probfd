@@ -16,7 +16,7 @@ namespace probfd::occupation_measures {
 std::vector<int>
 pasmt_to_vector(const auto& fact_range, std::size_t num_variables)
 {
-    std::vector<int> vec(num_variables, -1);
+    std::vector vec(num_variables, -1);
 
     for (const auto [var, value] : fact_range) {
         vec[var] = value;

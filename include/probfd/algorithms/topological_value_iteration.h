@@ -67,14 +67,14 @@ struct Statistics {
  */
 template <typename State, typename Action, bool UseInterval = false>
 class TopologicalValueIteration : public IterativeMDPAlgorithm<State, Action> {
-    using Base = typename TopologicalValueIteration::MDPAlgorithm;
+    using Base = TopologicalValueIteration::MDPAlgorithm;
 
-    using PolicyType = typename Base::PolicyType;
-    using MDPType = typename Base::MDPType;
-    using HeuristicType = typename Base::HeuristicType;
+    using PolicyType = Base::PolicyType;
+    using MDPType = Base::MDPType;
+    using HeuristicType = Base::HeuristicType;
 
     using MapPolicy = policies::MapPolicy<State, Action>;
-    using AlgorithmValueType = algorithms::AlgorithmValue<UseInterval>;
+    using AlgorithmValueType = AlgorithmValue<UseInterval>;
 
     struct StateInfo {
         // Status Flags
@@ -99,7 +99,7 @@ class TopologicalValueIteration : public IterativeMDPAlgorithm<State, Action> {
 
         QValueInfo(Action action, value_t action_cost);
 
-        bool finalize_transition(value_t self_loop_prob);
+        bool finalize_transition(value_t non_source_probability);
 
         AlgorithmValueType compute_q_value() const;
     };
@@ -134,7 +134,6 @@ class TopologicalValueIteration : public IterativeMDPAlgorithm<State, Action> {
         SuccessorDistribution successor_dist; // Currently expanded transition
         Distribution<StateID>::const_iterator successor; // Current successor
 
-    public:
         // Immutable info
         StateID state_id; // State this information belongs to
         StackInfo& stack_info;
@@ -155,10 +154,10 @@ class TopologicalValueIteration : public IterativeMDPAlgorithm<State, Action> {
         bool forward_non_loop_transition(MDPType& mdp, const State& state);
 
         Action& get_current_action();
-        ItemProbabilityPair<StateID> get_current_successor();
+        ItemProbabilityPair<StateID> get_current_successor() const;
     };
 
-    using StackIterator = typename std::vector<StackInfo>::iterator;
+    using StackIterator = std::vector<StackInfo>::iterator;
 
     // Algorithm parameters
     const bool expand_goals_;

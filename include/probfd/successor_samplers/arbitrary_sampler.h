@@ -8,7 +8,7 @@ namespace probfd::successor_samplers {
 
 template <typename Action>
 class ArbitrarySuccessorSampler : public algorithms::SuccessorSampler<Action> {
-protected:
+public:
     StateID sample(
         StateID state,
         Action action,

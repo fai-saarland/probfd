@@ -20,7 +20,9 @@ struct StateID {
     static constexpr size_type UNDEFINED =
         std::numeric_limits<size_type>::max();
 
-    StateID(size_type id = StateID::UNDEFINED)
+    size_type id;
+
+    StateID(size_type id = UNDEFINED)
         : id(id)
     {
     }
@@ -33,8 +35,6 @@ struct StateID {
     operator downward::StateID() const { return downward::StateID(id); }
 
     operator size_type() const { return id; }
-
-    size_type id;
 };
 
 template <>

@@ -23,7 +23,7 @@ VDiffSorter::VDiffSorter(value_t favor_large_gaps)
 void VDiffSorter::sort(
     const State&,
     const std::vector<OperatorID>&,
-    std::vector<SuccessorDistribution>& all_successors,
+    std::vector<SuccessorDistribution>& successor_dists,
     algorithms::StateProperties& properties)
 {
     auto rv = [this, &properties](StateID succ) {
@@ -31,16 +31,16 @@ void VDiffSorter::sort(
     };
 
     std::vector<double> k0;
-    k0.reserve(all_successors.size());
+    k0.reserve(successor_dists.size());
 
-    for (const auto& successor_dist : all_successors) {
+    for (const auto& [non_source_successor_dist, non_source_probability] :
+         successor_dists) {
         k0.emplace_back(
-            successor_dist.non_source_successor_dist.expectation(rv) /
-            successor_dist.non_source_probability);
+            non_source_successor_dist.expectation(rv) / non_source_probability);
     }
 
     std::ranges::sort(
-        std::views::zip(all_successors, k0),
+        std::views::zip(successor_dists, k0),
         {},
         [](const auto& p) { return std::get<1>(p); });
 }

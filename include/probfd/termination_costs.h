@@ -1,5 +1,5 @@
-#ifndef PROBFD_TERMINATION_COSTS
-#define PROBFD_TERMINATION_COSTS
+#ifndef PROBFD_TERMINATION_COSTS_H
+#define PROBFD_TERMINATION_COSTS_H
 
 #include "probfd/aliases.h"
 
