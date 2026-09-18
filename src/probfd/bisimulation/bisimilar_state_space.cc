@@ -223,14 +223,12 @@ void BisimilarStateSpace::generate_all_transitions(
     }
 }
 
-TerminationInfo BisimilarStateSpace::get_termination_info(QuotientState s)
+value_t BisimilarStateSpace::get_termination_cost(QuotientState s)
 {
     const auto& term_costs = get_termination_costs(task_);
 
-    return is_goal_state(s) ? TerminationInfo::from_goal(
-                                  term_costs.get_goal_termination_cost())
-                            : TerminationInfo::from_non_goal(
-                                  term_costs.get_non_goal_termination_cost());
+    return is_goal_state(s) ? term_costs.get_goal_termination_cost()
+                            : term_costs.get_non_goal_termination_cost();
 }
 
 value_t BisimilarStateSpace::get_action_cost(OperatorID op_id)

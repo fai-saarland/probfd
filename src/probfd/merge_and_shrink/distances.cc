@@ -138,11 +138,9 @@ public:
         }
     }
 
-    TerminationInfo get_termination_info(int state) override
+    value_t get_termination_cost(int state) override
     {
-        return goal_flags_[state]
-                   ? TerminationInfo::from_goal(0_vt)
-                   : TerminationInfo::from_non_goal(INFINITE_VALUE);
+        return goal_flags_[state] ? 0_vt : INFINITE_VALUE;
     }
 
     value_t get_action_cost(const ProbabilisticTransition* action) override

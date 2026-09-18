@@ -180,9 +180,9 @@ bool TopologicalValueIteration<State, Action, UseInterval>::StackInfo::
 
 template <typename State, typename Action, bool UseInterval>
 TopologicalValueIteration<State, Action, UseInterval>::
-    TopologicalValueIteration(value_t epsilon, bool expand_goals)
+    TopologicalValueIteration(value_t epsilon, bool init_state_only)
     : IterativeMDPAlgorithm<State, Action>(epsilon)
-    , expand_goals_(expand_goals)
+    , init_state_only(init_state_only)
 {
 }
 
@@ -329,8 +329,7 @@ bool TopologicalValueIteration<State, Action, UseInterval>::initialize_state(
 
     const State state = mdp.get_state(exp_info.state_id);
 
-    const TerminationInfo state_eval = mdp.get_termination_info(state);
-    const value_t t_cost = state_eval.get_cost();
+    const value_t t_cost = mdp.get_termination_cost(state);
     const value_t estimate = heuristic.evaluate(state);
 
     exp_info.stack_info.conv_part = AlgorithmValueType(t_cost);
@@ -344,14 +343,12 @@ bool TopologicalValueIteration<State, Action, UseInterval>::initialize_state(
         state_value = estimate;
     }
 
-    if (state_eval.is_goal_state()) {
+    if (t_cost != INFINITE_VALUE) {
         ++statistics_.goal_states;
+    }
 
-        if (!expand_goals_) {
-            ++statistics_.pruned;
-            return false;
-        }
-    } else if (estimate == t_cost) {
+    // Only prune if we are satisfied with a solution for the initial state.
+    if (init_state_only && estimate == t_cost) {
         ++statistics_.pruned;
         return false;
     }

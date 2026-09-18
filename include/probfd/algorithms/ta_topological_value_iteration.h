@@ -266,7 +266,7 @@ class TATopologicalValueIteration
         }
     };
 
-    const bool allow_pruning_;
+    const bool init_state_only_;
 
     storage::PerStateStorage<StateInfo> state_information_;
     std::vector<DFSExplorationState> dfs_stack_;
@@ -284,7 +284,7 @@ public:
     explicit TATopologicalValueIteration(
         value_t epsilon,
         std::size_t num_states_hint = 0,
-        bool allow_pruning = false);
+        bool init_state_only = false);
 
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,

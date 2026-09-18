@@ -90,7 +90,7 @@ public:
     IntervalIteration(
         value_t epsilon,
         bool extract_probability_one_states,
-        bool expand_goals);
+        bool init_state_only);
 
     Interval solve(
         MDPType& mdp,

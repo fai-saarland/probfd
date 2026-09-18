@@ -49,7 +49,7 @@ public:
         return std::make_unique<AlgorithmAdaptor>(
             std::make_unique<TopologicalValueIteration<State, OperatorID>>(
                 convergence_epsilon_,
-                false));
+                true));
     }
 };
 

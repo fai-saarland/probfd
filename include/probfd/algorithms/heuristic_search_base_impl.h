@@ -296,10 +296,9 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize(
 
     statistics_.evaluated_states++;
 
-    const TerminationInfo term = mdp.get_termination_info(state);
-    const value_t t_cost = term.get_cost();
+    const value_t t_cost = mdp.get_termination_cost(state);
 
-    if (term.is_goal_state()) {
+    if (t_cost != INFINITE_VALUE) {
         statistics_.goal_states++;
     }
 

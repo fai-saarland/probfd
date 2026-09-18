@@ -29,7 +29,8 @@ namespace probfd::preprocessing {
 struct ECDStatistics {
     unsigned long long goals = 0;
     unsigned long long terminals = 0;
-    unsigned long long selfloops = 0;
+    unsigned long long loop_terminals = 0;
+    unsigned long long self_loops = 0;
 
     unsigned long long sccs1 = 0;
     unsigned long long sccsk = 0;
@@ -95,8 +96,7 @@ class EndComponentDecomposition {
             std::numeric_limits<uint32_t>::max() >> 2U;
 
         unsigned explored : 1 = 0;
-        unsigned expandable_goal : 1 = 0; // non-terminal goal?
-        unsigned stackid : 30 = UNDEF;
+        unsigned stackid : 31 = UNDEF;
 
         [[nodiscard]]
         bool onstack() const;
@@ -146,8 +146,6 @@ class EndComponentDecomposition {
 
     struct StackInfo;
 
-    const bool expand_goals_;
-
     storage::PerStateStorage<StateInfo> state_infos_;
     std::deque<ExpansionInfo> expansion_queue_;
     std::vector<StackInfo> stack_;
@@ -155,8 +153,6 @@ class EndComponentDecomposition {
     ECDStatistics stats_;
 
 public:
-    explicit EndComponentDecomposition(bool expand_goals);
-
     /**
      * @brief Build the quotient of the MDP with respect to the maximal end
      * components.

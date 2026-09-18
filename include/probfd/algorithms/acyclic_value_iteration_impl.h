@@ -223,12 +223,11 @@ bool AcyclicValueIteration<State, Action>::expand_state(
 
     assert(succ_info.status == StateInfo::ON_STACK);
 
-    const TerminationInfo term_info = mdp.get_termination_info(state);
-    const value_t term_value = term_info.get_cost();
+    const value_t term_value = mdp.get_termination_cost(state);
 
     succ_info.value = term_value;
 
-    if (term_info.is_goal_state()) {
+    if (term_value != INFINITE_VALUE) {
         notifyEvent(StateExpansion{state});
         notifyEvent(GoalStateExpansion{state});
         return false;

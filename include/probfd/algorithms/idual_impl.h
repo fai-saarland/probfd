@@ -207,13 +207,7 @@ Interval IDual<State, Action>::solve(
 
     {
         // initialize lp
-        const TerminationInfo term = mdp.get_termination_info(initial_state);
-
-        if (term.is_goal_state()) {
-            return Interval(0_vt);
-        }
-
-        const value_t term_cost = term.get_cost();
+        const value_t term_cost = mdp.get_termination_cost(initial_state);
         const value_t estimate = heuristic.evaluate(initial_state);
 
         assert(estimate <= term_cost);
@@ -261,8 +255,7 @@ Interval IDual<State, Action>::solve(
             timer.throw_if_expired();
 
             const State state = mdp.get_state(state_id);
-            const TerminationInfo term_info = mdp.get_termination_info(state);
-            const auto t_cost = term_info.get_cost();
+            const auto t_cost = mdp.get_termination_cost(state);
 
             auto& info = state_infos_[state_id];
             const unsigned var_id = info.var_idx;
@@ -270,10 +263,6 @@ Interval IDual<State, Action>::solve(
             info.constraints_idx = lp_solver_.get_num_constraints();
 
             lp_solver_.set_variable_upper_bound(var_id, t_cost);
-
-            if (term_info.is_goal_state()) {
-                continue;
-            }
 
             ClearGuard _(transitions);
             mdp.generate_all_transitions(state, transitions);
@@ -297,8 +286,8 @@ Interval IDual<State, Action>::solve(
                             std::numeric_limits<unsigned>::max());
 
                         const State succ_state = mdp.get_state(succ_id);
-                        const auto term = mdp.get_termination_info(succ_state);
-                        const value_t term_cost = term.get_cost();
+                        const value_t term_cost =
+                            mdp.get_termination_cost(succ_state);
                         const value_t estimate = heuristic.evaluate(succ_state);
 
                         if (term_cost == estimate) {
@@ -354,7 +343,6 @@ Interval IDual<State, Action>::solve(
         timer.throw_if_expired();
 
         assert(lp_solver_.has_optimal_solution());
-        primal_solution = lp_solver_.extract_solution();
         dual_solution = lp_solver_.extract_dual_solution();
         objective = lp_solver_.get_objective_value();
 
@@ -374,6 +362,8 @@ Interval IDual<State, Action>::solve(
     } while (!frontier.empty());
 
     assert(!dual_solution.empty());
+
+    primal_solution = lp_solver_.extract_solution();
 
     statistics_.lp_variables = lp_solver_.get_num_variables();
     statistics_.lp_constraints = lp_solver_.get_num_constraints();

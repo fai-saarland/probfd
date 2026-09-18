@@ -81,7 +81,7 @@ public:
         QuotientState state,
         std::vector<LDistType>& transitions) override;
 
-    TerminationInfo get_termination_info(QuotientState state) override;
+    value_t get_termination_cost(QuotientState state) override;
 
     value_t get_action_cost(downward::OperatorID action) override;
 

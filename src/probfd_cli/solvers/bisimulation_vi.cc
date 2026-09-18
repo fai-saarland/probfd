@@ -219,12 +219,12 @@ public:
             solver = std::make_unique<IntervalIteration<QState, QAction>>(
                 convergence_epsilon_,
                 false,
-                false);
+                true);
         } else {
             solver =
                 std::make_unique<TopologicalValueIteration<QState, QAction>>(
                     convergence_epsilon_,
-                    false);
+                    true);
         }
 
         return std::make_unique<BisimulationSolver>(

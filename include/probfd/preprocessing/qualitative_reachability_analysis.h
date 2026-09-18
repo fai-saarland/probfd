@@ -26,6 +26,7 @@ namespace probfd::preprocessing {
 
 struct QRStatistics {
     unsigned long long goals = 0;
+    unsigned long long pruned = 0;
     unsigned long long terminals = 0;
     unsigned long long selfloops = 0;
 
@@ -95,7 +96,7 @@ struct StackInfo {
 template <typename State, typename Action>
 class QualitativeReachabilityAnalysis {
     using MDPType = MDP<State, Action>;
-    using EvaluatorType = Heuristic<State>;
+    using HeuristicType = Heuristic<State>;
 
     using StateInfo = internal::StateInfo;
     using StackInfo = internal::StackInfo;
@@ -137,8 +138,6 @@ class QualitativeReachabilityAnalysis {
         StateID get_current_successor() const;
     };
 
-    const bool expand_goals_;
-
     storage::PerStateStorage<StateInfo> state_infos_;
     std::deque<ExpansionInfo> expansion_queue_;
     std::deque<StackInfo> stack_;
@@ -146,11 +145,9 @@ class QualitativeReachabilityAnalysis {
     QRStatistics stats_;
 
 public:
-    explicit QualitativeReachabilityAnalysis(bool expand_goals);
-
     void run_analysis(
         MDPType& mdp,
-        const EvaluatorType* pruning_function,
+        const HeuristicType* pruning_function,
         ParamType<State> source_state,
         std::output_iterator<StateID> auto dead_out,
         std::output_iterator<StateID> auto unsolvable_out,
@@ -162,7 +159,7 @@ private:
 
     bool initialize(
         MDPType& mdp,
-        const EvaluatorType* pruning_function,
+        const HeuristicType* pruning_function,
         ExpansionInfo& exp_info);
 
     bool push_successor(

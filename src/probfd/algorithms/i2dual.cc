@@ -326,13 +326,7 @@ bool I2Dual::evaluate_state(
 {
     assert(data.is_new());
 
-    const TerminationInfo term_info = mdp.get_termination_info(state);
-    if (term_info.is_goal_state()) {
-        data.set_terminal(0_vt);
-        return true;
-    }
-
-    const value_t term_cost = term_info.get_cost();
+    const value_t term_cost = mdp.get_termination_cost(state);
     const value_t estimate = heuristic.evaluate(state);
 
     if (estimate == term_cost) {

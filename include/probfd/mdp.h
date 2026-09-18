@@ -31,12 +31,10 @@ public:
 template <typename State, typename Action>
 class SimpleMDP : public MDP<State, Action> {
 public:
-    TerminationInfo get_termination_info(ParamType<State> state) final
+    value_t get_termination_cost(ParamType<State> state) final
     {
-        return is_goal(state)
-                   ? TerminationInfo::from_goal(get_goal_termination_cost())
-                   : TerminationInfo::from_non_goal(
-                         get_non_goal_termination_cost());
+        return is_goal(state) ? get_goal_termination_cost()
+                              : get_non_goal_termination_cost();
     }
 
     virtual bool is_goal(ParamType<State> state) const = 0;
@@ -137,9 +135,9 @@ struct CompositeMDP : MDP<State, Action> {
      *
      * @see TerminationInfo
      */
-    TerminationInfo get_termination_info(ParamType<State> state) final
+    value_t get_termination_cost(ParamType<State> state) final
     {
-        return termination_cost_function.get_termination_info(state);
+        return termination_cost_function.get_termination_cost(state);
     }
 
     /**

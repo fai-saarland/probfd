@@ -302,9 +302,9 @@ TATopologicalValueIteration<State, Action, UseInterval>::
     TATopologicalValueIteration(
         value_t epsilon,
         std::size_t num_states_hint,
-        bool allow_pruning)
+        bool init_state_only)
     : IterativeMDPAlgorithm<State, Action>(epsilon)
-    , allow_pruning_(allow_pruning)
+    , init_state_only_(init_state_only)
 {
     if (num_states_hint == 0) return;
     dfs_stack_.reserve(num_states_hint);
@@ -504,8 +504,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::initialize_state(
 
     const State state = mdp.get_state(exp_info.state_id);
 
-    const TerminationInfo state_term = mdp.get_termination_info(state);
-    const value_t t_cost = state_term.get_cost();
+    const value_t t_cost = mdp.get_termination_cost(state);
     const value_t estimate = heuristic.evaluate(state);
 
     exp_info.stack_info.conv_part = AlgorithmValueType(t_cost);
@@ -523,11 +522,11 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::initialize_state(
     if (t_cost != INFINITE_VALUE) {
         ++exp_info.stack_info.active_exit_transitions;
         ++exp_info.stack_info.active_transitions;
+        ++statistics_.goal_states;
     }
 
-    if (state_term.is_goal_state()) {
-        ++statistics_.goal_states;
-    } else if (allow_pruning_ && estimate == t_cost) {
+    // Only prune if we are satisfied with a solution for the initial state.
+    if (init_state_only_ && estimate == t_cost) {
         ++statistics_.pruned;
         return false;
     }

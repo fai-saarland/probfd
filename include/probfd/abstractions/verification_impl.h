@@ -48,8 +48,7 @@ void verify(
 
     for (std::size_t i = 0; i != num_states; ++i) {
         const State state = mdp.get_state(i);
-        const auto term_info = mdp.get_termination_info(state);
-        const value_t term_cost = term_info.get_cost();
+        const value_t term_cost = mdp.get_termination_cost(state);
 
         const auto value = value_table[i];
 

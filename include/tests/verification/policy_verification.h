@@ -27,26 +27,26 @@ extern bool verify_policy(
     using namespace probfd;
 
     struct StateInfo {
-        bool is_dead = true;
+        bool is_proper = false;
         bool explored = false;
         unsigned stack_id = std::numeric_limits<unsigned>::max();
     };
 
     struct ExplorationInfo {
-        ExplorationInfo(probfd::StateID state_id, unsigned stack_id)
+        ExplorationInfo(StateID state_id, unsigned stack_id)
             : state_id(state_id)
             , lowlink(stack_id)
         {
         }
 
-        probfd::StateID state_id;
+        StateID state_id;
         unsigned lowlink = std::numeric_limits<unsigned>::max();
 
         SuccessorDistribution successors;
     };
 
     std::stack<ExplorationInfo> open;
-    std::vector<probfd::StateID> stack;
+    std::vector<StateID> stack;
     storage::PerStateStorage<StateInfo> state_infos;
 
     open.emplace(init_id, 0);
@@ -55,7 +55,7 @@ extern bool verify_policy(
     recurse:;
         ExplorationInfo* info = &open.top();
 
-        probfd::StateID state_id = info->state_id;
+        StateID state_id = info->state_id;
         State state = mdp.get_state(state_id);
         StateInfo* state_info = &state_infos[state_id];
 
@@ -65,15 +65,17 @@ extern bool verify_policy(
 
         std::optional decision = policy.get_decision(state);
 
-        // Check if goal. No decision in this case.
-        if (mdp.get_termination_info(state).is_goal_state()) {
-            if (decision) return false;
-            state_info->is_dead = false;
+        // Termination.
+        if (!decision) {
+            // Check Bellman equation
+            const auto value = decision->q_value_interval.lower;
+            const auto t_cost = mdp.get_termination_cost(state).get_cost();
+
+            if (!is_approx_equal(value, t_cost, epsilon)) return false;
+
+            state_info->is_proper = true;
             goto backtracking;
         }
-
-        // Otherwise, a decision must be made.
-        if (!decision) return false;
 
         // Generate successors.
         mdp.generate_action_transitions(
@@ -82,7 +84,7 @@ extern bool verify_policy(
             info->successors);
 
         // Check Bellman equation
-        if (info->successors.non_source_successor_dist.empty()) abort();
+        assert(!info->successors.non_source_successor_dist.empty());
 
         {
             value_t expected_cost = mdp.get_action_cost(decision->action);
@@ -95,7 +97,7 @@ extern bool verify_policy(
                 const value_t succ_val =
                     succ_decision
                         ? succ_decision->q_value_interval.lower
-                        : mdp.get_termination_info(successor).get_cost();
+                        : mdp.get_termination_cost(successor).get_cost();
 
                 expected_cost += probability * succ_val;
             }
@@ -110,7 +112,7 @@ extern bool verify_policy(
         for (;;) {
             // DFS Expansion
             do {
-                const probfd::StateID successor_id =
+                const StateID successor_id =
                     std::prev(info->successors.non_source_successor_dist.end())
                         ->item;
                 StateInfo& succ_info = state_infos[successor_id.id];
@@ -120,7 +122,8 @@ extern bool verify_policy(
                     goto recurse;
                 }
 
-                state_info->is_dead = state_info->is_dead && succ_info.is_dead;
+                state_info->is_proper =
+                    state_info->is_proper || succ_info.is_proper;
                 info->lowlink = std::min(info->lowlink, succ_info.stack_id);
                 info->successors.non_source_successor_dist.erase(
                     std::prev(
@@ -137,15 +140,15 @@ extern bool verify_policy(
                 // Check for SCC
                 if (stack_id == lowlink) {
                     // SCC must be able to reach the goal.
-                    if (state_info->is_dead) return false;
+                    if (!state_info->is_proper) return false;
 
                     std::ranges::subrange scc(
                         stack.begin() + stack_id,
                         stack.end());
 
                     // Erase the scc from the stack.
-                    for (const probfd::StateID state_id : scc) {
-                        state_infos[state_id.id].stack_id =
+                    for (const StateID scc_state_id : scc) {
+                        state_infos[scc_state_id.id].stack_id =
                             std::numeric_limits<unsigned>::max();
                     }
 
@@ -163,13 +166,13 @@ extern bool verify_policy(
                 state_info = &state_infos[state_id];
 
                 // The successor we backtracked from.
-                const probfd::StateID successor_id =
-                    (std::prev(
-                         info->successors.non_source_successor_dist.end()))
+                const StateID successor_id =
+                    std::prev(info->successors.non_source_successor_dist.end())
                         ->item;
 
                 const StateInfo& succ_info = state_infos[successor_id.id];
-                state_info->is_dead = state_info->is_dead && succ_info.is_dead;
+                state_info->is_proper =
+                    state_info->is_proper || succ_info.is_proper;
                 info->lowlink = std::min(info->lowlink, lowlink);
                 info->successors.non_source_successor_dist.erase(
                     info->successors.non_source_successor_dist.end() - 1);

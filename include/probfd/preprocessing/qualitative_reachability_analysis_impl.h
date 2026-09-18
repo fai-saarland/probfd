@@ -28,6 +28,7 @@ namespace probfd::preprocessing {
 
 inline void QRStatistics::print(std::ostream& out) const
 {
+    out << "  Pruned states: " << pruned << std::endl;
     out << "  Terminal states: " << terminals << " (" << goals
         << " goal states, " << selfloops << " self loop states)" << std::endl;
     out << "  Singleton SCC(s): " << sccs1 << " (" << sccs1_dead << " dead)"
@@ -135,16 +136,9 @@ StateID QualitativeReachabilityAnalysis<State, Action>::ExpansionInfo::
 }
 
 template <typename State, typename Action>
-QualitativeReachabilityAnalysis<State, Action>::QualitativeReachabilityAnalysis(
-    bool expand_goals)
-    : expand_goals_(expand_goals)
-{
-}
-
-template <typename State, typename Action>
 void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
     MDPType& mdp,
-    const EvaluatorType* pruning_function,
+    const HeuristicType* pruning_function,
     ParamType<State> source_state,
     std::output_iterator<StateID> auto dead_out,
     std::output_iterator<StateID> auto unsolvable_out,
@@ -213,7 +207,7 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
 template <typename State, typename Action>
 bool QualitativeReachabilityAnalysis<State, Action>::initialize(
     MDPType& mdp,
-    const EvaluatorType* pruning_function,
+    const HeuristicType* pruning_function,
     ExpansionInfo& exp_info)
 {
     // assert(!state_info.explored);
@@ -224,22 +218,19 @@ bool QualitativeReachabilityAnalysis<State, Action>::initialize(
     const StateID state_id = exp_info.state_id;
     State state = mdp.get_state(state_id);
 
-    const TerminationInfo term = mdp.get_termination_info(state);
+    const auto term_cost = mdp.get_termination_cost(state);
 
-    if (term.is_goal_state()) {
+    if (term_cost != INFINITE_VALUE) {
         ++stats_.goals;
 
         exp_info.state_info.dead = 0;
         ++exp_info.stack_info.active_exit_transitions;
         ++exp_info.stack_info.active_transitions;
+    }
 
-        if (!expand_goals_) {
-            ++stats_.terminals;
-            return false;
-        }
-    } else if (pruning_function != nullptr &&
-               pruning_function->evaluate(state) == term.get_cost()) {
-        ++stats_.terminals;
+    if (pruning_function != nullptr &&
+        pruning_function->evaluate(state) == term_cost) {
+        ++stats_.pruned;
         return false;
     }
 

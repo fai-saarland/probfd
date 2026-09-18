@@ -47,7 +47,7 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_optimal_projection_policy(
         const value_t value = value_table[s];
 
         // Skip states in which termination is optimal
-        const value_t term_cost = mdp.get_termination_info(s).get_cost();
+        const value_t term_cost = mdp.get_termination_cost(s);
         if (value == term_cost) {
             goals.push_back(s);
             continue;
@@ -164,7 +164,7 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_greedy_projection_policy(
         const State state = mdp.get_state(s);
 
         // Skip states in which termination is optimal
-        const value_t term_cost = mdp.get_termination_info(state).get_cost();
+        const value_t term_cost = mdp.get_termination_cost(state).get_cost();
         if (value == term_cost) { continue; }
 
         // Generate operators...

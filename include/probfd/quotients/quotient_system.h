@@ -47,7 +47,7 @@ class QuotientInformation {
     std::vector<StateInfo> state_infos_;
     std::vector<Action> aops_; // First outer, then inner actions
     size_t total_num_outer_acts_ = 0;
-    TerminationInfo termination_info_;
+    value_t termination_cost_;
 
     [[nodiscard]]
     size_t num_members() const;
@@ -169,7 +169,7 @@ public:
         ParamType<QState> state,
         std::vector<QTransitionTail>& transitions) override;
 
-    TerminationInfo get_termination_info(ParamType<QState> s) override;
+    value_t get_termination_cost(ParamType<QState> s) override;
 
     value_t get_action_cost(QAction qa) override;
 

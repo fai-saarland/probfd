@@ -301,7 +301,6 @@ void dump_state_space_dot_graph(
         [](const State&) { return ""; },
     std::function<std::string(const Action&)> astr =
         [](const Action&) { return ""; },
-    bool expand_terminal = false,
     int precision = 3)
 {
     if (precision <= 0) {
@@ -332,7 +331,7 @@ void dump_state_space_dot_graph(
     open.emplace_back(istateid, initial_state, &builder.get_node(istateid));
 
     do {
-        auto& s = open.front();
+        auto s = open.front();
 
         const State& state = s.state_id;
         auto* node = s.node;
@@ -340,22 +339,19 @@ void dump_state_space_dot_graph(
         node->set_attribute("label", sstr(state));
         node->set_attribute("shape", "circle");
 
-        const auto term = mdp->get_termination_info(state);
-        bool expand = expand_terminal || !term.is_goal_state();
+        const auto term_cost = mdp->get_termination_cost(state);
 
-        if (term.is_goal_state()) {
+        if (term_cost != INFINITE_VALUE) {
             node->set_attribute("peripheries", std::to_string(2));
-        } else if (expand && prune != nullptr &&
-                   prune->evaluate(state) == term.get_cost()) {
-            expand = false;
+        }
+
+        if (prune != nullptr && prune->evaluate(state) == term_cost) {
             node->set_attribute("peripheries", std::to_string(3));
+            open.pop_front();
+            continue;
         }
 
         open.pop_front();
-
-        if (!expand) {
-            continue;
-        }
 
         std::vector<LabelledSuccessorDistribution<Action>> transitions;
         mdp->generate_all_transitions(state, transitions);

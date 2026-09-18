@@ -160,7 +160,7 @@ class TopologicalValueIteration : public IterativeMDPAlgorithm<State, Action> {
     using StackIterator = std::vector<StackInfo>::iterator;
 
     // Algorithm parameters
-    const bool expand_goals_;
+    const bool init_state_only;
 
     // Algorithm state
     storage::PerStateStorage<StateInfo> state_information_;
@@ -170,7 +170,7 @@ class TopologicalValueIteration : public IterativeMDPAlgorithm<State, Action> {
     Statistics statistics_;
 
 public:
-    TopologicalValueIteration(value_t epsilon, bool expand_goals);
+    TopologicalValueIteration(value_t epsilon, bool init_state_only);
 
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
@@ -189,7 +189,7 @@ public:
     void print_statistics(std::ostream& out) const override;
 
     /**
-     * @brief Retreive the algorithm statistics.
+     * @brief Retrieve the algorithm statistics.
      */
     [[nodiscard]]
     Statistics get_statistics() const;

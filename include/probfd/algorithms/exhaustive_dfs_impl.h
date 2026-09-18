@@ -162,20 +162,17 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
     assert(info.is_new());
     info.value = trivial_bound_;
 
-    const TerminationInfo term_info = mdp.get_termination_info(state);
-    const value_t term_cost = term_info.get_cost();
+    const value_t term_cost = mdp.get_termination_cost(state);
     info.term_cost = term_cost;
 
-    if (term_info.is_goal_state()) {
-        info.close();
-        info.value = AlgorithmValueType(term_cost);
+    if (term_cost != INFINITE_VALUE) {
         ++statistics_.goal_states;
-        return false;
     }
 
     const value_t estimate = heuristic.evaluate(state);
     if (estimate == term_cost) {
         info.value = AlgorithmValueType(term_cost);
+        info.close();
         info.mark_dead_end();
         ++statistics_.dead_ends;
         return false;

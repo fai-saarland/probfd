@@ -18,11 +18,9 @@ template <typename State, typename Action>
 IntervalIteration<State, Action>::IntervalIteration(
     value_t epsilon,
     bool extract_probability_one_states,
-    bool expand_goals)
+    bool init_state_only)
     : extract_probability_one_states_(extract_probability_one_states)
-    , qr_analysis_(expand_goals)
-    , ec_decomposer_(expand_goals)
-    , vi_(epsilon, expand_goals)
+    , vi_(epsilon, init_state_only)
 {
 }
 
@@ -141,8 +139,9 @@ Interval IntervalIteration<State, Action>::mysolve(
             iterators::discarding_output_iterator(),
             std::back_inserter(one_states),
             timer.get_remaining_time());
-        assert(mdp.get_termination_info(mdp.get_state(one_states.front()))
-                   .is_goal_state());
+        assert(
+            mdp.get_termination_cost(mdp.get_state(one_states.front())) !=
+            INFINITE_VALUE);
     } else {
         qr_analysis_.run_analysis(
             sys,

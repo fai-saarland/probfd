@@ -15,7 +15,7 @@ namespace probfd::preprocessing {
 inline void ECDStatistics::print(std::ostream& out) const
 {
     out << "  Terminal states: " << terminals << " (" << goals
-        << " goal states, " << selfloops << " self loop states)" << std::endl;
+        << " goal states, " << self_loops << " self loop states)" << std::endl;
     out << "  Singleton SCC(s): " << sccs1 << " (" << sccs1_dead << " dead)"
         << std::endl;
     out << "  Non-singleton SCC(s): " << sccsk << " (" << sccsk_dead << " dead)"
@@ -146,13 +146,6 @@ struct EndComponentDecomposition<State, Action>::StackInfo {
 };
 
 template <typename State, typename Action>
-EndComponentDecomposition<State, Action>::EndComponentDecomposition(
-    bool expand_goals)
-    : expand_goals_(expand_goals)
-{
-}
-
-template <typename State, typename Action>
 auto EndComponentDecomposition<State, Action>::build_quotient_system(
     MDPType& mdp,
     const EvaluatorType* pruning_function,
@@ -200,19 +193,14 @@ bool EndComponentDecomposition<State, Action>::push(
     state_info.explored = 1;
     State state = mdp.get_state(state_id);
 
-    const auto term = mdp.get_termination_info(state);
+    const auto term = mdp.get_termination_cost(state);
 
     if (term.is_goal_state()) {
-        ++stats_.terminals;
         ++stats_.goals;
+    }
 
-        if (!expand_goals_) {
-            return false;
-        }
-
-        state_info.expandable_goal = 1;
-    } else if (pruning_function != nullptr &&
-               pruning_function->evaluate(state) == term.get_cost()) {
+    if (pruning_function != nullptr &&
+        pruning_function->evaluate(state) == term.get_cost()) {
         ++stats_.terminals;
         return false;
     }
@@ -221,12 +209,7 @@ bool EndComponentDecomposition<State, Action>::push(
     mdp.generate_applicable_actions(state, aops);
 
     if (aops.empty()) {
-        if (expand_goals_ && state_info.expandable_goal) {
-            state_info.expandable_goal = 0;
-        } else {
-            ++stats_.terminals;
-        }
-
+        ++stats_.terminals;
         return false;
     }
 
@@ -260,13 +243,7 @@ bool EndComponentDecomposition<State, Action>::push(
 
     // only self-loops
     if (non_loop_actions == 0) {
-        if (expand_goals_ && state_info.expandable_goal) {
-            state_info.expandable_goal = 0;
-        } else {
-            ++stats_.terminals;
-            ++stats_.selfloops;
-        }
-
+        ++stats_.self_loops;
         return false;
     }
 
@@ -470,53 +447,39 @@ void EndComponentDecomposition<State, Action>::scc_found(
         if constexpr (RootIteration) {
             ++stats_.sccs1;
         }
-    } else {
-        if (expand_goals_) {
-            for (auto& stk_info : scc) {
-                assert(stk_info.successors.size() == stk_info.aops.size());
-                StateInfo& info = state_infos_[stk_info.state_id];
-                if (info.expandable_goal) {
-                    stk_info.successors.clear();
-                    stk_info.aops.clear();
-                    e.recurse = true;
-                }
-            }
+    } else if (e.recurse) {
+        ++stats_.recursions;
+
+        if constexpr (RootIteration) {
+            ++stats_.sccsk;
         }
 
-        if (e.recurse) {
-            ++stats_.recursions;
+        for (const auto& stk_info : scc) {
+            assert(stk_info.successors.size() == stk_info.aops.size());
+            state_infos_[stk_info.state_id].explored = 0;
+        }
 
-            if constexpr (RootIteration) {
-                ++stats_.sccsk;
-            }
+        decompose(sys, e.stck, timer);
+    } else {
+        unsigned transitions = 0;
 
-            for (const auto& stk_info : scc) {
-                assert(stk_info.successors.size() == stk_info.aops.size());
-                state_infos_[stk_info.state_id].explored = 0;
-            }
+        for (const auto& stk_info : scc) {
+            assert(stk_info.successors.size() == stk_info.aops.size());
+            StateInfo& info = state_infos_[stk_info.state_id];
+            info.stackid = StateInfo::UNDEF;
 
-            decompose(sys, e.stck, timer);
-        } else {
-            unsigned transitions = 0;
+            transitions += stk_info.aops.size();
+        }
 
-            for (const auto& stk_info : scc) {
-                assert(stk_info.successors.size() == stk_info.aops.size());
-                StateInfo& info = state_infos_[stk_info.state_id];
-                info.stackid = StateInfo::UNDEF;
+        sys.build_new_quotient(scc, s);
+        stack_.erase(scc.begin(), scc.end());
 
-                transitions += stk_info.aops.size();
-            }
+        // Update stats
+        ++stats_.eck;
+        stats_.ec_transitions += transitions;
 
-            sys.build_new_quotient(scc, s);
-            stack_.erase(scc.begin(), scc.end());
-
-            // Update stats
-            ++stats_.eck;
-            stats_.ec_transitions += transitions;
-
-            if constexpr (RootIteration) {
-                ++stats_.sccsk;
-            }
+        if constexpr (RootIteration) {
+            ++stats_.sccsk;
         }
     }
 
