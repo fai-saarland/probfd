@@ -43,17 +43,12 @@ struct PerStateInformation
     [[nodiscard]]
     bool is_solved() const
     {
-        return (this->info & SOLVED) != 0 || this->is_goal_or_terminal();
+        return (this->info & SOLVED) != 0 || this->is_termination_optimal();
     }
 
     void set_solved()
     {
         this->info |= SOLVED;
-    }
-
-    void unset_solved()
-    {
-        this->info &= ~SOLVED;
     }
 
     void clear()

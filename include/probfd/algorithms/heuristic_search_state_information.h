@@ -10,6 +10,7 @@
 #include "probfd/state_id.h"
 
 #include <cassert>
+#include <cmath>
 #include <cstdint>
 #include <optional>
 
@@ -48,37 +49,18 @@ struct StatesPolicy<Action, true> {
 };
 
 struct StateFlags {
-    static constexpr unsigned int INITIALIZED = 1;
-    static constexpr unsigned int TERMINAL = 2;
-    static constexpr unsigned int GOAL = 4;
-    static constexpr unsigned int FRINGE = 5;
-    static constexpr unsigned int MASK = 7;
-    static constexpr unsigned int BITS = 3;
+    static constexpr unsigned int TERMINAL = 1;
+    static constexpr unsigned int FRINGE = 2;
+
+    static constexpr unsigned int MASK = 0b11;
+    static constexpr unsigned int BITS = 2;
 
     uint8_t info = 0;
 
     [[nodiscard]]
-    bool is_value_initialized() const
-    {
-        return (info & MASK) != 0;
-    }
-
-    [[nodiscard]]
-    bool is_terminal() const
+    bool is_termination_optimal() const
     {
         return (info & MASK) == TERMINAL;
-    }
-
-    [[nodiscard]]
-    bool is_goal_state() const
-    {
-        return (info & MASK) == GOAL;
-    }
-
-    [[nodiscard]]
-    bool is_goal_or_terminal() const
-    {
-        return is_terminal() || is_goal_state();
     }
 
     [[nodiscard]]
@@ -87,29 +69,21 @@ struct StateFlags {
         return (info & MASK) == FRINGE;
     }
 
-    void set_goal()
-    {
-        assert(!is_value_initialized());
-        info = (info & ~MASK) | GOAL;
-    }
-
     void set_on_fringe()
     {
-        // FRET may demote to fringe state when collapsing a trap
-        // assert(!is_value_initialized());
         info = (info & ~MASK) | FRINGE;
     }
 
-    void set_terminal()
+    void set_termination_optimal()
     {
-        assert(!is_goal_or_terminal());
+        assert(!is_termination_optimal());
         info = (info & ~MASK) | TERMINAL;
     }
 
     void removed_from_fringe()
     {
-        assert(is_value_initialized() && !is_goal_or_terminal());
-        info = (info & ~MASK) | INITIALIZED;
+        assert(!is_termination_optimal());
+        info = (info & ~MASK);
     }
 };
 
@@ -121,6 +95,20 @@ struct PerStateBaseInformation
     static constexpr bool UseInterval = UseInterval_;
 
     AlgorithmValue<UseInterval> value;
+
+    PerStateBaseInformation()
+        requires std::same_as<AlgorithmValue<UseInterval>, value_t>
+        : value(std::numeric_limits<value_t>::quiet_NaN())
+    {
+    }
+
+    PerStateBaseInformation()
+        requires std::same_as<AlgorithmValue<UseInterval>, Interval>
+        : value(
+              std::numeric_limits<value_t>::quiet_NaN(),
+              std::numeric_limits<value_t>::quiet_NaN())
+    {
+    }
 
     /// Checks if the value bounds are epsilon-close.
     [[nodiscard]]
@@ -147,6 +135,16 @@ struct PerStateBaseInformation
             return value;
         } else {
             return Interval(value, INFINITE_VALUE);
+        }
+    }
+
+    [[nodiscard]]
+    bool is_value_initialized() const
+    {
+        if constexpr (std::same_as<AlgorithmValue<UseInterval>, value_t>) {
+            return !std::isnan(value);
+        } else {
+            return !std::isnan(value.lower);
         }
     }
 };

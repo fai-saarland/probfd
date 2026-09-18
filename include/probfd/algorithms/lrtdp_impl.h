@@ -142,7 +142,7 @@ bool LRTDP<State, Action, UseInterval>::trial(
             break;
         }
 
-        assert(!state_info.is_goal_or_terminal());
+        assert(!state_info.is_termination_optimal());
 
         if ((stop_consistent_ == CONSISTENT && val_upd.converged) ||
             (stop_consistent_ == INCONSISTENT && !val_upd.converged) ||

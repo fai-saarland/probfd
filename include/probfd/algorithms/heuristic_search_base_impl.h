@@ -230,7 +230,7 @@ void HeuristicSearchBase<State, Action, StateInfoT>::expand_and_initialize(
     StateInfo& state_info,
     std::vector<LDistType>& transition_tails)
 {
-    assert(!state_info.is_goal_or_terminal());
+    assert(!state_info.is_termination_optimal());
     assert(transition_tails.empty());
     assert(state_info.is_on_fringe());
 
@@ -241,7 +241,7 @@ void HeuristicSearchBase<State, Action, StateInfoT>::expand_and_initialize(
 
     if (transition_tails.empty()) {
         ++statistics_.terminal_states;
-        state_info.set_terminal();
+        state_info.set_termination_optimal();
         return;
     }
 
@@ -251,7 +251,7 @@ void HeuristicSearchBase<State, Action, StateInfoT>::expand_and_initialize(
 
     if (transition_tails.empty()) {
         ++statistics_.self_loop_states;
-        state_info.set_terminal();
+        state_info.set_termination_optimal();
         return;
     }
 
@@ -306,9 +306,6 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize(
 
     if (term.is_goal_state()) {
         statistics_.goal_states++;
-        state_info.set_goal();
-        state_info.value = AlgorithmValueType(t_cost);
-        return;
     }
 
     const value_t estimate = h.evaluate(state);
@@ -321,7 +318,7 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize(
 
     if (estimate == t_cost) {
         statistics_.pruned_states++;
-        state_info.set_terminal();
+        state_info.set_termination_optimal();
     } else {
         state_info.set_on_fringe();
     }

@@ -133,7 +133,7 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
             }
 
             assert(
-                !info.is_on_fringe() && !info.is_goal_or_terminal() &&
+                !info.is_on_fringe() && !info.is_termination_optimal() &&
                 !info.is_solved());
 
             const auto action = info.get_policy();

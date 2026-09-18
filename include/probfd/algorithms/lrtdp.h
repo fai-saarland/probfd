@@ -68,7 +68,7 @@ public:
 
     bool is_solved() const
     {
-        return this->info & SOLVED || this->is_goal_or_terminal();
+        return this->info & SOLVED || this->is_termination_optimal();
     }
 
     void mark_solved()

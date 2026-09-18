@@ -57,7 +57,7 @@ public:
 
     bool is_solved() const
     {
-        return (this->info & MASK) == SOLVED || this->is_goal_or_terminal();
+        return (this->info & MASK) == SOLVED || this->is_termination_optimal();
     }
 
     bool is_on_trial() const

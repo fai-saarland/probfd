@@ -376,7 +376,7 @@ bool FRET<NestedAlgorithm, GreedyGraphGenerator>::push(
 {
     const auto& state_info = base_algorithm_.state_infos_[state_id];
 
-    if (state_info.is_goal_or_terminal()) {
+    if (state_info.is_termination_optimal()) {
         return false;
     }
 

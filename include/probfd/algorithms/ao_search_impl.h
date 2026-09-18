@@ -38,8 +38,7 @@ void AOBase<State, Action, StateInfo>::backpropagate_tip_value(
 
         auto& info = self.state_infos_[elem.state_id];
         assert(!info.is_on_fringe());
-        assert(!info.is_goal_state());
-        assert(!info.is_goal_or_terminal() || info.is_solved());
+        assert(!info.is_termination_optimal() || info.is_solved());
 
         if (info.is_solved()) {
             // has been handled already

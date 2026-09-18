@@ -300,7 +300,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
 {
     // Ignore labels if labelling option is turned off
     if (sinfo.is_solved()) {
-        assert(label_solved_ || sinfo.is_goal_or_terminal());
+        assert(label_solved_ || sinfo.is_termination_optimal());
         return false;
     }
 

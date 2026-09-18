@@ -250,7 +250,7 @@ bool TADFHSImpl<State, Action, UseInterval>::initialize(
     StateInfo& state_info)
 {
     if (state_info.is_solved()) {
-        assert(label_solved_ || state_info.is_goal_or_terminal());
+        assert(label_solved_ || state_info.is_termination_optimal());
         einfo.is_trap = false;
         return false;
     }
