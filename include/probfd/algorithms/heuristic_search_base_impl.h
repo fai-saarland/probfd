@@ -71,7 +71,7 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::was_visited(
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman(
     ParamType<State> source_state,
-    const std::vector<LDistType>& transition_tails,
+    const std::vector<LDistType>& ldists,
     ActionCostFunction<Action>& action_cost_function,
     TerminationCostFunction<State>& term_cost_function) const
     -> AlgorithmValueType
@@ -83,10 +83,8 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman(
     AlgorithmValueType best_value(
         term_cost_function.get_termination_cost(source_state));
 
-    for (auto& transition_tail : transition_tails) {
-        set_min(
-            best_value,
-            compute_qvalue(transition_tail, action_cost_function));
+    for (auto& ldist : ldists) {
+        set_min(best_value, compute_qvalue(ldist, action_cost_function));
     }
 
     return best_value;
@@ -96,22 +94,19 @@ template <typename State, typename Action, typename StateInfoT>
 template <typename CostFunctionType>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman(
     ParamType<State> source_state,
-    const std::vector<LDistType>& transition_tails,
+    const std::vector<LDistType>& ldists,
     CostFunctionType& cost_function) const -> AlgorithmValueType
     requires std::derived_from<CostFunctionType, ActionCostFunctionType> &&
              std::derived_from<CostFunctionType, TerminationCostFunctionType>
 {
-    return this->compute_bellman(
-        source_state,
-        transition_tails,
-        cost_function,
-        cost_function);
+    return this
+        ->compute_bellman(source_state, ldists, cost_function, cost_function);
 }
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_and_greedy(
     ParamType<State> source_state,
-    std::vector<LDistType>& transition_tails,
+    std::vector<LDistType>& ldists,
     ActionCostFunction<Action>& action_cost_function,
     TerminationCostFunction<State>& term_cost_function,
     std::vector<AlgorithmValueType>& qvalues) const -> AlgorithmValueType
@@ -120,24 +115,24 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_and_greedy(
     TimerScope scoped_upd_timer(statistics_.update_time);
 #endif
 
-    if (transition_tails.empty()) {
+    if (ldists.empty()) {
         return AlgorithmValueType(
             term_cost_function.get_termination_cost(source_state));
     }
 
     AlgorithmValueType best_value =
-        compute_q_values(transition_tails, action_cost_function, qvalues);
+        compute_q_values(ldists, action_cost_function, qvalues);
 
     const value_t termination_cost =
         term_cost_function.get_termination_cost(source_state);
 
     if (as_lower_bound(best_value) >= termination_cost) {
-        transition_tails.clear();
+        ldists.clear();
         qvalues.clear();
         return AlgorithmValueType(termination_cost);
     }
 
-    filter_greedy_transitions(transition_tails, qvalues, best_value);
+    filter_greedy_transitions(ldists, qvalues, best_value);
 
     return best_value;
 }
@@ -146,7 +141,7 @@ template <typename State, typename Action, typename StateInfoT>
 template <typename CostFunctionType>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_and_greedy(
     ParamType<State> source_state,
-    std::vector<LDistType>& transition_tails,
+    std::vector<LDistType>& ldists,
     CostFunctionType& cost_function,
     std::vector<AlgorithmValueType>& qvalues) const -> AlgorithmValueType
     requires std::derived_from<CostFunctionType, ActionCostFunctionType> &&
@@ -154,7 +149,7 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_and_greedy(
 {
     return compute_bellman_and_greedy(
         source_state,
-        transition_tails,
+        ldists,
         cost_function,
         cost_function,
         qvalues);
@@ -164,23 +159,23 @@ template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::select_greedy_transition(
     MDPType& mdp,
     std::optional<Action> previous_greedy,
-    std::vector<LDistType>& transition_tails) -> std::optional<LDistType>
+    std::vector<LDistType>& ldists) -> std::optional<LDistType>
 {
 #if defined(EXPENSIVE_STATISTICS)
     TimerScope scoped(statistics_.policy_selection_time);
 #endif
 
-    if (transition_tails.empty()) return std::nullopt;
+    if (ldists.empty()) return std::nullopt;
 
     const int index = this->policy_chooser_->pick_index(
         mdp,
         previous_greedy,
-        transition_tails,
+        ldists,
         state_infos_);
 
-    assert(downward::utils::in_bounds(index, transition_tails));
+    assert(downward::utils::in_bounds(index, ldists));
 
-    return std::move(transition_tails[index]);
+    return std::move(ldists[index]);
 }
 
 template <typename State, typename Action, typename StateInfoT>
@@ -198,11 +193,11 @@ ValueUpdateResult HeuristicSearchBase<State, Action, StateInfoT>::update_value(
 template <typename State, typename Action, typename StateInfoT>
 bool HeuristicSearchBase<State, Action, StateInfoT>::update_policy(
     StateInfo& state_info,
-    const std::optional<LDistType>& transition_tail)
+    const std::optional<LDistType>& ldist)
     requires(StorePolicy)
 {
     ++statistics_.policy_updates;
-    const bool b = state_info.update_policy(transition_tail);
+    const bool b = state_info.update_policy(ldist);
     if (b) ++statistics_.policy_changes;
     return b;
 }
@@ -228,34 +223,34 @@ void HeuristicSearchBase<State, Action, StateInfoT>::expand_and_initialize(
     HeuristicType& h,
     ParamType<State> state,
     StateInfo& state_info,
-    std::vector<LDistType>& transition_tails)
+    std::vector<LDistType>& ldists)
 {
     assert(!state_info.is_termination_optimal());
-    assert(transition_tails.empty());
+    assert(ldists.empty());
     assert(state_info.is_on_fringe());
 
     ++statistics_.expanded_states;
     state_info.removed_from_fringe();
 
-    mdp.generate_all_transitions(state, transition_tails);
+    mdp.generate_all_transitions(state, ldists);
 
-    if (transition_tails.empty()) {
+    if (ldists.empty()) {
         ++statistics_.terminal_states;
         state_info.set_termination_optimal();
         return;
     }
 
-    std::erase_if(transition_tails, [&](auto& transition) {
+    std::erase_if(ldists, [&](auto& transition) {
         return transition.successor_dist.non_source_successor_dist.empty();
     });
 
-    if (transition_tails.empty()) {
+    if (ldists.empty()) {
         ++statistics_.self_loop_states;
         state_info.set_termination_optimal();
         return;
     }
 
-    for (auto& transition : transition_tails) {
+    for (auto& transition : ldists) {
         for (const auto& [succ_id, prob] :
              transition.successor_dist.non_source_successor_dist) {
             auto& succ_info = state_infos_[succ_id];
@@ -270,13 +265,13 @@ void HeuristicSearchBase<State, Action, StateInfoT>::
     generate_non_tip_transitions(
         MDPType& mdp,
         ParamType<State> state,
-        std::vector<LDistType>& transition_tails) const
+        std::vector<LDistType>& ldists) const
 {
-    assert(transition_tails.empty());
+    assert(ldists.empty());
 
-    mdp.generate_all_transitions(state, transition_tails);
+    mdp.generate_all_transitions(state, ldists);
 
-    std::erase_if(transition_tails, [&](auto& transition) {
+    std::erase_if(ldists, [&](auto& transition) {
         return transition.successor_dist.non_source_successor_dist.empty();
     });
 }
@@ -326,34 +321,34 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize(
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_qvalue(
-    const LDistType& transition_tail,
+    const LDistType& ldist,
     ActionCostFunction<Action>& action_cost_function) const
     -> AlgorithmValueType
 {
     AlgorithmValueType t_value(
-        action_cost_function.get_action_cost(transition_tail.action));
+        action_cost_function.get_action_cost(ldist.action));
 
     for (const auto& [succ_id, prob] :
-         transition_tail.successor_dist.non_source_successor_dist) {
+         ldist.successor_dist.non_source_successor_dist) {
         t_value += prob * state_infos_[succ_id].value;
     }
 
-    assert(transition_tail.successor_dist.non_source_probability != 0_vt);
+    assert(ldist.successor_dist.non_source_probability != 0_vt);
 
-    return t_value / transition_tail.successor_dist.non_source_probability;
+    return t_value / ldist.successor_dist.non_source_probability;
 }
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_q_values(
-    std::vector<LDistType>& transition_tails,
+    std::vector<LDistType>& ldists,
     ActionCostFunction<Action>& action_cost_function,
     std::vector<AlgorithmValueType>& qvalues) const -> AlgorithmValueType
 {
     AlgorithmValueType best_value(INFINITE_VALUE);
 
-    qvalues.reserve(transition_tails.size());
+    qvalues.reserve(ldists.size());
 
-    for (const auto& transition : transition_tails) {
+    for (const auto& transition : ldists) {
         auto q = compute_qvalue(transition, action_cost_function);
         set_min(best_value, q);
         qvalues.push_back(q);
@@ -364,11 +359,11 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_q_values(
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::filter_greedy_transitions(
-    std::vector<LDistType>& transition_tails,
+    std::vector<LDistType>& ldists,
     std::vector<AlgorithmValueType>& qvalues,
     const AlgorithmValueType& best_value) const -> AlgorithmValueType
 {
-    auto view = std::views::zip(transition_tails, qvalues);
+    auto view = std::views::zip(ldists, qvalues);
     auto [it, end] = std::ranges::remove_if(
         view,
         [&](const AlgorithmValueType& value) {
@@ -377,9 +372,7 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::filter_greedy_transitions(
         project<1>);
 
     const size_t offset = std::distance(view.begin(), it);
-    transition_tails.erase(
-        transition_tails.begin() + offset,
-        transition_tails.end());
+    ldists.erase(ldists.begin() + offset, ldists.end());
 
     return best_value;
 }
@@ -435,7 +428,7 @@ auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
     queue.push_back(initial_state_id);
     visited.insert(initial_state_id);
 
-    std::vector<LDistType> transition_tails;
+    std::vector<LDistType> ldists;
     std::vector<AlgorithmValueType> qvalues;
 
     do {
@@ -450,24 +443,19 @@ auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
         } else {
             const State state = mdp.get_state(state_id);
 
-            ClearGuard _(transition_tails, qvalues);
-            this->generate_non_tip_transitions(mdp, state, transition_tails);
+            ClearGuard _(ldists, qvalues);
+            this->generate_non_tip_transitions(mdp, state, ldists);
 
-            this->compute_bellman_and_greedy(
-                state,
-                transition_tails,
-                mdp,
-                qvalues);
+            this->compute_bellman_and_greedy(state, ldists, mdp, qvalues);
 
-            action = this->select_greedy_transition(
-                             mdp,
-                             std::nullopt,
-                             transition_tails)
+            action = this->select_greedy_transition(mdp, std::nullopt, ldists)
                          .transform([](const auto& t) { return t.action; });
         }
 
         // Terminal states have no policy decision.
-        if (!action) { continue; }
+        if (!action) {
+            continue;
+        }
 
         const Interval bound = this->lookup_bounds(state_id);
 
@@ -481,7 +469,9 @@ auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
 
         for (const StateID succ_id :
              successor_dist.non_source_successor_dist.support()) {
-            if (visited.insert(succ_id).second) { queue.push_back(succ_id); }
+            if (visited.insert(succ_id).second) {
+                queue.push_back(succ_id);
+            }
         }
     } while (!queue.empty());
 
