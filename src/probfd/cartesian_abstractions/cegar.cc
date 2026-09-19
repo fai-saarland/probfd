@@ -272,9 +272,10 @@ CEGARResult CEGAR::run_refinement_loop(const ProbabilisticTaskTuple& task) const
         abstraction->print_statistics();
     }
 
-    return {.refinement_hierarchy = std::move(refinement_hierarchy),
-            .abstraction = std::move(abstraction),
-            .heuristic = std::move(heuristic)};
+    return CEGARResult(
+        std::move(refinement_hierarchy),
+        std::move(abstraction),
+        std::move(heuristic));
 }
 
 bool CEGAR::may_keep_refining(const CartesianAbstraction& abstraction) const
@@ -356,6 +357,20 @@ void CEGAR::separate_facts_unreachable_before_goal(
 }
 
 } // namespace
+
+CEGARResult::CEGARResult(
+    std::unique_ptr<RefinementHierarchy> refinement_hierarchy,
+    std::unique_ptr<CartesianAbstraction> abstraction,
+    std::unique_ptr<CartesianHeuristic> heuristic)
+    : refinement_hierarchy(std::move(refinement_hierarchy))
+    , abstraction(std::move(abstraction))
+    , heuristic(std::move(heuristic))
+{
+}
+
+CEGARResult::CEGARResult(CEGARResult&&) noexcept = default;
+
+CEGARResult& CEGARResult::operator=(CEGARResult&&) noexcept = default;
 
 CEGARResult::~CEGARResult() = default;
 

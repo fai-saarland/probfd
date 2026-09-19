@@ -1,5 +1,7 @@
 #include "downward/cartesian_set.h"
 
+#include "downward/state.h"
+
 #include <sstream>
 
 using namespace std;
@@ -39,14 +41,23 @@ int CartesianSet::count(int var) const
 
 bool CartesianSet::intersects(const CartesianSet& other, int var) const
 {
-    return domain_subsets[var].intersects(other.domain_subsets[var]);
+    return dynamic_bitset::intersects(
+        domain_subsets[var],
+        other.domain_subsets[var]);
 }
 
-bool CartesianSet::is_superset_of(const CartesianSet& other) const
+bool CartesianSet::contains(const State& state) const
 {
-    int num_vars = domain_subsets.size();
+    return contains_facts(state | as_fact_pair_set, *this);
+}
+
+bool is_superset_of(const CartesianSet& lhs, const CartesianSet& rhs)
+{
+    int num_vars = lhs.domain_subsets.size();
     for (int var = 0; var < num_vars; ++var) {
-        if (!other.domain_subsets[var].is_subset_of(domain_subsets[var]))
+        if (!dynamic_bitset::is_subset_of(
+                rhs.domain_subsets[var],
+                lhs.domain_subsets[var]))
             return false;
     }
     return true;
@@ -77,4 +88,4 @@ ostream& operator<<(ostream& os, const CartesianSet& cartesian_set)
     }
     return os << ">";
 }
-} // namespace downward::cartesian_abstractions
+} // namespace downward

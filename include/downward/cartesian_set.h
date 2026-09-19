@@ -2,7 +2,8 @@
 #define CARTESIAN_SET_H
 
 #include "downward/algorithms/dynamic_bitset.h"
-#include "fact_pair.h"
+
+#include "downward/fact_pair.h"
 
 #include <concepts>
 #include <format>
@@ -11,8 +12,22 @@
 #include <vector>
 
 namespace downward {
+class State;
+}
+
+namespace downward {
 
 using Bitset = dynamic_bitset::DynamicBitset<unsigned short>;
+
+class CartesianSet;
+
+bool is_superset_of(const CartesianSet& lhs, const CartesianSet& rhs);
+
+template <std::ranges::input_range R>
+bool contains_facts(const R& facts, const CartesianSet& cartesian_set)
+    requires std::convertible_to<std::ranges::range_reference_t<R>, FactPair>;
+
+std::ostream& operator<<(std::ostream& os, const CartesianSet& cartesian_set);
 
 /*
   For each variable store a subset of its domain.
@@ -21,6 +36,17 @@ using Bitset = dynamic_bitset::DynamicBitset<unsigned short>;
 */
 class CartesianSet {
     friend struct std::formatter<CartesianSet>;
+
+    template <std::ranges::input_range R>
+    friend bool subset_of(const auto& facts, const CartesianSet& cartesian_set)
+        requires std::
+            convertible_to<std::ranges::range_reference_t<R>, FactPair>;
+
+    friend bool
+    is_superset_of(const CartesianSet& lhs, const CartesianSet& rhs);
+
+    friend std::ostream&
+    operator<<(std::ostream& os, const CartesianSet& cartesian_set);
 
     std::vector<Bitset> domain_subsets;
 
@@ -70,13 +96,22 @@ public:
         return domain_subsets[var][value];
     }
 
-    int count(int var) const;
-    bool intersects(const CartesianSet& other, int var) const;
-    bool is_superset_of(const CartesianSet& other) const;
+    bool contains(const State& state) const;
 
-    friend std::ostream&
-    operator<<(std::ostream& os, const CartesianSet& cartesian_set);
+    bool intersects(const CartesianSet& other, int var) const;
+
+    int count(int var) const;
 };
+
+template <std::ranges::input_range R>
+bool contains_facts(const R& facts, const CartesianSet& cartesian_set)
+    requires std::convertible_to<std::ranges::range_reference_t<R>, FactPair>
+{
+    return std::ranges::all_of(facts, [&](FactPair fact) {
+        return cartesian_set.test_fact(fact);
+    });
+}
+
 } // namespace downward
 
 template <>

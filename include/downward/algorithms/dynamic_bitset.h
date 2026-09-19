@@ -19,9 +19,24 @@
 namespace downward::dynamic_bitset {
 
 template <std::unsigned_integral Block>
+class DynamicBitset;
+
+template <std::unsigned_integral Block>
+bool intersects(
+    const DynamicBitset<Block>& lhs,
+    const DynamicBitset<Block>& rhs);
+
+template <std::unsigned_integral Block>
+bool is_subset_of(
+    const DynamicBitset<Block>& lhs,
+    const DynamicBitset<Block>& rhs);
+
+template <std::unsigned_integral Block>
 class DynamicBitset {
-    template <typename T, typename Char>
-    friend struct std::formatter;
+    std::vector<Block> blocks;
+    std::size_t num_bits;
+
+    friend struct std::formatter<DynamicBitset>;
 
     struct zero_construct_tag {};
 
@@ -29,9 +44,6 @@ class DynamicBitset {
 
     static constexpr auto construct_all_zeros = zero_construct_tag{};
     static constexpr auto construct_all_ones = one_construct_tag{};
-
-    std::vector<Block> blocks;
-    std::size_t num_bits;
 
     static constexpr Block ZEROS = Block(0);
     static constexpr Block ONES = Block(~Block(0));
@@ -92,14 +104,12 @@ class DynamicBitset {
 
 public:
     class reference {
-        typename std::vector<Block>::iterator block;
+        std::vector<Block>::iterator block;
         Block bit_index;
         Block mask;
 
     public:
-        reference(
-            typename std::vector<Block>::iterator block,
-            std::size_t bit_index)
+        reference(std::vector<Block>::iterator block, std::size_t bit_index)
             : block(block)
             , bit_index(bit_index)
             , mask(bit_mask(bit_index))
@@ -130,7 +140,7 @@ public:
     };
 
     class iterator {
-        typename std::vector<Block>::iterator block;
+        std::vector<Block>::iterator block;
         std::size_t bit_index;
 
     public:
@@ -139,9 +149,7 @@ public:
 
         iterator() = default;
 
-        iterator(
-            typename std::vector<Block>::iterator block,
-            std::size_t bit_index)
+        iterator(std::vector<Block>::iterator block, std::size_t bit_index)
             : block(block)
             , bit_index(bit_index)
         {
@@ -177,7 +185,7 @@ public:
     };
 
     class const_iterator {
-        typename std::vector<Block>::const_iterator block;
+        std::vector<Block>::const_iterator block;
         std::size_t bit_index;
 
     public:
@@ -187,7 +195,7 @@ public:
         const_iterator() = default;
 
         const_iterator(
-            typename std::vector<Block>::const_iterator block,
+            std::vector<Block>::const_iterator block,
             std::size_t bit_index)
             : block(block)
             , bit_index(bit_index)
@@ -358,24 +366,6 @@ public:
         return test(pos);
     }
 
-    bool intersects(const DynamicBitset& other) const
-    {
-        assert(size() == other.size());
-        for (std::size_t i = 0; i < blocks.size(); ++i) {
-            if (blocks[i] & other.blocks[i]) return true;
-        }
-        return false;
-    }
-
-    bool is_subset_of(const DynamicBitset& other) const
-    {
-        assert(size() == other.size());
-        for (std::size_t i = 0; i < blocks.size(); ++i) {
-            if (blocks[i] & ~other.blocks[i]) return false;
-        }
-        return true;
-    }
-
     constexpr auto set_indices() const
     {
         return std::views::iota(0U, num_bits) |
@@ -389,6 +379,12 @@ public:
 
     friend bool
     operator==(const DynamicBitset& left, const DynamicBitset& right) = default;
+
+    friend bool
+    intersects<>(const DynamicBitset& lhs, const DynamicBitset& rhs);
+
+    friend bool
+    is_subset_of<>(const DynamicBitset& lhs, const DynamicBitset& rhs);
 
     auto begin()
     {
@@ -413,22 +409,46 @@ public:
     }
 };
 
+template <std::unsigned_integral Block>
+bool intersects(
+    const DynamicBitset<Block>& lhs,
+    const DynamicBitset<Block>& rhs)
+{
+    assert(lhs.size() == rhs.size());
+    for (std::size_t i = 0; i < lhs.blocks.size(); ++i) {
+        if (lhs.blocks[i] & rhs.blocks[i]) return true;
+    }
+    return false;
+}
+
+template <std::unsigned_integral Block>
+bool is_subset_of(
+    const DynamicBitset<Block>& lhs,
+    const DynamicBitset<Block>& rhs)
+{
+    assert(lhs.size() == rhs.size());
+    for (std::size_t i = 0; i < lhs.blocks.size(); ++i) {
+        if (lhs.blocks[i] & ~rhs.blocks[i]) return false;
+    }
+    return true;
+}
+
 static_assert(std::ranges::sized_range<DynamicBitset<unsigned int>>);
 
 } // namespace downward::dynamic_bitset
 
-template <typename Block, typename Char>
-struct std::formatter<downward::dynamic_bitset::DynamicBitset<Block>, Char> {
-    std::formatter<unsigned int, Char> underlying_;
+template <typename Block>
+struct std::formatter<downward::dynamic_bitset::DynamicBitset<Block>> {
+    std::formatter<unsigned int> underlying_;
 
     constexpr formatter()
     {
-        std::basic_format_parse_context<Char> ctx2("b}");
+        std::format_parse_context ctx2("b}");
         underlying_.parse(ctx2);
     }
 
     template <class ParseContext>
-    constexpr typename ParseContext::iterator parse(ParseContext& ctx)
+    static constexpr ParseContext::iterator parse(ParseContext& ctx)
     {
         if (*ctx.begin() != '}') {
             throw std::format_error("Expected '}'!");
@@ -437,7 +457,7 @@ struct std::formatter<downward::dynamic_bitset::DynamicBitset<Block>, Char> {
     }
 
     template <class FmtContext>
-    typename FmtContext::iterator format(
+    FmtContext::iterator format(
         const downward::dynamic_bitset::DynamicBitset<Block>& bs,
         FmtContext& ctx) const
     {
@@ -465,7 +485,7 @@ struct std::formatter<downward::dynamic_bitset::DynamicBitset<Block>, Char> {
         }
 
         if (overhead_bits != 0) {
-            const Block l = static_cast<Block>(overhead_bits);
+            const auto l = static_cast<Block>(overhead_bits);
 
             Block b = *bit;
 

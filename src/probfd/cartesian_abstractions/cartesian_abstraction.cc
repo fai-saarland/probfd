@@ -180,36 +180,27 @@ pair<int, int> CartesianAbstraction::refine(
             wanted);
 
     const int v_id = abstract_state.get_id();
+    const auto& cart = abstract_state.get_cartesian_set();
+
     // Reuse state ID from obsolete parent to obtain consecutive IDs.
     const int v1_id = v_id;
     const int v2_id = get_num_states();
 
-    // Update refinement hierarchy.
-    auto [node1, node2] = refinement_hierarchy.split(
-        abstract_state.get_node_id(),
-        split_var,
-        wanted,
-        v1_id,
-        v2_id);
+    auto [c1, c2] = split_cart_state(cart, split_var, wanted);
 
-    auto [c1, c2] = abstract_state.split_domain(split_var, wanted);
-
-    auto v1 = std::make_unique<AbstractState>(v1_id, node1, std::move(c1));
-    auto v2 = std::make_unique<AbstractState>(v2_id, node2, std::move(c2));
-
-    assert(abstract_state.includes(*v1));
-    assert(abstract_state.includes(*v2));
+    assert(is_superset_of(cart, c1));
+    assert(is_superset_of(cart, c2));
 
     /*
       Due to the way we split the state into v1 and v2, v2 is never the new
       initial state and v1 is never a goal state.
     */
     if (abstract_state.get_id() == init_id_) {
-        if (v1->includes(concrete_initial_state_)) {
-            assert(!v2->includes(concrete_initial_state_));
+        if (c1.contains(concrete_initial_state_)) {
+            assert(!c2.contains(concrete_initial_state_));
             init_id_ = v1_id;
         } else {
-            assert(v2->includes(concrete_initial_state_));
+            assert(c2.contains(concrete_initial_state_));
             init_id_ = v2_id;
         }
 
@@ -223,13 +214,28 @@ pair<int, int> CartesianAbstraction::refine(
 
     if (const auto it = goals_.find(v1_id); it != goals_.end()) {
         goals_.erase(it);
-        if (v1->includes(goal_facts_)) { goals_.insert(v1_id); }
-        if (v2->includes(goal_facts_)) { goals_.insert(v2_id); }
+        if (contains_facts(goal_facts_, c1)) {
+            goals_.insert(v1_id);
+        }
+        if (contains_facts(goal_facts_, c2)) {
+            goals_.insert(v2_id);
+        }
 
         if (log_.is_at_least_debug()) {
             log_.println("Goal states: {}", goals_.size());
         }
     }
+
+    // Update refinement hierarchy.
+    auto [node1, node2] = refinement_hierarchy.split(
+        abstract_state.get_node_id(),
+        split_var,
+        wanted,
+        v1_id,
+        v2_id);
+
+    auto v1 = std::make_unique<AbstractState>(v1_id, node1, std::move(c1));
+    auto v2 = std::make_unique<AbstractState>(v2_id, node2, std::move(c2));
 
     transition_system_->rewire(states_, *v1, *v2, split_var);
 

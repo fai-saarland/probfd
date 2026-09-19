@@ -3,25 +3,18 @@
 
 #include "probfd/cartesian_abstractions/types.h"
 
+#include "probfd/probabilistic_task.h"
+
+#include "downward/utils/durations.h"
 #include "downward/utils/logging.h"
 
 #include <memory>
 #include <vector>
 
 // Forward Declarations
-namespace downward {
-class VariableSpace;
-}
-
-namespace downward::utils {
-class Timer;
-} // namespace downward::utils
-
 namespace probfd::cartesian_abstractions {
-class AbstractState;
 class CartesianAbstraction;
 class CartesianHeuristic;
-struct Flaw;
 class FlawGenerator;
 class SplitSelector;
 } // namespace probfd::cartesian_abstractions
@@ -37,6 +30,15 @@ struct CEGARResult {
     std::unique_ptr<RefinementHierarchy> refinement_hierarchy;
     std::unique_ptr<CartesianAbstraction> abstraction;
     std::unique_ptr<CartesianHeuristic> heuristic;
+
+    CEGARResult(
+        std::unique_ptr<RefinementHierarchy> refinement_hierarchy,
+        std::unique_ptr<CartesianAbstraction> abstraction,
+        std::unique_ptr<CartesianHeuristic> heuristic);
+
+    CEGARResult(CEGARResult&&) noexcept;
+
+    CEGARResult& operator=(CEGARResult&&) noexcept;
 
     ~CEGARResult();
 };

@@ -103,7 +103,8 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
     if (log.is_at_least_debug()) log.println("Check solution:");
 
     const AbstractState* abstract_state = &abstraction.get_initial_state();
-    assert(abstract_state->includes(concrete_state));
+
+    assert(abstract_state->get_cartesian_set().contains(concrete_state));
 
     if (log.is_at_least_debug())
         log.println("  Initial abstract state: {}", *abstract_state);
@@ -112,37 +113,42 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
         timer.throw_if_expired();
         if (!utils::extra_memory_padding_is_reserved()) break;
         ProbabilisticOperatorProxy op = operators[op_id];
-        const AbstractState* next_abstract_state =
-            &abstraction.get_abstract_state(target_id);
 
-        if (task_properties::is_applicable(op, concrete_state)) {
-            if (log.is_at_least_debug())
-                log.println(
-                    "  Move to {} with {}",
-                    *next_abstract_state,
-                    op.get_name());
-            const auto outcome = op.get_outcomes()[eff_id];
-            State next_concrete_state =
-                concrete_state.get_unregistered_successor(
-                    axiom_evaluator,
-                    outcome);
-            if (!next_abstract_state->includes(next_concrete_state)) {
-                if (log.is_at_least_debug()) log.println("  Paths deviate.");
-                return Flaw(
-                    std::move(concrete_state),
-                    *abstract_state,
-                    next_abstract_state->regress(op, outcome.get_effects()));
-            }
-            abstract_state = next_abstract_state;
-            concrete_state = std::move(next_concrete_state);
-        } else {
+        if (!task_properties::is_applicable(op, concrete_state)) {
             if (log.is_at_least_debug())
                 log.println("  Operator not applicable: {}", op.get_name());
+
             return Flaw(
                 std::move(concrete_state),
                 *abstract_state,
                 get_cartesian_set(domain_sizes, op.get_preconditions()));
         }
+
+        const AbstractState* next_abstract_state =
+            &abstraction.get_abstract_state(target_id);
+        const CartesianSet& next_cartesian_set =
+            next_abstract_state->get_cartesian_set();
+
+        if (log.is_at_least_debug())
+            log.println(
+                "  Move to {} with {}",
+                next_cartesian_set,
+                op.get_name());
+
+        const auto outcome = op.get_outcomes()[eff_id];
+        State next_concrete_state =
+            concrete_state.get_unregistered_successor(axiom_evaluator, outcome);
+
+        if (!next_cartesian_set.contains(next_concrete_state)) {
+            if (log.is_at_least_debug()) log.println("  Paths deviate.");
+            return Flaw(
+                std::move(concrete_state),
+                *abstract_state,
+                regress(next_cartesian_set, op, outcome.get_effects()));
+        }
+
+        abstract_state = next_abstract_state;
+        concrete_state = std::move(next_concrete_state);
     }
 
     assert(abstraction.get_goals().contains(abstract_state->get_id()));

@@ -98,7 +98,7 @@ bool AbstractState::includes(const vector<FactPair>& facts) const
 
 bool AbstractState::includes(const AbstractState& other) const
 {
-    return cartesian_set.is_superset_of(other.cartesian_set);
+    return is_superset_of(cartesian_set, other.cartesian_set);
 }
 
 int AbstractState::get_id() const

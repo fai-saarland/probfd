@@ -41,7 +41,7 @@ class AbstractState {
     friend std::formatter<AbstractState>;
 
 public:
-    AbstractState(int state_id, NodeID node_id, CartesianSet&& cartesian_set);
+    AbstractState(int state_id, NodeID node_id, CartesianSet cartesian_set);
 
     AbstractState(const AbstractState&) = delete;
     AbstractState& operator=(const AbstractState&) = delete;
@@ -56,36 +56,15 @@ public:
     [[nodiscard]]
     bool contains(int var, int value) const;
 
-    // Return the Cartesian set in which applying "effect" of the operator "op"
-    // can lead to this state.
-    [[nodiscard]]
-    CartesianSet regress(
-        const ProbabilisticOperatorProxy& op,
-        const ProbabilisticEffectsProxy& effects) const;
-
-    /*
-      Separate the "wanted" values from the other values in the abstract domain
-      and return the resulting two new Cartesian sets.
-    */
-    [[nodiscard]]
-    std::pair<CartesianSet, CartesianSet>
-    split_domain(int var, const std::vector<int>& wanted) const;
-
-    [[nodiscard]]
-    bool includes(const AbstractState& other) const;
-
-    [[nodiscard]]
-    bool includes(const downward::State& concrete_state) const;
-
-    [[nodiscard]]
-    bool includes(const std::vector<downward::FactPair>& facts) const;
-
     // IDs are consecutive, so they can be used to index states in vectors.
     [[nodiscard]]
     int get_id() const;
 
     [[nodiscard]]
     NodeID get_node_id() const;
+
+    [[nodiscard]]
+    const CartesianSet& get_cartesian_set() const;
 
     friend std::ostream&
     operator<<(std::ostream& os, const AbstractState& state);
@@ -102,6 +81,24 @@ public:
             CartesianSet(domain_sizes));
     }
 };
+
+/*
+  Separate the "wanted" values from the other values in the abstract domain
+  and return the resulting two new Cartesian sets.
+*/
+[[nodiscard]]
+std::pair<CartesianSet, CartesianSet> split_cart_state(
+    const CartesianSet& cartesian_set,
+    int var,
+    const std::vector<int>& wanted);
+
+// Return the Cartesian set in which applying "effect" of the operator "op"
+// can lead to this state.
+[[nodiscard]]
+CartesianSet regress(
+    CartesianSet cartesian_set,
+    const ProbabilisticOperatorProxy& op,
+    const ProbabilisticEffectsProxy& effects);
 
 } // namespace probfd::cartesian_abstractions
 

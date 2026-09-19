@@ -88,12 +88,15 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
 
             if (!task_properties::is_goal_state(goals, state)) {
                 if (log.is_at_least_debug()) log.println("Goal test failed.");
+
                 state.unpack();
+
                 return Flaw(
                     std::move(state),
                     *abstract_state,
                     get_cartesian_set(domain_sizes, goals));
             }
+
             continue;
         }
 
@@ -104,7 +107,9 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
         if (!task_properties::is_applicable(op, state)) {
             if (log.is_at_least_debug())
                 log.println("Operator not applicable: {}", op.get_name());
+
             state.unpack();
+
             return Flaw(
                 std::move(state),
                 *abstract_state,
@@ -122,18 +127,22 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
                     log.println(
                         "Reached maximal number of flaw search states.");
                 }
+
                 return std::nullopt;
             }
 
             const auto* next_abstract = &abstraction.get_abstract_state(abs_t);
+            const auto& cart_state = next_abstract->get_cartesian_set();
 
-            if (!next_abstract->includes(next_concrete)) {
+            if (!cart_state.contains(next_concrete)) {
                 if (log.is_at_least_debug()) log.println("  Paths deviate.");
+
                 state.unpack();
+
                 return Flaw(
                     std::move(state),
                     *abstract_state,
-                    next_abstract->regress(op, outcome.get_effects()));
+                    regress(cart_state, op, outcome.get_effects()));
             }
 
             // Add successor to frontier if not seen before

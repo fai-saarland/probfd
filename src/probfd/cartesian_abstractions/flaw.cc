@@ -21,7 +21,9 @@ Flaw::Flaw(
     , current_abstract_state(current_abstract_state)
     , desired_cartesian_set(std::move(desired_cartesian_set))
 {
-    assert(current_abstract_state.includes(this->concrete_state));
+    assert(contains_facts(
+        this->concrete_state | as_fact_pair_set,
+        current_abstract_state.get_cartesian_set()));
 }
 
 vector<Split> Flaw::get_possible_splits(const VariableSpace& variables) const
