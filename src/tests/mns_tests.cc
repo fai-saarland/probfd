@@ -223,8 +223,8 @@ TEST(MnSTests, test_shrink_all)
     auto ts = json::read<TransitionSystem>(ts_file);
 
     StateEquivalenceRelation eq_rel{
-        std::views::iota(0, ts.get_size()) |
-        std::ranges::to<std::forward_list>()};
+        std::views::iota(0uz, ts.get_size()) |
+                                    std::ranges::to<std::forward_list<int>>()};
     std::vector state_mapping(ts.get_size(), 0);
     ts.apply_abstraction(labels, eq_rel, state_mapping, log);
 
@@ -490,13 +490,15 @@ TEST(MnSTests, test_label_reduction)
                log)
             .merge_index;
 
+    utils::RandomNumberGenerator rng(42);
+
     LabelReduction label_reduction(
         to_refs(task),
         true,
         true,
         LabelReductionMethod::ALL_TRANSITION_SYSTEMS,
         LabelReductionSystemOrder::REGULAR,
-        42);
+        rng);
 
     auto& ts = fts.get_transition_system(index);
     std::vector old_distances(ts.get_size(), -INFINITE_VALUE);

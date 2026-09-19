@@ -69,7 +69,7 @@ extern bool verify_policy(
         if (!decision) {
             // Check Bellman equation
             const auto value = decision->q_value_interval.lower;
-            const auto t_cost = mdp.get_termination_cost(state).get_cost();
+            const auto t_cost = mdp.get_termination_cost(state);
 
             if (!is_approx_equal(value, t_cost, epsilon)) return false;
 
@@ -97,7 +97,7 @@ extern bool verify_policy(
                 const value_t succ_val =
                     succ_decision
                         ? succ_decision->q_value_interval.lower
-                        : mdp.get_termination_cost(successor).get_cost();
+                        : mdp.get_termination_cost(successor);
 
                 expected_cost += probability * succ_val;
             }
