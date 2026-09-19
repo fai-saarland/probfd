@@ -88,17 +88,18 @@ public:
     /**
      * @brief Appends a new printer to the list of printers.
      */
-    void register_print(Printer f);
+    void register_print(const Printer& f);
 
     /**
      * @brief Appends a new bound property with a given name to the list of
      * bound properties to be printed when the report is advanced.
      */
-    void
-    register_bound(const std::string& property_name, BoundProperty property);
+    void register_bound(
+        const std::string& property_name,
+        const BoundProperty& property);
 
 private:
-    void print_progress();
+    void print_progress() const;
     bool advance_values(bool force = false);
 };
 

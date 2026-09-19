@@ -29,7 +29,7 @@ MergeTreeFactoryLinear::MergeTreeFactoryLinear(
 {
 }
 
-unique_ptr<downward::merge_and_shrink::MergeTree>
+unique_ptr<MergeTree>
 MergeTreeFactoryLinear::compute_merge_tree(const SharedProbabilisticTask& task)
 {
     variable_order::VariableOrder vof =

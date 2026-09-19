@@ -22,13 +22,13 @@ namespace probfd::pdbs {
 static void compute_distances(
     std::span<value_t> value_table,
     const StateRankingFunction& ranking_function,
-    SharedProbabilisticTask task,
+    const SharedProbabilisticTask& task,
     StateRank abstract_initial_state,
     const Heuristic<StateRank>& heuristic,
     bool operator_pruning,
     utils::FSeconds max_time)
 {
-    utils::CountdownTimer timer(max_time);
+    const utils::CountdownTimer timer(max_time);
 
     ProjectionStateSpace mdp(
         task,
@@ -50,7 +50,7 @@ void compute_distances(
     const Heuristic<StateRank>& heuristic,
     utils::FSeconds max_time)
 {
-    utils::CountdownTimer timer(max_time);
+    const utils::CountdownTimer timer(max_time);
 
     compute_value_table(
         mdp,
@@ -62,7 +62,7 @@ void compute_distances(
 
 void compute_distances(
     ProbabilityAwarePatternDatabase& pdb,
-    SharedProbabilisticTask task,
+    const SharedProbabilisticTask& task,
     StateRank abstract_initial_state,
     const Heuristic<StateRank>& heuristic,
     bool operator_pruning,
@@ -109,9 +109,9 @@ value_t ProbabilityAwarePatternDatabase::lookup_estimate(StateRank s) const
 }
 
 StateRank
-ProbabilityAwarePatternDatabase::get_abstract_state(const State& s) const
+ProbabilityAwarePatternDatabase::get_abstract_state(const State& state) const
 {
-    return ranking_function.get_abstract_rank(s);
+    return ranking_function.get_abstract_rank(state);
 }
 
 } // namespace probfd::pdbs

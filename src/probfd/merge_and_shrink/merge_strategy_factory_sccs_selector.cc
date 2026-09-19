@@ -27,18 +27,6 @@ using namespace downward;
 
 namespace probfd::merge_and_shrink {
 
-static bool
-compare_sccs_increasing(const vector<int>& lhs, const vector<int>& rhs)
-{
-    return lhs.size() < rhs.size();
-}
-
-static bool
-compare_sccs_decreasing(const vector<int>& lhs, const vector<int>& rhs)
-{
-    return lhs.size() > rhs.size();
-}
-
 MergeStrategyFactorySCCsSelector::MergeStrategyFactorySCCsSelector(
     utils::Verbosity verbosity,
     OrderOfSCCs order_of_sccs,
@@ -66,6 +54,8 @@ MergeStrategyFactorySCCsSelector::compute_merge_strategy(
 
     vector<vector<int>> sccs = sccs::compute_maximal_sccs(cg);
 
+    constexpr auto get_size = [](const auto& x) { return x.size(); };
+
     // Put the SCCs in the desired order.
     switch (order_of_sccs) {
     case OrderOfSCCs::TOPOLOGICAL:
@@ -76,10 +66,10 @@ MergeStrategyFactorySCCsSelector::compute_merge_strategy(
         std::ranges::reverse(sccs);
         break;
     case OrderOfSCCs::DECREASING:
-        std::ranges::sort(sccs, compare_sccs_decreasing);
+        std::ranges::sort(sccs, std::greater{}, get_size);
         break;
     case OrderOfSCCs::INCREASING:
-        std::ranges::sort(sccs, compare_sccs_increasing);
+        std::ranges::sort(sccs, std::less{}, get_size);
         break;
     }
 

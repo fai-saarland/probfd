@@ -54,7 +54,7 @@ MergeStrategySCCsSelector::get_next(const FactoredTransitionSystem& fts)
 
     // Select the next merge from the current index set, using the selector.
     assert(merge_selector);
-    pair<int, int> next_pair =
+    const pair<int, int> next_pair =
         merge_selector->select_merge(fts, current_ts_indices);
 
     // Remove the two merged indices from the current index set.

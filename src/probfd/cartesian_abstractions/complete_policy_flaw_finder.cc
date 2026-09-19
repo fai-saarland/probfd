@@ -67,8 +67,9 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
     const State initial = registry.get_initial_state();
     const AbstractState* abstract_initial = &abstraction.get_initial_state();
 
-    std::deque<QueueItem> frontier({{initial.get_id(), abstract_initial}});
-    storage::PerStateStorage<bool> visited(false);
+    std::deque<QueueItem> frontier(
+        {{.state_id = initial.get_id(), .abstract_state = abstract_initial}});
+    storage::PerStateStorage visited(false);
     visited[0] = true;
 
     for (; !frontier.empty(); frontier.pop_front()) {
@@ -79,13 +80,13 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
 
         State state = registry.lookup_state(state_id);
 
-        auto decision = policy.get_decision(abstract_state->get_id());
+        const auto decision = policy.get_decision(abstract_state->get_id());
 
         // Check for goal state
         if (!decision) {
             assert(abstraction.get_goals().contains(abstract_state->get_id()));
 
-            if (!downward::task_properties::is_goal_state(goals, state)) {
+            if (!task_properties::is_goal_state(goals, state)) {
                 if (log.is_at_least_debug()) log.println("Goal test failed.");
                 state.unpack();
                 return Flaw(
@@ -116,7 +117,7 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
             State next_concrete =
                 registry.get_successor_state(state, outcome.get_effects());
 
-            if (static_cast<int>(registry.size()) > max_search_states_) {
+            if (std::cmp_greater(registry.size(), max_search_states_)) {
                 if (log.is_at_least_normal()) {
                     log.println(
                         "Reached maximal number of flaw search states.");

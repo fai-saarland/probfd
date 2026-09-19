@@ -68,7 +68,7 @@ extern value_t get_adjusted_action_cost(
  * Runtime: O(n), where n is the number of probabilistic operators.
  */
 extern bool is_unit_cost(
-    const ProbabilisticOperatorSpace& task,
+    const ProbabilisticOperatorSpace& operators,
     const downward::OperatorCostFunction<value_t>& cost_function);
 
 /**
@@ -76,7 +76,8 @@ extern bool is_unit_cost(
  *
  * Runtime: O(n), where n is the number of effects.
  */
-extern bool has_conditional_effects(const ProbabilisticOperatorSpace& ops);
+extern bool
+has_conditional_effects(const ProbabilisticOperatorSpace& operators);
 
 /**
  * @brief Throws ExitCode::UNSUPPORTED if conditional effects exist.
@@ -84,7 +85,7 @@ extern bool has_conditional_effects(const ProbabilisticOperatorSpace& ops);
  * Runtime: O(n), where n is the number of effects.
  */
 extern void
-verify_no_conditional_effects(const ProbabilisticOperatorSpace& ops);
+verify_no_conditional_effects(const ProbabilisticOperatorSpace& operators);
 
 /**
  * @brief Returns the operator costs of a task as a vector of costs sorted by
@@ -93,7 +94,7 @@ verify_no_conditional_effects(const ProbabilisticOperatorSpace& ops);
  * Runtime: O(n), where n is the number of operators.
  */
 extern std::vector<value_t> get_operator_costs(
-    const ProbabilisticOperatorSpace& ops,
+    const ProbabilisticOperatorSpace& operators,
     const downward::OperatorCostFunction<value_t>& cost_function);
 
 /**
@@ -102,7 +103,7 @@ extern std::vector<value_t> get_operator_costs(
  * Runtime: O(n), where n is the number of operators.
  */
 extern value_t get_average_operator_cost(
-    const ProbabilisticOperatorSpace& ops,
+    const ProbabilisticOperatorSpace& operators,
     const downward::OperatorCostFunction<value_t>& cost_function);
 
 /**
@@ -112,7 +113,7 @@ extern value_t get_average_operator_cost(
  * Runtime: O(n), where n is the number of operators.
  */
 extern value_t get_min_operator_cost(
-    const ProbabilisticOperatorSpace& ops,
+    const ProbabilisticOperatorSpace& operators,
     const downward::OperatorCostFunction<value_t>& cost_function);
 
 /**

@@ -51,9 +51,7 @@ ShrinkStrategyEqualDistance::ordered_buckets_use_map(
         auto [first, last] = std::ranges::equal_range(
             states_by_h,
             h,
-            [](double x, double y) {
-                return probfd::is_approx_less(x, y, 0.001);
-            },
+            [](double x, double y) { return is_approx_less(x, y, 0.001); },
             [](const auto& p) { return p.first; });
 
         // If there are no entries, make a new bucket, otherwise add to the
@@ -70,7 +68,7 @@ ShrinkStrategyEqualDistance::ordered_buckets_use_map(
     vector<Bucket> buckets;
     buckets.reserve(states_by_h.size());
 
-    if (h_start == ShrinkStrategyEqualDistance::Priority::HIGH) {
+    if (h_start == Priority::HIGH) {
         for (auto& bucket :
              std::views::reverse(std::views::values(states_by_h))) {
             buckets.emplace_back(std::move(bucket));

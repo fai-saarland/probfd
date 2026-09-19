@@ -49,7 +49,7 @@ public:
         const ProbabilisticTaskTuple& task,
         const std::vector<int>& domain_sizes,
         CartesianAbstraction& abstraction,
-        const AbstractState* init_id,
+        const AbstractState* initial_state,
         CartesianHeuristic& heuristic,
         downward::utils::LogProxy& log,
         downward::utils::CountdownTimer& timer) override;

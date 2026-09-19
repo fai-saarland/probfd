@@ -50,7 +50,7 @@ public:
     /// Constructs the all-outcomes determinization of the input probabilistic
     /// planning task.
     explicit DeterminizationOperatorSpace(
-        std::shared_ptr<ProbabilisticOperatorSpace> parent_task,
+        std::shared_ptr<ProbabilisticOperatorSpace> operators,
         std::shared_ptr<DeterminizationOperatorMapping> det_to_prob_index);
 
     ~DeterminizationOperatorSpace() override = default;
@@ -95,7 +95,7 @@ public:
 };
 
 extern downward::SharedAbstractTask
-create_determinization_task(SharedProbabilisticTask probabilistic_task);
+create_determinization_task(const SharedProbabilisticTask& probabilistic_task);
 
 } // namespace probfd::tasks
 

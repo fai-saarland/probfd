@@ -1,7 +1,5 @@
 #include "probfd/cartesian_abstractions/cegar.h"
 
-#include "downward/goal_fact_list.h"
-#include "downward/initial_state_values.h"
 #include "probfd/cartesian_abstractions/abstract_state.h"
 #include "probfd/cartesian_abstractions/cartesian_abstraction.h"
 #include "probfd/cartesian_abstractions/flaw.h"
@@ -26,6 +24,8 @@
 #include "downward/utils/memory.h"
 #include "downward/utils/timer.h"
 
+#include "downward/goal_fact_list.h"
+#include "downward/initial_state_values.h"
 #include "downward/state.h"
 
 #include <cassert>

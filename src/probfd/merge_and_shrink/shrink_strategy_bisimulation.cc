@@ -21,6 +21,7 @@ using namespace std;
 using namespace downward;
 
 namespace probfd::merge_and_shrink {
+namespace {
 
 /* A successor signature characterizes the behaviour of an abstract
    state in so far as bisimulation cares about it. States with
@@ -58,18 +59,9 @@ struct Signature {
      * current iteration.
      */
     friend auto operator<=>(const Signature&, const Signature&) = default;
-
-    void dump(utils::LogProxy& log) const
-    {
-        if (log.is_at_least_debug()) {
-            log.println(
-                "Signature(group = {}, state = {}, succ_sig = {})",
-                group,
-                state,
-                succ_signature);
-        }
-    }
 };
+
+} // namespace
 
 ShrinkStrategyBisimulation::ShrinkStrategyBisimulation(
     AtLimit at_limit,
@@ -189,7 +181,7 @@ ShrinkStrategyBisimulation::compute_equivalence_relation(
         compute_signatures(ts, signatures, state_to_group);
 
         // Verify size of signatures.
-        assert(static_cast<int>(signatures.size()) == num_states);
+        assert(std::cmp_equal(signatures.size(), num_states));
 
         int sig_end;
 

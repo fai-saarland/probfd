@@ -10,7 +10,7 @@ TrivialFinder::compute_subcollections(const PatternCollection& patterns)
     std::vector<PatternSubCollection> additive_subcollections;
     additive_subcollections.reserve(patterns.size());
 
-    int size = static_cast<int>(patterns.size());
+    const int size = static_cast<int>(patterns.size());
     for (int i = 0; i < size; ++i) {
         additive_subcollections.push_back({i});
     }

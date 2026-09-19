@@ -2,6 +2,7 @@
 #define CARTESIAN_SET_H
 
 #include "downward/algorithms/dynamic_bitset.h"
+#include "fact_pair.h"
 
 #include <concepts>
 #include <format>
@@ -19,8 +20,7 @@ using Bitset = dynamic_bitset::DynamicBitset<unsigned short>;
   The underlying data structure is a vector of bitsets.
 */
 class CartesianSet {
-    template <typename T, typename Char>
-    friend struct std::formatter;
+    friend struct std::formatter<CartesianSet>;
 
     std::vector<Bitset> domain_subsets;
 
@@ -60,6 +60,11 @@ public:
     void add_all(int var);
     void remove_all(int var);
 
+    bool test_fact(FactPair fact_pair) const
+    {
+        return test(fact_pair.var, fact_pair.value);
+    }
+
     bool test(int var, int value) const
     {
         return domain_subsets[var][value];
@@ -74,11 +79,11 @@ public:
 };
 } // namespace downward
 
-template <typename Char>
-struct std::formatter<downward::CartesianSet, Char> {
+template <>
+struct std::formatter<downward::CartesianSet> {
     using R = decltype(std::declval<const downward::Bitset&>().set_indices());
 
-    std::range_formatter<R, Char> underlying_;
+    std::range_formatter<R> underlying_;
 
     constexpr formatter()
     {
@@ -88,7 +93,7 @@ struct std::formatter<downward::CartesianSet, Char> {
     }
 
     template <class ParseContext>
-    constexpr ParseContext::iterator parse(ParseContext& ctx)
+    static constexpr ParseContext::iterator parse(ParseContext& ctx)
     {
         if (*ctx.begin() != '}') {
             throw std::format_error("Expected '}'!");

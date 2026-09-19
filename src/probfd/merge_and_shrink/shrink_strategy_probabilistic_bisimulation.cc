@@ -59,17 +59,6 @@ struct Signature {
      * current iteration.
      */
     friend auto operator<=>(const Signature&, const Signature&) = default;
-
-    void dump(utils::LogProxy& log) const
-    {
-        if (log.is_at_least_debug()) {
-            log.println(
-                "Signature(group = {}, state = {}, succ_sig = {})",
-                group,
-                state,
-                succ_signature);
-        }
-    }
 };
 
 } // namespace
@@ -200,7 +189,7 @@ ShrinkStrategyProbabilisticBisimulation::compute_equivalence_relation(
         compute_signatures(labels, ts, signatures, state_to_group);
 
         // Verify size of signatures.
-        assert(static_cast<int>(signatures.size()) == num_states);
+        assert(std::cmp_equal(signatures.size(), num_states));
 
         int sig_end;
 

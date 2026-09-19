@@ -9,7 +9,7 @@ FullyAdditiveFinder::compute_subcollections(const PatternCollection& patterns)
 {
     std::vector<PatternSubCollection> single_subcollection;
     auto& all_patterns = single_subcollection.emplace_back(patterns.size());
-    std::iota(all_patterns.begin(), all_patterns.end(), 0);
+    std::ranges::iota(all_patterns, 0);
     return single_subcollection;
 }
 
@@ -29,7 +29,7 @@ value_t FullyAdditiveFinder::evaluate_subcollection(
 {
     auto result = 0_vt;
 
-    for (int pattern_id : subcollection) {
+    for (const int pattern_id : subcollection) {
         result += pdb_estimates[pattern_id];
     }
 

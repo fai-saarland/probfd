@@ -50,9 +50,9 @@ public:
 
     std::unique_ptr<Solution> find_solution(
         CartesianAbstraction& abstraction,
-        const AbstractState* init_id,
+        const AbstractState* initial_state,
         CartesianHeuristic& heuristic,
-        downward::utils::CountdownTimer& time_limit) override;
+        downward::utils::CountdownTimer& timer) override;
 };
 
 } // namespace probfd::cartesian_abstractions

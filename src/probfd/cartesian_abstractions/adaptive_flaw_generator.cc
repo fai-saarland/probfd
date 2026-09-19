@@ -69,7 +69,9 @@ void AdaptiveFlawGenerator::notify_split()
 
 void AdaptiveFlawGenerator::print_statistics(LogProxy& log)
 {
-    for (auto& gen : generators_) { gen->print_statistics(log); }
+    for (auto& gen : generators_) {
+        gen->print_statistics(log);
+    }
 }
 
 AdaptiveFlawGeneratorFactory::AdaptiveFlawGeneratorFactory(
@@ -81,11 +83,12 @@ AdaptiveFlawGeneratorFactory::AdaptiveFlawGeneratorFactory(
 std::unique_ptr<FlawGenerator>
 AdaptiveFlawGeneratorFactory::create_flaw_generator()
 {
-    std::vector<std::unique_ptr<FlawGenerator>> generators;
-
-    for (const auto& generator_factory : generator_factories_) {
-        generators.emplace_back(generator_factory->create_flaw_generator());
-    }
+    std::vector generators(
+        std::from_range,
+        generator_factories_ |
+            std::views::transform([](auto& generator_factory) {
+                return generator_factory->create_flaw_generator();
+            }));
 
     return std::make_unique<AdaptiveFlawGenerator>(std::move(generators));
 }

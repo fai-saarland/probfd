@@ -57,7 +57,7 @@ public:
         const enumeration::AssignmentEnumerator& enumerator,
         ProjectionOperator op,
         const std::vector<downward::FactPair>& progression_preconditions,
-        downward::OperatorCostFunction<value_t>* cost_function);
+        const downward::OperatorCostFunction<value_t>* cost_function);
 
     /**
      * @brief Obtain the applicable prohjection operators for a given abstract

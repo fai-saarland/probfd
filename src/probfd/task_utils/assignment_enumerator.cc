@@ -26,17 +26,17 @@ std::vector<int> AssignmentEnumerator::unrank(int assignment_index) const
     return values;
 }
 
-int AssignmentEnumerator::value_of(int state_rank, int idx) const
+int AssignmentEnumerator::value_of(int assignment_index, int idx) const
 {
-    const VariableInfo& info = var_infos_[idx];
-    return (state_rank / info.multiplier) % info.domain;
+    const auto& [multiplier, domain] = var_infos_[idx];
+    return (assignment_index / multiplier) % domain;
 }
 
 bool AssignmentEnumerator::next_index(
     int& assignment_index,
     std::span<int> mutable_variables) const
 {
-    for (int var : mutable_variables) {
+    for (const int var : mutable_variables) {
         const auto& [multiplier, domain] = var_infos_[var];
         const int value = (assignment_index / multiplier) % domain;
 

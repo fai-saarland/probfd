@@ -45,7 +45,7 @@ class SingleCEGAR {
 public:
     SingleCEGAR(
         value_t epsilon,
-        cegar::FlawFindingStrategy& flaw_strategy,
+        FlawFindingStrategy& flaw_strategy,
         bool wildcard,
         int max_pdb_size,
         std::unordered_set<int> blacklisted_variables = {});
@@ -74,8 +74,8 @@ private:
         const State& initial_state,
         const std::vector<Flaw>& flaws,
         utils::RandomNumberGenerator& rng,
-        utils::CountdownTimer& timer,
-        utils::LogProxy log);
+        const utils::CountdownTimer& timer,
+        utils::LogProxy log) const;
 };
 
 SingleCEGAR::SingleCEGAR(
@@ -161,23 +161,21 @@ void SingleCEGAR::refine(
     const State& initial_state,
     const std::vector<Flaw>& flaws,
     utils::RandomNumberGenerator& rng,
-    utils::CountdownTimer& timer,
-    utils::LogProxy log)
+    const utils::CountdownTimer& timer,
+    utils::LogProxy log) const
 {
     assert(!flaws.empty());
 
     auto& [pdb, projection] = transformation;
 
     // pick a random flaw
-    const Flaw& flaw = *rng.choose(flaws);
-
-    int flaw_var = flaw.variable;
+    const auto& [flaw_var, is_precondition] = *rng.choose(flaws);
 
     if (log.is_at_least_verbose()) {
         log.println(
             "SingleCEGAR: chosen flaw: pattern {} with a violated {} on {}",
             pdb.get_pattern(),
-            flaw.is_precondition ? "precondition" : "goal",
+            is_precondition ? "precondition" : "goal",
             flaw_var);
     }
 
@@ -202,7 +200,7 @@ void SingleCEGAR::refine(
         false,
         timer.get_remaining_time());
 
-    NonOwningIncrementalPPDBEvaluator h(
+    const NonOwningIncrementalPPDBEvaluator h(
         pdb.value_table,
         new_transformation.pdb.ranking_function,
         flaw_var);
@@ -343,7 +341,7 @@ std::unique_ptr<ProjectionMultiPolicy> run_cegar_loop(
     const SharedProbabilisticTask& task,
     const State& initial_state,
     value_t convergence_epsilon,
-    cegar::FlawFindingStrategy& flaw_strategy,
+    FlawFindingStrategy& flaw_strategy,
     std::unordered_set<int> blacklisted_variables,
     int max_pdb_size,
     utils::RandomNumberGenerator& rng,

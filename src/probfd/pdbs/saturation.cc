@@ -30,7 +30,7 @@ void compute_saturated_costs(
         state_space.generate_applicable_actions(s, aops);
 
         for (const ProjectionOperator* op : aops) {
-            int oid = op->operator_id.get_index();
+            const int oid = op->operator_id.get_index();
 
             SuccessorDistribution successor_dist;
             state_space.generate_action_transitions(s, op, successor_dist);

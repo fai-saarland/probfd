@@ -13,7 +13,7 @@ value_t SubCollectionFinder::evaluate(
     const std::vector<PatternSubCollection>& subcollections,
     const State& state,
     value_t cost_lower_bound,
-    value_t termination_cost)
+    value_t termination_cost) const
 {
     if (database.empty()) return cost_lower_bound;
 

@@ -15,11 +15,10 @@ template <std::ranges::input_range Vw, auto F>
                                           std::ranges::range_reference_t<Vw>>
 class transform_view
     : public std::ranges::view_interface<transform_view<Vw, F>> {
-private:
     /* [[no_unique_address]] */
     Vw Range{};
 
-    template <bool Const>
+    template <bool>
     struct CategoryBase {};
 
     template <bool Const>
@@ -41,7 +40,6 @@ private:
 
     template <bool Const>
     class Iterator : public CategoryBase<Const> {
-    private:
         friend transform_view;
 
         using Parent_t = detail::maybe_const_t<Const, transform_view>;
@@ -277,7 +275,6 @@ private:
 
     template <bool Const>
     class Sentinel {
-    private:
         friend transform_view;
 
         using Parent_t = detail::maybe_const_t<Const, transform_view>;
@@ -459,8 +456,7 @@ template <typename T>
 using all_t = decltype(std::views::all(std::declval<T>()));
 
 template <auto F>
-struct transform_fn
-    : public std::ranges::range_adaptor_closure<transform_fn<F>> {
+struct transform_fn : std::ranges::range_adaptor_closure<transform_fn<F>> {
     template <std::ranges::viewable_range Rng>
     [[nodiscard]]
     constexpr auto operator()(Rng&& Range) const noexcept(
@@ -478,7 +474,8 @@ struct transform_fn
 template <auto F>
 inline constexpr detail::transform_fn<F> transform;
 
-inline constexpr detail::transform_fn<[](auto& p) { return *p; }> deref;
+inline constexpr detail::transform_fn<[](auto& p) -> auto& { return *p; }>
+    deref;
 
 template <auto F>
 inline constexpr auto deref_transform = deref | transform<F>;

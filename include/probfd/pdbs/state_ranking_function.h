@@ -66,13 +66,13 @@ public:
      * for variable \f$ i \f$ of the projection.
      */
     [[nodiscard]]
-    long long int get_multiplier(int i) const;
+    long long int get_multiplier(int var) const;
 
     /**
      * @brief Get the domain size for a projection variable.
      */
     [[nodiscard]]
-    int get_domain_size(int i) const;
+    int get_domain_size(int var) const;
 
     /**
      * @brief Get the rank of the abstract state induced by a state.
@@ -153,7 +153,9 @@ public:
      * @returns false iff the rank is already maximal, in which case the lowest
      * rank is returned.
      */
-    bool next_rank(StateRank& s, std::span<int> mutable_variables) const;
+    bool
+    next_rank(StateRank& abstract_state_rank, std::span<int> mutable_variables)
+        const;
 };
 
 class StateRankToString {

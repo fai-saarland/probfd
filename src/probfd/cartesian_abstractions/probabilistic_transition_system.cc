@@ -13,8 +13,8 @@
 #include <algorithm>
 #include <cassert>
 #include <map>
-#include <ranges>
 #include <ostream>
+#include <ranges>
 #include <type_traits>
 #include <unordered_set>
 #include <utility>
@@ -31,7 +31,7 @@ get_preconditions_by_operator(const ProbabilisticOperatorSpace& ops)
     preconditions_by_operator.reserve(ops.size());
     for (auto op : ops) {
         vector<FactPair> preconditions =
-            ::task_properties::get_fact_pairs(op.get_preconditions());
+            task_properties::get_fact_pairs(op.get_preconditions());
         std::ranges::sort(preconditions);
         preconditions_by_operator.push_back(std::move(preconditions));
     }
@@ -59,8 +59,8 @@ get_postconditions_per_outcome(const ProbabilisticOperatorProxy& op)
         vector<FactPair>& outcome_postconditions =
             postconditions.emplace_back();
         outcome_postconditions.reserve(var_to_post.size());
-        for (const pair<const int, int>& fact : var_to_post) {
-            outcome_postconditions.emplace_back(fact.first, fact.second);
+        for (const auto [var, post] : var_to_post) {
+            outcome_postconditions.emplace_back(var, post);
         }
     }
     return postconditions;
@@ -78,8 +78,8 @@ get_postconditions_by_operator_and_outcome(
     return postconditions;
 }
 
-static vector<vector<value_t>> get_probabilities_by_operator_and_outcome(
-    const ProbabilisticOperatorSpace& ops)
+static vector<vector<value_t>>
+get_probabilities_by_operator_and_outcome(const ProbabilisticOperatorSpace& ops)
 {
     vector<vector<value_t>> probabilities;
     probabilities.reserve(ops.size());
@@ -101,7 +101,9 @@ static int lookup_value(const vector<FactPair>& facts, int var)
     for (const FactPair& fact : facts) {
         if (fact.var == var) {
             return fact.value;
-        } else if (fact.var > var) {
+        }
+
+        if (fact.var > var) {
             return UNDEFINED;
         }
     }
@@ -157,7 +159,9 @@ void ProbabilisticTransitionSystem::construct_trivial_abstraction(
     enlarge_vectors_by_one();
     assert(get_num_states() == 1);
 
-    for (const auto& op : ops) { loops_[0].emplace_back(op.get_id()); }
+    for (const auto& op : ops) {
+        loops_[0].emplace_back(op.get_id());
+    }
 
     num_loops_ += ops.size();
 }
@@ -191,10 +195,10 @@ void ProbabilisticTransitionSystem::rewire_incoming_transitions(
     const AbstractState& v2,
     int var)
 {
-    int v1_id = v1.get_id();
-    int v2_id = v2.get_id();
+    const int v1_id = v1.get_id();
+    const int v2_id = v2.get_id();
 
-    auto old_incoming = std::move(incoming_[v1_id]);
+    const auto old_incoming = std::move(incoming_[v1_id]);
 
     for (ProbabilisticTransition* transition : old_incoming) {
         assert(std::ranges::contains(transition->target_ids, v1_id));
@@ -212,7 +216,7 @@ void ProbabilisticTransitionSystem::rewire_incoming_transitions(
         // a new transition, while the first one is an in-place update.
         std::vector<int>& target_ids = transition->target_ids;
 
-        int pre = get_precondition_value(op_id, var);
+        const int pre = get_precondition_value(op_id, var);
         if (pre == UNDEFINED) {
             bool possibly_both = false;
 
@@ -297,9 +301,13 @@ void ProbabilisticTransitionSystem::rewire_incoming_transitions(
 
             assert(v1_possible || v2_possible);
 
-            if (v1_possible) { incoming_[v1_id].push_back(transition); }
+            if (v1_possible) {
+                incoming_[v1_id].push_back(transition);
+            }
 
-            if (v2_possible) { incoming_[v2_id].push_back(transition); }
+            if (v2_possible) {
+                incoming_[v2_id].push_back(transition);
+            }
         }
     }
 }
@@ -310,17 +318,17 @@ void ProbabilisticTransitionSystem::rewire_outgoing_transitions(
     const AbstractState& v2,
     int var)
 {
-    int v1_id = v1.get_id();
-    int v2_id = v2.get_id();
+    const int v1_id = v1.get_id();
+    const int v2_id = v2.get_id();
 
-    auto old_outgoing = std::move(outgoing_[v1_id]);
+    const auto old_outgoing = std::move(outgoing_[v1_id]);
 
     for (ProbabilisticTransition* transition : old_outgoing) {
-        int op_id = transition->op_id;
+        const int op_id = transition->op_id;
 
         std::vector<int>& target_ids = transition->target_ids;
 
-        int pre = get_precondition_value(op_id, var);
+        const int pre = get_precondition_value(op_id, var);
 
         if (pre == UNDEFINED) {
             bool v1_possible = true;
@@ -334,16 +342,18 @@ void ProbabilisticTransitionSystem::rewire_outgoing_transitions(
                     if (v_id == v1_id) {
                         v2_possible = false;
                         break;
-                    } else if (v_id == v2_id) {
+                    }
+
+                    if (v_id == v2_id) {
                         v1_possible = false;
                         break;
-                    } else {
-                        const AbstractState& v = *states[v_id];
-                        v1_possible =
-                            v1_possible && v.domain_subsets_intersect(v1, var);
-                        v2_possible =
-                            v2_possible && v.domain_subsets_intersect(v2, var);
                     }
+
+                    const AbstractState& v = *states[v_id];
+                    v1_possible =
+                        v1_possible && v.domain_subsets_intersect(v1, var);
+                    v2_possible =
+                        v2_possible && v.domain_subsets_intersect(v2, var);
                 }
             }
 
@@ -380,12 +390,12 @@ void ProbabilisticTransitionSystem::rewire_loops(
     /* State v has been split into v1 and v2. Now for all self-loops
        v->v we need to add one or two of the transitions v1->v1, v1->v2,
        v2->v1 and v2->v2. */
-    int v1_id = v1.get_id();
-    int v2_id = v2.get_id();
+    const int v1_id = v1.get_id();
+    const int v2_id = v2.get_id();
 
-    auto old_loops = std::move(loops_[v1_id]);
+    const auto old_loops = std::move(loops_[v1_id]);
 
-    for (int op_id : old_loops) {
+    for (const int op_id : old_loops) {
         const int pre = get_precondition_value(op_id, var);
         const size_t num_outcomes = get_num_operator_outcomes(op_id);
 
@@ -400,7 +410,7 @@ void ProbabilisticTransitionSystem::rewire_loops(
             target_ids_v2.reserve(num_outcomes);
 
             for (size_t i = 0; i != num_outcomes; ++i) {
-                int post = get_postcondition_value(op_id, i, var);
+                const int post = get_postcondition_value(op_id, i, var);
 
                 if (post == UNDEFINED) {
                     target_ids_v1.push_back(v1_id);
@@ -441,7 +451,7 @@ void ProbabilisticTransitionSystem::rewire_loops(
             target_ids.reserve(num_outcomes);
 
             for (size_t i = 0; i != num_outcomes; ++i) {
-                int post = get_postcondition_value(op_id, i, var);
+                const int post = get_postcondition_value(op_id, i, var);
                 assert(post != UNDEFINED);
 
                 if (v1.contains(var, post)) {
@@ -469,7 +479,7 @@ void ProbabilisticTransitionSystem::rewire_loops(
             target_ids.reserve(num_outcomes);
 
             for (size_t i = 0; i != num_outcomes; ++i) {
-                int post = get_postcondition_value(op_id, i, var);
+                const int post = get_postcondition_value(op_id, i, var);
                 assert(post != UNDEFINED);
 
                 if (v1.contains(var, post)) {

@@ -104,7 +104,7 @@ void compute_distances(
  */
 void compute_distances(
     ProbabilityAwarePatternDatabase& pdb,
-    SharedProbabilisticTask task,
+    const SharedProbabilisticTask& task,
     StateRank abstract_initial_state,
     const Heuristic<StateRank>& heuristic,
     bool operator_pruning = true,

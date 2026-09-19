@@ -14,7 +14,7 @@ using namespace downward;
 namespace probfd::cartesian_abstractions {
 
 Flaw::Flaw(
-    downward::State&& concrete_state,
+    State&& concrete_state,
     const AbstractState& current_abstract_state,
     CartesianSet&& desired_cartesian_set)
     : concrete_state(std::move(concrete_state))
@@ -35,8 +35,9 @@ vector<Split> Flaw::get_possible_splits(const VariableSpace& variables) const
       we want to split off.
     */
     for (VariableProxy var : variables) {
-        int var_id = var.get_id();
-        int state_value = concrete_state[var_id];
+        const int var_id = var.get_id();
+        const int state_value = concrete_state[var_id];
+
         if (!desired_cartesian_set.test(var_id, state_value)) {
             vector<int> wanted;
             for (int value = 0; value < var.get_domain_size(); ++value) {

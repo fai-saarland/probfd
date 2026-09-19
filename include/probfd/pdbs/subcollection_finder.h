@@ -41,7 +41,7 @@ public:
         const std::vector<PatternSubCollection>& subcollections,
         const downward::State& state,
         value_t cost_lower_bound,
-        value_t termination_cost);
+        value_t termination_cost) const;
 };
 
 } // namespace probfd::pdbs

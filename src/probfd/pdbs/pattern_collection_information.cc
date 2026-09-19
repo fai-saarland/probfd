@@ -27,10 +27,10 @@ namespace probfd::pdbs {
 PatternCollectionInformation::PatternCollectionInformation(
     SharedProbabilisticTask task,
     downward::pdbs::PatternCollectionInformation det_info,
-    shared_ptr<SubCollectionFinder> arg_subcollection_finder)
+    shared_ptr<SubCollectionFinder> subcollection_finder)
     : task_(std::move(task))
     , patterns_(*det_info.get_patterns())
-    , subcollection_finder_(std::move(arg_subcollection_finder))
+    , subcollection_finder_(std::move(subcollection_finder))
     , h(get_operators(task_),
         get_cost_function(task_),
         get_termination_costs(task_))
@@ -40,7 +40,7 @@ PatternCollectionInformation::PatternCollectionInformation(
     const auto& init_vals = get_init(task_);
     const auto& term_costs = get_termination_costs(task_);
 
-    auto pdbs = det_info.get_pdbs();
+    const auto pdbs = det_info.get_pdbs();
 
     if (!pdbs) { return; }
 
@@ -66,7 +66,7 @@ PatternCollectionInformation::PatternCollectionInformation(
     SharedProbabilisticTask task,
     PatternCollection patterns)
     : PatternCollectionInformation(
-          task,
+          std::move(task),
           std::move(patterns),
           make_shared<TrivialFinder>())
 {
@@ -76,12 +76,12 @@ PatternCollectionInformation::PatternCollectionInformation(
     SharedProbabilisticTask task,
     PatternCollection patterns,
     shared_ptr<SubCollectionFinder> subcollection_finder)
-    : task_(task)
+    : task_(std::move(task))
     , patterns_(std::move(patterns))
     , subcollection_finder_(std::move(subcollection_finder))
     , h(get_operators(task_),
         get_cost_function(task_),
-        get_termination_costs(task))
+        get_termination_costs(task_))
 {
     assert(this->subcollection_finder_);
     // validate_and_normalize_patterns(*patterns);
@@ -141,13 +141,13 @@ void PatternCollectionInformation::create_pattern_cliques_if_missing()
 
 void PatternCollectionInformation::set_pdbs(PPDBCollection pdbs)
 {
-    pdbs_ = pdbs;
+    pdbs_ = std::move(pdbs);
 }
 
 void PatternCollectionInformation::set_subcollections(
     vector<PatternSubCollection> subcollections)
 {
-    subcollections_ = subcollections;
+    subcollections_ = std::move(subcollections);
 }
 
 const PatternCollection& PatternCollectionInformation::get_patterns() const

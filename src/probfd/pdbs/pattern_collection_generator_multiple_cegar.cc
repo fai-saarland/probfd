@@ -66,7 +66,7 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
     const FactPair& goal,
     unordered_set<int>&& blacklisted_variables)
 {
-    utils::CountdownTimer timer(max_time);
+    const utils::CountdownTimer timer(max_time);
 
     // Start with a solution of the trivial abstraction
     ProjectionTransformation transformation(

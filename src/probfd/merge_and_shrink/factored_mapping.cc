@@ -19,7 +19,7 @@ namespace probfd::merge_and_shrink {
 FactoredMapping::FactoredMapping(int domain_size)
     : lookup_table(domain_size)
 {
-    std::iota(lookup_table.begin(), lookup_table.end(), 0);
+    std::ranges::iota(lookup_table, 0);
 }
 
 int FactoredMapping::get_num_abstract_states() const

@@ -53,8 +53,8 @@ class I2Dual : public MDPAlgorithm<downward::State, downward::OperatorID> {
 
     const double fp_epsilon_ = 0.001;
 
-    size_t next_lp_var_ = 0;
-    size_t next_lp_constr_id_ = 0;
+    int next_lp_var_ = 0;
+    int next_lp_constr_id_ = 0;
 
     bool hpom_initialized_ = false;
     std::vector<int> offset_;
@@ -62,8 +62,6 @@ class I2Dual : public MDPAlgorithm<downward::State, downward::OperatorID> {
         hpom_constraints_;
 
     Statistics statistics_;
-
-    value_t objective_;
 
     std::vector<downward::OperatorID> aops_;
     SuccessorDistribution succs_;
@@ -74,7 +72,7 @@ public:
         bool hpom_enabled,
         bool incremental_updates,
         downward::lp::LPSolverType solver_type,
-        double fp_precision = 0.0001);
+        double fp_epsilon = 0.0001);
 
     ~I2Dual() override;
 
@@ -97,7 +95,7 @@ public:
 private:
     bool evaluate_state(
         FDRMDP& mdp,
-        FDRHeuristic& heuristic,
+        const FDRHeuristic& heuristic,
         const downward::State& state,
         IDualData& data);
 

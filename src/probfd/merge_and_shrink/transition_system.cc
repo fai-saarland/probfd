@@ -8,6 +8,8 @@
 #include "downward/utils/collections.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/system.h"
+#include "downward/views/convert.h"
+#include "downward/views/transform.h"
 
 #include <algorithm>
 #include <cassert>
@@ -20,6 +22,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 
 using namespace std;
 using namespace downward;
@@ -50,13 +53,13 @@ struct std::formatter<FormatWrapper<R>, Char> {
     }
 
     template <class ParseContext>
-    constexpr typename ParseContext::iterator parse(ParseContext& ctx)
+    static constexpr ParseContext::iterator parse(ParseContext& ctx)
     {
         return ctx.begin();
     }
 
     template <class FmtContext>
-    typename FmtContext::iterator
+    FmtContext::iterator
     format(const FormatWrapper<R>& wrapped, FmtContext& ctx) const
     {
         return underlying_.format(wrapped.view, ctx);
@@ -64,51 +67,6 @@ struct std::formatter<FormatWrapper<R>, Char> {
 };
 
 namespace probfd::merge_and_shrink {
-
-namespace {
-template <typename T, char LPAREN = '[', char RPAREN = ']'>
-std::istream& operator>>(std::istream& in, std::vector<T>& list)
-{
-    using R = std::conditional_t<std::is_same_v<T, bool>, int, T>;
-
-    if (in.get() != LPAREN) {
-        in.setstate(std::ios::failbit);
-        return in;
-    }
-
-    if (in >> std::ws; in.peek() != RPAREN) {
-        {
-            R element;
-            if (!(in >> element)) return in;
-
-            if constexpr (std::is_same_v<T, bool>) {
-                list.push_back(element != 0);
-            } else {
-                list.push_back(element);
-            }
-        }
-
-        while (in >> std::ws, in.peek() != RPAREN) {
-            if (in.get() != ',') {
-                in.setstate(std::ios::failbit);
-                return in;
-            }
-
-            R element;
-            if (!(in >> std::ws >> element)) return in;
-
-            if constexpr (std::is_same_v<T, bool>) {
-                list.push_back(element != 0);
-            } else {
-                list.push_back(element);
-            }
-        }
-    }
-
-    in.get();
-    return in;
-}
-} // namespace
 
 LocalLabelInfo::LocalLabelInfo(const json::JsonObject& object)
     : label_group(object.read<LabelGroup>("labels"))
@@ -140,9 +98,17 @@ void LocalLabelInfo::remove_labels(const vector<int>& old_labels)
 {
     assert(is_consistent());
     assert(utils::is_sorted_unique(old_labels));
-    const auto [_, it] =
-        ranges::set_difference(label_group, old_labels, label_group.begin());
-    label_group.erase(it, label_group.end());
+
+    LabelGroup diff_label_group;
+    diff_label_group.reserve(label_group.size() - old_labels.size());
+
+    const auto [it, _] = ranges::set_difference(
+        label_group,
+        old_labels,
+        std::back_inserter(diff_label_group));
+
+    label_group = std::move(diff_label_group);
+
     assert(is_consistent());
 }
 
@@ -605,7 +571,7 @@ void TransitionSystem::apply_label_reduction(
             value_t new_cost = labels.get_label_cost(new_label);
 
             local_label_infos.emplace_back(
-                std::vector<int>{new_label},
+                std::vector{new_label},
                 std::move(new_label_transitions),
                 new_cost);
         }
@@ -658,7 +624,7 @@ bool TransitionSystem::is_label_mapping_consistent(const Labels& labels) const
          ++local_label) {
         for (const auto& local_label_info = local_label_infos[local_label];
              const int label : local_label_info.get_label_group()) {
-            if (label_to_local_label[label] != static_cast<int>(local_label)) {
+            if (std::cmp_not_equal(label_to_local_label[label], local_label)) {
                 dump_label_mapping(labels, cerr);
                 std::print(
                     cerr,
@@ -703,11 +669,11 @@ bool TransitionSystem::is_solvable(const Distances& distances) const
 
 int TransitionSystem::compute_total_transitions() const
 {
-    int total = 0;
-    for (const LocalLabelInfo& local_label_info : label_infos()) {
-        total += local_label_info.get_num_transitions();
-    }
-    return total;
+    return std::ranges::fold_left(
+        label_infos() |
+            downward::views::transform<&LocalLabelInfo::get_num_transitions>,
+        0,
+        std::plus{});
 }
 
 string TransitionSystem::tag() const

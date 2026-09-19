@@ -43,7 +43,7 @@ public:
         const ProbabilisticTaskTuple& task,
         const std::vector<int>& domain_sizes,
         CartesianAbstraction& abstraction,
-        const AbstractState* init_id,
+        const AbstractState* initial_state,
         CartesianHeuristic& heuristic,
         downward::utils::LogProxy& log,
         downward::utils::CountdownTimer& timer) override;
@@ -63,9 +63,9 @@ private:
         const ProbabilisticTaskTuple& task,
         const std::vector<int>& domain_sizes,
         const Trace& solution,
-        CartesianAbstraction& abstraction,
+        const CartesianAbstraction& abstraction,
         downward::utils::LogProxy& log,
-        downward::utils::CountdownTimer& timer);
+        const downward::utils::CountdownTimer& timer);
 };
 
 class AStarFlawGeneratorFactory : public FlawGeneratorFactory {

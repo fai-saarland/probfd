@@ -14,13 +14,9 @@ namespace probfd::merge_and_shrink {
 
 static bool is_self_loop(const Transition& transition)
 {
-    for (const int target : transition.targets) {
-        if (target != transition.src) {
-            return false;
-        }
-    }
-
-    return true;
+    return std::ranges::all_of(transition.targets, [&](int target) {
+        return target == transition.src;
+    });
 }
 
 static vector<double>
@@ -40,9 +36,8 @@ compute_label_ranks(const FactoredTransitionSystem& fts, int index)
         const LabelGroup& label_group = local_label_info.get_label_group();
         const auto& transitions = local_label_info.get_transitions();
 
-        const bool group_relevant =
-            transitions.size() != ts.get_size() ||
-            !ranges::all_of(transitions, is_self_loop);
+        const bool group_relevant = transitions.size() != ts.get_size() ||
+                                    !ranges::all_of(transitions, is_self_loop);
 
         double label_rank;
 

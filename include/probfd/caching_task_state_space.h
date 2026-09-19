@@ -71,7 +71,7 @@ public:
     void generate_all_transitions(
         const downward::State& state,
         std::vector<downward::OperatorID>& aops,
-        std::vector<SuccessorDistribution>& successor_dist) final;
+        std::vector<SuccessorDistribution>& successor_dists) final;
 
     void generate_all_transitions(
         const downward::State& state,
@@ -81,7 +81,7 @@ public:
 
 private:
     void compute_successor_states(
-        const downward::State& s,
+        const downward::State& state,
         downward::OperatorID op_id,
         std::vector<StateID>& successors);
 

@@ -34,7 +34,8 @@ struct LabelInfo {
     LabelInfo(value_t cost, ProbabilisticOperatorProxy op);
     LabelInfo(value_t cost, std::vector<value_t> probabilities);
 
-    friend std::unique_ptr<json::JsonObject> to_json(const LabelInfo& labels);
+    friend std::unique_ptr<json::JsonObject>
+    to_json(const LabelInfo& label_info);
 };
 
 /*

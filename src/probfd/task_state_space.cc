@@ -73,10 +73,10 @@ void TaskStateSpace::generate_applicable_actions(
 
 void TaskStateSpace::generate_action_transitions(
     const State& state,
-    OperatorID op_id,
+    OperatorID operator_id,
     SuccessorDistribution& successor_dist)
 {
-    compute_successor_dist(state, op_id, successor_dist);
+    compute_successor_dist(state, operator_id, successor_dist);
     ++statistics_.single_transition_generator_calls;
 }
 
@@ -138,14 +138,14 @@ void TaskStateSpace::compute_successor_dist(
     successor_dist.non_source_probability = 0_vt;
 
     for (const ProbabilisticOutcomeProxy outcome : outcomes) {
-        value_t probability = outcome.get_probability();
+        const value_t probability = outcome.get_probability();
         State succ =
             state_registry_.get_successor_state(state, outcome.get_effects());
 
         if (state == succ) continue;
 
         for (const auto& h : notify_) {
-            OperatorID det_op_id(outcome.get_determinization_id());
+            const OperatorID det_op_id(outcome.get_determinization_id());
             h->notify_state_transition(state, det_op_id, succ);
         }
 

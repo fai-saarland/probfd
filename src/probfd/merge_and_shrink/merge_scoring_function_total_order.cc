@@ -28,7 +28,7 @@ MergeScoringFunctionTotalOrder::MergeScoringFunctionTotalOrder(
     const int max_transition_system_count = num_variables * 2 - 1;
 
     // Compute the order in which atomic transition systems are considered
-    vector<int> atomic_tso(std::from_range, std::views::iota(0, num_variables));
+    vector atomic_tso(std::from_range, std::views::iota(0, num_variables));
 
     if (atomic_ts_order == AtomicTSOrder::LEVEL) {
         ranges::reverse(atomic_tso);
@@ -37,7 +37,7 @@ MergeScoringFunctionTotalOrder::MergeScoringFunctionTotalOrder(
     }
 
     // Compute the order in which product transition systems are considered
-    vector<int> product_tso(
+    vector product_tso(
         std::from_range,
         std::views::iota(num_variables, max_transition_system_count));
 

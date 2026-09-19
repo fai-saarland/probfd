@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "probfd/merge_and_shrink/merge_scoring_function_single_random.h"
 
 #include "probfd/merge_and_shrink/types.h"
@@ -26,10 +28,10 @@ vector<double> MergeScoringFunctionSingleRandom::compute_scores(
     vector<double> scores;
     scores.reserve(merge_candidates.size());
 
-    for (size_t candidate_index = 0; candidate_index < merge_candidates.size();
+    for (size_t candidate_index = 0; candidate_index != merge_candidates.size();
          ++candidate_index) {
         scores.push_back(
-            static_cast<int>(candidate_index) == chosen_index
+            std::cmp_equal(candidate_index, chosen_index)
                 ? 0.0
                 : std::numeric_limits<double>::infinity());
     }

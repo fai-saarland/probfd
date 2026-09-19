@@ -29,16 +29,16 @@ void ProgressReport::disable()
     enabled_ = false;
 }
 
-void ProgressReport::register_print(std::function<void(std::ostream&)> f)
+void ProgressReport::register_print(const std::function<void(std::ostream&)>& f)
 {
     additional_informations_.push_back(f);
 }
 
 void ProgressReport::register_bound(
-    const std::string& val_name,
-    BoundProperty property)
+    const std::string& property_name,
+    const BoundProperty& property)
 {
-    bound_infos_.emplace_back(val_name, property, Interval(0_vt));
+    bound_infos_.emplace_back(property_name, property, Interval(0_vt));
 }
 
 void ProgressReport::force_print()
@@ -52,7 +52,7 @@ void ProgressReport::print()
     if (enabled_ && advance_values()) { print_progress(); }
 }
 
-void ProgressReport::print_progress()
+void ProgressReport::print_progress() const
 {
     std::print(out_, "[");
     for (unsigned i = 0; i < bound_infos_.size(); i++) {

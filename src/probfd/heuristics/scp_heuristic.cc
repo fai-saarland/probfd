@@ -55,11 +55,11 @@ SCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
     case RANDOM: rng_->shuffle(patterns); break;
 
     case SIZE_ASC:
-        std::ranges::stable_sort(patterns, std::less<>(), &Pattern::size);
+        std::ranges::stable_sort(patterns, std::less(), &Pattern::size);
         break;
 
     case SIZE_DESC:
-        std::ranges::stable_sort(patterns, std::greater<>(), &Pattern::size);
+        std::ranges::stable_sort(patterns, std::greater(), &Pattern::size);
         break;
 
     case INHERIT:

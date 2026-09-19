@@ -37,7 +37,7 @@ class ProjectionStateSpace
 
 public:
     ProjectionStateSpace(
-        SharedProbabilisticTask task,
+        const SharedProbabilisticTask& task,
         const StateRankingFunction& ranking_function,
         bool operator_pruning = true,
         downward::utils::FSeconds max_time = downward::utils::FSeconds::max());

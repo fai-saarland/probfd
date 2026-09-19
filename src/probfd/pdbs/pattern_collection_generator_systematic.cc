@@ -30,8 +30,8 @@ patterns_are_disjoint(const Pattern& pattern1, const Pattern& pattern2)
     size_t j = 0;
     for (;;) {
         if (i == pattern1.size() || j == pattern2.size()) return true;
-        int val1 = pattern1[i];
-        int val2 = pattern2[j];
+        const int val1 = pattern1[i];
+        const int val2 = pattern2[j];
         if (val1 == val2)
             return false;
 
@@ -75,12 +75,12 @@ static void compute_eff_pre_neighbors(
     unordered_set<int> candidates;
 
     // Compute neighbors.
-    for (int var : pattern) {
+    for (const int var : pattern) {
         candidates.insert_range(cg.get_eff_to_pre(var));
     }
 
     // Remove elements of pattern.
-    for (int var : pattern) {
+    for (const int var : pattern) {
         candidates.erase(var);
     }
 
@@ -112,7 +112,7 @@ static void compute_connection_points(
     unordered_set<int> candidates;
 
     // Handle rule 1.
-    for (int var : pattern) {
+    for (const int var : pattern) {
         candidates.insert_range(cg.get_successors(var));
     }
 
@@ -195,7 +195,7 @@ void PatternCollectionGeneratorSystematic::build_patterns(
     const AxiomSpace& axioms,
     const ProbabilisticOperatorSpace& operators,
     const GoalFactList& goals,
-    PatternCollection& patterns)
+    PatternCollection& patterns) const
 {
     PatternSet pattern_set;
 
@@ -218,7 +218,7 @@ void PatternCollectionGeneratorSystematic::build_patterns(
     */
     vector<vector<const Pattern*>> sga_patterns_by_var(num_variables);
     for (const Pattern& pattern : sga_patterns) {
-        for (int var : pattern) {
+        for (const int var : pattern) {
             sga_patterns_by_var[var].push_back(&pattern);
         }
     }
@@ -244,7 +244,7 @@ void PatternCollectionGeneratorSystematic::build_patterns(
         vector<int> neighbors;
         compute_connection_points(cg, pattern1, neighbors);
 
-        for (int neighbor_var : neighbors) {
+        for (const int neighbor_var : neighbors) {
             const auto& candidates = sga_patterns_by_var[neighbor_var];
             for (const Pattern* p_pattern2 : candidates) {
                 const Pattern& pattern2 = *p_pattern2;

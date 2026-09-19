@@ -49,7 +49,7 @@ private:
         const downward::AxiomSpace& axioms,
         const ProbabilisticOperatorSpace& operators,
         const downward::GoalFactList& goals,
-        PatternCollection& patterns);
+        PatternCollection& patterns) const;
 
     void build_patterns_naive(
         const downward::VariableSpace& variables,

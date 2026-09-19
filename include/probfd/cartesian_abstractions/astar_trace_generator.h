@@ -47,10 +47,10 @@ private:
     std::unique_ptr<Trace> extract_solution(
         int init_id,
         int goal_id,
-        downward::utils::CountdownTimer& timer) const;
+        const downward::utils::CountdownTimer& timer) const;
 
     void update_heuristic(
-        CartesianAbstraction& abstraction,
+        const CartesianAbstraction& abstraction,
         CartesianHeuristic& heuristic,
         const Trace& solution) const;
 };

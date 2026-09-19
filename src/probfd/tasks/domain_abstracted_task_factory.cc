@@ -62,13 +62,13 @@ DomainAbstractedTaskFactory::DomainAbstractedTaskFactory(
             "DomainAbstractedTask doesn't support conditional effects.");
     }
 
-    int num_vars = variables.get_num_variables();
+    const int num_vars = variables.get_num_variables();
     domain_size.resize(num_vars);
     initial_state_values = init_vals.get_initial_state_values();
     value_map.resize(num_vars);
     fact_names.resize(num_vars);
     for (int var = 0; var < num_vars; ++var) {
-        int num_values = variables.get_variable_domain_size(var);
+        const int num_values = variables.get_variable_domain_size(var);
         domain_size[var] = num_values;
         value_map[var].resize(num_values);
         fact_names[var].resize(num_values);
@@ -79,16 +79,15 @@ DomainAbstractedTaskFactory::DomainAbstractedTaskFactory(
         }
     }
 
-    for (const auto& pair : value_groups) {
-        int var = pair.first;
-        const ValueGroups& groups = pair.second;
+    for (const auto& [var, groups] : value_groups) {
+#ifndef NDEBUG
         assert(utils::in_bounds(var, domain_size));
         for (const ValueGroup& group : groups) {
-            for (int value : group) {
-                (void)value;
+            for (const int value : group) {
                 assert(0 <= value && value < domain_size[var]);
             }
         }
+#endif
         combine_values(var, groups);
     }
 
@@ -168,7 +167,8 @@ void DomainAbstractedTaskFactory::combine_values(
             ++next_free_pos;
         }
     }
-    int num_single_values = next_free_pos;
+
+    const int num_single_values = next_free_pos;
     assert(num_single_values + num_merged_values == domain_size[var]);
 
     // Add new facts for merged groups.
@@ -182,7 +182,9 @@ void DomainAbstractedTaskFactory::combine_values(
             std::move(combined_fact_names[group_id]);
         ++next_free_pos;
     }
-    int new_domain_size = num_single_values + static_cast<int>(groups.size());
+
+    const int new_domain_size =
+        num_single_values + static_cast<int>(groups.size());
     assert(next_free_pos == new_domain_size);
 
     // Update domain size.

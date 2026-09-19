@@ -95,7 +95,7 @@ static bool shrink_factor(
                     shrink_threshold_before_merge);
         }
 
-        Distances& distances = fts.get_distances(index);
+        const Distances& distances = fts.get_distances(index);
         const StateEquivalenceRelation equivalence_relation =
             shrink_strategy.compute_equivalence_relation(
                 fts.get_labels(),
@@ -125,7 +125,7 @@ bool shrink_before_merge_step(
     size_t max_states_before_merge,
     size_t shrink_threshold_before_merge,
     const ShrinkStrategy& shrink_strategy,
-    bool do_compute_goal_distances,
+    bool compute_goal_distances,
     bool compute_liveness,
     utils::LogProxy& log)
 {
@@ -152,7 +152,7 @@ bool shrink_before_merge_step(
         left_size,
         shrink_threshold_before_merge,
         shrink_strategy,
-        do_compute_goal_distances,
+        compute_goal_distances,
         compute_liveness,
         log);
 
@@ -166,7 +166,7 @@ bool shrink_before_merge_step(
         right_size,
         shrink_threshold_before_merge,
         shrink_strategy,
-        do_compute_goal_distances,
+        compute_goal_distances,
         compute_liveness,
         log);
 
@@ -199,13 +199,10 @@ vector<int> compute_abstraction_mapping(
 bool is_goal_relevant(const TransitionSystem& ts)
 {
     const int num_states = ts.get_size();
-    for (int state = 0; state < num_states; ++state) {
-        if (!ts.is_goal_state(state)) {
-            return true;
-        }
-    }
 
-    return false;
+    return std::ranges::any_of(std::views::iota(0, num_states), [&](int state) {
+        return !ts.is_goal_state(state);
+    });
 }
 
 } // namespace probfd::merge_and_shrink

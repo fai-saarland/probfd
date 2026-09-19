@@ -25,15 +25,16 @@ namespace probfd::cartesian_abstractions {
 
 ILAOPolicyGenerator::ILAOPolicyGenerator(value_t convergence_epsilon)
     : convergence_epsilon_(convergence_epsilon)
-    , picker_(new policy_pickers::ArbitraryTiebreaker<
+    , picker_(
+          std::make_shared<policy_pickers::ArbitraryTiebreaker<
               quotients::QuotientState<int, const ProbabilisticTransition*>,
-              quotients::QuotientAction<const ProbabilisticTransition*>>(true))
+              quotients::QuotientAction<const ProbabilisticTransition*>>>(true))
 {
 }
 
 unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
     CartesianAbstraction& abstraction,
-    const AbstractState* state,
+    const AbstractState* initial_state,
     CartesianHeuristic& heuristic,
     downward::utils::CountdownTimer& timer)
 {
@@ -58,7 +59,7 @@ unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
     auto policy = talilao.compute_policy(
         abstraction,
         heuristic,
-        state->get_id(),
+        initial_state->get_id(),
         report,
         timer.get_remaining_time());
 

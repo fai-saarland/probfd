@@ -60,7 +60,7 @@ void dump_graphviz(
     std::ostream& out,
     bool transition_labels)
 {
-    ProjectionOperatorToString op_names(operators);
+    const ProjectionOperatorToString op_names(operators);
 
     auto sts = [&pdb](StateRank x) {
         const value_t value = pdb.lookup_estimate(x);

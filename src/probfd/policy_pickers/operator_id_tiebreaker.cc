@@ -28,7 +28,7 @@ int OperatorIdTiebreaker::pick_index(
     int min_id = std::numeric_limits<int>::max();
     unsigned min_idx = std::numeric_limits<unsigned int>::max();
     for (int i = greedy_transitions.size() - 1; i >= 0; i--) {
-        int id = greedy_transitions[i].action.get_index() * ascending_;
+        const int id = greedy_transitions[i].action.get_index() * ascending_;
         if (id < min_id) {
             min_id = id;
             min_idx = i;

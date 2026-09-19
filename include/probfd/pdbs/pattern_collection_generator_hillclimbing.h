@@ -73,7 +73,7 @@ class PatternCollectionGeneratorHillclimbing final
     unsigned int generate_candidate_pdbs(
         const SharedProbabilisticTask& task,
         const downward::State& initial_state,
-        downward::utils::CountdownTimer& hill_climbing_timer,
+        const downward::utils::CountdownTimer& hill_climbing_timer,
         const std::vector<std::vector<int>>& relevant_neighbours,
         const ProbabilityAwarePatternDatabase& pdb,
         std::set<DynamicBitset>& generated_patterns,
@@ -105,8 +105,8 @@ class PatternCollectionGeneratorHillclimbing final
       the index of the best pdb in candidate_pdbs.
     */
     std::pair<int, int> find_best_improving_pdb(
-        downward::utils::CountdownTimer& hill_climbing_timer,
-        IncrementalPPDBs& current_pdbs,
+        const downward::utils::CountdownTimer& hill_climbing_timer,
+        const IncrementalPPDBs& current_pdbs,
         const std::vector<Sample>& samples,
         PPDBCollection& candidate_pdbs,
         value_t termination_cost) const;

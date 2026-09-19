@@ -126,7 +126,7 @@ int DeterminizationCostFunction::get_operator_cost(int index) const
 }
 
 extern SharedAbstractTask
-create_determinization_task(SharedProbabilisticTask probabilistic_task)
+create_determinization_task(const SharedProbabilisticTask& probabilistic_task)
 {
     auto operator_mapping = std::make_shared<DeterminizationOperatorMapping>(
         get_operators(probabilistic_task));

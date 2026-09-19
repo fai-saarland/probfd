@@ -26,7 +26,7 @@ PatternCollectionGeneratorClassical::PatternCollectionGeneratorClassical(
 PatternCollectionInformation PatternCollectionGeneratorClassical::generate(
     const SharedProbabilisticTask& task)
 {
-    auto determinization = tasks::create_determinization_task(task);
+    const auto determinization = tasks::create_determinization_task(task);
     auto finder = finder_factory_->create_subcollection_finder(task);
 
     return PatternCollectionInformation(

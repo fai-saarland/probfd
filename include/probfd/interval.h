@@ -56,25 +56,25 @@ Interval operator+(Interval lhs, Interval rhs);
 /**
  * @brief Scales an interval.
  *
- * @param scale_factor - The scaling factor \f$n\f$
- * @param val - An interval \f$[a, b]\f$
+ * @param lhs - The scaling factor \f$n\f$
+ * @param rhs - An interval \f$[a, b]\f$
  * @return The interval \f$[n \cdot a, n \cdot b]\f$
  */
-Interval operator*(value_t scale_factor, Interval val);
+Interval operator*(value_t lhs, Interval rhs);
 
 /**
  * @copydoc operator*(value_t, Interval)
  */
-Interval operator*(Interval val, value_t scale_factor);
+Interval operator*(Interval lhs, value_t rhs);
 
 /**
  * @brief Compresses the interval.
  *
- * @param val - An interval \f$[a, b]\f$
- * @param compress_factor - The compression factor \f$n\f$
+ * @param lhs - An interval \f$[a, b]\f$
+ * @param rhs - The compression factor \f$n\f$
  * @return The interval \f$[\frac{a}{n}, \frac{b}{n}]\f$
  */
-Interval operator/(Interval val, value_t compress_factor);
+Interval operator/(Interval lhs, value_t rhs);
 
 /// Stream output operator. Prints '[<val.lower>,<val.upper>]'.
 std::ostream& operator<<(std::ostream& os, Interval val);

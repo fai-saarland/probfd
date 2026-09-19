@@ -42,19 +42,19 @@ static State sample_state_with_random_walk(
           must have costs of 0 and in this case the if-clause triggers.
         */
         assert(average_operator_cost != 0);
-        int solution_steps_estimate =
+        const int solution_steps_estimate =
             static_cast<int>(std::round(init_h / average_operator_cost));
         n = 4 * solution_steps_estimate;
     }
 
-    double p = 0.5;
+    constexpr double p = 0.5;
     /* The expected walk length is np = 2 * estimated number of solution steps.
        (We multiply by 2 because the heuristic is underestimating.) */
 
     // Calculate length of random walk according to a binomial distribution.
     int length = 0;
     for (int j = 0; j < n; ++j) {
-        double random = rng.random(); // [0..1)
+        const double random = rng.random(); // [0..1)
         if (random < p) ++length;
     }
 
@@ -69,7 +69,7 @@ static State sample_state_with_random_walk(
         // If there are no applicable operators, do not walk further.
         if (applicable_operators.empty()) { break; }
 
-        OperatorID random_op_id = *rng.choose(applicable_operators);
+        const OperatorID random_op_id = *rng.choose(applicable_operators);
         ProbabilisticOperatorProxy random_op = operators[random_op_id];
         double r = rng.random();
         for (ProbabilisticOutcomeProxy outcome : random_op.get_outcomes()) {

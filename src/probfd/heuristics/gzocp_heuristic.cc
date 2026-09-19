@@ -33,8 +33,7 @@ namespace probfd::heuristics {
 
 namespace {
 
-class RunningCostFunction final
-    : public downward::OperatorCostFunction<value_t> {
+class RunningCostFunction final : public OperatorCostFunction<value_t> {
     std::vector<value_t> costs;
     std::vector<std::set<int>> affected_vars;
 
@@ -99,7 +98,7 @@ GZOCPHeuristicFactory::GZOCPHeuristicFactory(
 std::unique_ptr<FDRHeuristic>
 GZOCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
 {
-    auto pattern_collection_info =
+    const auto pattern_collection_info =
         pattern_collection_generator_->generate(task);
 
     auto patterns = pattern_collection_info.get_patterns();
@@ -133,9 +132,12 @@ GZOCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
     const auto gzo_cost_function =
         std::make_shared<RunningCostFunction>(operators, cost_function);
 
-    auto adapted = replace(task, gzo_cost_function);
+    const auto adapted = replace(task, gzo_cost_function);
 
-    BlindHeuristic<StateRank> h(operators, *gzo_cost_function, term_costs);
+    const BlindHeuristic<StateRank> h(
+        operators,
+        *gzo_cost_function,
+        term_costs);
 
     for (const Pattern& pattern : patterns) {
         auto& pdb = pdbs.emplace_back(variables, pattern);

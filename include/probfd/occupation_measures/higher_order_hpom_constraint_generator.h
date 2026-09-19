@@ -56,11 +56,11 @@ public:
 
     void update_constraints(
         const downward::State& state,
-        downward::lp::LPSolver& solver) final;
+        downward::lp::LPSolver& lp_solver) final;
 
     void reset_constraints(
         const downward::State& state,
-        downward::lp::LPSolver& solver) final;
+        downward::lp::LPSolver& lp_solver) final;
 
 private:
     [[nodiscard]]

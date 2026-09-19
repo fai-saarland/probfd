@@ -63,14 +63,15 @@ ValueUpdateResult update(Interval& lhs, Interval rhs, value_t epsilon)
     const bool result = !is_approx_equal(rhs.lower, lhs.lower, epsilon) ||
                         !is_approx_equal(rhs.upper, lhs.upper, epsilon);
     lhs = rhs;
-    return {result, lhs.bounds_approximately_equal(epsilon)};
+    return {.changed = result,
+            .converged = lhs.bounds_approximately_equal(epsilon)};
 }
 
 ValueUpdateResult update(value_t& lhs, value_t rhs, value_t epsilon)
 {
     const bool result = !is_approx_equal(lhs, rhs, epsilon);
     lhs = rhs;
-    return {result, !result};
+    return {.changed = result, .converged = !result};
 }
 
 } // namespace probfd::algorithms

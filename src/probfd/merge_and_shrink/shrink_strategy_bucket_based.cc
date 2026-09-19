@@ -3,9 +3,11 @@
 #include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
+#include "downward/views/transform.h"
 
 #include <cassert>
 #include <iostream>
+#include <utility>
 #include <vector>
 
 using namespace std;
@@ -28,9 +30,12 @@ StateEquivalenceRelation ShrinkStrategyBucketBased::compute_abstraction(
     StateEquivalenceRelation equiv_relation;
     equiv_relation.reserve(target_size);
 
-    size_t num_states_to_go = 0;
-    for (size_t bucket_no = 0; bucket_no < buckets.size(); ++bucket_no)
-        num_states_to_go += buckets[bucket_no].size();
+    constexpr auto get_size = [](const auto& x) { return x.size(); };
+
+    size_t num_states_to_go = std::ranges::fold_left(
+        buckets | downward::views::transform<get_size>,
+        0U,
+        std::plus{});
 
     for (size_t bucket_no = 0; bucket_no < buckets.size(); ++bucket_no) {
         const vector<int>& bucket = buckets[bucket_no];
@@ -40,21 +45,18 @@ StateEquivalenceRelation ShrinkStrategyBucketBased::compute_abstraction(
 
         if (const int budget_for_this_bucket =
                 remaining_state_budget - num_states_to_go;
-            budget_for_this_bucket >= static_cast<int>(bucket.size())) {
+            std::cmp_greater_equal(budget_for_this_bucket, bucket.size())) {
             // Each state in bucket can become a singleton group.
-            for (size_t i = 0; i < bucket.size(); ++i) {
-                StateEquivalenceClass group;
-                group.push_front(bucket[i]);
-                equiv_relation.push_back(group);
+            for (const int i : bucket) {
+                equiv_relation.emplace_back(StateEquivalenceClass{i});
             }
         } else if (budget_for_this_bucket <= 1) {
             // The whole bucket must form one group.
             if (const int remaining_buckets = buckets.size() - bucket_no;
                 remaining_state_budget >= remaining_buckets) {
-                equiv_relation.push_back(StateEquivalenceClass());
+                equiv_relation.emplace_back();
             } else {
-                if (bucket_no == 0)
-                    equiv_relation.push_back(StateEquivalenceClass());
+                if (bucket_no == 0) equiv_relation.emplace_back();
                 if (show_combine_buckets_warning) {
                     show_combine_buckets_warning = false;
                     log.println("Very small node limit, must combine buckets.");
@@ -72,8 +74,8 @@ StateEquivalenceRelation ShrinkStrategyBucketBased::compute_abstraction(
             // Then combine groups until required size is reached.
             assert(
                 budget_for_this_bucket >= 2 &&
-                budget_for_this_bucket < static_cast<int>(groups.size()));
-            while (static_cast<int>(groups.size()) > budget_for_this_bucket) {
+                std::cmp_less(budget_for_this_bucket, groups.size()));
+            while (std::cmp_greater(groups.size(), budget_for_this_bucket)) {
                 auto it1 = rng->choose(groups);
                 auto it2 = it1;
                 while (it1 == it2) {
@@ -86,9 +88,8 @@ StateEquivalenceRelation ShrinkStrategyBucketBased::compute_abstraction(
             }
 
             // Finally add these groups to the result.
-            for (size_t i = 0; i < groups.size(); ++i) {
-                equiv_relation.push_back(StateEquivalenceClass());
-                equiv_relation.back().swap(groups[i]);
+            for (auto& group : groups) {
+                equiv_relation.emplace_back().swap(group);
             }
         }
     }

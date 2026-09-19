@@ -54,13 +54,13 @@ optional<Flaw> TraceBasedFlawGenerator::generate_flaw(
     const ProbabilisticTaskTuple& task,
     const std::vector<int>& domain_sizes,
     CartesianAbstraction& abstraction,
-    const AbstractState* init,
+    const AbstractState* initial_state,
     CartesianHeuristic& heuristic,
     utils::LogProxy& log,
     utils::CountdownTimer& timer)
 {
-    std::unique_ptr<Trace> solution =
-        find_trace(abstraction, init->get_id(), heuristic, timer);
+    const std::unique_ptr<Trace> solution =
+        find_trace(abstraction, initial_state->get_id(), heuristic, timer);
 
     if (!solution) {
         if (log.is_at_least_normal()) {
@@ -84,9 +84,9 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
     const ProbabilisticTaskTuple& task,
     const std::vector<int>& domain_sizes,
     const Trace& solution,
-    CartesianAbstraction& abstraction,
+    const CartesianAbstraction& abstraction,
     utils::LogProxy& log,
-    utils::CountdownTimer& timer)
+    const utils::CountdownTimer& timer)
 {
     TimerScope scope(find_flaw_timer_);
 
@@ -108,19 +108,20 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
     if (log.is_at_least_debug())
         log.println("  Initial abstract state: {}", *abstract_state);
 
-    for (const TransitionOutcome& step : solution) {
+    for (const auto& [op_id, eff_id, target_id] : solution) {
         timer.throw_if_expired();
         if (!utils::extra_memory_padding_is_reserved()) break;
-        ProbabilisticOperatorProxy op = operators[step.op_id];
+        ProbabilisticOperatorProxy op = operators[op_id];
         const AbstractState* next_abstract_state =
-            &abstraction.get_abstract_state(step.target_id);
-        if (::task_properties::is_applicable(op, concrete_state)) {
+            &abstraction.get_abstract_state(target_id);
+
+        if (task_properties::is_applicable(op, concrete_state)) {
             if (log.is_at_least_debug())
                 log.println(
                     "  Move to {} with {}",
                     *next_abstract_state,
                     op.get_name());
-            const auto outcome = op.get_outcomes()[step.eff_id];
+            const auto outcome = op.get_outcomes()[eff_id];
             State next_concrete_state =
                 concrete_state.get_unregistered_successor(
                     axiom_evaluator,
@@ -145,7 +146,7 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
     }
 
     assert(abstraction.get_goals().contains(abstract_state->get_id()));
-    if (::task_properties::is_goal_state(goals, concrete_state)) {
+    if (task_properties::is_goal_state(goals, concrete_state)) {
         // We found a concrete solution.
         return std::nullopt;
     }

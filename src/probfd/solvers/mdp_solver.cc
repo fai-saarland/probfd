@@ -3,7 +3,6 @@
 #include "probfd/solvers/statistical_mdp_algorithm.h"
 
 #include "probfd/caching_task_state_space.h"
-
 #include "probfd/heuristic.h"
 #include "probfd/labelled_successor_distribution.h"
 #include "probfd/mdp_algorithm.h"
@@ -21,7 +20,6 @@
 #include "downward/utils/system.h"
 #include "downward/utils/timer.h"
 
-
 #include <deque>
 #include <fstream>
 #include <iostream>
@@ -36,26 +34,26 @@ namespace probfd::solvers {
 namespace {
 void print_policy(
     std::ostream& out,
-    std::function<std::string(const State&)> state_fmt,
-    std::function<std::string(const OperatorID&)> action_fmt,
+    const std::function<std::string(const State&)>& state_fmt,
+    const std::function<std::string(const OperatorID&)>& action_fmt,
     const Policy<State, OperatorID>& policy,
     MDP<State, OperatorID>& mdp,
     const State& initial_state)
 {
-    const probfd::StateID initial_state_id = mdp.get_state_id(initial_state);
+    const StateID initial_state_id = mdp.get_state_id(initial_state);
 
-    std::deque<probfd::StateID> queue;
-    std::set<probfd::StateID> visited;
+    std::deque<StateID> queue;
+    std::set<StateID> visited;
     queue.push_back(initial_state_id);
     visited.insert(initial_state_id);
 
     do {
-        const probfd::StateID state_id = queue.front();
+        const StateID state_id = queue.front();
         queue.pop_front();
 
         const State state = mdp.get_state(state_id);
 
-        auto decision = policy.get_decision(state);
+        const auto decision = policy.get_decision(state);
 
         if (!decision) {
             continue;
@@ -105,6 +103,7 @@ MDPSolver::MDPSolver(
 
 MDPSolver::~MDPSolver() = default;
 
+namespace {
 class Solver : public SolverInterface {
     SharedProbabilisticTask task;
 
@@ -171,7 +170,7 @@ public:
                              action_cost_function,
                              term_cost_function};
 
-            Timer search_timer;
+            const Timer search_timer;
 
             progress.register_print([&](std::ostream& out) {
                 std::print(
@@ -185,7 +184,7 @@ public:
                 std::print(out, "memory={}", get_peak_memory_in_kib());
             });
 
-            std::unique_ptr<Policy<State, OperatorID>> policy =
+            const std::unique_ptr<Policy<State, OperatorID>> policy =
                 algorithm->compute_policy(
                     mdp,
                     *heuristic,
@@ -269,6 +268,7 @@ public:
         return false;
     }
 };
+} // namespace
 
 std::unique_ptr<SolverInterface>
 MDPSolver::create(const SharedProbabilisticTask& task)

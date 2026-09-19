@@ -31,17 +31,17 @@ BFSFlawFinder::BFSFlawFinder(int max_search_states)
     : closed_(false)
     , max_search_states_(max_search_states)
 {
-    utils::validate_param_non_negative("max_search_states", max_search_states_);
+    validate_param_non_negative("max_search_states", max_search_states_);
 }
 
 bool BFSFlawFinder::apply_policy(
     const ProbabilisticTaskTuple& task,
-    const downward::State& initial_state,
+    const State& initial_state,
     const StateRankingFunction& state_ranking_function,
     const ProjectionStateSpace& mdp,
     const ProjectionMultiPolicy& policy,
     std::vector<Flaw>& flaws,
-    const std::function<bool(const Flaw&)>& accept_flaw,
+    const std::function<bool(const Flaw&)>& notify_flaw,
     CountdownTimer& timer)
 {
     assert(open_.empty() && closed_.empty());
@@ -82,7 +82,7 @@ bool BFSFlawFinder::apply_policy(
             // We reached a terminal state, check if it is a goal or dead-end
             if (abs_decisions.empty()) {
                 if (mdp.is_goal(abs) &&
-                    collect_flaws(goals, current, flaws, accept_flaw))
+                    collect_flaws(goals, current, flaws, notify_flaw))
                     return false;
 
                 goto continue_exploration;
@@ -90,8 +90,8 @@ bool BFSFlawFinder::apply_policy(
 
             std::vector<Flaw> local_flaws;
 
-            for (const auto& decision : abs_decisions) {
-                const auto op = operators[decision.action->operator_id];
+            for (const auto& [action, q_value_interval] : abs_decisions) {
+                const auto op = operators[action->operator_id];
 
                 const auto s = local_flaws.size();
 
@@ -99,7 +99,7 @@ bool BFSFlawFinder::apply_policy(
                     op.get_preconditions(),
                     current,
                     local_flaws,
-                    accept_flaw);
+                    notify_flaw);
 
                 if (flaw_suppressed) {
                     any_flaw_suppressed = true;

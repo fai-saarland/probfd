@@ -19,7 +19,8 @@ using namespace downward;
 namespace probfd::pdbs {
 
 struct MatchTree::Node {
-    static const int LEAF_NODE = -1;
+    static constexpr int LEAF_NODE = -1;
+
     std::vector<size_t> applicable_operator_ids;
     // The variable which this node represents.
     int var_id = LEAF_NODE;
@@ -34,6 +35,7 @@ struct MatchTree::Node {
     std::unique_ptr<Node> star_successor;
 
     void initialize(int var_id, int var_multiplier, int var_domain_size);
+
     [[nodiscard]]
     bool is_leaf_node() const;
 };
@@ -67,14 +69,14 @@ void MatchTree::insert(
     const enumeration::AssignmentEnumerator& enumerator,
     ProjectionOperator op,
     const vector<FactPair>& progression_preconditions,
-    OperatorCostFunction<value_t>* cost_function)
+    const OperatorCostFunction<value_t>* cost_function)
 {
     std::unique_ptr<Node>* node = &root_;
     auto precondition_it = progression_preconditions.begin();
     const auto precondition_end = progression_preconditions.end();
 
     for (;;) {
-        if (!node->get()) {
+        if (!*node) {
             // We don't exist yet: create a new node.
             *node = std::make_unique<Node>();
         }
@@ -82,9 +84,9 @@ void MatchTree::insert(
         if (precondition_it == precondition_end) break;
 
         const FactPair& fact = *precondition_it;
-        int pattern_var_id = fact.var;
-        int var_multiplier = enumerator.get_multiplier(pattern_var_id);
-        int var_domain_size = enumerator.get_domain_size(pattern_var_id);
+        const int pattern_var_id = fact.var;
+        const int var_multiplier = enumerator.get_multiplier(pattern_var_id);
+        const int var_domain_size = enumerator.get_domain_size(pattern_var_id);
 
         // Set up node correctly or insert a new node if necessary.
         if ((*node)->is_leaf_node()) {
@@ -122,7 +124,7 @@ void MatchTree::insert(
     if (cost_function) {
         const auto cost =
             cost_function->get_operator_cost(op.operator_id.get_index());
-        for (std::size_t op_id : (*node)->applicable_operator_ids) {
+        for (const std::size_t op_id : (*node)->applicable_operator_ids) {
             ProjectionOperator& other = projection_operators_[op_id];
             if (!are_equivalent(op, other)) continue;
             if (cost >=
@@ -137,8 +139,8 @@ void MatchTree::insert(
 }
 
 void MatchTree::get_applicable_operators(
-    StateRank abstract_state_rank,
-    vector<const ProjectionOperator*>& operator_ids) const
+    StateRank abstract_state,
+    vector<const ProjectionOperator*>& operators) const
 {
     if (!root_) return;
 
@@ -146,17 +148,17 @@ void MatchTree::get_applicable_operators(
     nodes_.push(root_.get());
 
     while (!nodes_.empty()) {
-        Node* node = nodes_.top();
+        const Node* node = nodes_.top();
         nodes_.pop();
 
-        for (size_t op_index : node->applicable_operator_ids) {
-            operator_ids.push_back(projection_operators_.data() + op_index);
+        for (const size_t op_index : node->applicable_operator_ids) {
+            operators.push_back(projection_operators_.data() + op_index);
         }
 
         if (node->is_leaf_node()) continue;
 
-        int temp = abstract_state_rank / node->var_multiplier;
-        int val = temp % node->var_domain_size;
+        const int temp = abstract_state / node->var_multiplier;
+        const int val = temp % node->var_domain_size;
 
         if (node->star_successor) {
             // Always follow the star edge, if it exists.
@@ -171,7 +173,7 @@ void MatchTree::get_applicable_operators(
 }
 
 void MatchTree::generate_all_transitions(
-    StateRank abstract_state_rank,
+    StateRank abstract_state,
     std::vector<LabelledSuccessorDistribution<const ProjectionOperator*>>&
         transitions,
     ProjectionStateSpace& state_space) const
@@ -189,22 +191,22 @@ void MatchTree::generate_all_transitions(
     nodes_.push(root_.get());
 
     while (!nodes_.empty()) {
-        Node* node = nodes_.top();
+        const Node* node = nodes_.top();
         nodes_.pop();
 
-        for (size_t op_index : node->applicable_operator_ids) {
+        for (const size_t op_index : node->applicable_operator_ids) {
             auto* op = projection_operators_.data() + op_index;
-            auto& t = transitions.emplace_back(op);
+            auto& successor_dist = transitions.emplace_back(op).successor_dist;
             state_space.generate_action_transitions(
-                abstract_state_rank,
+                abstract_state,
                 op,
-                t.successor_dist);
+                successor_dist);
         }
 
         if (node->is_leaf_node()) continue;
 
-        int temp = abstract_state_rank / node->var_multiplier;
-        int val = temp % node->var_domain_size;
+        const int temp = abstract_state / node->var_multiplier;
+        const int val = temp % node->var_domain_size;
 
         if (node->star_successor) {
             // Always follow the star edge, if it exists.

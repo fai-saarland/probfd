@@ -45,8 +45,8 @@ CEGARResult run_refinement_loop(
     int max_states,
     int max_non_looping_transitions,
     downward::utils::FSeconds max_time,
-    FlawGenerator& flaw_generator_factory,
-    SplitSelector& split_selector_factory,
+    FlawGenerator& flaw_generator,
+    SplitSelector& split_selector,
     const downward::utils::LogProxy& log,
     const ProbabilisticTaskTuple& task);
 

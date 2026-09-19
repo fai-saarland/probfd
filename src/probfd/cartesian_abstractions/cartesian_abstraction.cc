@@ -12,6 +12,8 @@
 
 #include "downward/task_utils/task_properties.h"
 
+#include "downward/views/transform.h"
+
 #include "downward/cartesian_set.h"
 #include "downward/initial_state_values.h"
 
@@ -34,9 +36,14 @@ CartesianAbstraction::CartesianAbstraction(
     , operator_costs_(std::move(operator_costs))
     , log_(std::move(log))
 {
-    initialize_trivial_abstraction(
+    const auto domain_sizes =
         get_variables(task) |
-        std::views::transform(&VariableProxy::get_domain_size));
+        downward::views::transform<&VariableProxy::get_domain_size>;
+    unique_ptr<AbstractState> init_state =
+        AbstractState::get_trivial_abstract_state(domain_sizes);
+    init_id_ = init_state->get_id();
+    goals_.insert(init_state->get_id());
+    states_.push_back(std::move(init_state));
 }
 
 CartesianAbstraction::~CartesianAbstraction() = default;
@@ -59,7 +66,7 @@ void CartesianAbstraction::generate_applicable_actions(
 }
 
 void CartesianAbstraction::generate_action_transitions(
-    int source,
+    int state,
     const ProbabilisticTransition* action,
     SuccessorDistribution& successor_dist)
 {
@@ -68,7 +75,7 @@ void CartesianAbstraction::generate_action_transitions(
     for (size_t i = 0; i != action->target_ids.size(); ++i) {
         const auto succ = action->target_ids[i];
 
-        if (source == succ) continue;
+        if (state == succ) continue;
 
         const value_t probability =
             transition_system_->get_probability(action->op_id, i);
@@ -94,8 +101,8 @@ void CartesianAbstraction::generate_all_transitions(
 {
     for (const auto* t :
          transition_system_->get_outgoing_transitions()[state]) {
-        LDistType& transition = transitions.emplace_back(t);
-        generate_action_transitions(state, t, transition.successor_dist);
+        auto& [action, successor_dist] = transitions.emplace_back(t);
+        generate_action_transitions(state, t, successor_dist);
     }
 }
 
@@ -159,17 +166,6 @@ void CartesianAbstraction::mark_all_states_as_goals()
     goals_.insert_range(states_ | std::views::transform(get_id));
 }
 
-template <std::ranges::input_range R>
-    requires std::same_as<std::ranges::range_value_t<R>, int>
-void CartesianAbstraction::initialize_trivial_abstraction(const R& domain_sizes)
-{
-    unique_ptr<AbstractState> init_state =
-        AbstractState::get_trivial_abstract_state(domain_sizes);
-    init_id_ = init_state->get_id();
-    goals_.insert(init_state->get_id());
-    states_.push_back(std::move(init_state));
-}
-
 pair<int, int> CartesianAbstraction::refine(
     RefinementHierarchy& refinement_hierarchy,
     const AbstractState& abstract_state,
@@ -183,10 +179,10 @@ pair<int, int> CartesianAbstraction::refine(
             split_var,
             wanted);
 
-    int v_id = abstract_state.get_id();
+    const int v_id = abstract_state.get_id();
     // Reuse state ID from obsolete parent to obtain consecutive IDs.
-    int v1_id = v_id;
-    int v2_id = get_num_states();
+    const int v1_id = v_id;
+    const int v2_id = get_num_states();
 
     // Update refinement hierarchy.
     auto [node1, node2] = refinement_hierarchy.split(
@@ -237,7 +233,7 @@ pair<int, int> CartesianAbstraction::refine(
 
     transition_system_->rewire(states_, *v1, *v2, split_var);
 
-    assert(static_cast<int>(states_.size()) == v2_id);
+    assert(std::cmp_equal(states_.size(), v2_id));
 
     states_[v1_id] = std::move(v1);
     states_.push_back(std::move(v2));

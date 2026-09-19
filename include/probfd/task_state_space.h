@@ -96,7 +96,7 @@ public:
     virtual void print_statistics(std::ostream& out) const;
 
     void compute_successor_dist(
-        const downward::State& s,
+        const downward::State& state,
         downward::OperatorID op_id,
         SuccessorDistribution& successor_dist);
 

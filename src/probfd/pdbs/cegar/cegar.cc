@@ -66,8 +66,8 @@ public:
 
     PDBInfo(
         SharedProbabilisticTask task,
-        const ProbabilityAwarePatternDatabase& merge_left,
-        const ProbabilityAwarePatternDatabase& merge_right,
+        const ProbabilityAwarePatternDatabase& left,
+        const ProbabilityAwarePatternDatabase& right,
         const State& initial_state,
         value_t greedy_epsilon,
         utils::RandomNumberGenerator& rng,
@@ -154,7 +154,7 @@ CEGAR::PDBInfo::PDBInfo(
               false,
               timer.get_remaining_time()))
 {
-    NonOwningIncrementalPPDBEvaluator h(
+    const NonOwningIncrementalPPDBEvaluator h(
         previous.value_table,
         pdb->ranking_function,
         add_var);
@@ -198,7 +198,7 @@ CEGAR::PDBInfo::PDBInfo(
 {
     const auto& term_costs = get_termination_costs(task);
 
-    MergeEvaluator h(
+    const MergeEvaluator h(
         pdb->ranking_function,
         left,
         right,
@@ -273,19 +273,19 @@ void CEGAR::PDBInfo::release()
 
 CEGAR::CEGAR(
     value_t convergence_epsilon,
-    const shared_ptr<utils::RandomNumberGenerator>& arg_rng,
+    const shared_ptr<utils::RandomNumberGenerator>& rng,
     std::shared_ptr<FlawFindingStrategy> flaw_strategy,
     bool wildcard,
-    int arg_max_pdb_size,
-    int arg_max_collection_size,
+    int max_pdb_size,
+    int max_collection_size,
     std::vector<int> goals,
     std::unordered_set<int> blacklisted_variables)
     : convergence_epsilon(convergence_epsilon)
-    , rng_(arg_rng)
+    , rng_(rng)
     , flaw_strategy_(std::move(flaw_strategy))
     , wildcard_(wildcard)
-    , max_pdb_size_(arg_max_pdb_size)
-    , max_collection_size_(arg_max_collection_size)
+    , max_pdb_size_(max_pdb_size)
+    , max_collection_size_(max_collection_size)
     , goals_(std::move(goals))
     , blacklisted_variables_(std::move(blacklisted_variables))
 {
@@ -318,12 +318,12 @@ void CEGAR::generate_trivial_solution_collection(
     const auto& cost_function = get_cost_function(task);
     const auto& term_costs = get_termination_costs(task);
 
-    heuristics::BlindHeuristic<StateRank> h(
+    const heuristics::BlindHeuristic<StateRank> h(
         operators,
         cost_function,
         term_costs);
 
-    for (int var : goals_) {
+    for (const int var : goals_) {
         add_pattern_for_var(task, initial_state, h, var, timer);
     }
 
@@ -449,8 +449,8 @@ bool CEGAR::can_add_variable_to_pattern(
     std::vector<PDBInfo>::iterator info_it,
     int var) const
 {
-    int pdb_size = info_it->get_pdb().num_states();
-    int domain_size = variables[var].get_domain_size();
+    const int pdb_size = info_it->get_pdb().num_states();
+    const int domain_size = variables[var].get_domain_size();
 
     const int limit = std::min(max_pdb_size_, remaining_size_ + pdb_size);
     return utils::is_product_within_limit(pdb_size, domain_size, limit);
@@ -460,8 +460,8 @@ bool CEGAR::can_merge_patterns(
     std::vector<PDBInfo>::iterator info_it1,
     std::vector<PDBInfo>::iterator info_it2) const
 {
-    int pdb_size1 = info_it1->get_pdb().num_states();
-    int pdb_size2 = info_it2->get_pdb().num_states();
+    const int pdb_size1 = info_it1->get_pdb().num_states();
+    const int pdb_size2 = info_it2->get_pdb().num_states();
 
     const int limit =
         std::min(max_pdb_size_, remaining_size_ + pdb_size1 + pdb_size2);
@@ -476,7 +476,7 @@ void CEGAR::add_pattern_for_var(
     int var,
     utils::CountdownTimer& timer)
 {
-    auto info_it = pdb_infos_.emplace(
+    const auto info_it = pdb_infos_.emplace(
         pdb_infos_.end(),
         task,
         Pattern{var},
@@ -605,36 +605,35 @@ void CEGAR::refine(
     assert(!flaws.empty());
 
     // pick a random flaw
-    int random_flaw_index = rng_->random(flaws.size());
-    const Flaw& flaw = flaws[random_flaw_index];
+    const int random_flaw_index = rng_->random(flaws.size());
+    const auto& [variable, is_precondition] = flaws[random_flaw_index];
 
-    auto fit = std::ranges::upper_bound(flaw_offsets, random_flaw_index);
+    const auto fit = std::ranges::upper_bound(flaw_offsets, random_flaw_index);
     assert(fit != flaw_offsets.end());
 
-    int solution_index = std::distance(flaw_offsets.begin(), fit);
-    auto solution_it = std::next(pdb_infos_.begin(), solution_index);
-    int var = flaw.variable;
+    const auto solution_index = std::distance(flaw_offsets.begin(), fit);
+    const auto solution_it = std::next(pdb_infos_.begin(), solution_index);
 
     if (log.is_at_least_verbose()) {
         log.println(
             "CEGAR: chosen flaw: pattern {} with a violated {} on {}",
             pdb_infos_[solution_index].get_pattern(),
-            flaw.is_precondition ? "precondition" : "goal",
-            var);
+            is_precondition ? "precondition" : "goal",
+            variable);
     }
 
-    const auto it = variable_to_info_.find(var);
+    const auto it = variable_to_info_.find(variable);
 
     if (it != variable_to_info_.end()) {
         // var is already in another pattern of the collection
-        auto other_it = it->second;
+        const auto other_it = it->second;
         assert(other_it != solution_it);
         assert(can_merge_patterns(solution_it, other_it));
 
         if (log.is_at_least_verbose()) {
             log.println(
                 "CEGAR: var {} is already in pattern {}",
-                var,
+                variable,
                 other_it->get_pattern());
             log.println("CEGAR: merge the two patterns");
         }
@@ -649,11 +648,11 @@ void CEGAR::refine(
     // nevertheless is added to the pattern causing the flaw and not to
     // a single new pattern.
     if (log.is_at_least_verbose()) {
-        log.println("CEGAR: var {} is not in the collection yet", var);
+        log.println("CEGAR: var {} is not in the collection yet", variable);
         log.println("CEGAR: add it to the pattern");
     }
 
-    add_variable_to_pattern(task, initial_state, solution_it, var, timer);
+    add_variable_to_pattern(task, initial_state, solution_it, variable, timer);
 }
 
 void CEGAR::generate_pdbs(
@@ -683,8 +682,8 @@ void CEGAR::generate_pdbs(
     generate_trivial_solution_collection(task, initial_state, timer, log);
 
     std::vector<Flaw> flaws;
-    std::vector<int> flaw_offsets(pdb_infos_.size(), 0);
-    std::vector<PDBInfo>::iterator solution_it = unsolved_end;
+    std::vector flaw_offsets(pdb_infos_.size(), 0);
+    auto solution_it = unsolved_end;
 
     // main loop of the algorithm
     int refinement_counter = 1;

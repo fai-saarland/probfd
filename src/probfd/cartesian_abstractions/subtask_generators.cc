@@ -1,6 +1,5 @@
 #include "probfd/cartesian_abstractions/subtask_generators.h"
 
-#include "downward/initial_state_values.h"
 #include "probfd/tasks/determinization_task.h"
 #include "probfd/tasks/domain_abstracted_task_factory.h"
 
@@ -23,6 +22,7 @@
 #include "downward/tasks/domain_abstracted_task.h"
 #include "downward/tasks/modified_goals_task.h"
 
+#include "downward/initial_state_values.h"
 #include "downward/state.h"
 
 #include <algorithm>
@@ -114,9 +114,8 @@ static SharedProbabilisticTask build_domain_abstracted_task(
     const landmarks::LandmarkNode* node)
 {
     extra_tasks::VarToGroups value_groups;
-    for (auto& pair : ::cartesian_abstractions::get_prev_landmarks(node)) {
-        int var = pair.first;
-        vector<int>& group = pair.second;
+    for (auto& [var, group] :
+         ::cartesian_abstractions::get_prev_landmarks(node)) {
         if (group.size() >= 2) value_groups[var].push_back(group);
     }
     return extra_tasks::build_domain_abstracted_task(parent, value_groups);
@@ -158,7 +157,7 @@ SharedTasks GoalDecomposition::get_subtasks(
     const auto& goals = get_goal(task);
 
     SharedTasks subtasks;
-    Facts goal_facts = ::task_properties::get_fact_pairs(goals);
+    Facts goal_facts = task_properties::get_fact_pairs(goals);
     filter_and_order_facts(task, fact_order_, goal_facts, *rng_, log);
     for (const FactPair& goal : goal_facts) {
         SharedProbabilisticTask subtask = replace(
@@ -188,7 +187,7 @@ SharedTasks LandmarkDecomposition::get_subtasks(
     const SharedProbabilisticTask& task,
     utils::LogProxy& log) const
 {
-    auto determinization_task = tasks::create_determinization_task(task);
+    const auto determinization_task = tasks::create_determinization_task(task);
     SharedTasks subtasks;
     const shared_ptr<landmarks::LandmarkGraph> landmark_graph =
         ::cartesian_abstractions::get_landmark_graph(

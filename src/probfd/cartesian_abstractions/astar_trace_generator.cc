@@ -92,7 +92,7 @@ unique_ptr<Trace> AStarTraceGenerator::find_trace(
 
         assert(0 <= g && g < INFINITE_VALUE);
 
-        value_t new_f = g + heuristic.get_h_value(state_id);
+        const value_t new_f = g + heuristic.get_h_value(state_id);
 
         assert(new_f <= old_f);
 
@@ -108,8 +108,8 @@ unique_ptr<Trace> AStarTraceGenerator::find_trace(
 
         for (const ProbabilisticTransition* transition : out[state_id]) {
             for (size_t i = 0; i != transition->target_ids.size(); ++i) {
-                int op_id = transition->op_id;
-                int succ_id = transition->target_ids[i];
+                const int op_id = transition->op_id;
+                const int succ_id = transition->target_ids[i];
 
                 const value_t op_cost = abstraction.get_cost(op_id);
                 assert(op_cost >= 0);
@@ -118,7 +118,7 @@ unique_ptr<Trace> AStarTraceGenerator::find_trace(
 
                 if (succ_g < search_info_[succ_id].get_g_value()) {
                     search_info_[succ_id].decrease_g_value_to(succ_g);
-                    auto h = heuristic.get_h_value(succ_id);
+                    const auto h = heuristic.get_h_value(succ_id);
                     if (h == INFINITE_VALUE) continue;
                     const value_t f = succ_g + h;
                     assert(f >= 0);
@@ -139,24 +139,24 @@ unique_ptr<Trace> AStarTraceGenerator::find_trace(
 unique_ptr<Trace> AStarTraceGenerator::extract_solution(
     int init_id,
     int goal_id,
-    utils::CountdownTimer& timer) const
+    const utils::CountdownTimer& timer) const
 {
-    unique_ptr<Trace> solution = std::make_unique<Trace>();
+    auto solution = std::make_unique<Trace>();
     int current_id = goal_id;
     while (current_id != init_id) {
         timer.throw_if_expired();
-        const TransitionOutcome& prev =
+        const auto& [op_id, eff_id, target_id] =
             search_info_[current_id].get_incoming_transition();
-        solution->emplace_front(prev.op_id, prev.eff_id, current_id);
-        assert(prev.target_id != current_id);
-        current_id = prev.target_id;
+        solution->emplace_front(op_id, eff_id, current_id);
+        assert(target_id != current_id);
+        current_id = target_id;
     }
 
     return solution;
 }
 
 void AStarTraceGenerator::update_heuristic(
-    CartesianAbstraction& abstraction,
+    const CartesianAbstraction& abstraction,
     CartesianHeuristic& heuristic,
     const Trace& solution) const
 {

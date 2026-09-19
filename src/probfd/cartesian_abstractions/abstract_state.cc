@@ -4,6 +4,7 @@
 
 #include "downward/abstract_task.h"
 #include "downward/state.h"
+#include "probfd/utils/bind.h"
 
 #include <cassert>
 #include <ostream>
@@ -36,17 +37,18 @@ bool AbstractState::contains(int var, int value) const
 pair<CartesianSet, CartesianSet>
 AbstractState::split_domain(int var, const vector<int>& wanted) const
 {
-    int num_wanted = static_cast<int>(wanted.size());
-    (void)num_wanted;
+#ifndef NDEBUG
     // We can only refine for variables with at least two values.
+    const int num_wanted = static_cast<int>(wanted.size());
     assert(num_wanted >= 1);
     assert(cartesian_set_.count(var) > num_wanted);
+#endif
 
     CartesianSet v1_cartesian_set(cartesian_set_);
     CartesianSet v2_cartesian_set(cartesian_set_);
 
     v2_cartesian_set.remove_all(var);
-    for (int value : wanted) {
+    for (const int value : wanted) {
         // The wanted value has to be in the set of possible values.
         assert(cartesian_set_.test(var, value));
 
@@ -56,9 +58,13 @@ AbstractState::split_domain(int var, const vector<int>& wanted) const
         // In v2 var can only have the wanted values.
         v2_cartesian_set.add(var, value);
     }
+
+#ifndef NDEBUG
     assert(
         v1_cartesian_set.count(var) == cartesian_set_.count(var) - num_wanted);
     assert(v2_cartesian_set.count(var) == num_wanted);
+#endif
+
     return make_pair(v1_cartesian_set, v2_cartesian_set);
 }
 
@@ -68,12 +74,14 @@ CartesianSet AbstractState::regress(
 {
     CartesianSet regression = cartesian_set_;
     for (ProbabilisticEffectProxy effect : effects) {
-        int var_id = effect.get_fact().var;
+        const int var_id = effect.get_fact().var;
         regression.add_all(var_id);
     }
+
     for (const auto [var, value] : op.get_preconditions()) {
         regression.set_single_value(var, value);
     }
+
     return regression;
 }
 
@@ -86,18 +94,16 @@ bool AbstractState::domain_subsets_intersect(
 
 bool AbstractState::includes(const State& concrete_state) const
 {
-    for (const auto [var, value] : concrete_state | as_fact_pair_set) {
-        if (!cartesian_set_.test(var, value)) return false;
-    }
-    return true;
+    return std::ranges::all_of(
+        concrete_state | as_fact_pair_set,
+        probfd::bind_front<&CartesianSet::test_fact>(std::ref(cartesian_set_)));
 }
 
 bool AbstractState::includes(const vector<FactPair>& facts) const
 {
-    for (const FactPair& fact : facts) {
-        if (!cartesian_set_.test(fact.var, fact.value)) return false;
-    }
-    return true;
+    return std::ranges::all_of(
+        facts,
+        probfd::bind_front<&CartesianSet::test_fact>(std::ref(cartesian_set_)));
 }
 
 bool AbstractState::includes(const AbstractState& other) const

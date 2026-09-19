@@ -44,9 +44,9 @@ PDBEvaluator::PDBEvaluator(const downward::pdbs::PatternDatabase& pdb)
 {
 }
 
-value_t PDBEvaluator::evaluate(StateRank state_rank) const
+value_t PDBEvaluator::evaluate(StateRank state) const
 {
-    int deterministic_val = pdb_.get_value_for_index(state_rank);
+    const int deterministic_val = pdb_.get_value_for_index(state);
 
     if (deterministic_val == std::numeric_limits<int>::max()) {
         return INFINITE_VALUE;
@@ -62,7 +62,7 @@ DeadendPDBEvaluator::DeadendPDBEvaluator(const ::pdbs::PatternDatabase& pdb)
 
 value_t DeadendPDBEvaluator::evaluate(StateRank state) const
 {
-    int deterministic_val = pdb_.get_value_for_index(state);
+    const int deterministic_val = pdb_.get_value_for_index(state);
 
     if (deterministic_val == std::numeric_limits<int>::max()) {
         return 0_vt;
@@ -76,9 +76,9 @@ IncrementalPPDBEvaluator::IncrementalPPDBEvaluator(
     int add_var)
 {
     const Pattern& pattern = mapper.get_pattern();
-    auto it = std::ranges::lower_bound(pattern, add_var);
+    const auto it = std::ranges::lower_bound(pattern, add_var);
     assert(it != pattern.end());
-    auto idx = std::distance(pattern.begin(), it);
+    const auto idx = std::distance(pattern.begin(), it);
 
     this->domain_size_ = mapper.get_domain_size(idx);
     this->left_multiplier_ = mapper.get_multiplier(idx);
@@ -106,11 +106,11 @@ OwningIncrementalPPDBEvaluator::OwningIncrementalPPDBEvaluator(
 {
 }
 
-StateRank IncrementalPPDBEvaluator::to_parent_state(StateRank rank) const
+StateRank IncrementalPPDBEvaluator::to_parent_state(StateRank state) const
 {
-    int left = rank % left_multiplier_;
-    int right = rank - (rank % right_multiplier_);
-    return StateRank(left + right / domain_size_);
+    const int left = state % left_multiplier_;
+    const int right = state - (state % right_multiplier_);
+    return left + right / domain_size_;
 }
 
 value_t NonOwningIncrementalPPDBEvaluator::evaluate(StateRank state) const
@@ -139,7 +139,7 @@ value_t MergeEvaluator::evaluate(StateRank state) const
 {
     const StateRank lstate = convert(state, mapper_, left_.ranking_function);
 
-    auto leval = left_.lookup_estimate(lstate);
+    const auto leval = left_.lookup_estimate(lstate);
 
     if (leval == termination_cost_) {
         return leval;
@@ -147,7 +147,7 @@ value_t MergeEvaluator::evaluate(StateRank state) const
 
     const StateRank rstate = convert(state, mapper_, right_.ranking_function);
 
-    auto reval = right_.lookup_estimate(rstate);
+    const auto reval = right_.lookup_estimate(rstate);
 
     if (reval == termination_cost_) {
         return reval;

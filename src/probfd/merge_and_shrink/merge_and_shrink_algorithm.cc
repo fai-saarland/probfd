@@ -517,7 +517,7 @@ void run_merge_and_shrink_algorithm(
     utils::FSeconds main_loop_max_time,
     const utils::LogProxy& log)
 {
-    MergeAndShrinkAlgorithm algorithm(
+    const MergeAndShrinkAlgorithm algorithm(
         merge_strategy,
         shrink_strategy,
         label_reduction,

@@ -40,7 +40,7 @@ class BisimilarStateSpace : public MDP<QuotientState, downward::OperatorID> {
 
     SharedProbabilisticTask task_;
 
-    unsigned num_cached_transitions_ = 0;
+    std::size_t num_cached_transitions_;
     downward::segmented_vector::SegmentedVector<std::vector<CachedTransition>>
         transitions_;
 
@@ -69,7 +69,7 @@ public:
 
     void generate_action_transitions(
         QuotientState state,
-        downward::OperatorID action,
+        downward::OperatorID op_id,
         SuccessorDistribution& successor_dist) override;
 
     void generate_all_transitions(
@@ -83,7 +83,7 @@ public:
 
     value_t get_termination_cost(QuotientState state) override;
 
-    value_t get_action_cost(downward::OperatorID action) override;
+    value_t get_action_cost(downward::OperatorID op_id) override;
 
     /// Checks whether the given quotient state is a goal state.
     bool is_goal_state(QuotientState s) const;

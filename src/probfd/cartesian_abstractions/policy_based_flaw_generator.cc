@@ -58,13 +58,13 @@ std::optional<Flaw> PolicyBasedFlawGenerator::generate_flaw(
     const ProbabilisticTaskTuple& task,
     const std::vector<int>& domain_sizes,
     CartesianAbstraction& abstraction,
-    const AbstractState* init,
+    const AbstractState* initial_state,
     CartesianHeuristic& heuristic,
     utils::LogProxy& log,
     utils::CountdownTimer& timer)
 {
-    unique_ptr<Solution> solution =
-        find_solution(abstraction, init, heuristic, timer);
+    const unique_ptr<Solution> solution =
+        find_solution(abstraction, initial_state, heuristic, timer);
 
     if (!solution) {
         if (log.is_at_least_normal()) {

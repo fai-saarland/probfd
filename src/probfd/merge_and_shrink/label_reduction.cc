@@ -60,8 +60,7 @@ void compute_label_mapping(
                         equivalent_labels,
                         next_new_label);
                 }
-                label_mapping.push_back(
-                    make_pair(next_new_label, equivalent_labels));
+                label_mapping.emplace_back(next_new_label, equivalent_labels);
                 ++next_new_label;
             }
 

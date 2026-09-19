@@ -1,7 +1,7 @@
 #include "probfd/solvers/statistical_mdp_algorithm.h"
 
-#include "probfd/progress_report.h"
 #include "probfd/mdp_algorithm.h"
+#include "probfd/progress_report.h"
 
 #include "downward/operator_id.h"
 #include "downward/state.h"

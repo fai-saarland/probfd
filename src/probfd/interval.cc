@@ -57,24 +57,24 @@ Interval operator+(Interval lhs, Interval rhs)
     return Interval(lhs.lower + rhs.lower, lhs.upper + rhs.upper);
 }
 
-Interval operator*(value_t val, Interval rhs)
+Interval operator*(value_t lhs, Interval rhs)
 {
-    return Interval(val * rhs.lower, val * rhs.upper);
+    return Interval(lhs * rhs.lower, lhs * rhs.upper);
 }
 
-Interval operator*(Interval rhs, value_t val)
+Interval operator*(Interval lhs, value_t rhs)
 {
-    return Interval(rhs.lower * val, rhs.upper * val);
+    return Interval(lhs.lower * rhs, lhs.upper * rhs);
 }
 
-Interval operator/(Interval rhs, value_t dividend)
+Interval operator/(Interval lhs, value_t rhs)
 {
-    return Interval(rhs.lower / dividend, rhs.upper / dividend);
+    return Interval(lhs.lower / rhs, lhs.upper / rhs);
 }
 
-std::ostream& operator<<(std::ostream& out, Interval value)
+std::ostream& operator<<(std::ostream& os, Interval val)
 {
-    return out << "[" << value.lower << ", " << value.upper << "]";
+    return os << "[" << val.lower << ", " << val.upper << "]";
 }
 
 } // namespace probfd

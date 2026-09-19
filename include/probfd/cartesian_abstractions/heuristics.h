@@ -16,11 +16,11 @@ public:
     value_t evaluate(int state) const final;
 
     [[nodiscard]]
-    value_t get_h_value(int v) const;
+    value_t get_h_value(int state) const;
 
-    void set_h_value(int v, value_t h);
+    void set_h_value(int state, value_t h);
 
-    void on_split(int v);
+    void on_split(int state);
 };
 
 } // namespace probfd::cartesian_abstractions

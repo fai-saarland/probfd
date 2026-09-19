@@ -265,7 +265,7 @@ public:
         default;
 
     friend std::unique_ptr<json::JsonObject>
-    to_json(const TransitionSystem& info);
+    to_json(const TransitionSystem& ts);
 
 private:
     /*

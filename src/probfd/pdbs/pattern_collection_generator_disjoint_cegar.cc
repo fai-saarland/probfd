@@ -81,7 +81,7 @@ PatternCollectionInformation PatternCollectionGeneratorDisjointCegar::generate(
 
     for (const auto& pdb : pdbs) { patterns.push_back(pdb->get_pattern()); }
 
-    std::shared_ptr<SubCollectionFinder> subcollection_finder =
+    const std::shared_ptr subcollection_finder =
         subcollection_finder_factory_->create_subcollection_finder(task);
 
     PatternCollectionInformation pattern_collection_information(

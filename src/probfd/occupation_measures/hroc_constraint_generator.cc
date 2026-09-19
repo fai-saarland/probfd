@@ -56,7 +56,7 @@ void HROCConstraintGenerator::initialize_constraints(
         std::cout,
         "Initializing regrouped operator counting heuristic...");
 
-    utils::Timer timer;
+    const utils::Timer timer;
 
     // Construct LP...
     const std::size_t num_variables = variables.size();

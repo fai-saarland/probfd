@@ -186,8 +186,7 @@ void HigherOrderHPOMConstraintGenerator::initialize_constraints(
     // Prepare fact variable offsets
     infos_.reserve(num_variables);
 
-    const auto num_ocm_variables =
-        static_cast<std::size_t>(lp.get_variables().size());
+    const auto num_ocm_variables = lp.get_variables().size();
 
     assert(num_ocm_variables == operators.size());
 
@@ -219,7 +218,7 @@ void HigherOrderHPOMConstraintGenerator::initialize_constraints(
     // Maximized in MaxProb, must be constant 1 for SSPs
     lp_variables.emplace_back(maxprob ? 0 : 1, 1, maxprob ? -1 : 0);
 
-    std::vector<int> the_goal(num_variables, -1);
+    std::vector the_goal(num_variables, -1);
 
     for (const auto [var, value] : goals) {
         the_goal[var] = value;
@@ -255,7 +254,7 @@ void HigherOrderHPOMConstraintGenerator::initialize_constraints(
     // Now ordinary actions
     for (const ProbabilisticOperatorProxy op : operators) {
         // Get dense precondition
-        std::vector<int> pre(num_variables, -1);
+        std::vector pre(num_variables, -1);
 
         for (const auto [var, value] : op.get_preconditions()) {
             pre[var] = value;
@@ -288,7 +287,7 @@ void HigherOrderHPOMConstraintGenerator::initialize_constraints(
                      op.get_outcomes()) {
                     const auto probability = outcome.get_probability();
 
-                    std::vector<int> effects(num_variables, -1);
+                    std::vector effects(num_variables, -1);
 
                     for (const auto effect_proxy : outcome.get_effects()) {
                         const auto& [eff_var, eff_val] =
@@ -325,11 +324,11 @@ void HigherOrderHPOMConstraintGenerator::initialize_constraints(
         } while (next_pattern(num_variables, pattern));
 
         // Build tying constraints.
-        for (const auto& tying_eq : tying_equality) {
+        for (const auto& [start, end] : tying_equality) {
             auto& tying_constraint = lp_constraints.emplace_back(0, 0);
             tying_constraint.insert(op.get_id(), 1);
 
-            for (int i = tying_eq.first; i < tying_eq.second; ++i) {
+            for (int i = start; i < end; ++i) {
                 tying_constraint.insert(i, -1);
             }
         }

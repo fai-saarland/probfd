@@ -126,8 +126,15 @@ public:
     {
         return precondition[depth].value;
     }
+
+    friend bool
+    operator==(const OperatorInfo& a, const OperatorInfo& b) = default;
+
+    friend auto
+    operator<=>(const OperatorInfo& a, const OperatorInfo& b) = default;
 };
 
+namespace {
 enum class GroupOperatorsBy { VAR, VALUE };
 
 class OperatorGrouper {
@@ -149,10 +156,10 @@ class OperatorGrouper {
         const OperatorInfo& op_info = get_current_op_info();
         if (group_by == GroupOperatorsBy::VAR) {
             return op_info.get_var(depth);
-        } else {
-            assert(group_by == GroupOperatorsBy::VALUE);
-            return op_info.get_value(depth);
         }
+
+        assert(group_by == GroupOperatorsBy::VALUE);
+        return op_info.get_value(depth);
     }
 
 public:
@@ -178,7 +185,7 @@ public:
     {
         assert(!range.empty());
         int key = get_current_group_key();
-        int group_begin = range.begin;
+        const int group_begin = range.begin;
         do {
             ++range.begin;
         } while (!range.empty() && get_current_group_key() == key);
@@ -186,6 +193,7 @@ public:
         return make_pair(key, group_range);
     }
 };
+} // namespace
 
 ProbabilisticSuccessorGeneratorFactory::ProbabilisticSuccessorGeneratorFactory(
     const VariableSpace& variables,
@@ -239,8 +247,8 @@ GeneratorPtr ProbabilisticSuccessorGeneratorFactory::construct_switch(
     int switch_var_id,
     ValuesAndGenerators values_and_generators) const
 {
-    int var_domain = variables_[switch_var_id].get_domain_size();
-    int num_children = values_and_generators.size();
+    const int var_domain = variables_[switch_var_id].get_domain_size();
+    const int num_children = values_and_generators.size();
 
     assert(num_children > 0);
 
@@ -253,24 +261,26 @@ GeneratorPtr ProbabilisticSuccessorGeneratorFactory::construct_switch(
             std::move(generator));
     }
 
-    int vector_bytes = utils::estimate_vector_bytes<GeneratorPtr>(var_domain);
-    int hash_bytes =
+    const int vector_bytes =
+        utils::estimate_vector_bytes<GeneratorPtr>(var_domain);
+    const int hash_bytes =
         utils::estimate_unordered_map_bytes<int, GeneratorPtr>(num_children);
+
     if (hash_bytes < vector_bytes) {
         unordered_map<int, GeneratorPtr> generator_by_value;
-        for (auto& item : values_and_generators)
-            generator_by_value[item.first] = std::move(item.second);
+        for (auto& [value, generator] : values_and_generators)
+            generator_by_value[value] = std::move(generator);
         return std::make_unique<ProbabilisticGeneratorSwitchHash>(
             switch_var_id,
             std::move(generator_by_value));
-    } else {
-        vector<GeneratorPtr> generator_by_value(var_domain);
-        for (auto& item : values_and_generators)
-            generator_by_value[item.first] = std::move(item.second);
-        return std::make_unique<ProbabilisticGeneratorSwitchVector>(
-            switch_var_id,
-            std::move(generator_by_value));
     }
+
+    vector<GeneratorPtr> generator_by_value(var_domain);
+    for (auto& [value, generator] : values_and_generators)
+        generator_by_value[value] = std::move(generator);
+    return std::make_unique<ProbabilisticGeneratorSwitchVector>(
+        switch_var_id,
+        std::move(generator_by_value));
 }
 
 GeneratorPtr ProbabilisticSuccessorGeneratorFactory::construct_recursive(
@@ -284,9 +294,7 @@ GeneratorPtr ProbabilisticSuccessorGeneratorFactory::construct_recursive(
         GroupOperatorsBy::VAR,
         range);
     while (!grouper_by_var.done()) {
-        auto var_group = grouper_by_var.next();
-        int var = var_group.first;
-        OperatorRange var_range = var_group.second;
+        auto [var, var_range] = grouper_by_var.next();
 
         if (var == -1) {
             // Handle a group of immediately applicable operators.
@@ -301,10 +309,7 @@ GeneratorPtr ProbabilisticSuccessorGeneratorFactory::construct_recursive(
                 GroupOperatorsBy::VALUE,
                 var_range);
             while (!grouper_by_value.done()) {
-                auto value_group = grouper_by_value.next();
-                int value = value_group.first;
-                OperatorRange value_range = value_group.second;
-
+                auto [value, value_range] = grouper_by_value.next();
                 values_and_generators.emplace_back(
                     value,
                     construct_recursive(depth + 1, value_range));
@@ -314,6 +319,7 @@ GeneratorPtr ProbabilisticSuccessorGeneratorFactory::construct_recursive(
                 construct_switch(var, std::move(values_and_generators)));
         }
     }
+
     return construct_fork(std::move(nodes));
 }
 
@@ -324,7 +330,7 @@ build_sorted_precondition(const PartialOperatorProxy& op)
     precond.reserve(op.get_preconditions().size());
     for (FactPair pre : op.get_preconditions()) precond.emplace_back(pre);
     // Preconditions must be sorted by variable.
-    sort(precond.begin(), precond.end());
+    std::ranges::sort(precond);
     return precond;
 }
 
@@ -338,9 +344,9 @@ GeneratorPtr ProbabilisticSuccessorGeneratorFactory::create()
     }
     /* Use stable_sort rather than sort for reproducibility.
        This amounts to breaking ties by operator ID. */
-    stable_sort(operator_infos_.begin(), operator_infos_.end());
+    std::ranges::stable_sort(operator_infos_);
 
-    OperatorRange full_range(0, operator_infos_.size());
+    const OperatorRange full_range(0, operator_infos_.size());
     GeneratorPtr root = construct_recursive(0, full_range);
     operator_infos_.clear();
     return root;

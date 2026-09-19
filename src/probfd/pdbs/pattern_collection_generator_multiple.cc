@@ -48,9 +48,9 @@ vector<int> get_non_goal_variables(
     const VariableSpace& variables,
     const GoalFactList& goals)
 {
-    size_t num_vars = variables.size();
-    vector<bool> is_goal(num_vars, false);
-    for (FactPair goal : goals) {
+    const size_t num_vars = variables.size();
+    vector is_goal(num_vars, false);
+    for (const FactPair goal : goals) {
         is_goal[goal.var] = true;
     }
 
@@ -189,24 +189,25 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
         log_.println("non-goal variables: {}", non_goal_variables);
     }
 
-    // Collect all unique patterns and their PDBs.
-    set<Pattern> generated_patterns;
     PPDBCollection generated_pdbs;
-
     int num_iterations = 0;
-    int goal_index = 0;
-    bool blacklisting = false;
-    downward::utils::FSeconds time_point_of_last_new_pattern = 0s;
-    int remaining_collection_size = max_collection_size_;
-
-    auto adapted_cost_function =
-        downward::extra_tasks::make_shared_range_cf(costs);
-
-    auto adapted = replace(task, adapted_cost_function);
-
-    std::vector<value_t> saturated_costs(operators.get_num_operators());
 
     try {
+        // Collect all unique patterns and their PDBs.
+        set<Pattern> generated_patterns;
+
+        int goal_index = 0;
+        bool blacklisting = false;
+        utils::FSeconds time_point_of_last_new_pattern = 0s;
+        int remaining_collection_size = max_collection_size_;
+
+        auto adapted_cost_function =
+            downward::extra_tasks::make_shared_range_cf(costs);
+
+        auto adapted = replace(task, adapted_cost_function);
+
+        std::vector<value_t> saturated_costs(operators.get_num_operators());
+
         while (true) {
             // Check if blacklisting should be started.
             if (!blacklisting &&

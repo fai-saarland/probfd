@@ -34,7 +34,7 @@ SamplingFlawFinder::SamplingFlawFinder(
     : rng_(std::move(rng))
     , max_search_states_(max_search_states)
 {
-    utils::validate_param_non_negative("max_search_states", max_search_states_);
+    validate_param_non_negative("max_search_states", max_search_states_);
 }
 
 SamplingFlawFinder::~SamplingFlawFinder() = default;
@@ -46,7 +46,7 @@ bool SamplingFlawFinder::apply_policy(
     const ProjectionStateSpace& mdp,
     const ProjectionMultiPolicy& policy,
     std::vector<Flaw>& flaws,
-    const std::function<bool(const Flaw&)>& accept_flaw,
+    const std::function<bool(const Flaw&)>& notify_flaw,
     CountdownTimer& timer)
 {
     assert(stk_.empty() && einfos_.empty());
@@ -87,7 +87,7 @@ bool SamplingFlawFinder::apply_policy(
             // Goal flaw check
             if (abs_decisions.empty()) {
                 if (mdp.is_goal(abs) &&
-                    collect_flaws(goals, *current, flaws, accept_flaw)) {
+                    collect_flaws(goals, *current, flaws, notify_flaw)) {
                     return false;
                 }
 
@@ -97,8 +97,8 @@ bool SamplingFlawFinder::apply_policy(
             std::vector<Flaw> local_flaws;
 
             // Precondition flaw check
-            for (const auto& decision : abs_decisions) {
-                const auto op = operators[decision.action->operator_id];
+            for (const auto& [action, q_value_interval] : abs_decisions) {
+                const auto op = operators[action->operator_id];
 
                 const auto s = local_flaws.size();
 
@@ -106,7 +106,7 @@ bool SamplingFlawFinder::apply_policy(
                     op.get_preconditions(),
                     *current,
                     local_flaws,
-                    accept_flaw);
+                    notify_flaw);
 
                 if (flaw_suppressed) {
                     any_flaw_suppressed = true;
@@ -149,7 +149,7 @@ bool SamplingFlawFinder::apply_policy(
                 timer.throw_if_expired();
 
                 // Sample next successor
-                auto it = einfo->successors.sample(*rng_);
+                const auto it = einfo->successors.sample(*rng_);
                 const StateID succ_id = it->item;
                 einfo->successors.erase(it);
 

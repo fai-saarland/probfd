@@ -12,7 +12,6 @@
 #include "downward/utils/hash.h"
 
 #include "downward/views/convert.h"
-#include "downward/views/enumerate.h"
 
 #include <cassert>
 #include <compare>
@@ -195,15 +194,15 @@ class StateEnumerateFn
 public:
     [[nodiscard]]
     auto operator()(const State& state) const
-        noexcept(noexcept(downward::views::enumerate_view{state}))
+        noexcept(noexcept(state | std::views::enumerate))
     {
-        return downward::views::enumerate_view{state};
+        return state | std::views::enumerate;
     }
 
     auto operator()(State&& state) const
-        noexcept(noexcept(downward::views::enumerate_view{std::move(state)}))
+        noexcept(noexcept(std::move(state) | std::views::enumerate))
     {
-        return downward::views::enumerate_view{std::move(state)};
+        return std::move(state) | std::views::enumerate;
     }
 };
 
@@ -239,18 +238,17 @@ inline bool operator==(const State& left, const State& right)
     if (left.registry) {
         // Both states are registered and from the same registry.
         return left.id == right.id;
-    } else {
-        // Both states are unregistered.
-        assert(left.values);
-        assert(right.values);
-        return *left.values == *right.values;
     }
+
+    // Both states are unregistered.
+    assert(left.values);
+    assert(right.values);
+    return *left.values == *right.values;
 }
 
 inline void State::unpack() const
 {
     if (!values) {
-        int num_variables = size();
         /*
           A micro-benchmark in issue348 showed that constructing the vector
           in the required size and then assigning values was faster than the
@@ -279,11 +277,11 @@ inline int State::operator[](std::size_t var_id) const
     assert(var_id < size());
     if (values) {
         return (*values)[var_id];
-    } else {
-        assert(buffer);
-        assert(state_packer);
-        return state_packer->get(buffer, var_id);
     }
+
+    assert(buffer);
+    assert(state_packer);
+    return state_packer->get(buffer, var_id);
 }
 
 inline int State::operator[](VariableProxy var) const

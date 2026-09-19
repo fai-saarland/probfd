@@ -62,7 +62,7 @@ UCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
         std::make_shared<extra_tasks::VectorProbabilisticOperatorCostFunction>(
             std::move(costs));
 
-    auto adapted = replace(task, uniform_cost_function);
+    const auto adapted = replace(task, uniform_cost_function);
 
     const State& initial_state = init_vals.get_initial_state();
 

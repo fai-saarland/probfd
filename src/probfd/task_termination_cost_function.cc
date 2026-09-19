@@ -18,7 +18,7 @@ TaskTerminationCostFunction::TaskTerminationCostFunction(
 
 bool TaskTerminationCostFunction::is_goal(const State& state) const
 {
-    return downward::task_properties::is_goal_state(*goals_, state);
+    return task_properties::is_goal_state(*goals_, state);
 }
 
 value_t TaskTerminationCostFunction::get_goal_termination_cost() const

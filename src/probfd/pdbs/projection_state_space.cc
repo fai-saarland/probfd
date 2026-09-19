@@ -43,15 +43,7 @@ struct Outcome {
 };
 
 struct OperatorInfo {
-    struct ProbabilisticOffset {
-        StateRank rank_offset = 0;
-        value_t probability;
-
-        operator ItemProbabilityPair<StateRank>() const
-        {
-            return ItemProbabilityPair<StateRank>(rank_offset, probability);
-        }
-    };
+    using ProbabilisticOffset = ItemProbabilityPair<StateRank>;
 
     struct MissingPreconditionInfo {
         int precondition_index;
@@ -85,12 +77,12 @@ static void compute_projection_operator_info(
 
     auto op_preconditions = op.get_preconditions();
     auto it = std::ranges::begin(op_preconditions);
-    auto end = std::ranges::end(op_preconditions);
+    const auto end = std::ranges::end(op_preconditions);
 
     const Pattern& pattern = ranking_function.get_pattern();
 
     for (size_t i = 0; i != pattern.size(); ++i) {
-        int var = pattern[i];
+        const int var = pattern[i];
 
         for (;;) {
             if (it == end) { // No precondition on this variable
@@ -105,7 +97,7 @@ static void compute_projection_operator_info(
                 for (; out_it != out_end; ++out_it, ++out_info_it) {
                     auto& [eff_it, eff_end] = out_it->effect_range;
                     while (eff_it != eff_end) {
-                        FactPair eff_fact = (*eff_it).get_fact();
+                        const FactPair eff_fact = (*eff_it).get_fact();
 
                         // Skip effect on var not in patterm
                         if (eff_fact.var < var) {
@@ -117,7 +109,7 @@ static void compute_projection_operator_info(
                         if (eff_fact.var == var) {
                             has_effect = true;
                             affected_offsets.push_back(out_info_it);
-                            out_info_it->rank_offset +=
+                            out_info_it->item +=
                                 ranking_function.rank_fact(i, eff_fact.value);
                             ++eff_it;
                         }
@@ -136,7 +128,7 @@ static void compute_projection_operator_info(
                 break;
             }
 
-            FactPair pre_fact = *it;
+            const FactPair pre_fact = *it;
 
             // Skip precondition on var not in patterm
             if (pre_fact.var < var) {
@@ -156,7 +148,7 @@ static void compute_projection_operator_info(
             for (; out_it != out_end; ++out_it, ++out_info_it) {
                 auto& [eff_it, eff_end] = out_it->effect_range;
                 while (eff_it != eff_end) {
-                    FactPair eff_fact = (*eff_it).get_fact();
+                    const FactPair eff_fact = (*eff_it).get_fact();
 
                     // Skip effect on var not in patterm
                     if (eff_fact.var < var) {
@@ -166,7 +158,7 @@ static void compute_projection_operator_info(
 
                     // Effect on this variable
                     if (eff_fact.var == var) {
-                        out_info_it->rank_offset += ranking_function.rank_fact(
+                        out_info_it->item += ranking_function.rank_fact(
                             i,
                             eff_fact.value - pre_val);
                         ++eff_it;
@@ -184,7 +176,7 @@ static void compute_projection_operator_info(
 }
 
 ProjectionStateSpace::ProjectionStateSpace(
-    SharedProbabilisticTask task,
+    const SharedProbabilisticTask& task,
     const StateRankingFunction& ranking_function,
     bool operator_pruning,
     utils::FSeconds max_time)
@@ -232,14 +224,14 @@ ProjectionStateSpace::ProjectionStateSpace(
                 if (next < ranking_function.get_domain_size(var)) {
                     val = next;
                     for (const auto& it : affected_offsets) {
-                        it->rank_offset -= multiplier;
+                        it->item -= multiplier;
                     }
                     return true;
                 }
 
                 val = 0;
                 for (const auto& it : affected_offsets) {
-                    it->rank_offset += (domain - 1) * multiplier;
+                    it->item += (domain - 1) * multiplier;
                 }
             }
 
@@ -309,7 +301,7 @@ StateID ProjectionStateSpace::get_state_id(StateRank state)
 
 StateRank ProjectionStateSpace::get_state(StateID id)
 {
-    return StateRank(id);
+    return id;
 }
 
 void ProjectionStateSpace::generate_applicable_actions(

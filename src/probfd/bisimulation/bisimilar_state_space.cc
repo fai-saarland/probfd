@@ -65,7 +65,7 @@ BisimilarStateSpace::BisimilarStateSpace(
 
     unsigned bucket_free = 0;
     int* bucket_ptr = nullptr;
-    auto allocate = [this, &bucket_free, &bucket_ptr](unsigned size) {
+    auto allocate = [this, &bucket_free, &bucket_ptr](std::size_t size) {
         if (size > bucket_free) {
             bucket_ptr = store_.emplace_back(new int[BUCKET_SIZE]).get();
             bucket_free = BUCKET_SIZE;
@@ -86,9 +86,10 @@ BisimilarStateSpace::BisimilarStateSpace(
                 auto it = std::ranges::find(ts, id, &CachedTransition::op_id);
 
                 if (it == ts.end()) {
-                    const int size = prob_operators[id].get_outcomes().size();
+                    const std::size_t size =
+                        prob_operators[id].get_outcomes().size();
                     it = ts.emplace(it, id, allocate(size));
-                    for (int j = 0; j != size; ++j) {
+                    for (std::size_t j = 0; j != size; ++j) {
                         it->successors[j] = dead_end_state;
                     }
                     ++num_cached_transitions_;
@@ -99,8 +100,7 @@ BisimilarStateSpace::BisimilarStateSpace(
         }
     }
 
-    for (size_t i = 0; i != transitions_.size(); ++i) {
-        auto& ct = transitions_[i];
+    for (auto& ct : transitions_) {
         std::ranges::sort(ct, {}, &CachedTransition::op_id);
     }
 
@@ -117,14 +117,14 @@ BisimilarStateSpace::operator=(BisimilarStateSpace&&) noexcept = default;
 
 BisimilarStateSpace::~BisimilarStateSpace() = default;
 
-StateID BisimilarStateSpace::get_state_id(QuotientState s)
+StateID BisimilarStateSpace::get_state_id(QuotientState state)
 {
-    return std::to_underlying(s);
+    return std::to_underlying(state);
 }
 
-QuotientState BisimilarStateSpace::get_state(StateID s)
+QuotientState BisimilarStateSpace::get_state(StateID state_id)
 {
-    return static_cast<QuotientState>(s.id);
+    return static_cast<QuotientState>(state_id.id);
 }
 
 void BisimilarStateSpace::generate_applicable_actions(
@@ -133,14 +133,15 @@ void BisimilarStateSpace::generate_applicable_actions(
 {
     const auto& cache = transitions_[std::to_underlying(state)];
     result.reserve(cache.size());
-    for (const auto& t : cache) {
-        result.emplace_back(t.op_id);
+    for (const auto& op_id :
+         cache | std::views::transform(&CachedTransition::op_id)) {
+        result.emplace_back(op_id);
     }
 }
 
 void BisimilarStateSpace::generate_action_transitions(
     QuotientState state,
-    OperatorID a,
+    OperatorID op_id,
     SuccessorDistribution& successor_dist)
 {
     const auto& operators = get_operators(task_);
@@ -149,10 +150,13 @@ void BisimilarStateSpace::generate_action_transitions(
 
     assert(std::ranges::is_sorted(transitions, {}, &CachedTransition::op_id));
 
-    const auto it =
-        std::ranges::lower_bound(transitions, a, {}, &CachedTransition::op_id);
+    const auto it = std::ranges::lower_bound(
+        transitions,
+        op_id,
+        {},
+        &CachedTransition::op_id);
 
-    const ProbabilisticOperatorProxy& op = operators[a];
+    const ProbabilisticOperatorProxy& op = operators[op_id];
     const ProbabilisticOutcomesProxy& outcomes = op.get_outcomes();
 
     successor_dist.non_source_probability = 0_vt;
@@ -206,29 +210,29 @@ void BisimilarStateSpace::generate_all_transitions(
     transitions.reserve(cache.size());
 
     for (const auto [op_id, successors] : cache) {
-        LDistType& t = transitions.emplace_back(op_id);
+        auto& [action, successor_dist] = transitions.emplace_back(op_id);
 
         const ProbabilisticOperatorProxy& op = operators[op_id];
         const ProbabilisticOutcomesProxy& outcomes = op.get_outcomes();
 
-        t.successor_dist.non_source_probability = 0_vt;
+        successor_dist.non_source_probability = 0_vt;
 
         for (unsigned i = 0; i < outcomes.size(); ++i) {
             const ProbabilisticOutcomeProxy outcome = outcomes[i];
             const value_t probability = outcome.get_probability();
             const StateID id = successors[i];
             if (std::to_underlying(state) == static_cast<int>(id)) continue;
-            t.successor_dist.add_non_source_probability(id, probability);
+            successor_dist.add_non_source_probability(id, probability);
         }
     }
 }
 
-value_t BisimilarStateSpace::get_termination_cost(QuotientState s)
+value_t BisimilarStateSpace::get_termination_cost(QuotientState state)
 {
     const auto& term_costs = get_termination_costs(task_);
 
-    return is_goal_state(s) ? term_costs.get_goal_termination_cost()
-                            : term_costs.get_non_goal_termination_cost();
+    return is_goal_state(state) ? term_costs.get_goal_termination_cost()
+                                : term_costs.get_non_goal_termination_cost();
 }
 
 value_t BisimilarStateSpace::get_action_cost(OperatorID op_id)
@@ -252,7 +256,7 @@ unsigned BisimilarStateSpace::num_transitions() const
     return num_cached_transitions_;
 }
 
-downward::merge_and_shrink::Factor
+Factor
 compute_bisimulation_on_determinization(const AbstractTaskTuple& det_task)
 {
     // Construct a linear merge tree
@@ -261,13 +265,13 @@ compute_bisimulation_on_determinization(const AbstractTaskTuple& det_task)
         create_merge_update_strategy_use_first());
 
     // Construct the merge strategy factory
-    auto merge_strategy_factory =
+    const auto merge_strategy_factory =
         std::make_shared<MergeStrategyFactoryPrecomputed>(
             linear_merge_tree_factory,
-            downward::utils::Verbosity::SILENT);
+            utils::Verbosity::SILENT);
 
     // Construct a bisimulation-based shrinking strategy
-    auto shrinking =
+    const auto shrinking =
         std::make_shared<ShrinkBisimulation>(false, AtLimit::RETURN);
 
     MergeAndShrinkAlgorithm mns_algorithm(
@@ -279,8 +283,8 @@ compute_bisimulation_on_determinization(const AbstractTaskTuple& det_task)
         std::numeric_limits<int>::max(),
         std::numeric_limits<int>::max(),
         std::numeric_limits<int>::max(),
-        downward::utils::FSeconds::max(),
-        downward::utils::Verbosity::SILENT);
+        utils::FSeconds::max(),
+        utils::Verbosity::SILENT);
 
     FactoredTransitionSystem fts =
         mns_algorithm.build_factored_transition_system(det_task);

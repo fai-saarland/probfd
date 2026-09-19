@@ -37,13 +37,17 @@ SplitSelectorUnwanted::SplitSelectorUnwanted(int factor)
 SplitSelectorRefinedness::SplitSelectorRefinedness(
     SharedProbabilisticTask task,
     double factor)
-    : task_(task)
+    : task_(std::move(task))
     , factor_(factor)
 {
 }
 
 SplitSelectorHAdd::SplitSelectorHAdd(const SharedProbabilisticTask& task)
-    : task_{get_shared_variables(task), get_shared_axioms(task), get_shared_operators(task), get_shared_goal(task), get_shared_init(task)}
+    : task_{get_shared_variables(task),
+            get_shared_axioms(task),
+            get_shared_operators(task),
+            get_shared_goal(task),
+            get_shared_init(task)}
     , additive_heuristic_(create_additive_heuristic(task))
 {
     const State& state = get_init(task_).get_initial_state();
@@ -68,7 +72,9 @@ const Split& SplitSelectorRandom::pick_split(
 {
     assert(!splits.empty());
 
-    if (splits.size() == 1) { return splits[0]; }
+    if (splits.size() == 1) {
+        return splits[0];
+    }
 
     return *rng_->choose(splits);
 }
@@ -77,10 +83,10 @@ double SplitSelectorUnwanted::rate_split(
     const AbstractState& state,
     const Split& split) const
 {
-    int num_unwanted_values =
+    const int num_unwanted_values =
         state.count(split.var_id) - static_cast<int>(split.values.size());
     assert(num_unwanted_values >= 1);
-    return static_cast<double>(factor_ * num_unwanted_values);
+    return factor_ * num_unwanted_values;
 }
 
 double SplitSelectorRefinedness::rate_split(
@@ -90,11 +96,11 @@ double SplitSelectorRefinedness::rate_split(
     const VariableSpace& variables = get_variables(task_);
 
     const int var_id = split.var_id;
-    double all_values = variables[var_id].get_domain_size();
+    const double all_values = variables[var_id].get_domain_size();
     assert(all_values >= 2);
-    double remaining_values = state.count(var_id);
+    const double remaining_values = state.count(var_id);
     assert(2 <= remaining_values && remaining_values <= all_values);
-    double refinedness = -(remaining_values / all_values);
+    const double refinedness = -(remaining_values / all_values);
     assert(-1.0 <= refinedness && refinedness < 0.0);
     return factor_ * refinedness;
 }
@@ -102,7 +108,7 @@ double SplitSelectorRefinedness::rate_split(
 int SplitSelectorHAdd::get_hadd_value(int var_id, int value) const
 {
     assert(additive_heuristic_);
-    int hadd = additive_heuristic_->get_cost_for_cegar(var_id, value);
+    const int hadd = additive_heuristic_->get_cost_for_cegar(var_id, value);
     assert(hadd != -1);
     return hadd;
 }
@@ -112,9 +118,11 @@ int SplitSelectorMinHAdd::get_min_hadd_value(
     const vector<int>& values) const
 {
     int min_hadd = numeric_limits<int>::max();
-    for (int value : values) {
+    for (const int value : values) {
         const int hadd = get_hadd_value(var_id, value);
-        if (hadd < min_hadd) { min_hadd = hadd; }
+        if (hadd < min_hadd) {
+            min_hadd = hadd;
+        }
     }
     return min_hadd;
 }
@@ -124,9 +132,11 @@ int SplitSelectorMaxHAdd::get_max_hadd_value(
     const vector<int>& values) const
 {
     int max_hadd = -1;
-    for (int value : values) {
+    for (const int value : values) {
         const int hadd = get_hadd_value(var_id, value);
-        if (hadd > max_hadd) { max_hadd = hadd; }
+        if (hadd > max_hadd) {
+            max_hadd = hadd;
+        }
     }
     return max_hadd;
 }
@@ -144,7 +154,7 @@ SplitSelectorMaxHAdd::rate_split(const AbstractState&, const Split& split) const
 }
 
 SplitSelectorRandomFactory::SplitSelectorRandomFactory(
-    std::shared_ptr<utils::RandomNumberGenerator> rng)
+    std::shared_ptr<RandomNumberGenerator> rng)
     : rng_(std::move(rng))
 {
 }

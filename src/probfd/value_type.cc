@@ -27,28 +27,28 @@ value_t abs(value_t val)
     return std::abs(val);
 }
 
-bool is_approx_equal(value_t v1, value_t v2, value_t tolerance)
+bool is_approx_equal(value_t v1, value_t v2, value_t epsilon)
 {
-    assert(tolerance >= 0.0_vt);
-    return v1 == v2 || std::abs(v1 - v2) <= tolerance;
+    assert(epsilon >= 0.0_vt);
+    return v1 == v2 || std::abs(v1 - v2) <= epsilon;
 }
 
-bool is_approx_less(value_t v1, value_t v2, value_t tolerance)
+bool is_approx_less(value_t v1, value_t v2, value_t epsilon)
 {
-    assert(tolerance >= 0.0_vt);
-    return v1 + tolerance < v2;
+    assert(epsilon >= 0.0_vt);
+    return v1 + epsilon < v2;
 }
 
-bool is_approx_greater(value_t v1, value_t v2, value_t tolerance)
+bool is_approx_greater(value_t v1, value_t v2, value_t epsilon)
 {
-    assert(tolerance >= 0.0_vt);
-    return v1 - tolerance > v2;
+    assert(epsilon >= 0.0_vt);
+    return v1 - epsilon > v2;
 }
 
-bool is_approx_zero(value_t v, value_t tolerance)
+bool is_approx_zero(value_t v, value_t epsilon)
 {
-    assert(tolerance >= 0.0_vt);
-    return v == 0_vt || std::abs(v) <= tolerance;
+    assert(epsilon >= 0.0_vt);
+    return v == 0_vt || std::abs(v) <= epsilon;
 }
 
 } // namespace probfd

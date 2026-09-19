@@ -27,6 +27,7 @@
 #include <memory>
 #include <numeric>
 #include <set>
+#include <utility>
 #include <vector>
 
 using namespace std;
@@ -39,7 +40,7 @@ namespace probfd::tasks {
 
 namespace {
 
-const auto PRE_FILE_PROB_VERSION = "1";
+constexpr auto PRE_FILE_PROB_VERSION = "1";
 
 enum Optimization : unsigned char {
     MINIMIZE_LENGTH = 0,
@@ -62,9 +63,9 @@ struct Fraction {
 Fraction operator+(const Fraction& left, const Fraction& right)
 {
     const int lcm = std::lcm(left.denominator, right.denominator);
-    const int numerator = (left.numerator * (lcm / left.denominator)) +
-                          (right.numerator * (lcm / right.denominator));
-    return {numerator, lcm};
+    const int numerator = left.numerator * (lcm / left.denominator) +
+                          right.numerator * (lcm / right.denominator);
+    return {.numerator = numerator, .denominator = lcm};
 }
 
 struct Metric {
@@ -100,11 +101,12 @@ struct ConditionalEffect {
     ConditionalEffect(int var, int value, vector<FactPair>&& conditions);
 
     friend bool
-    operator<(const ConditionalEffect& left, const ConditionalEffect& right)
-    {
-        return std::tie(left.fact, left.conditions) <
-               std::tie(right.fact, right.conditions);
-    }
+    operator==(const ConditionalEffect& left, const ConditionalEffect& right) =
+        default;
+
+    friend auto
+    operator<=>(const ConditionalEffect& left, const ConditionalEffect& right) =
+        default;
 };
 
 struct ProbabilisticOutcome {
@@ -265,7 +267,7 @@ class RootOperatorCostFunction : public OperatorCostFunction<value_t> {
 
 public:
     explicit RootOperatorCostFunction(vector<value_t> costs)
-        : costs_(costs)
+        : costs_(std::move(costs))
     {
     }
 
@@ -307,7 +309,9 @@ void check_facts(
     const vector<FactPair>& facts,
     const vector<ExplicitVariable>& variables)
 {
-    for (FactPair fact : facts) { check_fact(fact, variables); }
+    for (FactPair fact : facts) {
+        check_fact(fact, variables);
+    }
 }
 
 void check_facts(
@@ -328,7 +332,7 @@ void check_facts(
 {
     check_facts(action.preconditions, variables);
 
-    Fraction total_prob = {0, 1};
+    Fraction total_prob = {.numerator = 0, .denominator = 1};
 
     for (const auto& outcome : action.outcomes) {
         const auto prob = outcome.fractional_probability;
@@ -410,14 +414,14 @@ ProbabilisticOutcome::ProbabilisticOutcome(std::istream& in)
     std::string p;
     in >> p;
 
-    auto it = p.find('/');
+    const auto it = p.find('/');
 
     if (it == std::string::npos) {
         fractional_probability.numerator = std::stoi(p);
         fractional_probability.denominator = 1;
     } else {
-        std::string numerator = p.substr(0, it);
-        std::string denominator = p.substr(it + 1);
+        const std::string numerator = p.substr(0, it);
+        const std::string denominator = p.substr(it + 1);
 
         fractional_probability.numerator = std::stoi(numerator);
         fractional_probability.denominator = std::stoi(denominator);
@@ -469,7 +473,7 @@ ProbabilisticOutcome::ProbabilisticOutcome(std::istream& in)
         effects.emplace_back(var, value_post, std::move(conditions));
     }
 
-    std::sort(effects.begin(), effects.end());
+    std::ranges::sort(effects);
 }
 
 ProbabilisticOperator::ProbabilisticOperator(
@@ -502,7 +506,9 @@ ProbabilisticOperator::ProbabilisticOperator(
     }
 
     // Read each outcome
-    for (int i = 0; i < num_outcomes; ++i) { outcomes.emplace_back(in); }
+    for (int i = 0; i < num_outcomes; ++i) {
+        outcomes.emplace_back(in);
+    }
 
     // Read cost
     std::string cost_text;
@@ -530,7 +536,9 @@ ExplicitAxiom::ExplicitAxiom(std::istream& in)
     int count;
     in >> count;
     effects.reserve(count);
-    for (int i = 0; i < count; ++i) { read_pre_post(in); }
+    for (int i = 0; i < count; ++i) {
+        read_pre_post(in);
+    }
     check_magic(in, "end_rule");
 }
 
@@ -539,7 +547,9 @@ void ExplicitAxiom::read_pre_post(std::istream& in)
     vector<FactPair> conditions = read_facts(in);
     int var, pre, value_post;
     in >> var >> pre >> value_post;
-    if (pre != -1) { preconditions.emplace_back(var, pre); }
+    if (pre != -1) {
+        preconditions.emplace_back(var, pre);
+    }
     effects.emplace_back(var, value_post, std::move(conditions));
 }
 
@@ -562,6 +572,7 @@ Metric read_metric(std::istream& in)
     int optimization;
     bool rewards;
     std::optional<value_t> goal_reward;
+
     check_magic(in, "begin_metric");
     in >> optimization;
     in >> rewards;
@@ -571,10 +582,10 @@ Metric read_metric(std::istream& in)
         goal_reward = g;
     }
     check_magic(in, "end_metric");
-    return Metric{
-        static_cast<Optimization>(optimization),
-        rewards,
-        goal_reward};
+
+    return {.optimization = static_cast<Optimization>(optimization),
+            .rewards = rewards,
+            .goal_reward = goal_reward};
 }
 
 struct VariableInfo {
@@ -591,8 +602,8 @@ VariableInfo read_variables(std::istream& in)
     variables.axiom_infos.reserve(count);
 
     for (int i = 0; i < count; ++i) {
-        auto& axiom_info = variables.axiom_infos.emplace_back();
-        variables.domains.emplace_back(in, axiom_info.axiom_layer);
+        auto& axiom_layer = variables.axiom_infos.emplace_back().axiom_layer;
+        variables.domains.emplace_back(in, axiom_layer);
     }
 
     return variables;
@@ -650,10 +661,10 @@ OperatorInfo read_probabilistic_operators(
             costs.emplace_back());
         check_facts(new_op, variables);
     }
-    return {std::move(actions), std::move(costs)};
+    return {.operators = std::move(actions), .costs = std::move(costs)};
 }
 
-static void skip_mutexes(std::istream& in)
+void skip_mutexes(std::istream& in)
 {
     int num_mutex_groups;
     in >> num_mutex_groups;
@@ -915,9 +926,9 @@ vector<int> RootInitialStateValues::get_initial_state_values() const
 UniqueProbabilisticTask read_sas_task(std::istream& in)
 {
     read_and_verify_version(in);
-    Metric metric = read_metric(in);
-    auto variable_info = read_variables(in);
-    int num_variables = variable_info.domains.size();
+    auto [optimization, rewards, goal_reward] = read_metric(in);
+    auto [domains, axiom_infos] = read_variables(in);
+    const int num_variables = domains.size();
 
     if (const int c = (in >> std::ws).peek(); std::isdigit(c)) {
         skip_mutexes(in);
@@ -933,18 +944,16 @@ UniqueProbabilisticTask read_sas_task(std::istream& in)
     check_magic(in, "end_state");
 
     for (int i = 0; i < num_variables; ++i) {
-        variable_info.axiom_infos[i].axiom_default_value = initial_state[i];
+        axiom_infos[i].axiom_default_value = initial_state[i];
     }
 
     auto goal_facts = read_goal(in);
 
-    check_facts(goal_facts, variable_info.domains);
+    check_facts(goal_facts, domains);
 
-    auto action_info = read_probabilistic_operators(
-        in,
-        metric.optimization,
-        variable_info.domains);
-    auto axiom_info = read_axioms(in, variable_info.domains);
+    auto [operators_info, costs] =
+        read_probabilistic_operators(in, optimization, domains);
+    auto axiom_info = read_axioms(in, domains);
 
     /* TODO: We should be stricter here and verify that we
        have reached the end of "in". */
@@ -952,34 +961,33 @@ UniqueProbabilisticTask read_sas_task(std::istream& in)
     value_t goal_termination_cost;
     value_t non_goal_termination_cost;
 
-    if (metric.rewards) {
-        assert(metric.goal_reward.has_value());
-        goal_termination_cost = *metric.goal_reward;
+    if (rewards) {
+        assert(goal_reward.has_value());
+        goal_termination_cost = *goal_reward;
         non_goal_termination_cost = 0_vt;
     } else {
         goal_termination_cost = 0_vt;
         non_goal_termination_cost = INFINITE_VALUE;
     }
 
-    if (metric.optimization == Optimization::MAXIMIZE) {
+    if (optimization == MAXIMIZE) {
         goal_termination_cost = -goal_termination_cost;
         non_goal_termination_cost = -non_goal_termination_cost;
     }
 
     // Construct interfaces
-    auto variables =
-        std::make_unique<RootVariableSpace>(std::move(variable_info.domains));
+    auto variables = std::make_unique<RootVariableSpace>(std::move(domains));
 
     auto axioms = std::make_unique<RootAxiomSpace>(
-        std::move(variable_info.axiom_infos),
+        std::move(axiom_infos),
         std::move(axiom_info));
 
     auto operators =
-        std::make_unique<RootOperatorSpace>(std::move(action_info.operators));
+        std::make_unique<RootOperatorSpace>(std::move(operators_info));
 
     auto goals = std::make_unique<RootGoal>(std::move(goal_facts));
-    auto cost_function = std::make_unique<RootOperatorCostFunction>(
-        std::move(action_info.costs));
+    auto cost_function =
+        std::make_unique<RootOperatorCostFunction>(std::move(costs));
 
     auto term_costs = std::make_unique<RootTerminationCostFunction>(
         goal_termination_cost,
@@ -989,8 +997,8 @@ UniqueProbabilisticTask read_sas_task(std::istream& in)
       HACK: We use access g_axiom_evaluators here which
       assumes that this task is completely constructed.
     */
-    AxiomEvaluator& axiom_evaluator =
-        downward::g_axiom_evaluators[*variables, *axioms];
+    const AxiomEvaluator& axiom_evaluator =
+        g_axiom_evaluators[*variables, *axioms];
     axiom_evaluator.evaluate(initial_state);
 
     auto initial_state_values =

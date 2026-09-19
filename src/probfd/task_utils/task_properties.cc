@@ -31,10 +31,11 @@ namespace probfd::task_properties {
 
 bool is_applicable(const ProbabilisticOperatorProxy& op, const State& state)
 {
-    for (const auto [var, value] : op.get_preconditions()) {
-        if (state[var] != value) return false;
-    }
-    return true;
+    const auto contained_in_state = [&](const FactPair& fact) {
+        return state[fact.var] == fact.value;
+    };
+
+    return std::ranges::all_of(op.get_preconditions(), contained_in_state);
 }
 
 value_t get_adjusted_action_cost(
@@ -59,11 +60,10 @@ value_t get_adjusted_action_cost(
     switch (cost_type) {
     case NORMAL: return cost_function.get_operator_cost(op_index);
     case ONE: return 1_vt;
-    case PLUSONE:
-        if (is_unit_cost)
-            return 1_vt;
-        else
-            return cost_function.get_operator_cost(op_index) + 1_vt;
+    case PLUSONE: {
+        if (is_unit_cost) return 1_vt;
+        return cost_function.get_operator_cost(op_index) + 1_vt;
+    }
     default: throw utils::CriticalError("Unknown cost type");
     }
 }
@@ -72,11 +72,13 @@ bool is_unit_cost(
     const ProbabilisticOperatorSpace& operators,
     const OperatorCostFunction<value_t>& cost_function)
 {
-    for (const auto op : operators) {
-        if (cost_function.get_operator_cost(op.get_id()) != 1_vt) return false;
-    }
+    constexpr auto is_unit = [](value_t cost) { return cost == 1_vt; };
 
-    return true;
+    const auto get_cost = [&](const auto& op) {
+        return cost_function.get_operator_cost(op.get_id());
+    };
+
+    return std::ranges::all_of(operators, is_unit, get_cost);
 }
 
 static int
@@ -99,7 +101,7 @@ bool has_conditional_effects(const ProbabilisticOperatorSpace& operators)
 
 void verify_no_conditional_effects(const ProbabilisticOperatorSpace& operators)
 {
-    int op_id = get_first_conditional_effects_op_id(operators);
+    const int op_id = get_first_conditional_effects_op_id(operators);
     if (op_id != -1) {
         throw utils::UnsupportedError(
             "This configuration does not support conditional effects "
@@ -192,7 +194,8 @@ void dump_probabilistic_task(
             println(os, "    {}: {}", val, var.get_fact(val).get_name());
         }
     }
-    State initial_state = init_vals.get_initial_state();
+
+    const State initial_state = init_vals.get_initial_state();
     println(os, "Initial state (PDDL):");
     ::task_properties::dump_pddl(variables, initial_state, os);
     println(os, "Initial state (FDR):");

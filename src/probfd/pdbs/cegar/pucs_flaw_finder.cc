@@ -29,7 +29,7 @@ namespace probfd::pdbs::cegar {
 PUCSFlawFinder::PUCSFlawFinder(int max_search_states)
     : max_search_states_(max_search_states)
 {
-    utils::validate_param_non_negative("max_search_states", max_search_states_);
+    validate_param_non_negative("max_search_states", max_search_states_);
 }
 
 bool PUCSFlawFinder::apply_policy(
@@ -39,8 +39,8 @@ bool PUCSFlawFinder::apply_policy(
     const ProjectionStateSpace& mdp,
     const ProjectionMultiPolicy& policy,
     std::vector<Flaw>& flaws,
-    const std::function<bool(const Flaw&)>& accept_flaw,
-    utils::CountdownTimer& timer)
+    const std::function<bool(const Flaw&)>& notify_flaw,
+    CountdownTimer& timer)
 {
     assert(pq_.empty() && probabilities_.empty());
 
@@ -71,18 +71,18 @@ bool PUCSFlawFinder::apply_policy(
     do {
         timer.throw_if_expired();
 
-        auto [path_probability, current] = pq_.pop();
+        auto [current_path_probability, current] = pq_.pop();
         auto& info = probabilities_[StateID(current.get_id())];
         assert(!info.expanded);
 
         // TODO remove this once we have a real priority queue...
-        if (path_probability < info.path_probability) {
+        if (current_path_probability < info.path_probability) {
             continue;
         }
 
         info.expanded = true;
 
-        assert(path_probability != 0_vt);
+        assert(current_path_probability != 0_vt);
 
         // Check flaws, generate successors
         const StateRank abs = state_ranking_function.get_abstract_rank(current);
@@ -92,7 +92,7 @@ bool PUCSFlawFinder::apply_policy(
         // We reached a terminal state, check if it is a goal or dead-end
         if (abs_decisions.empty()) {
             if (mdp.is_goal(abs) &&
-                collect_flaws(goals, current, flaws, accept_flaw))
+                collect_flaws(goals, current, flaws, notify_flaw))
                 return false;
 
             continue;
@@ -100,8 +100,8 @@ bool PUCSFlawFinder::apply_policy(
 
         std::vector<Flaw> local_flaws;
 
-        for (const auto& decision : abs_decisions) {
-            const auto op = operators[decision.action->operator_id];
+        for (const auto& [action, q_value_interval] : abs_decisions) {
+            const auto op = operators[action->operator_id];
 
             const auto s = local_flaws.size();
 
@@ -109,7 +109,7 @@ bool PUCSFlawFinder::apply_policy(
                 op.get_preconditions(),
                 current,
                 local_flaws,
-                accept_flaw);
+                notify_flaw);
 
             if (flaw_suppressed) {
                 any_flaw_suppressed = true;
@@ -130,13 +130,13 @@ bool PUCSFlawFinder::apply_policy(
                     return false;
                 }
 
-                auto& succ_entry = probabilities_[StateID(successor.get_id())];
+                auto& [expanded, path_probability] =
+                    probabilities_[StateID(successor.get_id())];
                 const auto succ_prob =
                     path_probability * outcome.get_probability();
 
-                if (!succ_entry.expanded &&
-                    succ_entry.path_probability < succ_prob) {
-                    succ_entry.path_probability = succ_prob;
+                if (!expanded && path_probability < succ_prob) {
+                    path_probability = succ_prob;
                     pq_.push(succ_prob, successor);
                 }
             }

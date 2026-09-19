@@ -17,8 +17,8 @@ using namespace downward;
 namespace probfd::heuristics {
 
 DeterminizationCostHeuristic::DeterminizationCostHeuristic(
-    std::shared_ptr<Evaluator> evaluator)
-    : evaluator_(std::move(evaluator))
+    std::shared_ptr<Evaluator> heuristic)
+    : evaluator_(std::move(heuristic))
 {
 }
 
@@ -27,7 +27,7 @@ DeterminizationCostHeuristic::~DeterminizationCostHeuristic() = default;
 value_t DeterminizationCostHeuristic::evaluate(const State& state) const
 {
     EvaluationContext context(state);
-    EvaluationResult result = evaluator_->compute_result(context);
+    const EvaluationResult result = evaluator_->compute_result(context);
     return result.is_infinite()
                ? INFINITE_VALUE
                : static_cast<value_t>(result.get_evaluator_value());

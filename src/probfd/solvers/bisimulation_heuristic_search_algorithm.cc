@@ -1,6 +1,5 @@
 #include "probfd/solvers/bisimulation_heuristic_search_algorithm.h"
 
-#include "downward/initial_state_values.h"
 #include "probfd/algorithms/open_list.h"
 
 #include "probfd/heuristics/constant_heuristic.h"
@@ -19,32 +18,12 @@
 
 #include "downward/utils/timer.h"
 
+#include "downward/initial_state_values.h"
+
 using namespace downward;
 
 namespace probfd::solvers {
-
-void BisimulationTimer::print(std::ostream& out) const
-{
-    println(
-        out,
-        "  Bisimulation time: {}\n"
-        "  Bisimilar states: {}\n"
-        "  Transitions in bisimulation: {}",
-        time,
-        states,
-        transitions);
-}
-
-BisimulationBasedHeuristicSearchAlgorithm ::
-    BisimulationBasedHeuristicSearchAlgorithm(
-        SharedProbabilisticTask task,
-        std::string algorithm_name,
-        std::shared_ptr<MDPAlgorithm<QState, QAction>> algorithm)
-    : task_(std::move(task))
-    , algorithm_name_(std::move(algorithm_name))
-    , algorithm_(std::move(algorithm))
-{
-}
+namespace {
 
 class BisimulationPolicy final : public Policy<State, OperatorID> {
     std::unique_ptr<merge_and_shrink::MergeAndShrinkRepresentation>
@@ -72,19 +51,44 @@ public:
     }
 };
 
+} // namespace
+
+void BisimulationTimer::print(std::ostream& out) const
+{
+    println(
+        out,
+        "  Bisimulation time: {}\n"
+        "  Bisimilar states: {}\n"
+        "  Transitions in bisimulation: {}",
+        time,
+        states,
+        transitions);
+}
+
+BisimulationBasedHeuristicSearchAlgorithm ::
+    BisimulationBasedHeuristicSearchAlgorithm(
+        SharedProbabilisticTask task,
+        std::string algorithm_name,
+        std::shared_ptr<MDPAlgorithm<QState, QAction>> algorithm)
+    : task_(std::move(task))
+    , algorithm_name_(std::move(algorithm_name))
+    , algorithm_(std::move(algorithm))
+{
+}
+
 auto BisimulationBasedHeuristicSearchAlgorithm::compute_policy(
     FDRMDP&,
     FDRHeuristic&,
     const State&,
     ProgressReport progress,
-    downward::utils::FSeconds max_time) -> std::unique_ptr<PolicyType>
+    utils::FSeconds max_time) -> std::unique_ptr<PolicyType>
 {
     utils::Timer timer;
 
     std::println(std::cout, "Building bisimulation...");
 
     SharedAbstractTask determinization =
-        probfd::tasks::create_determinization_task(task_);
+        tasks::create_determinization_task(task_);
 
     auto [transition_system, state_mapping, distances] =
         bisimulation::compute_bisimulation_on_determinization(

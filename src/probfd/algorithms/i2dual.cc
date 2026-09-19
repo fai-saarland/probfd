@@ -46,9 +46,9 @@ void I2Dual::Statistics::print(std::ostream& out) const
 struct I2Dual::IDualData {
     enum { NEW, FRONTIER, TERMINAL, CLOSED };
 
-    std::vector<std::pair<double, unsigned>> incoming;
+    std::vector<ItemProbabilityPair<int>> incoming;
     double estimate = -1.0;
-    unsigned constraint = std::numeric_limits<unsigned>::max();
+    int constraint = std::numeric_limits<int>::max();
     uint8_t status = NEW;
 
     [[nodiscard]]
@@ -69,7 +69,7 @@ struct I2Dual::IDualData {
         return status == FRONTIER;
     }
 
-    void open(unsigned c, double est)
+    void open(int c, double est)
     {
         status = FRONTIER;
         constraint = c;
@@ -85,7 +85,7 @@ struct I2Dual::IDualData {
     void close()
     {
         status = CLOSED;
-        std::vector<std::pair<double, unsigned>>().swap(incoming);
+        std::vector<ItemProbabilityPair<int>>().swap(incoming);
     }
 };
 
@@ -117,7 +117,7 @@ Interval I2Dual::solve(
     ProgressReport progress,
     utils::FSeconds max_time)
 {
-    downward::utils::CountdownTimer timer(max_time);
+    utils::CountdownTimer timer(max_time);
 
     statistics_ = Statistics();
 
@@ -128,7 +128,7 @@ Interval I2Dual::solve(
 
     if (hpom_enabled_) {
         downward::task_properties::verify_no_axioms(axioms);
-        probfd::task_properties::verify_no_conditional_effects(operators);
+        task_properties::verify_no_conditional_effects(operators);
     }
 
     storage::PerStateStorage<IDualData> idual_data;
@@ -140,8 +140,10 @@ Interval I2Dual::solve(
 
     prepare_lp();
 
-    progress.register_bound("v", [this]() {
-        return Interval(objective_, INFINITE_VALUE);
+    value_t objective = -1_vt;
+
+    progress.register_bound("v", [&objective] {
+        return Interval(objective, INFINITE_VALUE);
     });
 
     const double infinity = lp_solver_.get_infinity();
@@ -156,8 +158,6 @@ Interval I2Dual::solve(
     // IDual data structures
     std::vector<StateID> frontier;
     std::vector<StateID> frontier_candidates;
-
-    objective_ = -1_vt;
 
     {
         const StateID init_id = mdp.get_state_id(initial_state);
@@ -187,7 +187,7 @@ Interval I2Dual::solve(
             assert(state_data.is_frontier());
 
             if (!hpom_enabled_) {
-                for (const auto& [prob, var_id] : state_data.incoming) {
+                for (const auto& [var_id, prob] : state_data.incoming) {
                     const double amount = state_data.estimate * prob;
                     obj_coef[var_id] -= amount;
                     assert(obj_coef[var_id] >= -fp_epsilon_);
@@ -243,7 +243,7 @@ Interval I2Dual::solve(
                     }
 
                     if (succ_data.is_frontier()) {
-                        succ_data.incoming.emplace_back(prob, lp_var_id);
+                        succ_data.incoming.emplace_back(lp_var_id, prob);
                     }
 
                     if (succ_data.is_terminal() ||
@@ -281,12 +281,14 @@ Interval I2Dual::solve(
         }
 
         assert(lp_solver_.has_optimal_solution());
-        objective_ = -lp_solver_.get_objective_value();
+        objective = -lp_solver_.get_objective_value();
         std::vector<double> solution = lp_solver_.extract_solution();
 
         // Push frontier candidates and remove them
         std::erase_if(frontier_candidates, [&](StateID state_id) {
-            for (const auto& [_, var_id] : idual_data[state_id].incoming) {
+            for (const auto& var_id :
+                 idual_data[state_id].incoming |
+                     std::views::transform(&ItemProbabilityPair<int>::item)) {
                 if (solution[var_id] > fp_epsilon_) {
                     frontier.push_back(state_id);
                     return true;
@@ -305,7 +307,7 @@ Interval I2Dual::solve(
     statistics_.num_lp_vars = next_lp_var_;
     statistics_.num_lp_constraints = next_lp_constr_id_;
 
-    return Interval(objective_, INFINITE_VALUE);
+    return Interval(objective, INFINITE_VALUE);
 }
 
 auto I2Dual::compute_policy(
@@ -313,14 +315,14 @@ auto I2Dual::compute_policy(
     FDRHeuristic&,
     const State&,
     ProgressReport,
-    downward::utils::FSeconds) -> std::unique_ptr<PolicyType>
+    utils::FSeconds) -> std::unique_ptr<PolicyType>
 {
     abort();
 }
 
 bool I2Dual::evaluate_state(
     FDRMDP& mdp,
-    FDRHeuristic& heuristic,
+    const FDRHeuristic& heuristic,
     const State& state,
     IDualData& data)
 {
@@ -349,8 +351,8 @@ void I2Dual::prepare_lp()
 
     prepare_hpom(lp);
 
-    next_lp_var_ = lp.get_variables().size();
-    next_lp_constr_id_ = lp.get_constraints().size();
+    next_lp_var_ = static_cast<int>(lp.get_variables().size());
+    next_lp_constr_id_ = static_cast<int>(lp.get_constraints().size());
 
     lp.get_constraints().emplace_back(-lp_solver_.get_infinity(), 1);
     lp_solver_.load_problem(lp);
@@ -408,8 +410,7 @@ void I2Dual::update_hpom_constraints_frontier(
 
     size_t i = incremental_hpom_updates_ ? start : 0;
 
-    for (; i < frontier.size(); ++i) {
-        StateID state_id = frontier[i];
+    for (StateID state_id : frontier | std::views::drop(i)) {
         State s = mdp.get_state(state_id);
         add_fringe_state_to_hpom(s, data[state_id], hpom_constraints_);
     }
@@ -420,15 +421,14 @@ void I2Dual::update_hpom_constraints_frontier(
 void I2Dual::remove_fringe_state_from_hpom(
     const State& state,
     const IDualData& data,
-    downward::named_vector::NamedVector<LPConstraint>& constraints) const
+    named_vector::NamedVector<LPConstraint>& constraints) const
 {
-    const auto& variables = get_variables(task_);
-
-    for (VariableProxy var : variables) {
-        const int val = state[var];
-        LPConstraint& c = constraints[offset_[var.get_id()] + val];
-        for (const auto& om : data.incoming) {
-            c.remove(om.second);
+    for (const auto& [var, val] : state | as_fact_pair_set) {
+        LPConstraint& c = constraints[offset_[var] + val];
+        for (const auto& value :
+             data.incoming |
+                 std::views::transform(&ItemProbabilityPair<int>::item)) {
+            c.remove(value);
         }
     }
 }
@@ -436,15 +436,12 @@ void I2Dual::remove_fringe_state_from_hpom(
 void I2Dual::add_fringe_state_to_hpom(
     const State& state,
     const IDualData& data,
-    downward::named_vector::NamedVector<LPConstraint>& constraints) const
+    named_vector::NamedVector<LPConstraint>& constraints) const
 {
-    const auto& variables = get_variables(task_);
-
-    for (VariableProxy var : variables) {
-        const int val = state[var];
-        LPConstraint& c = constraints[offset_[var.get_id()] + val];
-        for (const auto& om : data.incoming) {
-            c.insert(om.second, om.first);
+    for (const auto& [var, val] : state | as_fact_pair_set) {
+        LPConstraint& c = constraints[offset_[var] + val];
+        for (const auto& [var_idx, prob] : data.incoming) {
+            c.insert(var_idx, prob);
         }
     }
 }

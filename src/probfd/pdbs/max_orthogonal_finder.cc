@@ -22,7 +22,7 @@ std::vector<PatternSubCollection>
 MaxOrthogonalityFinderBase::compute_subcollections(
     const PatternCollection& patterns)
 {
-    std::vector<std::vector<int>> c_graph =
+    const std::vector<std::vector<int>> c_graph =
         build_compatibility_graph_orthogonality(patterns, var_orthogonality_);
 
     std::vector<PatternSubCollection> additive_subcollections;
@@ -50,7 +50,7 @@ value_t AdditiveMaxOrthogonalityFinder::evaluate_subcollection(
 {
     auto result = 0_vt;
 
-    for (int pattern_id : subcollection) {
+    for (const int pattern_id : subcollection) {
         result += pdb_estimates[pattern_id];
     }
 
@@ -69,7 +69,7 @@ value_t MultiplicativeMaxOrthogonalityFinder::evaluate_subcollection(
 {
     auto result = -1_vt;
 
-    for (int pattern_id : subcollection) {
+    for (const int pattern_id : subcollection) {
         result *= -pdb_estimates[pattern_id];
     }
 

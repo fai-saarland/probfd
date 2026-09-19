@@ -45,7 +45,7 @@ void CachingTaskStateSpace::generate_applicable_actions(
     const State& state,
     std::vector<OperatorID>& result)
 {
-    CacheEntry& entry = lookup(state);
+    const CacheEntry& entry = lookup(state);
     result.reserve(entry.naops);
     for (size_t i = 0; i != entry.naops; ++i) {
         result.push_back(entry.aops[i]);
@@ -57,18 +57,19 @@ void CachingTaskStateSpace::generate_applicable_actions(
 
 void CachingTaskStateSpace::generate_action_transitions(
     const State& state,
-    OperatorID op_id,
+    OperatorID operator_id,
     SuccessorDistribution& successor_dist)
 {
     const CacheEntry& entry = lookup(state);
     assert(entry.is_initialized());
     const StateID* succs = entry.succs;
 
-    auto it = find_if(counted(entry.aops, entry.naops), [&](OperatorID id) {
-        if (op_id == id) return true;
-        succs += (*operators_)[id].get_outcomes().size();
-        return false;
-    });
+    const auto it =
+        find_if(counted(entry.aops, entry.naops), [&](OperatorID id) {
+            if (operator_id == id) return true;
+            succs += (*operators_)[id].get_outcomes().size();
+            return false;
+        });
 
     successor_dist.non_source_probability = 0_vt;
 
@@ -88,12 +89,11 @@ void CachingTaskStateSpace::generate_all_transitions(
     std::vector<OperatorID>& aops,
     std::vector<SuccessorDistribution>& successor_dists)
 {
-    CacheEntry& entry = lookup(state);
-    const StateID* succs = entry.succs;
-    aops.reserve(entry.naops);
-    successor_dists.reserve(entry.naops);
+    auto& [naops, cached_aops, succs] = lookup(state);
+    aops.reserve(naops);
+    successor_dists.reserve(naops);
 
-    for (OperatorID op_id : counted(entry.aops, entry.naops)) {
+    for (OperatorID op_id : counted(cached_aops, naops)) {
         aops.push_back(op_id);
 
         SuccessorDistribution& successor_dist = successor_dists.emplace_back();
@@ -116,13 +116,11 @@ void CachingTaskStateSpace::generate_all_transitions(
     const State& state,
     std::vector<LDistType>& transitions)
 {
-    CacheEntry& entry = lookup(state);
-    const StateID* succs = entry.succs;
-    transitions.reserve(entry.naops);
+    auto& [naops, cached_aops, succs] = lookup(state);
+    transitions.reserve(naops);
 
-    for (OperatorID op_id : counted(entry.aops, entry.naops)) {
-        LDistType& t = transitions.emplace_back(op_id);
-        SuccessorDistribution& successor_dist = t.successor_dist;
+    for (OperatorID op_id : counted(cached_aops, naops)) {
+        auto& successor_dist = transitions.emplace_back(op_id).successor_dist;
 
         const ProbabilisticOperatorProxy op = (*operators_)[op_id];
         const ProbabilisticOutcomesProxy outcomes = op.get_outcomes();
@@ -152,23 +150,23 @@ void CachingTaskStateSpace::print_statistics(std::ostream& out) const
 void CachingTaskStateSpace::compute_successor_states(
     const State& state,
     OperatorID op_id,
-    std::vector<StateID>& succs)
+    std::vector<StateID>& successors)
 {
     const ProbabilisticOperatorProxy op = (*operators_)[op_id];
     const auto outcomes = op.get_outcomes();
     const size_t num_outcomes = outcomes.size();
-    succs.reserve(num_outcomes);
+    successors.reserve(num_outcomes);
 
     for (const ProbabilisticOutcomeProxy outcome : outcomes) {
         State succ =
             state_registry_.get_successor_state(state, outcome.get_effects());
 
         for (const auto& h : notify_) {
-            OperatorID det_op_id(outcome.get_determinization_id());
+            const OperatorID det_op_id(outcome.get_determinization_id());
             h->notify_state_transition(state, det_op_id, succ);
         }
 
-        succs.emplace_back(succ.get_id());
+        successors.emplace_back(succ.get_id());
     }
 
     ++statistics_.transition_computations;
@@ -188,12 +186,14 @@ void CachingTaskStateSpace::setup_cache(const State& state, CacheEntry& entry)
 
         std::vector<StateID> succs;
         for (size_t i = 0; i < aops_.size(); ++i) {
-            OperatorID op = aops_[i];
+            const OperatorID op = aops_[i];
             entry.aops[i] = op;
 
             compute_successor_states(state, op, succs);
 
-            for (const StateID s : succs) { successors_.push_back(s); }
+            for (const StateID s : succs) {
+                successors_.push_back(s);
+            }
 
             succs.clear();
         }

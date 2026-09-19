@@ -145,7 +145,7 @@ void ProbabilisticGeneratorSwitchVector::generate_applicable_ops(
     const vector<int>& state,
     vector<OperatorID>& applicable_ops) const
 {
-    int val = state[switch_var_id_];
+    const int val = state[switch_var_id_];
     const unique_ptr<ProbabilisticGeneratorBase>& generator_for_val =
         generator_for_value_[val];
     if (generator_for_val) {
@@ -158,7 +158,7 @@ void ProbabilisticGeneratorSwitchVector::generate_transitions(
     std::vector<LabelledSuccessorDistribution<OperatorID>>& transitions,
     TaskStateSpace& task_state_space) const
 {
-    int val = state.get_unpacked_values()[switch_var_id_];
+    const int val = state.get_unpacked_values()[switch_var_id_];
     const unique_ptr<ProbabilisticGeneratorBase>& generator_for_val =
         generator_for_value_[val];
     if (generator_for_val) {
@@ -182,7 +182,7 @@ void ProbabilisticGeneratorSwitchHash::generate_applicable_ops(
     const vector<int>& state,
     vector<OperatorID>& applicable_ops) const
 {
-    int val = state[switch_var_id_];
+    const int val = state[switch_var_id_];
     const auto& child = generator_for_value_.find(val);
     if (child != generator_for_value_.end()) {
         const unique_ptr<ProbabilisticGeneratorBase>& generator_for_val =
@@ -196,7 +196,7 @@ void ProbabilisticGeneratorSwitchHash::generate_transitions(
     std::vector<LabelledSuccessorDistribution<OperatorID>>& transitions,
     TaskStateSpace& task_state_space) const
 {
-    int val = state.get_unpacked_values()[switch_var_id_];
+    const int val = state.get_unpacked_values()[switch_var_id_];
     const auto& child = generator_for_value_.find(val);
     if (child != generator_for_value_.end()) {
         const unique_ptr<ProbabilisticGeneratorBase>& generator_for_val =
@@ -268,8 +268,8 @@ void ProbabilisticGeneratorLeafVector::generate_transitions(
     TaskStateSpace& task_state_space) const
 {
     for (OperatorID id : applicable_operators_) {
-        auto& t = transitions.emplace_back(id);
-        task_state_space.compute_successor_dist(state, id, t.successor_dist);
+        auto& successor_dist = transitions.emplace_back(id).successor_dist;
+        task_state_space.compute_successor_dist(state, id, successor_dist);
     }
 }
 
@@ -291,11 +291,12 @@ void ProbabilisticGeneratorLeafSingle::generate_transitions(
     std::vector<LabelledSuccessorDistribution<OperatorID>>& transitions,
     TaskStateSpace& task_state_space) const
 {
-    auto& t = transitions.emplace_back(applicable_operator_);
+    auto& successor_dist =
+        transitions.emplace_back(applicable_operator_).successor_dist;
     task_state_space.compute_successor_dist(
         state,
         applicable_operator_,
-        t.successor_dist);
+        successor_dist);
 }
 
 } // namespace probfd::successor_generator

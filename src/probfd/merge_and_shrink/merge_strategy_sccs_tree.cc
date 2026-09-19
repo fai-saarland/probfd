@@ -69,7 +69,7 @@ MergeStrategySCCsTree::get_next(const FactoredTransitionSystem& fts)
     const pair<int, int> next_pair =
         current_merge_tree->get_next_merge(merged_ts_index);
     if (current_merge_tree->done()) {
-        current_merge_tree.release();
+        current_merge_tree = nullptr;
     }
 
     // Remove the two merged indices from the current index set.

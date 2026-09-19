@@ -19,134 +19,6 @@ using namespace downward;
 
 namespace probfd::pdbs {
 
-namespace {
-
-class SyntacticProjectionOperator {
-    std::map<std::vector<FactPair>, value_t> effects_to_probs;
-
-public:
-    using const_iterator = decltype(std::as_const(effects_to_probs).begin());
-
-    SyntacticProjectionOperator(
-        const Pattern& pattern,
-        const ProbabilisticOperatorProxy& op)
-    {
-        for (const ProbabilisticOutcomeProxy& outcome : op.get_outcomes()) {
-            // Project effects
-            std::vector<FactPair> projected_effects;
-
-            for (const ProbabilisticEffectProxy& effect :
-                 outcome.get_effects()) {
-                const auto& [var, val] = effect.get_fact();
-
-                if (std::ranges::contains(pattern, var)) {
-                    projected_effects.emplace_back(var, val);
-                }
-            }
-
-            const auto probability = outcome.get_probability();
-
-            if (auto p = effects_to_probs.emplace(
-                    std::move(projected_effects),
-                    probability);
-                !p.second) {
-                p.first->second += probability;
-            }
-        }
-    }
-
-    [[nodiscard]]
-    value_t get_probability(const std::vector<FactPair>& effects) const
-    {
-        auto it = effects_to_probs.find(effects);
-        return it != effects_to_probs.end() ? it->second : 0_vt;
-    }
-
-    [[nodiscard]]
-    bool is_stochastic() const
-    {
-        return effects_to_probs.size() > 1;
-    }
-
-    [[nodiscard]]
-    bool is_pseudo_deterministic() const
-    {
-        if (effects_to_probs.size() == 2) {
-            auto it = effects_to_probs.cbegin();
-            if (it->first.empty() || (++it)->first.empty()) { return true; }
-        }
-
-        return false;
-    }
-
-    auto begin() { return effects_to_probs.begin(); }
-
-    auto end() { return effects_to_probs.end(); }
-
-    [[nodiscard]]
-    auto begin() const
-    {
-        return effects_to_probs.begin();
-    }
-
-    [[nodiscard]]
-    auto end() const
-    {
-        return effects_to_probs.end();
-    }
-};
-
-template <typename T>
-bool are_disjoint(const std::vector<T>& A, const std::vector<T>& B)
-{
-    std::vector<T> intersection;
-
-    std::set_intersection(
-        A.cbegin(),
-        A.cend(),
-        B.cbegin(),
-        B.cend(),
-        std::back_inserter(intersection));
-
-    return intersection.empty();
-}
-
-// Helper class to iterate over permutations of values
-template <typename T>
-struct Permutation {
-    const std::vector<std::pair<T, T>> ranges;
-    std::vector<T> values;
-
-    Permutation(std::vector<std::pair<T, T>> ranges, std::vector<T> values)
-        : ranges(std::move(ranges))
-        , values(std::move(values))
-    {
-    }
-
-    bool get_next()
-    {
-        for (std::size_t i = 0; i != values.size(); ++i) {
-            if (values[i] != ranges[i].second) {
-                // If this dimension can handle another increment... then done.
-                ++values[i];
-                return true;
-            }
-
-            // Otherwise, reset this dimension and bubble up to the next
-            // dimension to take a look
-            values[i] = ranges[i].first;
-        }
-
-        return false;
-    }
-
-    T& operator[](int i) { return values[i]; }
-
-    const T& operator[](int i) const { return values[i]; }
-};
-
-} // namespace
-
 std::vector<std::vector<bool>> compute_prob_orthogonal_vars(
     const VariableSpace& variables,
     const ProbabilisticOperatorSpace& operators,
@@ -154,14 +26,14 @@ std::vector<std::vector<bool>> compute_prob_orthogonal_vars(
 {
     const size_t num_vars = variables.size();
 
-    std::vector<std::vector<bool>> are_orthogonal(
-        num_vars,
-        std::vector<bool>(num_vars, true));
+    std::vector are_orthogonal(num_vars, std::vector(num_vars, true));
 
     for (const ProbabilisticOperatorProxy& op : operators) {
         const ProbabilisticOutcomesProxy outcomes = op.get_outcomes();
 
-        if (ignore_deterministic && outcomes.size() == 1) { continue; }
+        if (ignore_deterministic && outcomes.size() == 1) {
+            continue;
+        }
 
         std::unordered_set<int> affected_vars;
 
@@ -199,7 +71,7 @@ std::vector<std::vector<int>> build_compatibility_graph_orthogonality(
 
 std::vector<std::vector<int>> build_compatibility_graph_orthogonality(
     const PatternCollection& patterns,
-    const std::vector<std::vector<bool>>& on_vars)
+    const std::vector<std::vector<bool>>& var_orthogonality)
 {
     using ::pdbs::are_patterns_additive;
 
@@ -208,7 +80,10 @@ std::vector<std::vector<int>> build_compatibility_graph_orthogonality(
 
     for (size_t i = 0; i < patterns.size(); ++i) {
         for (size_t j = i + 1; j < patterns.size(); ++j) {
-            if (are_patterns_additive(patterns[i], patterns[j], on_vars)) {
+            if (are_patterns_additive(
+                    patterns[i],
+                    patterns[j],
+                    var_orthogonality)) {
                 /* If the two patterns are additive, there is an edge in the
                    compatibility graph. */
                 cgraph[i].push_back(j);

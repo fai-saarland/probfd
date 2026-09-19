@@ -63,7 +63,8 @@ public:
             for (const auto& [src, targets] : label_info.get_transitions()) {
                 auto& [_, successor_dist] =
                     transitions_[src].emplace_back(label_cost);
-                for (auto [item, prob] : vws::zip(targets, probabilities)) {
+                for (const auto& [item, prob] :
+                     vws::zip(targets, probabilities)) {
                     successor_dist.add_probability(item, prob);
                 }
             }
@@ -181,7 +182,7 @@ void Distances::compute_distances(
         log.print(transition_system.tag());
     }
 
-    const int num_states = transition_system.get_size();
+    const std::size_t num_states = transition_system.get_size();
 
     if (num_states == 0) {
         if (log.is_at_least_verbose()) {
@@ -317,7 +318,8 @@ void Distances::apply_abstraction(
             log.print(transition_system.tag());
             log.println("simplification was not alive-preserving!");
         }
-        const int num_states = transition_system.get_size();
+
+        const std::size_t num_states = transition_system.get_size();
         liveness.resize(num_states);
         std::ranges::fill(liveness, false);
         merge_and_shrink::compute_liveness(
