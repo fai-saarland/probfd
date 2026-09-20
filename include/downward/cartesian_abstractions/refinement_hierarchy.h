@@ -3,6 +3,7 @@
 
 #include "downward/cartesian_abstractions/types.h"
 
+#include <algorithm>
 #include <cassert>
 #include <memory>
 #include <ostream>
@@ -18,31 +19,17 @@ class Node;
 
 /*
   This class stores the refinement hierarchy of a Cartesian
-  abstraction. The hierarchy forms a DAG with inner nodes for each
+  abstraction. The hierarchy forms a tree with inner nodes for each
   split and leaf nodes for the abstract states.
-
-  It is used for efficient lookup of abstract states during search.
-
-  Inner nodes correspond to abstract states that have been split (or
-  helper nodes, see below). Leaf nodes correspond to the current
-  (unsplit) states in an abstraction. The use of helper nodes makes
-  this structure a directed acyclic graph (instead of a tree).
 */
 class RefinementHierarchy {
     std::vector<Node> nodes;
 
     NodeID add_node(int state_id);
-    NodeID get_node_id(const State& state) const;
 
 public:
     RefinementHierarchy();
 
-    /*
-      Update the split tree for the new split. Additionally to the left
-      and right child nodes add |values|-1 helper nodes that all have
-      the right child as their right child and the next helper node as
-      their left child.
-    */
     std::pair<NodeID, NodeID> split(
         NodeID node_id,
         int var,
@@ -54,19 +41,13 @@ public:
 };
 
 class Node {
-    /*
-      While right_child is always the node of a (possibly split)
-      abstract state, left_child may be a helper node. We add helper
-      nodes to the hierarchy to allow for efficient lookup in case more
-      than one fact is split off a state.
-    */
     NodeID left_child;
     NodeID right_child;
 
     /* Before splitting the corresponding state for var and value, both
        members hold UNDEFINED. */
     int var;
-    int value;
+    std::vector<int> values;
 
     // When splitting the corresponding state, we change this value to
     // UNDEFINED.
@@ -79,7 +60,11 @@ public:
 
     bool is_split() const;
 
-    void split(int var, int value, NodeID left_child, NodeID right_child);
+    void split(
+        int var,
+        std::vector<int> values,
+        NodeID left_child,
+        NodeID right_child);
 
     int get_var() const
     {
@@ -90,8 +75,7 @@ public:
     NodeID get_child(int value) const
     {
         assert(is_split());
-        if (value == this->value) return right_child;
-        return left_child;
+        return std::ranges::contains(values, value) ? right_child : left_child;
     }
 
     int get_state_id() const
@@ -102,6 +86,6 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, const Node& node);
 };
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions
 
 #endif
