@@ -39,10 +39,10 @@ CartesianAbstraction::CartesianAbstraction(
     const auto domain_sizes =
         get_variables(task) |
         downward::views::transform<&VariableProxy::get_domain_size>;
-    unique_ptr<AbstractState> init_state =
+    AbstractState init_state =
         AbstractState::get_trivial_abstract_state(domain_sizes);
-    init_id_ = init_state->get_id();
-    goals_.insert(init_state->get_id());
+    init_id_ = init_state.get_id();
+    goals_.insert(init_state.get_id());
     states_.push_back(std::move(init_state));
 }
 
@@ -133,7 +133,7 @@ value_t CartesianAbstraction::get_cost(int op_index) const
 
 const AbstractState& CartesianAbstraction::get_initial_state() const
 {
-    return *states_[init_id_];
+    return states_[init_id_];
 }
 
 int CartesianAbstraction::get_num_states() const
@@ -149,7 +149,7 @@ const Goals& CartesianAbstraction::get_goals() const
 const AbstractState&
 CartesianAbstraction::get_abstract_state(int state_id) const
 {
-    return *states_[state_id];
+    return states_[state_id];
 }
 
 const ProbabilisticTransitionSystem&
@@ -160,10 +160,9 @@ CartesianAbstraction::get_transition_system() const
 
 void CartesianAbstraction::mark_all_states_as_goals()
 {
-    constexpr auto get_id = [](const auto& state) { return state->get_id(); };
-
     goals_.clear();
-    goals_.insert_range(states_ | std::views::transform(get_id));
+    goals_.insert_range(
+        states_ | downward::views::transform<&AbstractState::get_id>);
 }
 
 pair<int, int> CartesianAbstraction::refine(
@@ -234,10 +233,10 @@ pair<int, int> CartesianAbstraction::refine(
         v1_id,
         v2_id);
 
-    auto v1 = std::make_unique<AbstractState>(v1_id, node1, std::move(c1));
-    auto v2 = std::make_unique<AbstractState>(v2_id, node2, std::move(c2));
+    AbstractState v1(v1_id, node1, std::move(c1));
+    AbstractState v2(v2_id, node2, std::move(c2));
 
-    transition_system_->rewire(states_, *v1, *v2, split_var);
+    transition_system_->rewire(states_, v1, v2, split_var);
 
     assert(std::cmp_equal(states_.size(), v2_id));
 

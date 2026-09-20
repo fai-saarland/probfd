@@ -46,6 +46,9 @@ public:
     AbstractState(const AbstractState&) = delete;
     AbstractState& operator=(const AbstractState&) = delete;
 
+    AbstractState(AbstractState&&) noexcept = default;
+    AbstractState& operator=(AbstractState&&) noexcept = default;
+
     [[nodiscard]]
     bool domain_subsets_intersect(const AbstractState& other, int var) const;
 
@@ -72,13 +75,9 @@ public:
     // Create the initial, unrefined abstract state.
     template <std::ranges::input_range R>
         requires std::same_as<std::ranges::range_value_t<R>, int>
-    static std::unique_ptr<AbstractState>
-    get_trivial_abstract_state(const R& domain_sizes)
+    static AbstractState get_trivial_abstract_state(const R& domain_sizes)
     {
-        return std::make_unique<AbstractState>(
-            0,
-            0,
-            CartesianSet(domain_sizes));
+        return AbstractState(0, 0, CartesianSet(domain_sizes));
     }
 };
 

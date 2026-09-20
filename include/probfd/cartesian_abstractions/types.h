@@ -39,7 +39,7 @@ using NodeID = downward::cartesian_abstractions::NodeID;
 
 // Typedefs adapted from classical implementation
 class AbstractState;
-using AbstractStates = std::vector<std::unique_ptr<AbstractState>>;
+using AbstractStates = std::vector<AbstractState>;
 
 using Loops = std::vector<int>;
 using ProbabilisticTransitions = std::vector<ProbabilisticTransition>;

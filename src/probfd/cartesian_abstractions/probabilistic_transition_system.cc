@@ -204,7 +204,7 @@ void ProbabilisticTransitionSystem::rewire_incoming_transitions(
         assert(std::ranges::contains(transition->target_ids, v1_id));
 
         const int u_id = transition->source_id;
-        const AbstractState& u = *states[u_id];
+        const AbstractState& u = states[u_id];
         int op_id = transition->op_id;
 
         // Note: Targets are updated in-place to avoid having to remove the
@@ -231,7 +231,7 @@ void ProbabilisticTransitionSystem::rewire_incoming_transitions(
                 const int post = get_postcondition_value(op_id, i, var);
 
                 if (v_id != v1_id) {
-                    const AbstractState& v = *states[v_id];
+                    const AbstractState& v = states[v_id];
                     if (post == UNDEFINED) {
                         v1_possible =
                             v1_possible && v.domain_subsets_intersect(v1, var);
@@ -349,7 +349,7 @@ void ProbabilisticTransitionSystem::rewire_outgoing_transitions(
                         break;
                     }
 
-                    const AbstractState& v = *states[v_id];
+                    const AbstractState& v = states[v_id];
                     v1_possible =
                         v1_possible && v.domain_subsets_intersect(v1, var);
                     v2_possible =
