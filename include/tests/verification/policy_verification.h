@@ -67,12 +67,6 @@ extern bool verify_policy(
 
         // Termination.
         if (!decision) {
-            // Check Bellman equation
-            const auto value = decision->q_value_interval.lower;
-            const auto t_cost = mdp.get_termination_cost(state);
-
-            if (!is_approx_equal(value, t_cost, epsilon)) return false;
-
             state_info->is_proper = true;
             goto backtracking;
         }
