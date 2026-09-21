@@ -57,6 +57,14 @@ struct Factor {
     ~Factor();
 
     bool is_valid() const;
+
+    bool is_trivial() const;
+
+    bool is_solvable() const;
+
+    void dump(downward::utils::LogProxy& log) const;
+
+    void statistics(downward::utils::LogProxy& log) const;
 };
 
 /*
@@ -87,7 +95,7 @@ private:
     std::size_t num_active_entries;
 
 public:
-    FactoredTransitionSystem(Labels labels, std::vector<Factor>&& factors);
+    FactoredTransitionSystem(Labels labels, std::vector<Factor> factors);
 
     // Merge-and-shrink transformations.
     /*
@@ -184,7 +192,7 @@ public:
     FTSConstIterator end() const { return FTSConstIterator(*this, true); }
 
     void statistics(int index, downward::utils::LogProxy& log) const;
-    void dump(int index, downward::utils::LogProxy& log) const;
+
     void dump(downward::utils::LogProxy& log) const;
 
 private:

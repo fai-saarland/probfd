@@ -59,9 +59,47 @@ bool Factor::is_valid() const
            (!transition_system && !factored_mapping && !distances);
 }
 
+bool Factor::is_trivial() const
+{
+    if (!factored_mapping->is_total()) {
+        return false;
+    }
+
+    for (int state = 0;
+         std::cmp_not_equal(state, transition_system->get_size());
+         ++state) {
+        if (!transition_system->is_goal_state(state)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool Factor::is_solvable() const
+{
+    return transition_system->is_solvable(*distances);
+}
+
+void Factor::dump(utils::LogProxy& log) const
+{
+    if (log.is_at_least_debug()) {
+        transition_system->dump_labels_and_transitions(log);
+        factored_mapping->dump(log);
+    }
+}
+
+void Factor::statistics(utils::LogProxy& log) const
+{
+    if (log.is_at_least_verbose()) {
+        transition_system->dump_statistics(log);
+        distances->statistics(*transition_system, log);
+    }
+}
+
 FactoredTransitionSystem::FactoredTransitionSystem(
     Labels labels,
-    vector<Factor>&& factors)
+    vector<Factor> factors)
     : labels(std::move(labels))
     , factors(std::move(factors))
     , num_active_entries(this->factors.size())
@@ -206,29 +244,16 @@ Factor FactoredTransitionSystem::extract_factor(int index)
 
 void FactoredTransitionSystem::statistics(int index, utils::LogProxy& log) const
 {
-    if (log.is_at_least_verbose()) {
-        assert(is_component_valid(index));
-        const Factor& factor = factors[index];
-        factor.transition_system->dump_statistics(log);
-        factor.distances->statistics(*factor.transition_system, log);
-    }
-}
-
-void FactoredTransitionSystem::dump(int index, utils::LogProxy& log) const
-{
-    if (log.is_at_least_debug()) {
-        assert_index_valid(index);
-        const Factor& factor = factors[index];
-        factor.transition_system->dump_labels_and_transitions(log);
-        factor.factored_mapping->dump(log);
-    }
+    assert(is_component_valid(index));
+    factors[index].statistics(log);
 }
 
 void FactoredTransitionSystem::dump(utils::LogProxy& log) const
 {
     if (log.is_at_least_debug()) {
         for (const int index : *this) {
-            dump(index, log);
+            assert_index_valid(index);
+            factors[index].dump(log);
         }
     }
 }
@@ -236,25 +261,13 @@ void FactoredTransitionSystem::dump(utils::LogProxy& log) const
 bool FactoredTransitionSystem::is_factor_solvable(int index) const
 {
     assert(is_component_valid(index));
-    const Factor& factor = factors[index];
-    return factor.transition_system->is_solvable(*factor.distances);
+    return factors[index].is_solvable();
 }
 
 bool FactoredTransitionSystem::is_factor_trivial(int index) const
 {
     assert(is_component_valid(index));
-    const Factor& factor = factors[index];
-
-    if (!factor.factored_mapping->is_total()) {
-        return false;
-    }
-    const TransitionSystem& ts = *factor.transition_system;
-    for (int state = 0; std::cmp_not_equal(state, ts.get_size()); ++state) {
-        if (!ts.is_goal_state(state)) {
-            return false;
-        }
-    }
-    return true;
+    return factors[index].is_trivial();
 }
 
 bool FactoredTransitionSystem::is_active(int index) const
