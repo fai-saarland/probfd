@@ -21,10 +21,10 @@ using namespace downward;
 namespace probfd::cartesian_abstractions {
 
 PolicyBasedFlawGenerator::PolicyBasedFlawGenerator(
-    PolicyGenerator* policy_generator,
-    PolicyFlawFinder* policy_flaw_finder)
-    : policy_generator_(policy_generator)
-    , policy_flaw_finder_(policy_flaw_finder)
+    std::unique_ptr<PolicyGenerator> policy_generator,
+    std::unique_ptr<PolicyFlawFinder> policy_flaw_finder)
+    : policy_generator_(std::move(policy_generator))
+    , policy_flaw_finder_(std::move(policy_flaw_finder))
 {
 }
 
@@ -110,8 +110,8 @@ ILAOFlawGeneratorFactory::ILAOFlawGeneratorFactory(
 std::unique_ptr<FlawGenerator> ILAOFlawGeneratorFactory::create_flaw_generator()
 {
     return std::make_unique<PolicyBasedFlawGenerator>(
-        new ILAOPolicyGenerator(convergence_epsilon_),
-        new CompletePolicyFlawFinder(max_search_states_));
+        std::make_unique<ILAOPolicyGenerator>(convergence_epsilon_),
+        std::make_unique<CompletePolicyFlawFinder>(max_search_states_));
 }
 
 } // namespace probfd::cartesian_abstractions

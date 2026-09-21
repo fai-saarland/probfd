@@ -40,8 +40,8 @@ class PolicyBasedFlawGenerator : public FlawGenerator {
 
 public:
     PolicyBasedFlawGenerator(
-        PolicyGenerator* policy_generator,
-        PolicyFlawFinder* policy_flaw_finder);
+        std::unique_ptr<PolicyGenerator> policy_generator,
+        std::unique_ptr<PolicyFlawFinder> policy_flaw_finder);
 
     ~PolicyBasedFlawGenerator() override;
 
