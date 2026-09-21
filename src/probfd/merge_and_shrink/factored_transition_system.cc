@@ -151,12 +151,20 @@ void FactoredTransitionSystem::apply_label_mapping(
         labels.reduce_labels(old_labels);
     }
 
-    for (size_t i = 0; i < factors.size(); ++i) {
-        if (factors[i].transition_system) {
-            factors[i].transition_system->apply_label_reduction(
-                labels,
-                label_mapping,
-                std::cmp_not_equal(i, combinable_index));
+    for (size_t i = 0; i < combinable_index; ++i) {
+        if (const auto& ts = factors[i].transition_system) {
+            ts->apply_equivalent_label_reduction(labels, label_mapping);
+        }
+    }
+
+    factors[combinable_index]
+        .transition_system->apply_non_equivalent_label_reduction(
+            labels,
+            label_mapping);
+
+    for (size_t i = combinable_index + 1; i < factors.size(); ++i) {
+        if (const auto& ts = factors[i].transition_system) {
+            ts->apply_equivalent_label_reduction(labels, label_mapping);
         }
     }
 

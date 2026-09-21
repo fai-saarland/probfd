@@ -116,8 +116,7 @@ void LocalLabelInfo::recompute_cost(const Labels& labels)
 {
     cost = INFINITE_VALUE;
     for (const int label : label_group) {
-        value_t label_cost = labels.get_label_cost(label);
-        cost = min(cost, label_cost);
+        cost = min(cost, labels.get_label_cost(label));
     }
 }
 
@@ -490,25 +489,46 @@ void TransitionSystem::apply_abstraction(
     compute_equivalent_local_labels(labels);
 }
 
-void TransitionSystem::apply_label_reduction(
+void TransitionSystem::apply_equivalent_label_reduction(
     const Labels& labels,
-    const vector<pair<int, vector<int>>>& label_mapping,
-    bool only_equivalent_labels)
+    const vector<pair<int, vector<int>>>& label_mapping)
+{
+    /*
+      The case where only equivalent labels are combined is simple: remove all
+      old labels from the label group and add the new one.
+    */
+
+    for (const auto& [new_label, old_labels] : label_mapping) {
+        assert(old_labels.size() >= 2);
+        const int local_label = label_to_local_label[old_labels.front()];
+        local_label_infos[local_label].apply_same_cost_label_mapping(
+            new_label,
+            old_labels);
+
+        label_to_local_label[new_label] = local_label;
+        for (const int old_label : old_labels) {
+            assert(label_to_local_label[old_label] == local_label);
+            // Reset (for consistency only, old labels are never accessed).
+            label_to_local_label[old_label] = -1;
+        }
+    }
+
+    assert(is_valid(labels));
+}
+
+void TransitionSystem::apply_non_equivalent_label_reduction(
+    const Labels& labels,
+    const vector<pair<int, vector<int>>>& label_mapping)
 {
     /*
       We iterate over the given label mapping, treating every new label and
-      the reduced old labels separately. We further distinguish the case
-      where we know that the reduced labels are all from the same equivalence
-      class from the case where we may combine arbitrary labels.
+      the reduced old labels separately.
 
-      The case where only equivalent labels are combined is simple: remove all
-      old labels from the label group and add the new one.
-
-      The other case is more involved: again remove all old labels from their
-      groups, and the groups themselves if they become empty. Also collect
-      the transitions of all reduced labels. Add a new group for every new
-      label and assign the collected transitions to this group. Recompute the
-      cost of all groups and compute locally equivalent labels.
+      Remove all old labels from their groups, and the groups themselves if they
+      become empty. Also collect the transitions of all reduced labels. Add a
+      new group for every new label and assign the collected transitions to this
+      group. Recompute the cost of all groups and compute locally equivalent
+      labels.
 
       NOTE: Previously, this latter case was computed in a more incremental
       fashion: Rather than recomputing cost of all groups, we only recomputed
@@ -520,74 +540,56 @@ void TransitionSystem::apply_label_reduction(
       computation does not accelerate the computation.
     */
 
-    if (only_equivalent_labels) {
-        // Update both label mappings.
-        for (const auto& [new_label, old_labels] : label_mapping) {
-            assert(old_labels.size() >= 2);
-            const int local_label = label_to_local_label[old_labels.front()];
-            local_label_infos[local_label].apply_same_cost_label_mapping(
-                new_label,
-                old_labels);
+    /*
+      Iterate over the label mapping. For each new label, go over the
+      reduced labels to combine their transitions into the transitions
+      of the new label. Also store, for each local label, the labels
+      removed from them. Add the new label together with its transitions
+      as a new local label and update the label_to_local_label mapping.
+    */
+    unordered_map<int, vector<int>> local_label_to_old_labels;
+    for (const auto& [new_label, old_labels] : label_mapping) {
+        assert(old_labels.size() >= 2);
 
-            label_to_local_label[new_label] = local_label;
-            for (const int old_label : old_labels) {
-                assert(label_to_local_label[old_label] == local_label);
-                // Reset (for consistency only, old labels are never accessed).
-                label_to_local_label[old_label] = -1;
+        unordered_set<int> seen_local_labels;
+        std::vector<Transition> new_label_transitions;
+
+        for (int old_label : old_labels) {
+            int old_local_label = label_to_local_label[old_label];
+
+            if (seen_local_labels.insert(old_local_label).second) {
+                auto& local_info = local_label_infos[old_local_label];
+                new_label_transitions.append_range(
+                    local_info.get_transitions());
             }
-        }
-    } else {
-        /*
-          Iterate over the label mapping. For each new label, go over the
-          reduced labels to combine their transitions into the transitions
-          of the new label. Also store, for each local label, the labels
-          removed from them. Add the new label together with its transitions
-          as a new local label and update the label_to_local_label mapping.
-        */
-        unordered_map<int, vector<int>> local_label_to_old_labels;
-        for (const auto& [new_label, old_labels] : label_mapping) {
-            assert(old_labels.size() >= 2);
-
-            unordered_set<int> seen_local_labels;
-            std::vector<Transition> new_label_transitions;
-
-            for (int old_label : old_labels) {
-                int old_local_label = label_to_local_label[old_label];
-
-                if (seen_local_labels.insert(old_local_label).second) {
-                    auto& local_info = local_label_infos[old_local_label];
-                    new_label_transitions.append_range(
-                        local_info.get_transitions());
-                }
-                local_label_to_old_labels[old_local_label].push_back(old_label);
-                // Reset (for consistency only, old labels are never accessed).
-                label_to_local_label[old_label] = -1;
-            }
-
-            utils::sort_unique(new_label_transitions);
-
-            const int new_local_label = local_label_infos.size();
-            label_to_local_label[new_label] = new_local_label;
-            value_t new_cost = labels.get_label_cost(new_label);
-
-            local_label_infos.emplace_back(
-                std::vector{new_label},
-                std::move(new_label_transitions),
-                new_cost);
+            local_label_to_old_labels[old_local_label].push_back(old_label);
+            // Reset (for consistency only, old labels are never accessed).
+            label_to_local_label[old_label] = -1;
         }
 
-        /*
-          Remove all labels of all affected local labels and recompute the
-          cost of these affected local labels.
-        */
-        for (auto& [local_label, old_labels] : local_label_to_old_labels) {
-            ranges::sort(old_labels);
-            local_label_infos[local_label].remove_labels(old_labels);
-            local_label_infos[local_label].recompute_cost(labels);
-        }
+        utils::sort_unique(new_label_transitions);
 
-        compute_equivalent_local_labels(labels);
+        const int new_local_label = local_label_infos.size();
+        label_to_local_label[new_label] = new_local_label;
+        value_t new_cost = labels.get_label_cost(new_label);
+
+        local_label_infos.emplace_back(
+            std::vector{new_label},
+            std::move(new_label_transitions),
+            new_cost);
     }
+
+    /*
+      Remove all labels of all affected local labels and recompute the
+      cost of these affected local labels.
+    */
+    for (auto& [local_label, old_labels] : local_label_to_old_labels) {
+        ranges::sort(old_labels);
+        local_label_infos[local_label].remove_labels(old_labels);
+        local_label_infos[local_label].recompute_cost(labels);
+    }
+
+    compute_equivalent_local_labels(labels);
 
     assert(is_valid(labels));
 }

@@ -225,16 +225,13 @@ public:
         const std::vector<int>& abstraction_mapping,
         downward::utils::LogProxy& log);
 
-    /*
-      Applies the given label mapping, mapping old to new label numbers.
-      This updates the label equivalence relation which is internally used
-      to group locally equivalent labels and store their transitions only
-      once.
-    */
-    void apply_label_reduction(
+    void apply_equivalent_label_reduction(
         const Labels& labels,
-        const std::vector<std::pair<int, std::vector<int>>>& label_mapping,
-        bool only_equivalent_labels);
+        const std::vector<std::pair<int, std::vector<int>>>& label_mapping);
+
+    void apply_non_equivalent_label_reduction(
+        const Labels& labels,
+        const std::vector<std::pair<int, std::vector<int>>>& label_mapping);
 
     /*
       The transitions for every group of locally equivalent labels are
