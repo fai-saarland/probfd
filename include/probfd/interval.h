@@ -81,4 +81,29 @@ std::ostream& operator<<(std::ostream& os, Interval val);
 
 } // namespace probfd
 
+template <>
+struct std::formatter<probfd::Interval> {
+    std::formatter<std::pair<probfd::value_t, probfd::value_t>> underlying_;
+
+    formatter()
+    {
+        underlying_.set_brackets("[", "]");
+    }
+
+    template <class ParseContext>
+    static constexpr ParseContext::iterator parse(ParseContext& ctx)
+    {
+        return ctx.begin();
+    }
+
+    template <class FmtContext>
+    FmtContext::iterator
+    format(const probfd::Interval& interval, FmtContext& ctx) const
+    {
+        return underlying_.format(
+            ctx,
+            std::make_pair(interval.lower, interval.upper));
+    }
+};
+
 #endif // PROBFD_INTERVAL_H
