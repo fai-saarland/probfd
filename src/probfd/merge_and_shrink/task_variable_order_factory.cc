@@ -41,7 +41,7 @@ public:
 
     void dump_options(downward::utils::LogProxy& log) override
     {
-        log << "level";
+        log.print("level");
     }
 };
 
@@ -57,7 +57,7 @@ public:
 
     void dump_options(downward::utils::LogProxy& log) override
     {
-        log << "reverse-level";
+        log.print("reverse-level");
     }
 };
 
@@ -83,7 +83,7 @@ public:
 
     void dump_options(downward::utils::LogProxy& log) override
     {
-        log << "random";
+        log.print("random");
     }
 };
 
@@ -97,7 +97,7 @@ public:
 
     void dump_options(downward::utils::LogProxy& log) override
     {
-        log << "-";
+        log.print("-");
     }
 };
 
@@ -111,7 +111,7 @@ public:
 
     void dump_options(downward::utils::LogProxy& log) override
     {
-        log << "goal";
+        log.print("goal");
     }
 };
 
@@ -132,7 +132,7 @@ public:
 
     void dump_options(downward::utils::LogProxy& log) override
     {
-        log << "cg";
+        log.print("cg");
     }
 };
 
