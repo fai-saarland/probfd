@@ -53,6 +53,40 @@ Factor::Factor(Factor&&) noexcept = default;
 Factor& Factor::operator=(Factor&&) noexcept = default;
 Factor::~Factor() = default;
 
+bool Factor::apply_abstraction(
+    const Labels& labels,
+    const StateEquivalenceRelation& state_equivalence_relation,
+    bool do_compute_goal_distances,
+    bool do_compute_liveness,
+    utils::LogProxy& log)
+{
+    if (const auto new_num_states = state_equivalence_relation.size();
+        new_num_states == transition_system->get_size()) {
+        return false;
+    }
+
+    const vector<int> abstraction_mapping = compute_abstraction_mapping(
+        transition_system->get_size(),
+        state_equivalence_relation);
+
+    transition_system->apply_abstraction(
+        labels,
+        state_equivalence_relation,
+        abstraction_mapping,
+        log);
+
+    factored_mapping->apply_abstraction(abstraction_mapping);
+
+    if (do_compute_goal_distances) {
+        distances->apply_abstraction(
+            labels,
+            *transition_system,
+            state_equivalence_relation,
+            do_compute_liveness,
+            log);
+    }
+}
+
 bool Factor::is_valid() const
 {
     return (transition_system && factored_mapping && distances) ||
@@ -180,35 +214,17 @@ bool FactoredTransitionSystem::apply_abstraction(
 {
     assert(is_component_valid(index));
 
-    auto&& [ts, fm, distances] = factors[index];
-
-    if (const auto new_num_states = state_equivalence_relation.size();
-        new_num_states == ts->get_size()) {
-        return false;
-    }
-
-    const vector<int> abstraction_mapping =
-        compute_abstraction_mapping(ts->get_size(), state_equivalence_relation);
-
-    ts->apply_abstraction(
+    factors[index].apply_abstraction(
         labels,
         state_equivalence_relation,
-        abstraction_mapping,
+        do_compute_goal_distances,
+        do_compute_liveness,
         log);
-    fm->apply_abstraction(abstraction_mapping);
-
-    if (do_compute_goal_distances) {
-        distances->apply_abstraction(
-            labels,
-            *ts,
-            state_equivalence_relation,
-            do_compute_liveness,
-            log);
-    }
 
     /* If distances need to be recomputed, this already happened in the
        Distances object. */
     assert(is_component_valid(index));
+
     return true;
 }
 

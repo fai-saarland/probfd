@@ -36,7 +36,10 @@ public:
     FTSConstIterator(const FactoredTransitionSystem& fts, bool end);
     void operator++();
 
-    int operator*() const { return current_index; }
+    int operator*() const
+    {
+        return current_index;
+    }
 
     friend bool
     operator==(const FTSConstIterator& lhs, const FTSConstIterator& rhs)
@@ -55,6 +58,13 @@ struct Factor {
     Factor(Factor&&) noexcept;
     Factor& operator=(Factor&&) noexcept;
     ~Factor();
+
+    bool apply_abstraction(
+        const Labels& labels,
+        const StateEquivalenceRelation& state_equivalence_relation,
+        bool do_compute_goal_distances,
+        bool do_compute_liveness,
+        downward::utils::LogProxy& log);
 
     bool is_valid() const;
 
@@ -141,17 +151,26 @@ public:
         return *factors[index].transition_system;
     }
 
-    Distances& get_distances(int index) { return *factors[index].distances; }
+    Distances& get_distances(int index)
+    {
+        return *factors[index].distances;
+    }
 
     const Distances& get_distances(int index) const
     {
         return *factors[index].distances;
     }
 
-    std::size_t get_num_active_entries() const { return num_active_entries; }
+    std::size_t get_num_active_entries() const
+    {
+        return num_active_entries;
+    }
 
     // Used by LabelReduction and MergeScoringFunctionDFP
-    const Labels& get_labels() const { return labels; }
+    const Labels& get_labels() const
+    {
+        return labels;
+    }
 
     std::size_t get_size() const
     {
@@ -188,8 +207,15 @@ public:
     bool is_active(int index) const;
 
     // The following methods are used for iterating over the FTS
-    FTSConstIterator begin() const { return FTSConstIterator(*this, false); }
-    FTSConstIterator end() const { return FTSConstIterator(*this, true); }
+    FTSConstIterator begin() const
+    {
+        return FTSConstIterator(*this, false);
+    }
+
+    FTSConstIterator end() const
+    {
+        return FTSConstIterator(*this, true);
+    }
 
     void statistics(int index, downward::utils::LogProxy& log) const;
 
