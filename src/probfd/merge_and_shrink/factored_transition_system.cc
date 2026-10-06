@@ -85,6 +85,8 @@ bool Factor::apply_abstraction(
             do_compute_liveness,
             log);
     }
+
+    return true;
 }
 
 bool Factor::is_valid() const
@@ -155,12 +157,6 @@ void FactoredTransitionSystem::assert_index_valid(int index) const
     }
 }
 
-bool FactoredTransitionSystem::is_component_valid(int index) const
-{
-    assert(is_active(index));
-    return is_factor_valid(factors[index]);
-}
-
 bool FactoredTransitionSystem::is_factor_valid(const Factor& factor) const
 {
     return factor.transition_system->is_valid(labels);
@@ -168,9 +164,9 @@ bool FactoredTransitionSystem::is_factor_valid(const Factor& factor) const
 
 void FactoredTransitionSystem::assert_all_components_valid() const
 {
-    for (size_t index = 0; index < factors.size(); ++index) {
-        if (factors[index].transition_system) {
-            assert(is_component_valid(index));
+    for (const auto& factor : factors) {
+        if (factor.transition_system) {
+            assert(is_factor_valid(factor));
         }
     }
 }
@@ -212,9 +208,11 @@ bool FactoredTransitionSystem::apply_abstraction(
     bool do_compute_liveness,
     utils::LogProxy& log)
 {
-    assert(is_component_valid(index));
+    Factor& factor = factors[index];
 
-    factors[index].apply_abstraction(
+    assert(is_factor_valid(factor));
+
+    const bool b = factor.apply_abstraction(
         labels,
         state_equivalence_relation,
         do_compute_goal_distances,
@@ -223,9 +221,9 @@ bool FactoredTransitionSystem::apply_abstraction(
 
     /* If distances need to be recomputed, this already happened in the
        Distances object. */
-    assert(is_component_valid(index));
+    assert(is_factor_valid(factor));
 
-    return true;
+    return b;
 }
 
 auto FactoredTransitionSystem::merge(
@@ -233,14 +231,17 @@ auto FactoredTransitionSystem::merge(
     int index2,
     utils::LogProxy& log) -> MergeResult
 {
-    assert(is_component_valid(index1));
-    assert(is_component_valid(index2));
+    Factor& factor1 = factors[index1];
+    Factor& factor2 = factors[index2];
 
-    auto&& [ts1, fm1, distances1] = factors[index1];
-    auto&& [ts2, fm2, distances2] = factors[index2];
+    assert(is_factor_valid(factor1));
+    assert(is_factor_valid(factor2));
 
-    auto&& f = factors.emplace_back();
-    auto&& [ts, fm, distances] = f;
+    auto&& [ts1, fm1, distances1] = factor1;
+    auto&& [ts2, fm2, distances2] = factor2;
+
+    auto&& merged_factor = factors.emplace_back();
+    auto&& [ts, fm, distances] = merged_factor;
 
     ts = TransitionSystem::merge(labels, *ts1, *ts2, log);
 
@@ -252,24 +253,26 @@ auto FactoredTransitionSystem::merge(
 
     const int new_index = factors.size() - 1;
 
-    assert(is_component_valid(new_index));
+    assert(is_factor_valid(merged_factor));
 
     return {.left_factor = std::move(factors[index1]),
             .right_factor = std::move(factors[index2]),
-            .merged_factor = f,
+            .merged_factor = merged_factor,
             .merge_index = new_index};
 }
 
 Factor FactoredTransitionSystem::extract_factor(int index)
 {
-    assert(is_component_valid(index));
-    return std::move(factors[index]);
+    Factor& factor = factors[index];
+    assert(is_factor_valid(factor));
+    return std::move(factor);
 }
 
 void FactoredTransitionSystem::statistics(int index, utils::LogProxy& log) const
 {
-    assert(is_component_valid(index));
-    factors[index].statistics(log);
+    const Factor& factor = factors[index];
+    assert(is_factor_valid(factor));
+    factor.statistics(log);
 }
 
 void FactoredTransitionSystem::dump(utils::LogProxy& log) const
@@ -284,14 +287,16 @@ void FactoredTransitionSystem::dump(utils::LogProxy& log) const
 
 bool FactoredTransitionSystem::is_factor_solvable(int index) const
 {
-    assert(is_component_valid(index));
-    return factors[index].is_solvable();
+    const Factor& factor = factors[index];
+    assert(is_factor_valid(factor));
+    return factor.is_solvable();
 }
 
 bool FactoredTransitionSystem::is_factor_trivial(int index) const
 {
-    assert(is_component_valid(index));
-    return factors[index].is_trivial();
+    const Factor& factor = factors[index];
+    assert(is_factor_valid(factor));
+    return factor.is_trivial();
 }
 
 bool FactoredTransitionSystem::is_active(int index) const

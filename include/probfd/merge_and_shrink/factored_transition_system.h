@@ -228,13 +228,6 @@ private:
     */
     void assert_index_valid(int index) const;
 
-    /*
-      We maintain the invariant that for all factors, distances are always
-      computed and all transitions are grouped according to locally equivalent
-      labels.
-    */
-    bool is_component_valid(int index) const;
-
     bool is_factor_valid(const Factor& factor) const;
 
     void assert_all_components_valid() const;
