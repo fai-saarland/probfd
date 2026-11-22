@@ -99,7 +99,7 @@ public:
         const auto it = storage.find(key);
         if (it == storage.end()) {
             context.error(
-                "Attempt to retrieve non-existing object of name {} (type: {})",
+                "Attempt to retrieve non-existing object '{}' (type: {})",
                 key,
                 typeid(T).name());
         }

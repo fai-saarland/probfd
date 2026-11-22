@@ -65,7 +65,7 @@ public:
     DecoratedFunctionCallExpression(
         const std::shared_ptr<const plugins::Feature>& feature,
         std::vector<std::pair<std::string, FunctionArgument>>&& arguments,
-        const std::string& unparsed_config);
+        std::string unparsed_config);
 
     void remove_variable_usages() override;
 
@@ -113,13 +113,14 @@ public:
         const override;
 };
 
-class DecoratedIdentifierExpression : public DecoratedExpression {
-    friend Declaration;
+class DecoratedLocalIdentifierExpression : public DecoratedExpression {
+    friend VariableDefinition;
 
-    Declaration* declaration;
+    VariableDefinition* declaration;
 
 public:
-    explicit DecoratedIdentifierExpression(Declaration& declaration);
+    explicit DecoratedLocalIdentifierExpression(
+        VariableDefinition& declaration);
 
     void remove_variable_usages() override;
 
@@ -145,7 +146,7 @@ class DecoratedStringLiteralExpression : public DecoratedExpression {
     std::string value;
 
 public:
-    explicit DecoratedStringLiteralExpression(const std::string& value);
+    explicit DecoratedStringLiteralExpression(std::string value);
 
     std::any construct(ConstructContext& context) const override;
 
@@ -157,7 +158,7 @@ class DecoratedIntLiteralExpression : public DecoratedExpression {
     std::string value;
 
 public:
-    explicit DecoratedIntLiteralExpression(const std::string& value);
+    explicit DecoratedIntLiteralExpression(std::string value);
 
     std::any construct(ConstructContext& context) const override;
 
@@ -169,7 +170,7 @@ class DecoratedFloatLiteralExpression : public DecoratedExpression {
     std::string value;
 
 public:
-    explicit DecoratedFloatLiteralExpression(const std::string& value);
+    explicit DecoratedFloatLiteralExpression(std::string value);
 
     std::any construct(ConstructContext& context) const override;
 
@@ -181,7 +182,7 @@ class DecoratedSymbolExpression : public DecoratedExpression {
     std::string value;
 
 public:
-    explicit DecoratedSymbolExpression(const std::string& value);
+    explicit DecoratedSymbolExpression(std::string value);
 
     std::any construct(ConstructContext& context) const override;
 

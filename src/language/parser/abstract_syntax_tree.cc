@@ -31,6 +31,7 @@ struct TypedDefinition {
 
 class Scope {
     std::unordered_map<string, TypedDefinition> variables;
+    std::size_t total_stack_size = 0;
 
 public:
     void insert(const Context& context, std::pair<string, TypedDefinition> pair)
@@ -40,6 +41,8 @@ public:
                 "Variable '{}' is already defined in the current scope.",
                 pair.first);
         }
+
+        ++total_stack_size;
     }
 
     const TypedDefinition* get_typed_definition(const string& name) const
@@ -50,12 +53,19 @@ public:
 
         return nullptr;
     }
+
+    std::size_t get_total_stack_size() const
+    {
+        return total_stack_size;
+    }
 };
 } // namespace
 
 class DecorateContext : public Context {
     const plugins::Registry registry;
     std::deque<Scope> scopes;
+
+    std::size_t current_stack_index = 0;
 
 public:
     explicit DecorateContext(const plugins::RawRegistry& raw_registry)
@@ -72,6 +82,7 @@ public:
         scopes.back().insert(
             *this,
             {name, TypedDefinition{.type = &type, .definition = &definition}});
+        ++current_stack_index;
     }
 
     const TypedDefinition* get_typed_definition(const string& name) const
@@ -85,6 +96,11 @@ public:
         return nullptr;
     }
 
+    std::size_t get_current_stack_index() const
+    {
+        return current_stack_index;
+    }
+
     void enter_scope()
     {
         scopes.emplace_back();
@@ -92,6 +108,7 @@ public:
 
     void leave_scope()
     {
+        current_stack_index -= scopes.back().get_total_stack_size();
         scopes.pop_back();
     }
 
@@ -431,9 +448,9 @@ void FunctionCallExpression::dump(string indent) const
         expression->dump("| " + indent);
     }
     cout << indent << "KEYWORD ARGS:" << endl;
-    for (const auto& pair : keyword_arguments) {
-        cout << indent << pair.first << " = " << endl;
-        pair.second->dump("| " + indent);
+    for (const auto& [fst, snd] : keyword_arguments) {
+        cout << indent << fst << " = " << endl;
+        snd->dump("| " + indent);
     }
 }
 
@@ -473,11 +490,9 @@ ListExpression::decorate(DecorateContext& context) const
 
     for (size_t i = 0; i < elements.size(); i++) {
         TraceBlock _(context, "Checking {}. element", i);
-        TypedDecoratedExpressionPtr decorated_element_expression =
-            elements[i]->decorate(context);
-        decorated_elements.push_back(
-            std::move(decorated_element_expression.expression));
-        types.push_back(decorated_element_expression.type);
+        auto [expression, type] = elements[i]->decorate(context);
+        decorated_elements.push_back(std::move(expression));
+        types.push_back(type);
     }
 
     const plugins::Type* common_element_type = get_common_element_type(types);
@@ -542,8 +557,8 @@ IdentifierExpression::decorate(DecorateContext& context) const
                 "A non-identifier token was defined as variable.");
         }
 
-        auto n =
-            std::make_unique<DecoratedIdentifierExpression>(*td->definition);
+        auto n = std::make_unique<DecoratedLocalIdentifierExpression>(
+            *td->definition);
         td->definition->usages.push_back(n.get());
         return {.expression = std::move(n), .type = td->type};
     }

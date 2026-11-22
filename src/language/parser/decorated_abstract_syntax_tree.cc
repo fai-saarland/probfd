@@ -74,34 +74,35 @@ bool is_product_within_limits(
 namespace language::parser {
 
 class ConstructContext : public Context {
-    std::unordered_map<std::string, std::any> variables;
+    std::vector<std::any> variables;
 
 public:
-    void set_variable(const std::string& name, const std::any& value);
-    void remove_variable(const std::string& name);
-    bool has_variable(const std::string& name) const;
-    std::any get_variable(const std::string& name) const;
+    void push_variable(std::any value);
+    void pop_variable();
+
+    std::any get_variable(std::size_t index) const;
+
+    std::size_t get_stack_offset() const;
 };
 
-void ConstructContext::set_variable(const string& name, const std::any& value)
+void ConstructContext::push_variable(std::any value)
 {
-    variables[name] = value;
+    variables.emplace_back(std::move(value));
 }
 
-void ConstructContext::remove_variable(const string& name)
+void ConstructContext::pop_variable()
 {
-    variables.erase(name);
+    variables.pop_back();
 }
 
-bool ConstructContext::has_variable(const string& name) const
+std::any ConstructContext::get_variable(std::size_t index) const
 {
-    return variables.contains(name);
+    return variables[index];
 }
 
-std::any ConstructContext::get_variable(const string& name) const
+std::size_t ConstructContext::get_stack_offset() const
 {
-    std::any variable = variables.at(name);
-    return variable;
+    return variables.size();
 }
 
 std::vector<VariableDefinition> DecoratedExpression::prune_unused_definitions()
@@ -121,7 +122,7 @@ std::any DecoratedExpression::construct() const
 FunctionArgument::FunctionArgument(
     std::unique_ptr<DecoratedExpression> value,
     bool is_default)
-    : value(move(value))
+    : value(std::move(value))
     , is_default(is_default)
 {
 }
@@ -144,8 +145,8 @@ bool FunctionArgument::is_default_argument() const
 DecoratedLetExpression::DecoratedLetExpression(
     std::vector<VariableDefinition> decorated_variable_definitions,
     std::unique_ptr<DecoratedExpression> nested_value)
-    : decorated_variable_definitions(move(decorated_variable_definitions))
-    , nested_value(move(nested_value))
+    : decorated_variable_definitions(std::move(decorated_variable_definitions))
+    , nested_value(std::move(nested_value))
 {
 }
 
@@ -185,9 +186,9 @@ std::any DecoratedLetExpression::construct(ConstructContext& context) const
             context,
             "Constructing variable '{}'",
             declaration.identifier);
-        std::any variable_value =
-            declaration.variable_expression->construct(context);
-        context.set_variable(declaration.identifier, variable_value);
+        declaration.stack_index = context.get_stack_offset();
+        context.push_variable(
+            declaration.variable_expression->construct(context));
     }
 
     std::any result;
@@ -196,8 +197,8 @@ std::any DecoratedLetExpression::construct(ConstructContext& context) const
         result = nested_value->construct(context);
     }
 
-    for (const auto& declaration : decorated_variable_definitions) {
-        context.remove_variable(declaration.identifier);
+    for (std::size_t i = 0; i != decorated_variable_definitions.size(); ++i) {
+        context.pop_variable();
     }
 
     return result;
@@ -240,10 +241,10 @@ void DecoratedLetExpression::print(
 DecoratedFunctionCallExpression::DecoratedFunctionCallExpression(
     const shared_ptr<const plugins::Feature>& feature,
     vector<std::pair<std::string, FunctionArgument>>&& arguments,
-    const string& unparsed_config)
+    string unparsed_config)
     : feature(feature)
-    , arguments(move(arguments))
-    , unparsed_config(unparsed_config)
+    , arguments(std::move(arguments))
+    , unparsed_config(std::move(unparsed_config))
 {
 }
 
@@ -308,7 +309,7 @@ void DecoratedFunctionCallExpression::print(
 
 DecoratedListExpression::DecoratedListExpression(
     vector<std::unique_ptr<DecoratedExpression>>&& elements)
-    : elements(move(elements))
+    : elements(std::move(elements))
 {
 }
 
@@ -390,13 +391,13 @@ void DecoratedUnaryExpression::print(
     operand->print(out, 0, print_default_args);
 }
 
-DecoratedIdentifierExpression::DecoratedIdentifierExpression(
-    Declaration& declaration)
+DecoratedLocalIdentifierExpression::DecoratedLocalIdentifierExpression(
+    VariableDefinition& declaration)
     : declaration(&declaration)
 {
 }
 
-void DecoratedIdentifierExpression::remove_variable_usages()
+void DecoratedLocalIdentifierExpression::remove_variable_usages()
 {
     const auto it = std::ranges::find(declaration->usages, this);
     assert(it != declaration->usages.end());
@@ -404,18 +405,13 @@ void DecoratedIdentifierExpression::remove_variable_usages()
 }
 
 std::any
-DecoratedIdentifierExpression::construct(ConstructContext& context) const
+DecoratedLocalIdentifierExpression::construct(ConstructContext& context) const
 {
     TraceBlock _(context, "Looking up variable '{}'", declaration->identifier);
-
-    if (!context.has_variable(declaration->identifier)) {
-        context.error("Variable '{}' is not defined.", declaration->identifier);
-    }
-
-    return context.get_variable(declaration->identifier);
+    return context.get_variable(declaration->stack_index);
 }
 
-void DecoratedIdentifierExpression::print(
+void DecoratedLocalIdentifierExpression::print(
     std::ostream& out,
     std::size_t indent,
     bool) const
@@ -448,9 +444,8 @@ void DecoratedBoolLiteralExpression::print(
     std::print(out, "{}", value);
 }
 
-DecoratedStringLiteralExpression::DecoratedStringLiteralExpression(
-    const string& value)
-    : value(value)
+DecoratedStringLiteralExpression::DecoratedStringLiteralExpression(string value)
+    : value(std::move(value))
 {
 }
 
@@ -498,9 +493,8 @@ void DecoratedStringLiteralExpression::print(
     std::print(out, "{:>{}}", value, indent + value.size());
 }
 
-DecoratedIntLiteralExpression::DecoratedIntLiteralExpression(
-    const string& value)
-    : value(value)
+DecoratedIntLiteralExpression::DecoratedIntLiteralExpression(string value)
+    : value(std::move(value))
 {
 }
 
@@ -525,11 +519,11 @@ DecoratedIntLiteralExpression::construct(ConstructContext& context) const
     int factor = 1;
     if (isalpha(suffix)) {
         suffix = static_cast<char>(tolower(suffix));
-        if (suffix == 'k') {
+        if (suffix == 'k' || suffix == 'K') {
             factor = 1000;
-        } else if (suffix == 'm') {
+        } else if (suffix == 'm' || suffix == 'M') {
             factor = 1'000'000;
-        } else if (suffix == 'g') {
+        } else if (suffix == 'g' || suffix == 'G') {
             factor = 1'000'000'000;
         } else {
             context.error(
@@ -552,9 +546,9 @@ DecoratedIntLiteralExpression::construct(ConstructContext& context) const
             value);
     }
 
-    int min_int = numeric_limits<int>::min();
+    constexpr int min_int = numeric_limits<int>::min();
     // Reserve highest value for "infinity".
-    int max_int = numeric_limits<int>::max() - 1;
+    constexpr int max_int = numeric_limits<int>::max() - 1;
     if (!is_product_within_limits(x, factor, min_int, max_int)) {
         context.error(
             "Absolute value of integer constant too large: '{}'",
@@ -572,9 +566,8 @@ void DecoratedIntLiteralExpression::print(
     std::print(out, "{}", value);
 }
 
-DecoratedFloatLiteralExpression::DecoratedFloatLiteralExpression(
-    const string& value)
-    : value(value)
+DecoratedFloatLiteralExpression::DecoratedFloatLiteralExpression(string value)
+    : value(std::move(value))
 {
 }
 
@@ -608,8 +601,8 @@ void DecoratedFloatLiteralExpression::print(
     std::print(out, "{}", value);
 }
 
-DecoratedSymbolExpression::DecoratedSymbolExpression(const string& value)
-    : value(value)
+DecoratedSymbolExpression::DecoratedSymbolExpression(string value)
+    : value(std::move(value))
 {
 }
 
@@ -631,7 +624,7 @@ DecoratedConvertExpression::DecoratedConvertExpression(
     std::unique_ptr<DecoratedExpression> value,
     const plugins::Type& from_type,
     const plugins::Type& to_type)
-    : value(move(value))
+    : value(std::move(value))
     , from_type(from_type)
     , to_type(to_type)
 {

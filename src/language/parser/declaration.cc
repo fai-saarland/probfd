@@ -13,33 +13,36 @@ Declaration::Declaration(std::string variable_name)
 {
 }
 
-Declaration::Declaration(Declaration&& other) noexcept
-    : identifier(std::move(other.identifier))
-    , usages(std::move(other.usages))
-{
-    for (DecoratedIdentifierExpression* u : usages) {
-        u->declaration = this;
-    }
-}
-
-Declaration& Declaration::operator=(Declaration&& other) noexcept
-{
-    identifier = std::move(other.identifier);
-    usages = std::move(other.usages);
-
-    for (DecoratedIdentifierExpression* u : usages) {
-        u->declaration = this;
-    }
-
-    return *this;
-}
-
 VariableDefinition::VariableDefinition(
     std::string variable_name,
     std::unique_ptr<DecoratedExpression> variable_expression)
     : Declaration(std::move(variable_name))
     , variable_expression(std::move(variable_expression))
 {
+}
+
+VariableDefinition::VariableDefinition(VariableDefinition&& other) noexcept
+    : Declaration(std::move(other.identifier))
+    , usages(std::move(other.usages))
+    , stack_index(other.stack_index)
+{
+    for (DecoratedLocalIdentifierExpression* u : usages) {
+        u->declaration = this;
+    }
+}
+
+VariableDefinition&
+VariableDefinition::operator=(VariableDefinition&& other) noexcept
+{
+    identifier = std::move(other.identifier);
+    usages = std::move(other.usages);
+    stack_index = other.stack_index;
+
+    for (DecoratedLocalIdentifierExpression* u : usages) {
+        u->declaration = this;
+    }
+
+    return *this;
 }
 
 } // namespace language::parser
