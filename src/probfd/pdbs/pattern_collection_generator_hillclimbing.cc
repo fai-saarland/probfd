@@ -148,12 +148,6 @@ class PatternCollectionGeneratorHillclimbing::IncrementalPPDBs {
 public:
     IncrementalPPDBs(
         const SharedProbabilisticTask& task,
-        PatternCollection initial_patterns,
-        std::shared_ptr<SubCollectionFinder> subcollection_finder,
-        const State& initial_state);
-
-    IncrementalPPDBs(
-        const SharedProbabilisticTask& task,
         PatternCollectionInformation& initial_patterns,
         std::shared_ptr<SubCollectionFinder> subcollection_finder);
 
@@ -199,38 +193,7 @@ private:
         const Sample& sample,
         const std::vector<PatternSubCollection>& pattern_subcollections,
         value_t termination_cost) const;
-
-    void recompute_pattern_subcollections();
 };
-
-PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::IncrementalPPDBs(
-    const SharedProbabilisticTask& task,
-    PatternCollection initial_patterns,
-    std::shared_ptr<SubCollectionFinder> subcollection_finder,
-    const State& initial_state)
-    : patterns(std::move(initial_patterns))
-    , subcollection_finder(std::move(subcollection_finder))
-    , h(get_operators(task),
-        get_cost_function(task),
-        get_termination_costs(task))
-    , size(0)
-{
-    pattern_databases.reserve(patterns.size());
-
-    const auto& variables = get_variables(task);
-
-    for (const Pattern& pattern : patterns) {
-        auto& pdb = pattern_databases.emplace_back(
-            std::make_unique<ProbabilityAwarePatternDatabase>(
-                variables,
-                pattern));
-        const StateRank abs_init = pdb->get_abstract_state(initial_state);
-        compute_distances(*pdb, task, abs_init, h);
-        size += pdb->num_states();
-    }
-
-    recompute_pattern_subcollections();
-}
 
 PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::IncrementalPPDBs(
     const SharedProbabilisticTask& task,
@@ -250,17 +213,21 @@ PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::IncrementalPPDBs(
 void PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::add_pdb(
     const std::shared_ptr<ProbabilityAwarePatternDatabase>& pdb)
 {
+    std::vector<PatternSubCollection> subcollections =
+        subcollection_finder->compute_subcollections_with_pattern(
+            patterns,
+            pattern_subcollections,
+            pdb->get_pattern());
+
+    for (auto subcollection : subcollections) {
+        subcollection.push_back(patterns.size());
+    }
+
     patterns.push_back(pdb->get_pattern());
     const auto& new_pdb = pattern_databases.emplace_back(pdb);
     size += new_pdb->num_states();
-    recompute_pattern_subcollections();
-}
 
-void PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::
-    recompute_pattern_subcollections()
-{
-    pattern_subcollections =
-        subcollection_finder->compute_subcollections(patterns);
+    pattern_subcollections.append_range(std::move(subcollections));
 }
 
 int PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::

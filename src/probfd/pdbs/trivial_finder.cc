@@ -31,7 +31,6 @@ value_t TrivialFinder::evaluate_subcollection(
     const std::vector<value_t>& pdb_estimates,
     const std::vector<int>& subcollection) const
 {
-    assert(subcollection.size() == 1);
     return pdb_estimates[subcollection.front()];
 }
 

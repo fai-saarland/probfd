@@ -38,7 +38,7 @@ public:
         add_option<std::shared_ptr<SubCollectionFinderFactory>>(
             "subcollection_finder_factory",
             "The subcollection finder factory.",
-            "finder_trivial_factory()");
+            "additive_max_orthogonality_factory()");
 
         add_option<int>(
             "pdb_max_size",

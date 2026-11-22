@@ -44,7 +44,7 @@ public:
             "",
             "classical_generator(generator=systematic(pattern_max_size=2))");
         add_option<double>("max_time_dominance_pruning", "", "0.0");
-        add_task_dependent_heuristic_options_to_feature(*this);
+        downward::cli::utils::add_log_options_to_feature(*this);
     }
 
     std::shared_ptr<TaskHeuristicFactory>
