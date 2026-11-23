@@ -100,10 +100,6 @@ struct ConditionalEffect {
 
     ConditionalEffect(int var, int value, vector<FactPair>&& conditions);
 
-    friend bool
-    operator==(const ConditionalEffect& left, const ConditionalEffect& right) =
-        default;
-
     friend auto
     operator<=>(const ConditionalEffect& left, const ConditionalEffect& right) =
         default;
