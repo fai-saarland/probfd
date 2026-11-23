@@ -7,6 +7,8 @@
 #include "probfd/fdr_types.h"
 #include "probfd/value_type.h"
 
+#include "downward/utils/logging.h"
+
 #include <concepts>
 #include <cstdint>
 #include <memory>
@@ -36,7 +38,8 @@ namespace probfd::pdbs {
 
 // Implementation of the pattern generation algorithm by Haslum et al.
 class PatternCollectionGeneratorHillclimbing final
-    : public PatternCollectionGenerator {
+    : downward::utils::LoggingComponent
+    , public PatternCollectionGenerator {
     using DynamicBitset = downward::dynamic_bitset::DynamicBitset<uint64_t>;
 
     struct Sample;
@@ -61,6 +64,32 @@ class PatternCollectionGeneratorHillclimbing final
     // for stats only
     int num_rejected_;
 
+public:
+    explicit PatternCollectionGeneratorHillclimbing(
+        std::shared_ptr<PatternCollectionGenerator> initial_generator,
+        std::shared_ptr<SubCollectionFinderFactory>
+            subcollection_finder_factory,
+        int pdb_max_size,
+        int collection_max_size,
+        int num_samples,
+        int min_improvement,
+        downward::utils::FSeconds max_time,
+        int search_space_max_size,
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng,
+        downward::utils::Verbosity verbosity);
+
+    ~PatternCollectionGeneratorHillclimbing() override;
+
+    /*
+      Runs the hill climbing algorithm. Note that the
+      initial pattern collection (consisting of exactly one PDB for each goal
+      variable) may break the maximum collection size limit, if the latter is
+      set too small or if there are many goal variables with a large domain.
+    */
+    PatternCollectionInformation
+    generate(const SharedProbabilisticTask& task) override;
+
+private:
     /*
       For the given PDB, all possible extensions of its pattern by one
       relevant variable are considered as candidate patterns. If the candidate
@@ -138,31 +167,6 @@ class PatternCollectionGeneratorHillclimbing final
         const downward::State& initial_state,
         IncrementalPPDBs& current_pdbs,
         value_t cost_lower_bound);
-
-public:
-    explicit PatternCollectionGeneratorHillclimbing(
-        std::shared_ptr<PatternCollectionGenerator> initial_generator,
-        std::shared_ptr<SubCollectionFinderFactory>
-            subcollection_finder_factory,
-        int pdb_max_size,
-        int collection_max_size,
-        int num_samples,
-        int min_improvement,
-        downward::utils::FSeconds max_time,
-        int search_space_max_size,
-        std::shared_ptr<downward::utils::RandomNumberGenerator> rng,
-        downward::utils::Verbosity verbosity);
-
-    ~PatternCollectionGeneratorHillclimbing() override;
-
-    /*
-      Runs the hill climbing algorithm. Note that the
-      initial pattern collection (consisting of exactly one PDB for each goal
-      variable) may break the maximum collection size limit, if the latter is
-      set too small or if there are many goal variables with a large domain.
-    */
-    PatternCollectionInformation
-    generate(const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::pdbs

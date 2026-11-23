@@ -17,7 +17,7 @@ PatternCollectionGeneratorClassical::PatternCollectionGeneratorClassical(
     std::shared_ptr<downward::pdbs::PatternCollectionGenerator> gen,
     std::shared_ptr<SubCollectionFinderFactory> finder_factory,
     utils::Verbosity verbosity)
-    : PatternCollectionGenerator(verbosity)
+    : LoggingComponent(verbosity)
     , gen_(std::move(gen))
     , finder_factory_(std::move(finder_factory))
 {

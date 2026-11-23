@@ -5,6 +5,7 @@
 #include "probfd/pdbs/types.h"
 
 #include "downward/utils/hash.h"
+#include "downward/utils/logging.h"
 
 #include <cstdlib>
 #include <memory>
@@ -17,7 +18,9 @@ class ProbabilisticCausalGraph;
 
 namespace probfd::pdbs {
 
-class PatternCollectionGeneratorSystematic : public PatternCollectionGenerator {
+class PatternCollectionGeneratorSystematic
+    : downward::utils::LoggingComponent
+    , public PatternCollectionGenerator {
     using PatternSet = downward::utils::HashSet<Pattern>;
 
     const size_t max_pattern_size;

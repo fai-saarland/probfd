@@ -32,7 +32,7 @@ PatternCollectionGeneratorDisjointCegar::
             subcollection_finder_factory,
         const std::shared_ptr<FlawFindingStrategy>& flaw_strategy,
         utils::Verbosity verbosity)
-    : PatternCollectionGenerator(verbosity)
+    : LoggingComponent(verbosity)
     , convergence_epsilon_(convergence_epsilon)
     , use_wildcard_policies_(use_wildcard_policies)
     , single_goal_(single_goal)

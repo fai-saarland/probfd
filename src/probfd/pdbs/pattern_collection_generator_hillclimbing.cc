@@ -358,7 +358,7 @@ PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(
     int search_space_max_size,
     std::shared_ptr<utils::RandomNumberGenerator> rng,
     utils::Verbosity verbosity)
-    : PatternCollectionGenerator(verbosity)
+    : LoggingComponent(verbosity)
     , initial_generator_(std::move(initial_generator))
     , subcollection_finder_factory_(std::move(subcollection_finder_factory))
     , pdb_max_size_(pdb_max_size)

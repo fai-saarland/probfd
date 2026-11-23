@@ -6,6 +6,8 @@
 
 #include "probfd/fdr_types.h"
 
+#include "downward/utils/logging.h"
+
 #include <memory>
 #include <string>
 #include <unordered_set>
@@ -28,7 +30,9 @@ struct ProbabilityAwarePatternDatabase;
 
 namespace probfd::pdbs {
 
-class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
+class PatternCollectionGeneratorMultiple
+    : protected downward::utils::LoggingComponent
+    , public PatternCollectionGenerator {
     const int max_pdb_size_;
     const int max_collection_size_;
     const downward::utils::FSeconds pattern_generation_max_time_;

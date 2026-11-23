@@ -3,6 +3,8 @@
 
 #include "probfd/pdbs/pattern_collection_generator_multiple.h"
 
+#include "downward/utils/logging.h"
+
 #include <memory>
 #include <unordered_set>
 #include <utility>
@@ -19,14 +21,6 @@ class PatternCollectionGeneratorMultipleCegar
     std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy_;
     const bool use_wildcard_policies_;
 
-    ProjectionTransformation compute_pattern(
-        int max_pdb_size,
-        downward::utils::FSeconds max_time,
-        const std::shared_ptr<downward::utils::RandomNumberGenerator>& rng,
-        const SharedProbabilisticTask& task,
-        const downward::FactPair& goal,
-        std::unordered_set<int>&& blacklisted_variables) override;
-
 public:
     explicit PatternCollectionGeneratorMultipleCegar(
         value_t convergence_epsilon,
@@ -42,6 +36,14 @@ public:
         bool use_saturated_costs,
         std::shared_ptr<downward::utils::RandomNumberGenerator> rng,
         downward::utils::Verbosity verbosity);
+
+    ProjectionTransformation compute_pattern(
+        int max_pdb_size,
+        downward::utils::FSeconds max_time,
+        const std::shared_ptr<downward::utils::RandomNumberGenerator>& rng,
+        const SharedProbabilisticTask& task,
+        const downward::FactPair& goal,
+        std::unordered_set<int>&& blacklisted_variables) override;
 };
 
 } // namespace probfd::pdbs

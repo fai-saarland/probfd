@@ -62,11 +62,20 @@ public:
         std::println(stream, text, std::forward<Args>(args)...);
     }
 
-    void println() { std::println(stream); }
+    void println()
+    {
+        std::println(stream);
+    }
 
-    Verbosity get_verbosity() const { return verbosity; }
+    Verbosity get_verbosity() const
+    {
+        return verbosity;
+    }
 
-    operator std::ostream&() const { return stream; }
+    operator std::ostream&() const
+    {
+        return stream;
+    }
 };
 
 /*
@@ -92,7 +101,10 @@ public:
     {
     }
 
-    operator std::ostream&() const { return static_cast<std::ostream&>(*log); }
+    operator std::ostream&() const
+    {
+        return static_cast<std::ostream&>(*log);
+    }
 
     LogProxy& operator<<(const StreamInsertable auto& elem)
     {
@@ -120,11 +132,20 @@ public:
         log->println(text, std::forward<Args>(args)...);
     }
 
-    void println() { log->println(); }
+    void println()
+    {
+        log->println();
+    }
 
-    void print(std::string_view s) { *log << s; }
+    void print(std::string_view s)
+    {
+        *log << s;
+    }
 
-    void println(std::string_view s) { *log << s << "\n"; }
+    void println(std::string_view s)
+    {
+        *log << s << "\n";
+    }
 
     bool is_at_least_normal() const
     {
@@ -150,6 +171,21 @@ public:
 
 extern LogProxy get_log_for_verbosity(const Verbosity& verbosity);
 extern LogProxy get_silent_log();
+
+class LoggingComponent {
+protected:
+    mutable LogProxy log_;
+
+    explicit LoggingComponent(Verbosity verbosity)
+        : log_(get_log_for_verbosity(verbosity))
+    {
+    }
+
+    explicit LoggingComponent(LogProxy log)
+        : log_(std::move(log))
+    {
+    }
+};
 
 } // namespace downward::utils
 

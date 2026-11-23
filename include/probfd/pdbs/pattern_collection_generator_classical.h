@@ -3,6 +3,8 @@
 
 #include "probfd/pdbs/pattern_collection_generator.h"
 
+#include "downward/utils/logging.h"
+
 #include <memory>
 
 namespace downward::pdbs {
@@ -24,7 +26,9 @@ namespace probfd::pdbs {
  * they are used as a heuristic to compute the corresponding probability-aware
  * PDBs.
  */
-class PatternCollectionGeneratorClassical : public PatternCollectionGenerator {
+class PatternCollectionGeneratorClassical
+    : downward::utils::LoggingComponent
+    , public PatternCollectionGenerator {
     std::shared_ptr<downward::pdbs::PatternCollectionGenerator> gen_;
     std::shared_ptr<SubCollectionFinderFactory> finder_factory_;
 

@@ -5,6 +5,8 @@
 
 #include "probfd/aliases.h"
 
+#include "downward/utils/logging.h"
+
 #include <memory>
 
 // Forward Declarations
@@ -23,7 +25,8 @@ class FlawFindingStrategy;
 namespace probfd::pdbs {
 
 class PatternCollectionGeneratorDisjointCegar
-    : public PatternCollectionGenerator {
+    : downward::utils::LoggingComponent
+    , public PatternCollectionGenerator {
     const value_t convergence_epsilon_;
     const bool use_wildcard_policies_;
     const bool single_goal_;
@@ -48,8 +51,8 @@ public:
         const std::shared_ptr<cegar::FlawFindingStrategy>& flaw_strategy,
         downward::utils::Verbosity verbosity);
 
-    PatternCollectionInformation generate(
-        const SharedProbabilisticTask& task) override;
+    PatternCollectionInformation
+    generate(const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::pdbs

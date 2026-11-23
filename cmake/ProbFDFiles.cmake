@@ -192,9 +192,7 @@ create_library(
     NAME padbs_pattern_generators
     SOURCES
         probfd/pdbs/pattern_information
-        probfd/pdbs/pattern_generator
         probfd/pdbs/pattern_collection_information
-        probfd/pdbs/pattern_collection_generator
         probfd/pdbs/pattern_collection_generator_multiple
 
         probfd/pdbs/subcollection_finder_factory

@@ -78,7 +78,7 @@ PatternCollectionGeneratorMultiple::PatternCollectionGeneratorMultiple(
     std::shared_ptr<utils::RandomNumberGenerator> rng,
     std::string implementation_name,
     utils::Verbosity verbosity)
-    : PatternCollectionGenerator(verbosity)
+    : LoggingComponent(verbosity)
     , max_pdb_size_(max_pdb_size)
     , max_collection_size_(max_collection_size)
     , pattern_generation_max_time_(pattern_generation_max_time)
