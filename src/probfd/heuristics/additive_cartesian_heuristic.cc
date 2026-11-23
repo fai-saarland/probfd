@@ -1,5 +1,7 @@
 #include "probfd/heuristics/additive_cartesian_heuristic.h"
 
+#include "probfd/heuristics/utils.h"
+
 #include "probfd/cartesian_abstractions/cartesian_heuristic_function.h"
 #include "probfd/cartesian_abstractions/cost_saturation.h"
 #include "probfd/cartesian_abstractions/types.h"
@@ -33,15 +35,12 @@ AdditiveCartesianHeuristic::~AdditiveCartesianHeuristic() = default;
 
 value_t AdditiveCartesianHeuristic::evaluate(const State& state) const
 {
-    value_t sum_h = 0_vt;
+    const auto get_estimate = std::bind_back(
+        &CartesianHeuristicFunction::get_value,
+        std::cref(state));
 
-    for (const auto& function : heuristic_functions_) {
-        const value_t value = function.get_value(state);
-        if (value == INFINITE_VALUE) return INFINITE_VALUE;
-        sum_h += value;
-    }
-
-    return sum_h;
+    return sum_estimate(
+        heuristic_functions_ | std::views::transform(get_estimate));
 }
 
 AdditiveCartesianHeuristicFactory::AdditiveCartesianHeuristicFactory(

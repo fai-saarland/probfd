@@ -63,7 +63,7 @@ void dump_graphviz(
     const ProjectionOperatorToString op_names(operators);
 
     auto sts = [&pdb](StateRank x) {
-        const value_t value = pdb.lookup_estimate(x);
+        const value_t value = pdb.lookup_abstract_estimate(x);
         const std::string value_text =
             value != INFINITE_VALUE ? std::format("{:.3f}", value) : "&infin";
         return std::format("{}\\nh = {}", x, value_text);

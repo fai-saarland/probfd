@@ -139,7 +139,7 @@ value_t MergeEvaluator::evaluate(StateRank state) const
 {
     const StateRank lstate = convert(state, mapper_, left_.ranking_function);
 
-    const auto leval = left_.lookup_estimate(lstate);
+    const auto leval = left_.lookup_abstract_estimate(lstate);
 
     if (leval == termination_cost_) {
         return leval;
@@ -147,7 +147,7 @@ value_t MergeEvaluator::evaluate(StateRank state) const
 
     const StateRank rstate = convert(state, mapper_, right_.ranking_function);
 
-    const auto reval = right_.lookup_estimate(rstate);
+    const auto reval = right_.lookup_abstract_estimate(rstate);
 
     if (reval == termination_cost_) {
         return reval;

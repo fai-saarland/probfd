@@ -100,10 +100,10 @@ unsigned int ProbabilityAwarePatternDatabase::num_states() const
 
 value_t ProbabilityAwarePatternDatabase::lookup_estimate(const State& s) const
 {
-    return lookup_estimate(get_abstract_state(s));
+    return lookup_abstract_estimate(get_abstract_state(s));
 }
 
-value_t ProbabilityAwarePatternDatabase::lookup_estimate(StateRank s) const
+value_t ProbabilityAwarePatternDatabase::lookup_abstract_estimate(StateRank s) const
 {
     return value_table[s];
 }

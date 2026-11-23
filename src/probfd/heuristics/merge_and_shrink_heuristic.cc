@@ -7,6 +7,8 @@
 
 #include "probfd/task_heuristic_factory.h"
 
+#include "probfd/heuristics/utils.h"
+
 using namespace std;
 using namespace downward;
 using namespace probfd::merge_and_shrink;
@@ -52,20 +54,11 @@ MergeAndShrinkHeuristic::~MergeAndShrinkHeuristic() = default;
 
 value_t MergeAndShrinkHeuristic::evaluate(const State& state) const
 {
-    value_t heuristic = 0;
+    const auto get_estimate =
+        std::bind_back(&FactorDistances::lookup_distance, std::cref(state));
 
-    for (const auto& distances : factor_distances_) {
-        const value_t cost = distances.lookup_distance(state);
-
-        if (cost == INFINITE_VALUE) {
-            // If state is unreachable or irrelevant, we encountered a dead end.
-            return INFINITE_VALUE;
-        }
-
-        heuristic = max(heuristic, cost);
-    }
-
-    return heuristic;
+    return max_estimate(
+        factor_distances_ | std::views::transform(get_estimate));
 }
 
 } // namespace probfd::heuristics

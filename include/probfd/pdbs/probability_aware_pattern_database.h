@@ -66,7 +66,7 @@ struct ProbabilityAwarePatternDatabase {
     /// Look up the estimate of an abstract state specified by state rank in
     /// the lookup table.
     [[nodiscard]]
-    value_t lookup_estimate(StateRank s) const;
+    value_t lookup_abstract_estimate(StateRank s) const;
 };
 
 /**

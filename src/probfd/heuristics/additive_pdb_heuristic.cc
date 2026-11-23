@@ -2,7 +2,9 @@
 
 #include "probfd/pdbs/probability_aware_pattern_database.h"
 
-#include "probfd/value_type.h"
+#include "probfd/heuristics/utils.h"
+
+#include "downward/views/transform.h"
 
 #include <utility>
 
@@ -21,19 +23,11 @@ AdditivePDBHeuristic::~AdditivePDBHeuristic() = default;
 
 value_t AdditivePDBHeuristic::evaluate(const State& state) const
 {
-    value_t value = 0_vt;
+    const auto get_estimate = std::bind_back(
+        &ProbabilityAwarePatternDatabase::lookup_estimate,
+        std::cref(state));
 
-    for (const auto& pdb : pdbs_) {
-        const value_t estimate = pdb.lookup_estimate(state);
-
-        if (estimate == INFINITE_VALUE) {
-            return INFINITE_VALUE;
-        }
-
-        value += estimate;
-    }
-
-    return value;
+    return sum_estimate(pdbs_ | std::views::transform(get_estimate));
 }
 
 } // namespace probfd::heuristics
