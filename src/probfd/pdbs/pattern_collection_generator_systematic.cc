@@ -54,7 +54,7 @@ static void compute_union_pattern(
 
 PatternCollectionGeneratorSystematic::PatternCollectionGeneratorSystematic(
     int pattern_max_size,
-    bool only_interesting_patterns,r
+    bool only_interesting_patterns,
     utils::Verbosity verbosity)
     : LoggingComponent(verbosity)
     , max_pattern_size(pattern_max_size)
