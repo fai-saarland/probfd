@@ -5,6 +5,8 @@
 #include "probfd/pdbs/probability_aware_pattern_database.h"
 #include "probfd/pdbs/projection_state_space.h"
 
+#include "probfd/cost_partitioning/pattern_collection_sorter.h"
+
 #include "probfd/heuristics/additive_pdb_heuristic.h"
 
 #include "probfd/task_utils/task_properties.h"
@@ -87,11 +89,10 @@ public:
 
 GZOCPHeuristicFactory::GZOCPHeuristicFactory(
     std::shared_ptr<PatternCollectionGenerator> pattern_collection_generator,
-    OrderingStrategy ordering,
-    std::shared_ptr<utils::RandomNumberGenerator> rng)
+    std::shared_ptr<cost_partitioning::PatternCollectionSorterFactory>
+        sorter_factory)
     : pattern_collection_generator_(std::move(pattern_collection_generator))
-    , ordering_(ordering)
-    , rng_(std::move(rng))
+    , sorter_factory_(std::move(sorter_factory))
 {
 }
 
@@ -103,23 +104,8 @@ GZOCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
 
     auto patterns = pattern_collection_info.get_patterns();
 
-    std::vector<ProbabilityAwarePatternDatabase> pdbs;
-    pdbs.reserve(patterns.size());
-
-    switch (ordering_) {
-    case RANDOM: rng_->shuffle(patterns); break;
-
-    case SIZE_ASC:
-        std::ranges::stable_sort(patterns, std::less(), &Pattern::size);
-        break;
-
-    case SIZE_DESC:
-        std::ranges::stable_sort(patterns, std::greater(), &Pattern::size);
-        break;
-
-    case INHERIT:
-    default: break;
-    }
+    auto sorter = sorter_factory_->create_object(task);
+    sorter->sort(patterns);
 
     const auto& variables = get_variables(task);
     const auto& operators = get_operators(task);
@@ -138,6 +124,9 @@ GZOCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
         operators,
         *gzo_cost_function,
         term_costs);
+
+    std::vector<ProbabilityAwarePatternDatabase> pdbs;
+    pdbs.reserve(patterns.size());
 
     for (const Pattern& pattern : patterns) {
         auto& pdb = pdbs.emplace_back(variables, pattern);

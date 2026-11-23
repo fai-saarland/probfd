@@ -3,7 +3,7 @@ create_library(
     HELP "Enables core ProbFD plugin"
     SOURCES
     probfd_cli/solvers/task_solver_factory_category
-    probfd_cli/heuristics/task_heuristic_factory_category
+    probfd_cli/task_heuristic_factory_category
     DEPENDS
         probfd_core
         parser
@@ -438,7 +438,7 @@ create_library(
     NAME constant_heuristic_plugin
     HELP "Enables the constant heuristic plugin"
     SOURCES
-    probfd_cli/heuristics/constant_heuristic
+        probfd_cli/heuristics/constant_heuristic
     DEPENDS
         evaluator_category
         probfd_core
@@ -452,7 +452,7 @@ create_library(
     NAME dead_end_pruning_heuristic_plugin
     HELP "Enables the dead-end pruning heuristic plugin"
     SOURCES
-    probfd_cli/heuristics/dead_end_pruning_heuristic
+        probfd_cli/heuristics/dead_end_pruning_heuristic
     DEPENDS
         evaluator_category
         deadend_pruning_heuristic
@@ -466,7 +466,7 @@ create_library(
     NAME determinization_heuristic_plugin
     HELP "Enables the determinization heuristic plugin"
     SOURCES
-    probfd_cli/heuristics/determinization_cost_heuristic
+        probfd_cli/heuristics/determinization_cost_heuristic
     DEPENDS
         evaluator_category
         determinization_heuristic
@@ -477,12 +477,12 @@ create_library(
 )
 
 create_library(
-    NAME gzocp_heuristic_plugin
-    HELP "Enables the PDB Greedy Zero-One Cost-Partitioning heuristic plugin"
+    NAME papdb_heuristics_plugin
+    HELP "Enables the probability-aware PDB heuristic plugin"
     SOURCES
-    probfd_cli/heuristics/gzocp_heuristic
+        probfd_cli/heuristics/probability_aware_pdb_heuristic
     DEPENDS
-        gzocp_pdb_heuristic
+        probability_aware_pdb_heuristic
         parser
         plugins
     TARGET
@@ -490,12 +490,26 @@ create_library(
 )
 
 create_library(
-    NAME papdb_heuristics_plugin
-    HELP "Enables the probability-aware PDB heuristic plugin"
+    NAME pattern_collection_sorter_factory_plugin
+    HELP "Enables sorting algorithm factory plugins"
     SOURCES
-    probfd_cli/heuristics/probability_aware_pdb_heuristic
+        probfd_cli/cost_partitioning/task_pattern_collection_sorter_factory_category
+        probfd_cli/cost_partitioning/pattern_collection_sorter_random
+        probfd_cli/cost_partitioning/pattern_collection_sorter_size
     DEPENDS
-        probability_aware_pdb_heuristic
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME gzocp_heuristic_plugin
+    HELP "Enables the PDB Greedy Zero-One Cost-Partitioning heuristic plugin"
+    SOURCES
+        probfd_cli/heuristics/gzocp_heuristic
+    DEPENDS
+        gzocp_pdb_heuristic
         parser
         plugins
     TARGET
@@ -506,7 +520,7 @@ create_library(
     NAME scp_heuristic_plugin
     HELP "Enables the PDB saturated cost-partitioning heuristic plugin"
     SOURCES
-    probfd_cli/heuristics/scp_heuristic
+        probfd_cli/heuristics/scp_heuristic
     DEPENDS
         scp_pdb_heuristic
         parser

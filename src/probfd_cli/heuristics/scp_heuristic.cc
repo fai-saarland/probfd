@@ -14,6 +14,7 @@ using namespace utils;
 
 using namespace probfd;
 using namespace probfd::pdbs;
+using namespace probfd::cost_partitioning;
 using namespace probfd::heuristics;
 
 using namespace probfd::cli::heuristics;
@@ -53,12 +54,11 @@ public:
             "patterns",
             "The pattern generation algorithm to construct the projections.",
             "classical_generator(generator=systematic(pattern_max_size=2))");
-        add_option<SCPHeuristicFactory::OrderingStrategy>(
+        add_option<std::shared_ptr<PatternCollectionSorterFactory>>(
             "order",
             "The order in which the projections are considered.",
-            "random");
+            "pattern_collection_sorter_random()");
 
-        add_rng_options_to_feature(*this);
         add_task_dependent_heuristic_options_to_feature(*this);
     }
 
@@ -69,8 +69,9 @@ public:
             opts.get<std::shared_ptr<PatternCollectionGenerator>>(
                 context,
                 "patterns"),
-            opts.get<SCPHeuristicFactory::OrderingStrategy>(context, "order"),
-            get_rng_arguments_from_options(context, opts),
+            opts.get<std::shared_ptr<PatternCollectionSorterFactory>>(
+                context,
+                "order"),
             get_task_dependent_heuristic_arguments_from_options(context, opts));
     }
 };
@@ -81,14 +82,6 @@ namespace probfd::cli::heuristics {
 void add_scp_heuristic_feature(RawRegistry& raw_registry)
 {
     raw_registry.insert_feature_plugin<SCPHeuristicFactoryFeature>();
-
-    raw_registry.insert_enum_plugin<SCPHeuristicFactory::OrderingStrategy>(
-        {{"random", "the order is random"},
-         {"size_asc", "orders the PDBs by increasing size"},
-         {"size_desc", "orders the PDBs by decreasing size"},
-         {"inherit",
-          "inherits the order from the underlying pattern generation "
-          "algorithm"}});
 }
 
 } // namespace probfd::cli::heuristics

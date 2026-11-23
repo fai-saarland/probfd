@@ -25,8 +25,8 @@ create_library(
         probfd/algorithms/utils
 
         # Cost Functions
-    probfd/task_action_cost_function
-    probfd/task_termination_cost_function
+        probfd/task_action_cost_function
+        probfd/task_termination_cost_function
 
         # Constant heuristic (default)
         probfd/heuristics/constant_heuristic
@@ -362,25 +362,25 @@ create_library(
         probfd/merge_and_shrink/merge_scoring_function_miasm_utils
         probfd/merge_and_shrink/merge_scoring_function_single_random
         probfd/merge_and_shrink/merge_scoring_function_total_order
-    probfd/merge_and_shrink/merge_scoring_function_factory
-    probfd/merge_and_shrink/merge_scoring_function_factory_dfp
-    probfd/merge_and_shrink/merge_scoring_function_factory_goal_relevance
-    probfd/merge_and_shrink/merge_scoring_function_factory_miasm
-    probfd/merge_and_shrink/merge_scoring_function_factory_single_random
-    probfd/merge_and_shrink/merge_scoring_function_factory_total_order
+        probfd/merge_and_shrink/merge_scoring_function_factory
+        probfd/merge_and_shrink/merge_scoring_function_factory_dfp
+        probfd/merge_and_shrink/merge_scoring_function_factory_goal_relevance
+        probfd/merge_and_shrink/merge_scoring_function_factory_miasm
+        probfd/merge_and_shrink/merge_scoring_function_factory_single_random
+        probfd/merge_and_shrink/merge_scoring_function_factory_total_order
         probfd/merge_and_shrink/merge_selector
-    probfd/merge_and_shrink/merge_selector_factory
+        probfd/merge_and_shrink/merge_selector_factory
         probfd/merge_and_shrink/merge_selector_score_based_filtering
-    probfd/merge_and_shrink/merge_selector_factory_score_based_filtering
+        probfd/merge_and_shrink/merge_selector_factory_score_based_filtering
         probfd/merge_and_shrink/merge_strategy_factory
         probfd/merge_and_shrink/merge_strategy_factory_precomputed
         probfd/merge_and_shrink/merge_strategy_factory_sccs
-    probfd/merge_and_shrink/merge_strategy_factory_sccs_selector
-    probfd/merge_and_shrink/merge_strategy_factory_sccs_tree
+        probfd/merge_and_shrink/merge_strategy_factory_sccs_selector
+        probfd/merge_and_shrink/merge_strategy_factory_sccs_tree
         probfd/merge_and_shrink/merge_strategy_factory_stateless
         probfd/merge_and_shrink/merge_strategy_precomputed
-    probfd/merge_and_shrink/merge_strategy_sccs_selector
-    probfd/merge_and_shrink/merge_strategy_sccs_tree
+        probfd/merge_and_shrink/merge_strategy_sccs_selector
+        probfd/merge_and_shrink/merge_strategy_sccs_tree
         probfd/merge_and_shrink/merge_strategy_stateless
         probfd/merge_and_shrink/merge_tree_factory
         probfd/merge_and_shrink/merge_tree_factory_linear
@@ -393,7 +393,7 @@ create_library(
         probfd/merge_and_shrink/prune_strategy_identity
         probfd/merge_and_shrink/prune_strategy_alive
         probfd/merge_and_shrink/prune_strategy_solvable
-    probfd/merge_and_shrink/task_variable_order_factory
+        probfd/merge_and_shrink/task_variable_order_factory
         probfd/merge_and_shrink/transition_system
         probfd/merge_and_shrink/transition
         probfd/merge_and_shrink/types

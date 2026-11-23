@@ -122,8 +122,8 @@
 #include "downward_cli/tasks/identity_task_transformation_feature.h"
 #include "downward_cli/tasks/task_transformation_category.h"
 
-#include "downward_cli/utils/verbosity_enum.h"
 #include "downward_cli/utils/rng_options.h"
+#include "downward_cli/utils/verbosity_enum.h"
 
 #include "downward_cli/operator_cost_category.h"
 
@@ -134,6 +134,8 @@
 #include "probfd_cli/cartesian_abstractions/subtask_generators.h"
 #include "probfd_cli/cartesian_abstractions/trace_based_flaw_generator.h"
 
+#include "probfd_cli/cost_partitioning/pattern_collection_sorter_random.h"
+
 #include "probfd_cli/heuristics/additive_cartesian_heuristic.h"
 #include "probfd_cli/heuristics/constant_heuristic.h"
 #include "probfd_cli/heuristics/dead_end_pruning_heuristic.h"
@@ -142,7 +144,6 @@
 #include "probfd_cli/heuristics/merge_and_shrink_heuristic.h"
 #include "probfd_cli/heuristics/probability_aware_pdb_heuristic.h"
 #include "probfd_cli/heuristics/scp_heuristic.h"
-#include "probfd_cli/heuristics/task_heuristic_factory_category.h"
 #include "probfd_cli/heuristics/ucp_heuristic.h"
 
 #include "probfd_cli/merge_and_shrink/label_reduction_feature.h"
@@ -156,6 +157,7 @@
 #include "probfd_cli/merge_and_shrink/merge_selector_factory_score_based_filtering.h"
 #include "probfd_cli/merge_and_shrink/merge_strategy_factory_category.h"
 #include "probfd_cli/merge_and_shrink/merge_strategy_factory_precomputed.h"
+#include "probfd_cli/merge_and_shrink/merge_strategy_factory_sccs_order.h"
 #include "probfd_cli/merge_and_shrink/merge_strategy_factory_sccs_selector.h"
 #include "probfd_cli/merge_and_shrink/merge_strategy_factory_sccs_tree.h"
 #include "probfd_cli/merge_and_shrink/merge_strategy_factory_stateless.h"
@@ -215,7 +217,9 @@
 
 #include "probfd_cli/transition_sorters/subcategory.h"
 
-#include "probfd_cli/merge_and_shrink/merge_strategy_factory_sccs_order.h"
+#include "probfd_cli/cost_partitioning/pattern_collection_sorter_size.h"
+#include "probfd_cli/cost_partitioning/task_pattern_collection_sorter_factory_category.h"
+#include "probfd_cli/task_heuristic_factory_category.h"
 #include "probfd_cli/task_state_space_factory_category.h"
 #include "probfd_cli/task_state_space_factory_features.h"
 
@@ -397,8 +401,15 @@ static void register_probfd_definitions(RawRegistry& raw_registry)
     probfd::cli::cartesian_abstractions::add_subtask_generator_features(
         raw_registry);
 
+    // Cost Partitioning
+    probfd::cli::cost_partitioning::
+        add_task_pattern_collection_sorter_factory_category(raw_registry);
+    probfd::cli::cost_partitioning::
+        add_pattern_collection_sorter_random_feature(raw_registry);
+    probfd::cli::cost_partitioning::add_pattern_collection_sorter_size_features(
+        raw_registry);
+
     // Heuristics
-    probfd::cli::heuristics::add_task_heuristic_factory_category(raw_registry);
     probfd::cli::heuristics::add_additive_cartesian_heuristic_feature(
         raw_registry);
     probfd::cli::heuristics::add_dead_end_pruning_heuristic_feature(
@@ -530,6 +541,7 @@ static void register_probfd_definitions(RawRegistry& raw_registry)
     // Task State Spaces
     probfd::cli::add_task_state_space_factory_category(raw_registry);
     probfd::cli::add_task_state_space_factory_features(raw_registry);
+    probfd::cli::add_task_heuristic_factory_category(raw_registry);
 }
 
 void register_definitions(RawRegistry& raw_registry)

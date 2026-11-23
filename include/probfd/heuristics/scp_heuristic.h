@@ -5,6 +5,8 @@
 #include "probfd/heuristic.h"
 #include "probfd/task_heuristic_factory.h"
 
+#include "probfd/cost_partitioning/pattern_collection_sorter_factory.h"
+
 #include <memory>
 
 // Forward Declarations
@@ -19,21 +21,17 @@ class PatternCollectionGenerator;
 namespace probfd::heuristics {
 
 class SCPHeuristicFactory final : public TaskHeuristicFactory {
-public:
-    enum OrderingStrategy { RANDOM, SIZE_ASC, SIZE_DESC, INHERIT };
-
-private:
     const std::shared_ptr<pdbs::PatternCollectionGenerator>
         pattern_collection_generator_;
-    const OrderingStrategy ordering_;
-    const std::shared_ptr<downward::utils::RandomNumberGenerator> rng_;
+    const std::shared_ptr<cost_partitioning::PatternCollectionSorterFactory>
+        sorter_factory_;
 
 public:
     SCPHeuristicFactory(
         std::shared_ptr<pdbs::PatternCollectionGenerator>
             pattern_collection_generator,
-        OrderingStrategy ordering,
-        std::shared_ptr<downward::utils::RandomNumberGenerator> rng);
+        std::shared_ptr<cost_partitioning::PatternCollectionSorterFactory>
+            sorter_factory);
 
     std::unique_ptr<FDRHeuristic>
     create_object(const SharedProbabilisticTask& task) override;

@@ -1,5 +1,7 @@
 #include "probfd/heuristics/scp_heuristic.h"
 
+#include "probfd/cost_partitioning/collection_sorter.h"
+
 #include "probfd/heuristics/additive_pdb_heuristic.h"
 
 #include "probfd/pdbs/pattern_collection_generator.h"
@@ -15,7 +17,6 @@
 #include "probfd/value_type.h"
 
 #include "downward/utils/rng.h"
-#include "downward/utils/rng_options.h"
 
 #include "downward/task_utils/task_properties.h"
 
@@ -26,17 +27,17 @@
 #include <utility>
 
 using namespace downward;
+
+using namespace probfd::cost_partitioning;
 using namespace probfd::pdbs;
 
 namespace probfd::heuristics {
 
 SCPHeuristicFactory::SCPHeuristicFactory(
     std::shared_ptr<PatternCollectionGenerator> pattern_collection_generator,
-    OrderingStrategy ordering,
-    std::shared_ptr<utils::RandomNumberGenerator> rng)
+    std::shared_ptr<PatternCollectionSorterFactory> sorter_factory)
     : pattern_collection_generator_(std::move(pattern_collection_generator))
-    , ordering_(ordering)
-    , rng_(std::move(rng))
+    , sorter_factory_(std::move(sorter_factory))
 {
 }
 
@@ -51,20 +52,8 @@ SCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
     std::vector<ProbabilityAwarePatternDatabase> pdbs;
     pdbs.reserve(patterns.size());
 
-    switch (ordering_) {
-    case RANDOM: rng_->shuffle(patterns); break;
-
-    case SIZE_ASC:
-        std::ranges::stable_sort(patterns, std::less(), &Pattern::size);
-        break;
-
-    case SIZE_DESC:
-        std::ranges::stable_sort(patterns, std::greater(), &Pattern::size);
-        break;
-
-    case INHERIT:
-    default: break;
-    }
+    auto sorter = sorter_factory_->create_object(task);
+    sorter->sort(patterns);
 
     const auto& variables = get_variables(task);
     const auto& operators = get_operators(task);
