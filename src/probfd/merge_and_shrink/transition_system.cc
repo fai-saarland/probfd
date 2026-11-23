@@ -102,7 +102,7 @@ void LocalLabelInfo::remove_labels(const vector<int>& old_labels)
     LabelGroup diff_label_group;
     diff_label_group.reserve(label_group.size() - old_labels.size());
 
-    const auto [it, _] = ranges::set_difference(
+    ranges::set_difference(
         label_group,
         old_labels,
         std::back_inserter(diff_label_group));

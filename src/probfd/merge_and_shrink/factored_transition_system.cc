@@ -181,7 +181,7 @@ void FactoredTransitionSystem::apply_label_mapping(
         labels.reduce_labels(old_labels);
     }
 
-    for (size_t i = 0; i < combinable_index; ++i) {
+    for (size_t i = 0; std::cmp_less(i, combinable_index); ++i) {
         if (const auto& ts = factors[i].transition_system) {
             ts->apply_equivalent_label_reduction(labels, label_mapping);
         }
