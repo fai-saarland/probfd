@@ -13,13 +13,15 @@ namespace downward {
 class CartesianSet;
 class StateMapping;
 class InverseOperatorMapping;
-}
+} // namespace downward
 
 namespace downward::cartesian_abstractions {
 class RefinementHierarchy;
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions
 
 namespace probfd {
+struct ProbabilisticTaskTransformationResult;
+
 template <typename, typename>
 class Policy;
 } // namespace probfd
@@ -31,7 +33,8 @@ struct ProbabilisticTransition;
 
 // Classed reused from classical implementation
 using CartesianSet = downward::CartesianSet;
-using RefinementHierarchy = downward::cartesian_abstractions::RefinementHierarchy;
+using RefinementHierarchy =
+    downward::cartesian_abstractions::RefinementHierarchy;
 
 // Typedefs reused from classical implementation
 using Goals = downward::cartesian_abstractions::Goals;
@@ -50,10 +53,7 @@ using Solution = Policy<int, const ProbabilisticTransition*>;
 
 static constexpr int UNDEFINED = -1;
 
-using SharedTasks = std::vector<std::tuple<
-    SharedProbabilisticTask,
-    std::shared_ptr<downward::StateMapping>,
-    std::shared_ptr<downward::InverseOperatorMapping>>>;
+using TaskTransformations = std::vector<ProbabilisticTaskTransformationResult>;
 
 } // namespace probfd::cartesian_abstractions
 

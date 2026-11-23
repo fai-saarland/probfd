@@ -15,6 +15,8 @@
 
 #include "probfd/tasks/range_operator_cost_function.h"
 
+#include "probfd/task_transformation.h"
+
 #include "downward/cartesian_abstractions/refinement_hierarchy.h"
 
 #include "downward/task_utils/task_properties.h"
@@ -177,10 +179,11 @@ vector<CartesianHeuristicFunction> generate_heuristic_functions(
     for (const auto& subtask_generator : subtask_generators) {
         auto cf = downward::extra_tasks::make_shared_range_cf(remaining_costs);
 
-        SharedTasks subtasks = subtask_generator->get_subtasks(task, log);
+        TaskTransformations subtasks =
+            subtask_generator->get_subtasks(task, log);
         int rem_subtasks = static_cast<int>(subtasks.size());
 
-        for (auto [subtask, state_mapping, _] : subtasks) {
+        for (auto&& [subtask, state_mapping] : subtasks) {
             subtask = replace(subtask, cf);
 
             const auto flaw_generator =

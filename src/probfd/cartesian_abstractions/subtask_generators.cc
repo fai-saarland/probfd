@@ -24,6 +24,7 @@
 
 #include "downward/initial_state_values.h"
 #include "downward/state.h"
+#include "probfd/task_transformation.h"
 
 #include <algorithm>
 #include <iostream>
@@ -127,17 +128,16 @@ TaskDuplicator::TaskDuplicator(int copies)
     utils::validate_param_geq("copies", copies, 1);
 }
 
-SharedTasks TaskDuplicator::get_subtasks(
+TaskTransformations TaskDuplicator::get_subtasks(
     const SharedProbabilisticTask& task,
     utils::LogProxy&) const
 {
-    SharedTasks subtasks;
+    TaskTransformations subtasks;
     subtasks.reserve(num_copies_);
     for (int i = 0; i < num_copies_; ++i) {
         subtasks.emplace_back(
             task,
-            std::make_shared<IdentityStateMapping>(),
-            std::make_shared<IdentityOperatorMapping>());
+            std::make_shared<IdentityStateMapping>());
     }
     return subtasks;
 }
@@ -150,13 +150,13 @@ GoalDecomposition::GoalDecomposition(
 {
 }
 
-SharedTasks GoalDecomposition::get_subtasks(
+TaskTransformations GoalDecomposition::get_subtasks(
     const SharedProbabilisticTask& task,
     utils::LogProxy& log) const
 {
     const auto& goals = get_goal(task);
 
-    SharedTasks subtasks;
+    TaskTransformations subtasks;
     Facts goal_facts = task_properties::get_fact_pairs(goals);
     filter_and_order_facts(task, fact_order_, goal_facts, *rng_, log);
     for (const FactPair& goal : goal_facts) {
@@ -165,8 +165,7 @@ SharedTasks GoalDecomposition::get_subtasks(
             make_shared<downward::extra_tasks::ModifiedGoalFacts>(Facts{goal}));
         subtasks.emplace_back(
             subtask,
-            std::make_shared<IdentityStateMapping>(),
-            std::make_shared<IdentityOperatorMapping>());
+            std::make_shared<IdentityStateMapping>());
     }
     return subtasks;
 }
@@ -183,12 +182,12 @@ LandmarkDecomposition::LandmarkDecomposition(
 {
 }
 
-SharedTasks LandmarkDecomposition::get_subtasks(
+TaskTransformations LandmarkDecomposition::get_subtasks(
     const SharedProbabilisticTask& task,
     utils::LogProxy& log) const
 {
     const auto determinization_task = tasks::create_determinization_task(task);
-    SharedTasks subtasks;
+    TaskTransformations subtasks;
     const shared_ptr<landmarks::LandmarkGraph> landmark_graph =
         ::cartesian_abstractions::get_landmark_graph(
             determinization_task,
@@ -210,8 +209,7 @@ SharedTasks LandmarkDecomposition::get_subtasks(
         }
         subtasks.emplace_back(
             subtask,
-            std::make_shared<IdentityStateMapping>(),
-            std::make_shared<IdentityOperatorMapping>());
+            std::make_shared<IdentityStateMapping>());
     }
     return subtasks;
 }

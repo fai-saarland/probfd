@@ -36,7 +36,7 @@ class SubtaskGenerator {
 public:
     virtual ~SubtaskGenerator() = default;
 
-    virtual SharedTasks get_subtasks(
+    virtual TaskTransformations get_subtasks(
         const SharedProbabilisticTask& task,
         downward::utils::LogProxy& log) const = 0;
 };
@@ -50,7 +50,7 @@ class TaskDuplicator : public SubtaskGenerator {
 public:
     explicit TaskDuplicator(int copies);
 
-    SharedTasks get_subtasks(
+    TaskTransformations get_subtasks(
         const SharedProbabilisticTask& task,
         downward::utils::LogProxy& log) const override;
 };
@@ -67,7 +67,7 @@ public:
         FactOrder order,
         std::shared_ptr<downward::utils::RandomNumberGenerator> rng);
 
-    SharedTasks get_subtasks(
+    TaskTransformations get_subtasks(
         const SharedProbabilisticTask& task,
         downward::utils::LogProxy& log) const override;
 };
@@ -91,7 +91,7 @@ public:
         bool combine_facts,
         std::shared_ptr<downward::utils::RandomNumberGenerator> rng);
 
-    SharedTasks get_subtasks(
+    TaskTransformations get_subtasks(
         const SharedProbabilisticTask& task,
         downward::utils::LogProxy& log) const override;
 };
