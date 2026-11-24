@@ -308,6 +308,15 @@ create_library(
 )
 
 create_library(
+    NAME cucp_pdb_heuristic
+    SOURCES
+    probfd/heuristics/cucp_heuristic
+    DEPENDS
+    additive_pdb_heuristic
+    padbs_pattern_generators
+)
+
+create_library(
     NAME gzocp_pdb_heuristic
     SOURCES
         probfd/heuristics/gzocp_heuristic

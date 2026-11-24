@@ -539,6 +539,19 @@ create_library(
         parser
         plugins
     TARGET
+    probfd
+)
+
+create_library(
+    NAME cucp_heuristic_plugin
+    HELP "Enables the PDB canonical uniform cost-partitioning heuristic plugin"
+    SOURCES
+    probfd_cli/heuristics/cucp_heuristic
+    DEPENDS
+    cucp_pdb_heuristic
+    parser
+    plugins
+    TARGET
         probfd
 )
 

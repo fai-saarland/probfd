@@ -138,6 +138,7 @@
 
 #include "probfd_cli/heuristics/additive_cartesian_heuristic.h"
 #include "probfd_cli/heuristics/blind_heuristic.h"
+#include "probfd_cli/heuristics/cucp_heuristic.h"
 #include "probfd_cli/heuristics/dead_end_pruning_heuristic.h"
 #include "probfd_cli/heuristics/determinization_cost_heuristic.h"
 #include "probfd_cli/heuristics/gzocp_heuristic.h"
@@ -423,6 +424,7 @@ static void register_probfd_definitions(RawRegistry& raw_registry)
     probfd::cli::heuristics::add_ocp_heuristic_feature(raw_registry);
     probfd::cli::heuristics::add_scp_heuristic_feature(raw_registry);
     probfd::cli::heuristics::add_ucp_heuristic_feature(raw_registry);
+    probfd::cli::heuristics::add_cucp_heuristic_feature(raw_registry);
     probfd::cli::heuristics::add_determinization_cost_heuristic_feature(
         raw_registry);
 
