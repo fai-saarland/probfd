@@ -47,6 +47,10 @@ class MatchTree {
 public:
     explicit MatchTree(size_t hint_num_operators = 0);
 
+    MatchTree(MatchTree&&) noexcept;
+
+    MatchTree& operator=(MatchTree&&) noexcept;
+
     ~MatchTree();
 
     /**
@@ -75,7 +79,7 @@ public:
         StateRank abstract_state,
         std::vector<LabelledSuccessorPMF<const ProjectionOperator*>>&
             transitions,
-        ProjectionStateSpace& state_space) const;
+        const ProjectionStateSpace& state_space) const;
 
     /**
      * @brief Dump the match tree to an output stream.

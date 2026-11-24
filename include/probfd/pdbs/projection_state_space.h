@@ -42,6 +42,10 @@ public:
         bool operator_pruning = true,
         downward::utils::FSeconds max_time = downward::utils::FSeconds::max());
 
+    ProjectionStateSpace(ProjectionStateSpace&&) = default;
+
+    ProjectionStateSpace& operator=(ProjectionStateSpace&&) = default;
+
     StateID get_state_id(StateRank state) override;
 
     StateRank get_state(StateID id) override;
@@ -63,6 +67,24 @@ public:
     void generate_all_transitions(
         StateRank state,
         std::vector<LPMFType>& transitions) override;
+
+    void generate_applicable_actions(
+        StateRank state,
+        std::vector<const ProjectionOperator*>& aops) const;
+
+    void generate_action_transitions(
+        StateRank state,
+        const ProjectionOperator* op,
+        SuccessorPMF& successor_pmf) const;
+
+    void generate_all_transitions(
+        StateRank state,
+        std::vector<const ProjectionOperator*>& aops,
+        std::vector<SuccessorPMF>& successor_pmf) const;
+
+    void generate_all_transitions(
+        StateRank state,
+        std::vector<LPMFType>& transitions) const;
 
     [[nodiscard]]
     bool is_goal(StateRank state) const override;

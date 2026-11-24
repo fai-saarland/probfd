@@ -281,6 +281,15 @@ create_library(
 )
 
 create_library(
+    NAME ocp_pdb_heuristic
+    SOURCES
+    probfd/heuristics/ocp_heuristic
+    DEPENDS
+    probability_aware_pdbs
+    padbs_pattern_generators
+)
+
+create_library(
     NAME scp_pdb_heuristic
     SOURCES
         probfd/heuristics/scp_heuristic

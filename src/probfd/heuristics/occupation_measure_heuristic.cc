@@ -14,10 +14,10 @@ using namespace probfd::occupation_measures;
 namespace probfd::heuristics {
 
 OccupationMeasureHeuristic::OccupationMeasureHeuristic(
-    SharedProbabilisticTask task,
+    const SharedProbabilisticTask& task,
     lp::LPSolverType solver_type,
     std::shared_ptr<ConstraintGenerator> constraint_generator)
-    : LPHeuristic(std::move(task), solver_type)
+    : LPHeuristic(solver_type)
     , constraint_generator_(std::move(constraint_generator))
 {
     lp::LinearProgram lp(
@@ -26,8 +26,8 @@ OccupationMeasureHeuristic::OccupationMeasureHeuristic(
         named_vector::NamedVector<lp::LPConstraint>(),
         lp_solver_.get_infinity());
 
-    const auto& operators = get_operators(task_);
-    const auto& cost_function = get_cost_function(task_);
+    const auto& operators = get_operators(task);
+    const auto& cost_function = get_cost_function(task);
 
     auto& lp_variables = lp.get_variables();
 
@@ -38,7 +38,7 @@ OccupationMeasureHeuristic::OccupationMeasureHeuristic(
             cost_function.get_operator_cost(op.get_id()));
     }
 
-    constraint_generator_->initialize_constraints(task_, lp);
+    constraint_generator_->initialize_constraints(task, lp);
 
     lp_solver_.load_problem(lp);
 }

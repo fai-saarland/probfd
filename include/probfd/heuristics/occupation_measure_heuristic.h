@@ -29,7 +29,7 @@ protected:
 
 public:
     OccupationMeasureHeuristic(
-        SharedProbabilisticTask task,
+        const SharedProbabilisticTask& task,
         downward::lp::LPSolverType solver_type,
         std::shared_ptr<occupation_measures::ConstraintGenerator>
             constraint_generator);

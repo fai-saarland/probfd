@@ -308,13 +308,47 @@ void ProjectionStateSpace::generate_applicable_actions(
     StateRank state,
     std::vector<const ProjectionOperator*>& aops)
 {
-    match_tree_.get_applicable_operators(state, aops);
+    return static_cast<const ProjectionStateSpace*>(this)
+        ->generate_applicable_actions(state, aops);
 }
 
 void ProjectionStateSpace::generate_action_transitions(
     StateRank state,
     const ProjectionOperator* op,
     SuccessorPMF& successor_pmf)
+{
+    return static_cast<const ProjectionStateSpace*>(this)
+        ->generate_action_transitions(state, op, successor_pmf);
+}
+
+void ProjectionStateSpace::generate_all_transitions(
+    StateRank state,
+    std::vector<const ProjectionOperator*>& aops,
+    std::vector<SuccessorPMF>& successor_pmf)
+{
+    return static_cast<const ProjectionStateSpace*>(this)
+        ->generate_all_transitions(state, aops, successor_pmf);
+}
+
+void ProjectionStateSpace::generate_all_transitions(
+    StateRank state,
+    std::vector<LPMFType>& transitions)
+{
+    return static_cast<const ProjectionStateSpace*>(this)
+        ->generate_all_transitions(state, transitions);
+}
+
+void ProjectionStateSpace::generate_applicable_actions(
+    StateRank state,
+    std::vector<const ProjectionOperator*>& aops) const
+{
+    match_tree_.get_applicable_operators(state, aops);
+}
+
+void ProjectionStateSpace::generate_action_transitions(
+    StateRank state,
+    const ProjectionOperator* op,
+    SuccessorPMF& successor_pmf) const
 {
     successor_pmf.non_source_probability = 0_vt;
 
@@ -328,7 +362,7 @@ void ProjectionStateSpace::generate_action_transitions(
 void ProjectionStateSpace::generate_all_transitions(
     StateRank state,
     std::vector<const ProjectionOperator*>& aops,
-    std::vector<SuccessorPMF>& successor_pmf)
+    std::vector<SuccessorPMF>& successor_pmf) const
 {
     generate_applicable_actions(state, aops);
     successor_pmf.reserve(aops.size());
@@ -339,7 +373,7 @@ void ProjectionStateSpace::generate_all_transitions(
 
 void ProjectionStateSpace::generate_all_transitions(
     StateRank state,
-    std::vector<LPMFType>& transitions)
+    std::vector<LPMFType>& transitions) const
 {
     match_tree_.generate_all_transitions(state, transitions, *this);
 }

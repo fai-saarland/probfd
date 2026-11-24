@@ -142,6 +142,7 @@
 #include "probfd_cli/heuristics/determinization_cost_heuristic.h"
 #include "probfd_cli/heuristics/gzocp_heuristic.h"
 #include "probfd_cli/heuristics/merge_and_shrink_heuristic.h"
+#include "probfd_cli/heuristics/ocp_heuristic.h"
 #include "probfd_cli/heuristics/probability_aware_pdb_heuristic.h"
 #include "probfd_cli/heuristics/scp_heuristic.h"
 #include "probfd_cli/heuristics/ucp_heuristic.h"
@@ -419,6 +420,7 @@ static void register_probfd_definitions(RawRegistry& raw_registry)
         raw_registry);
     probfd::cli::heuristics::add_blind_heuristic_factory_feature(raw_registry);
     probfd::cli::heuristics::add_pdb_heuristic_feature(raw_registry);
+    probfd::cli::heuristics::add_ocp_heuristic_feature(raw_registry);
     probfd::cli::heuristics::add_scp_heuristic_feature(raw_registry);
     probfd::cli::heuristics::add_ucp_heuristic_feature(raw_registry);
     probfd::cli::heuristics::add_determinization_cost_heuristic_feature(

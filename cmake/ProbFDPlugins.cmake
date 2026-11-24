@@ -513,6 +513,19 @@ create_library(
         parser
         plugins
     TARGET
+    probfd
+)
+
+create_library(
+    NAME ocp_heuristic_plugin
+    HELP "Enables the PDB optimal cost-partitioning heuristic plugin"
+    SOURCES
+    probfd_cli/heuristics/ocp_heuristic
+    DEPENDS
+    ocp_pdb_heuristic
+    parser
+    plugins
+    TARGET
         probfd
 )
 
