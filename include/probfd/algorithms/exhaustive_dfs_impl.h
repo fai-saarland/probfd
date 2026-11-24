@@ -9,7 +9,7 @@
 #include "probfd/utils/not_implemented.h"
 
 #include "probfd/heuristic.h"
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
 
 #include <cassert>
 #include <ranges>
@@ -195,10 +195,10 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::push_state(
     SearchNodeInfo& info)
 {
     std::vector<Action> aops;
-    std::vector<SuccessorDistribution> successor_dists;
+    std::vector<SuccessorPMF> successor_pmfs;
     const State state = mdp.get_state(state_id);
-    mdp.generate_all_transitions(state, aops, successor_dists);
-    if (successor_dists.empty()) {
+    mdp.generate_all_transitions(state, aops, successor_pmfs);
+    if (successor_pmfs.empty()) {
         info.value = AlgorithmValueType(info.term_cost);
         info.set_dead_end();
         statistics_.terminal++;
@@ -208,7 +208,7 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::push_state(
     statistics_.expanded++;
 
     if (transition_sort_ != nullptr) {
-        transition_sort_->sort(state, aops, successor_dists, search_space_);
+        transition_sort_->sort(state, aops, successor_pmfs, search_space_);
     }
 
     expansion_infos_.emplace_back(stack_infos_.size());
@@ -223,12 +223,12 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::push_state(
 
     unsigned j = 0;
     for (unsigned i = 0; i < aops.size(); ++i) {
-        auto& [non_source_successor_dist, non_source_probability] =
-            successor_dists[i];
+        auto& [non_source_successor_pmf, non_source_probability] =
+            successor_pmfs[i];
         auto& t = si.successors[i];
         const auto& a = aops[i];
 
-        if (non_source_successor_dist.empty()) {
+        if (non_source_successor_pmf.empty()) {
             continue;
         }
 
@@ -244,7 +244,7 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::push_state(
 
         bool all_closed = true;
 
-        for (auto& elem : non_source_successor_dist) {
+        for (auto& elem : non_source_successor_pmf) {
             const auto [succ_id, prob] = elem;
 
             SearchNodeInfo& succ_info = search_space_[succ_id];
@@ -271,7 +271,7 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::push_state(
 
         if (i != j) {
             si.successors[j] = std::move(si.successors[i]);
-            successor_dists[j] = std::move(successor_dists[i]);
+            successor_pmfs[j] = std::move(successor_pmfs[i]);
         }
         ++j;
     }
@@ -292,13 +292,13 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::push_state(
         return false;
     }
 
-    successor_dists.erase(successor_dists.begin() + j, successor_dists.end());
+    successor_pmfs.erase(successor_pmfs.begin() + j, successor_pmfs.end());
     si.successors.erase(si.successors.begin() + j, si.successors.end());
     si.i = 0;
 
     info.set_onstack(stack_infos_.size() - 1);
-    exp.successors = std::move(successor_dists);
-    exp.succ = exp.successors.back().non_source_successor_dist.begin();
+    exp.successors = std::move(successor_pmfs);
+    exp.succ = exp.successors.back().non_source_successor_pmf.begin();
 
     return true;
 }
@@ -317,7 +317,7 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
         assert(!expanding.successors.empty());
         assert(
             expanding.succ !=
-            expanding.successors.back().non_source_successor_dist.end());
+            expanding.successors.back().non_source_successor_pmf.end());
 
         StackInformation& stack_info = stack_infos_[expanding.stack_index];
         assert(!stack_info.successors.empty());
@@ -336,7 +336,7 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
 
         for (;;) {
             for (; expanding.succ !=
-                   expanding.successors.back().non_source_successor_dist.end();
+                   expanding.successors.back().non_source_successor_pmf.end();
                  ++expanding.succ) {
                 const auto [succ_id, prob] = *expanding.succ;
 
@@ -402,7 +402,7 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
             }
 
             expanding.succ =
-                expanding.successors.back().non_source_successor_dist.begin();
+                expanding.successors.back().non_source_successor_pmf.begin();
         }
 
         last_all_dead_ = expanding.all_successors_are_dead;

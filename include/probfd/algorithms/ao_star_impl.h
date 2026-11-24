@@ -87,7 +87,7 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
 
                 auto all_successors =
                     transitions_ | transform([](auto& t) {
-                        return t.successor_dist.non_source_successor_dist
+                        return t.successor_pmf.non_source_successor_pmf
                             .support();
                     }) |
                     std::views::join;
@@ -140,11 +140,11 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
 
             assert(action.has_value());
 
-            ClearGuard guard(successor_dist_.non_source_successor_dist);
+            ClearGuard guard(successor_pmf_.non_source_successor_pmf);
 
-            mdp.generate_action_transitions(state, *action, successor_dist_);
+            mdp.generate_action_transitions(state, *action, successor_pmf_);
 
-            successor_dist_.non_source_successor_dist.remove_if_normalize(
+            successor_pmf_.non_source_successor_pmf.remove_if_normalize(
                 [this](const auto& target) {
                     return this->state_infos_[target.item].is_solved();
                 });
@@ -152,7 +152,7 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
             stateid = outcome_selection_->sample(
                 stateid,
                 *action,
-                successor_dist_,
+                successor_pmf_,
                 this->state_infos_);
         }
 
@@ -174,7 +174,7 @@ template <typename State, typename Action, bool UseInterval>
 bool AOStar<State, Action, UseInterval>::update_value_check_solved(
     MDPType& mdp,
     ParamType<State> state,
-    std::vector<LabelledSuccessorDistribution<Action>> transitions,
+    std::vector<LabelledSuccessorPMF<Action>> transitions,
     StateInfo& info)
 {
     const auto value =
@@ -190,8 +190,8 @@ bool AOStar<State, Action, UseInterval>::update_value_check_solved(
     bool all_succs_solved = true;
 
     if (greedy_transition) {
-        for (const auto succ_id : greedy_transition->successor_dist
-                                      .non_source_successor_dist.support()) {
+        for (const auto succ_id : greedy_transition->successor_pmf
+                                      .non_source_successor_pmf.support()) {
             const auto& succ_info = this->state_infos_[succ_id];
             all_succs_solved = all_succs_solved && succ_info.is_solved();
         }

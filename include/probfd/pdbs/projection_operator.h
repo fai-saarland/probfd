@@ -1,7 +1,7 @@
 #ifndef PROBFD_PDBS_PROJECTION_OPERATOR_H
 #define PROBFD_PDBS_PROJECTION_OPERATOR_H
 
-#include "probfd/distribution.h"
+#include "probfd/pmf.h"
 
 #include "downward/operator_id.h"
 
@@ -29,17 +29,17 @@ private:
     // Implementation detail. Like in the classical implementation, each
     // operator is applicable in exactly one state. The successor states are
     // computed by adding an offset to the source state rank (t = s + offset).
-    // The distribution contains these offsets.
-    Distribution<int> outcome_offsets_;
+    // The PMF contains these offsets.
+    PMF<int> outcome_offset_pmf_;
 
 public:
     template <std::ranges::input_range R>
         requires(std::convertible_to<
                     std::ranges::range_reference_t<R>,
                     ItemProbabilityPair<int>>)
-    explicit ProjectionOperator(downward::OperatorID id, R&& distr)
+    explicit ProjectionOperator(downward::OperatorID id, R&& pmf)
         : operator_id(id)
-        , outcome_offsets_(std::from_range, std::forward<R>(distr))
+        , outcome_offset_pmf_(std::from_range, std::forward<R>(pmf))
     {
     }
 
@@ -49,13 +49,13 @@ public:
                     ItemProbabilityPair<int>>)
     explicit ProjectionOperator(
         downward::OperatorID id,
-        R&& distr,
+        R&& pmf,
         NoNormalizeTagType)
         : operator_id(id)
-        , outcome_offsets_(
+        , outcome_offset_pmf_(
               std::from_range,
               no_normalize,
-              std::forward<R>(distr))
+              std::forward<R>(pmf))
     {
     }
 
@@ -63,7 +63,7 @@ public:
         const ProjectionOperator& left,
         const ProjectionOperator& right)
     {
-        return left.outcome_offsets_ == right.outcome_offsets_;
+        return left.outcome_offset_pmf_ == right.outcome_offset_pmf_;
     }
 };
 

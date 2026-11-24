@@ -11,7 +11,7 @@ public:
     StateID sample(
         StateID state_id,
         Action action,
-        const SuccessorDistribution& successors,
+        const SuccessorPMF& successors,
         algorithms::StateProperties& properties) override;
 };
 

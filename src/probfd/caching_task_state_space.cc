@@ -1,8 +1,8 @@
 #include "probfd/caching_task_state_space.h"
 
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
 
-#include "probfd/distribution.h"
+#include "probfd/pmf.h"
 #include "probfd/probabilistic_task.h"
 
 #include "downward/utils/logging.h"
@@ -58,7 +58,7 @@ void CachingTaskStateSpace::generate_applicable_actions(
 void CachingTaskStateSpace::generate_action_transitions(
     const State& state,
     OperatorID operator_id,
-    SuccessorDistribution& successor_dist)
+    SuccessorPMF& successor_pmf)
 {
     const CacheEntry& entry = lookup(state);
     assert(entry.is_initialized());
@@ -71,12 +71,12 @@ void CachingTaskStateSpace::generate_action_transitions(
             return false;
         });
 
-    successor_dist.non_source_probability = 0_vt;
+    successor_pmf.non_source_probability = 0_vt;
 
     for (const auto out = (*operators_)[*it];
          const auto outcome : out.get_outcomes()) {
         const auto succ = *succs++;
-        successor_dist.add_non_source_probability(
+        successor_pmf.add_non_source_probability(
             succ,
             outcome.get_probability());
     }
@@ -87,22 +87,22 @@ void CachingTaskStateSpace::generate_action_transitions(
 void CachingTaskStateSpace::generate_all_transitions(
     const State& state,
     std::vector<OperatorID>& aops,
-    std::vector<SuccessorDistribution>& successor_dists)
+    std::vector<SuccessorPMF>& successor_pmfs)
 {
     auto& [naops, cached_aops, succs] = lookup(state);
     aops.reserve(naops);
-    successor_dists.reserve(naops);
+    successor_pmfs.reserve(naops);
 
     for (OperatorID op_id : counted(cached_aops, naops)) {
         aops.push_back(op_id);
 
-        SuccessorDistribution& successor_dist = successor_dists.emplace_back();
+        SuccessorPMF& successor_pmf = successor_pmfs.emplace_back();
 
         const ProbabilisticOperatorProxy op = (*operators_)[op_id];
 
         for (const auto outcome : op.get_outcomes()) {
             const auto succ = *succs++;
-            successor_dist.add_non_source_probability(
+            successor_pmf.add_non_source_probability(
                 succ,
                 outcome.get_probability());
         }
@@ -114,13 +114,13 @@ void CachingTaskStateSpace::generate_all_transitions(
 
 void CachingTaskStateSpace::generate_all_transitions(
     const State& state,
-    std::vector<LDistType>& transitions)
+    std::vector<LPMFType>& transitions)
 {
     auto& [naops, cached_aops, succs] = lookup(state);
     transitions.reserve(naops);
 
     for (OperatorID op_id : counted(cached_aops, naops)) {
-        auto& successor_dist = transitions.emplace_back(op_id).successor_dist;
+        auto& successor_pmf = transitions.emplace_back(op_id).successor_pmf;
 
         const ProbabilisticOperatorProxy op = (*operators_)[op_id];
         const ProbabilisticOutcomesProxy outcomes = op.get_outcomes();
@@ -129,7 +129,7 @@ void CachingTaskStateSpace::generate_all_transitions(
         for (const auto outcome : outcomes) {
             const auto succ = *succs++;
             if (state.get_id() == succ) continue;
-            successor_dist.add_non_source_probability(
+            successor_pmf.add_non_source_probability(
                 succ,
                 outcome.get_probability());
         }

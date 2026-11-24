@@ -4,7 +4,7 @@
 #include "probfd/algorithms/heuristic_search_base.h"
 #include "probfd/quotients/quotient_system.h"
 
-#include "probfd/distribution.h"
+#include "probfd/pmf.h"
 
 #include "downward/utils/timer.h"
 
@@ -169,9 +169,9 @@ class TADFHSImpl
     std::vector<StateID> visited_states_;
 
     // Re-used buffer
-    std::vector<LabelledSuccessorDistribution<QAction>> transitions_;
+    std::vector<LabelledSuccessorPMF<QAction>> transitions_;
     std::vector<AlgorithmValueType> q_values_;
-    SuccessorDistribution successor_dist_;
+    SuccessorPMF successor_pmf_;
 
     internal::Statistics statistics_;
 

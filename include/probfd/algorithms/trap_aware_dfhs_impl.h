@@ -310,7 +310,7 @@ bool TADFHSImpl<State, Action, UseInterval>::initialize(
         tarjan_stack_.back().action = transition->action;
 
         einfo.successors = std::ranges::to<std::vector>(
-            successor_dist_.non_source_successor_dist.support());
+            successor_pmf_.non_source_successor_pmf.support());
 
         einfo.is_trap = quotient.get_action_cost(transition->action) == 0;
     } else {
@@ -324,11 +324,11 @@ bool TADFHSImpl<State, Action, UseInterval>::initialize(
 
         einfo.is_trap = quotient.get_action_cost(*action) == 0;
 
-        ClearGuard _(successor_dist_.non_source_successor_dist);
-        quotient.generate_action_transitions(state, *action, successor_dist_);
+        ClearGuard _(successor_pmf_.non_source_successor_pmf);
+        quotient.generate_action_transitions(state, *action, successor_pmf_);
 
         einfo.successors = std::ranges::to<std::vector>(
-            successor_dist_.non_source_successor_dist.support());
+            successor_pmf_.non_source_successor_pmf.support());
     }
 
     return true;
@@ -609,11 +609,11 @@ auto TADepthFirstHeuristicSearch<State, Action, UseInterval>::compute_policy(
 
                 const State source = mdp.get_state(source_id);
 
-                SuccessorDistribution successor_dist;
-                mdp.generate_action_transitions(source, action, successor_dist);
+                SuccessorPMF successor_pmf;
+                mdp.generate_action_transitions(source, action, successor_pmf);
 
                 for (const StateID succ_id :
-                     successor_dist.non_source_successor_dist.support()) {
+                     successor_pmf.non_source_successor_pmf.support()) {
                     parents[succ_id].insert(qaction);
                 }
             }
@@ -637,14 +637,14 @@ auto TADepthFirstHeuristicSearch<State, Action, UseInterval>::compute_policy(
         }
 
         // Push the successor traps.
-        SuccessorDistribution successor_dist;
+        SuccessorPMF successor_pmf;
         quotient.generate_action_transitions(
             quotient_state,
             *quotient_action,
-            successor_dist);
+            successor_pmf);
 
         for (const StateID succ_id :
-             successor_dist.non_source_successor_dist.support()) {
+             successor_pmf.non_source_successor_pmf.support()) {
             if (visited.insert(succ_id).second) { queue.push_back(succ_id); }
         }
     } while (!queue.empty());

@@ -3,7 +3,7 @@
 
 #include "probfd/storage/per_state_storage.h"
 
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
 #include "probfd/mdp.h"
 #include "probfd/policy.h"
 
@@ -42,7 +42,7 @@ extern bool verify_policy(
         StateID state_id;
         unsigned lowlink = std::numeric_limits<unsigned>::max();
 
-        SuccessorDistribution successors;
+        SuccessorPMF successors;
     };
 
     std::stack<ExplorationInfo> open;
@@ -78,13 +78,13 @@ extern bool verify_policy(
             info->successors);
 
         // Check Bellman equation
-        assert(!info->successors.non_source_successor_dist.empty());
+        assert(!info->successors.non_source_successor_pmf.empty());
 
         {
             value_t expected_cost = mdp.get_action_cost(decision->action);
 
             for (const auto [successor_id, probability] :
-                 info->successors.non_source_successor_dist) {
+                 info->successors.non_source_successor_pmf) {
                 const State successor = mdp.get_state(successor_id);
                 std::optional succ_decision = policy.get_decision(successor);
 
@@ -107,7 +107,7 @@ extern bool verify_policy(
             // DFS Expansion
             do {
                 const StateID successor_id =
-                    std::prev(info->successors.non_source_successor_dist.end())
+                    std::prev(info->successors.non_source_successor_pmf.end())
                         ->item;
                 StateInfo& succ_info = state_infos[successor_id.id];
 
@@ -119,10 +119,10 @@ extern bool verify_policy(
                 state_info->is_proper =
                     state_info->is_proper || succ_info.is_proper;
                 info->lowlink = std::min(info->lowlink, succ_info.stack_id);
-                info->successors.non_source_successor_dist.erase(
+                info->successors.non_source_successor_pmf.erase(
                     std::prev(
-                        info->successors.non_source_successor_dist.end()));
-            } while (!info->successors.non_source_successor_dist.empty());
+                        info->successors.non_source_successor_pmf.end()));
+            } while (!info->successors.non_source_successor_pmf.empty());
 
         backtracking:;
 
@@ -161,16 +161,16 @@ extern bool verify_policy(
 
                 // The successor we backtracked from.
                 const StateID successor_id =
-                    std::prev(info->successors.non_source_successor_dist.end())
+                    std::prev(info->successors.non_source_successor_pmf.end())
                         ->item;
 
                 const StateInfo& succ_info = state_infos[successor_id.id];
                 state_info->is_proper =
                     state_info->is_proper || succ_info.is_proper;
                 info->lowlink = std::min(info->lowlink, lowlink);
-                info->successors.non_source_successor_dist.erase(
-                    info->successors.non_source_successor_dist.end() - 1);
-            } while (info->successors.non_source_successor_dist.empty());
+                info->successors.non_source_successor_pmf.erase(
+                    info->successors.non_source_successor_pmf.end() - 1);
+            } while (info->successors.non_source_successor_pmf.empty());
         }
     }
 }

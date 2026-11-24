@@ -206,7 +206,7 @@ Interval I2Dual::solve(
             mdp.generate_applicable_actions(state, aops_);
 
             for (const OperatorID& act : aops_) {
-                ClearGuard _guard_s(succs_.non_source_successor_dist);
+                ClearGuard _guard_s(succs_.non_source_successor_pmf);
 
                 mdp.generate_action_transitions(state, act, succs_);
 
@@ -220,7 +220,7 @@ Interval I2Dual::solve(
 
                 double p_self = 0;
                 for (const auto& [succ_id, prob] :
-                     succs_.non_source_successor_dist) {
+                     succs_.non_source_successor_pmf) {
                     if (succ_id == state_id) {
                         p_self += prob;
                         continue;

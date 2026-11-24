@@ -17,7 +17,7 @@ public:
     int pick_index(
         MDP<State, Action>&,
         std::optional<Action>,
-        const std::vector<LabelledSuccessorDistribution<Action>>&,
+        const std::vector<LabelledSuccessorPMF<Action>>&,
         algorithms::StateProperties&) override;
 };
 

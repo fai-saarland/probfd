@@ -183,12 +183,12 @@ bool TALRTDPImpl<State, Action, UseInterval>::trial(
             state_info.set_on_trial();
         }
 
-        assert(!transition->successor_dist.non_source_successor_dist.empty());
+        assert(!transition->successor_pmf.non_source_successor_pmf.empty());
 
         auto next = sample_->sample(
             state_id,
             transition->action,
-            transition->successor_dist,
+            transition->successor_pmf,
             this->state_infos_);
 
         current_trial_.push_back(next);
@@ -421,7 +421,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::initialize(
         e_info.rv = val_upd.converged;
 
         for (const StateID sel :
-             transition->successor_dist.non_source_successor_dist.support()) {
+             transition->successor_pmf.non_source_successor_pmf.support()) {
             e_info.successors.push_back(sel);
         }
 
@@ -570,11 +570,11 @@ auto TALRTDP<State, Action, UseInterval>::compute_policy(
 
                 const State source = mdp.get_state(source_id);
 
-                SuccessorDistribution successor_dist;
-                mdp.generate_action_transitions(source, action, successor_dist);
+                SuccessorPMF successor_pmf;
+                mdp.generate_action_transitions(source, action, successor_pmf);
 
                 for (const StateID succ_id :
-                     successor_dist.non_source_successor_dist.support()) {
+                     successor_pmf.non_source_successor_pmf.support()) {
                     parents[succ_id].insert(qaction);
                 }
             }
@@ -598,14 +598,14 @@ auto TALRTDP<State, Action, UseInterval>::compute_policy(
         }
 
         // Push the successor traps.
-        SuccessorDistribution successor_dist;
+        SuccessorPMF successor_pmf;
         quotient.generate_action_transitions(
             quotient_state,
             *quotient_action,
-            successor_dist);
+            successor_pmf);
 
         for (const StateID succ_id :
-             successor_dist.non_source_successor_dist.support()) {
+             successor_pmf.non_source_successor_pmf.support()) {
             if (visited.insert(succ_id).second) {
                 queue.push_back(succ_id);
             }

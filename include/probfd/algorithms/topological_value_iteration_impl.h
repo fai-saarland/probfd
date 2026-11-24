@@ -51,7 +51,7 @@ bool TopologicalValueIteration<State, Action, UseInterval>::
     DFSExplorationState::next_transition(MDPType& mdp)
 {
     aops.pop_back();
-    successor_dist.clear();
+    successor_pmf.clear();
 
     return !aops.empty() &&
            forward_non_loop_transition(mdp, mdp.get_state(state_id));
@@ -61,12 +61,12 @@ template <typename State, typename Action, bool UseInterval>
 bool TopologicalValueIteration<State, Action, UseInterval>::
     DFSExplorationState::next_successor()
 {
-    if (++successor != successor_dist.non_source_successor_dist.end())
+    if (++successor != successor_pmf.non_source_successor_pmf.end())
         return true;
 
     auto& tinfo = stack_info.nconv_qs.back();
 
-    if (tinfo.finalize_transition(successor_dist.non_source_probability)) {
+    if (tinfo.finalize_transition(successor_pmf.non_source_probability)) {
         if (set_min(stack_info.conv_part, tinfo.conv_part)) {
             stack_info.best_converged = tinfo.action;
         }
@@ -83,10 +83,10 @@ bool TopologicalValueIteration<State, Action, UseInterval>::
         const State& state)
 {
     do {
-        mdp.generate_action_transitions(state, aops.back(), successor_dist);
-        successor = successor_dist.non_source_successor_dist.begin();
+        mdp.generate_action_transitions(state, aops.back(), successor_pmf);
+        successor = successor_pmf.non_source_successor_pmf.begin();
 
-        if (successor != successor_dist.non_source_successor_dist.end()) {
+        if (successor != successor_pmf.non_source_successor_pmf.end()) {
             stack_info.nconv_qs.emplace_back(
                 aops.back(),
                 mdp.get_action_cost(aops.back()));
@@ -94,7 +94,7 @@ bool TopologicalValueIteration<State, Action, UseInterval>::
         }
 
         aops.pop_back();
-        successor_dist.clear();
+        successor_pmf.clear();
     } while (!aops.empty());
 
     return false;

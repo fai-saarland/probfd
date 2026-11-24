@@ -1,7 +1,7 @@
 #include "probfd/successor_samplers/arbitrary_sampler.h"
 
-#include "probfd/distribution.h"
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
+#include "probfd/pmf.h"
 
 namespace probfd::successor_samplers {
 
@@ -9,10 +9,10 @@ template <typename Action>
 StateID ArbitrarySuccessorSampler<Action>::sample(
     StateID,
     Action,
-    const SuccessorDistribution& successors,
+    const SuccessorPMF& successors,
     algorithms::StateProperties&)
 {
-    return successors.non_source_successor_dist.begin()->item;
+    return successors.non_source_successor_pmf.begin()->item;
 }
 
 } // namespace probfd::successor_samplers

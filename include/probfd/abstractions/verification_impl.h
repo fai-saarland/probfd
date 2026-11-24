@@ -71,21 +71,21 @@ void verify(
 
             if (cost == INFINITE_VALUE) continue;
 
-            SuccessorDistribution successor_dist;
-            mdp.generate_action_transitions(i, op, successor_dist);
+            SuccessorPMF successor_pmf;
+            mdp.generate_action_transitions(i, op, successor_pmf);
 
-            if (successor_dist.non_source_successor_dist.empty()) {
+            if (successor_pmf.non_source_successor_pmf.empty()) {
                 continue;
             }
 
             auto& constr = constraints.emplace_back(-inf, cost);
 
             for (const auto& [succ, prob] :
-                 successor_dist.non_source_successor_dist) {
+                 successor_pmf.non_source_successor_pmf) {
                 constr.insert(succ.id, -prob);
             }
 
-            constr.insert(i, successor_dist.non_source_probability);
+            constr.insert(i, successor_pmf.non_source_probability);
         }
     }
 

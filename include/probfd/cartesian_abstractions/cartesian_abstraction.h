@@ -21,7 +21,7 @@
 // Forward Declarations
 namespace probfd {
 template <typename>
-class Distribution;
+class PMF;
 } // namespace probfd
 
 namespace probfd::cartesian_abstractions {
@@ -73,15 +73,15 @@ public:
     void generate_action_transitions(
         int state,
         const ProbabilisticTransition* action,
-        SuccessorDistribution& successor_dist) override;
+        SuccessorPMF& successor_pmf) override;
 
     void generate_all_transitions(
         int state,
         std::vector<const ProbabilisticTransition*>& aops,
-        std::vector<SuccessorDistribution>& successor_dists) override;
+        std::vector<SuccessorPMF>& successor_pmfs) override;
 
     void
-    generate_all_transitions(int state, std::vector<LDistType>& transitions)
+    generate_all_transitions(int state, std::vector<LPMFType>& transitions)
         override;
 
     bool is_goal(int state) const override;

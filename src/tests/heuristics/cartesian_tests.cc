@@ -2,7 +2,7 @@
 
 #include "probfd/tasks/root_task.h"
 
-#include "probfd/distribution.h"
+#include "probfd/pmf.h"
 #include "probfd/probabilistic_operator_space.h"
 #include "probfd/probabilistic_task.h"
 #include "probfd/termination_costs.h"
@@ -106,6 +106,6 @@ TEST(CartesianTests, test_format3)
 
 TEST(CartesianTests, test_distribution_format)
 {
-    probfd::Distribution<int> d({{6, 0.5}, {42, 0.25}, {7, 0.25}});
+    probfd::PMF<int> d({{6, 0.5}, {42, 0.25}, {7, 0.25}});
     std::println(std::cout, "{}", d);
 }

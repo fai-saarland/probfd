@@ -1,6 +1,6 @@
 #include "probfd/successor_samplers/uniform_successor_sampler.h"
 
-#include "probfd/distribution.h"
+#include "probfd/pmf.h"
 
 #include "downward/utils/rng.h"
 
@@ -26,13 +26,13 @@ template <typename Action>
 StateID UniformSuccessorSampler<Action>::sample(
     StateID,
     Action,
-    const SuccessorDistribution& successors,
+    const SuccessorPMF& successors,
     algorithms::StateProperties&)
 {
-    assert(!successors.non_source_successor_dist.empty());
-    const auto num_ns_successors = successors.non_source_successor_dist.size();
+    assert(!successors.non_source_successor_pmf.empty());
+    const auto num_ns_successors = successors.non_source_successor_pmf.size();
     const auto index = rng_->random(num_ns_successors);
-    return successors.non_source_successor_dist.begin()[index].item;
+    return successors.non_source_successor_pmf.begin()[index].item;
 }
 
 } // namespace probfd::successor_samplers

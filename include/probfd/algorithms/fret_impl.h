@@ -115,11 +115,11 @@ auto FRET<NestedAlgorithm, GreedyGraphGenerator>::compute_policy(
 
                 const State source = mdp.get_state(source_id);
 
-                SuccessorDistribution successor_dist;
-                mdp.generate_action_transitions(source, action, successor_dist);
+                SuccessorPMF successor_pmf;
+                mdp.generate_action_transitions(source, action, successor_pmf);
 
                 for (const StateID succ_id :
-                     successor_dist.non_source_successor_dist.support()) {
+                     successor_pmf.non_source_successor_pmf.support()) {
                     parents[succ_id].insert(qaction);
                 }
             }
@@ -145,14 +145,14 @@ auto FRET<NestedAlgorithm, GreedyGraphGenerator>::compute_policy(
         }
 
         // Push the successor traps.
-        SuccessorDistribution successors;
+        SuccessorPMF successors;
         quotient.generate_action_transitions(
             quotient_state,
             *quotient_action,
             successors);
 
         for (const StateID succ_id :
-             successors.non_source_successor_dist.support()) {
+             successors.non_source_successor_pmf.support()) {
             if (visited.insert(succ_id).second) {
                 queue.push_back(succ_id);
             }
@@ -433,7 +433,7 @@ bool ValueGraph<NestedAlgorithm>::get_successors(
         aops.push_back(transition.action);
 
         for (const StateID sid :
-             transition.successor_dist.non_source_successor_dist.support()) {
+             transition.successor_pmf.non_source_successor_pmf.support()) {
             if (ids_.insert(sid).second) {
                 successors.push_back(sid);
             }
@@ -456,12 +456,12 @@ bool PolicyGraph<NestedAlgorithm>::get_successors(
 
     if (!a.has_value()) return false;
 
-    ClearGuard _(t_.non_source_successor_dist);
+    ClearGuard _(t_.non_source_successor_pmf);
 
     const QState quotient_state = quotient.get_state(quotient_state_id);
     quotient.generate_action_transitions(quotient_state, *a, t_);
 
-    for (StateID sid : t_.non_source_successor_dist.support()) {
+    for (StateID sid : t_.non_source_successor_pmf.support()) {
         successors.push_back(sid);
     }
 

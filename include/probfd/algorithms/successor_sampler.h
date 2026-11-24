@@ -5,7 +5,7 @@
 
 // Forward Declarations
 namespace probfd {
-struct SuccessorDistribution;
+struct SuccessorPMF;
 }
 
 namespace probfd::algorithms {
@@ -15,7 +15,7 @@ class StateProperties;
 namespace probfd::algorithms {
 
 /**
- * @brief An interface used to sample a state from a successor distribution.
+ * @brief An interface used to sample a state from a successor PMF.
  *
  * Used by sample-based heuristic search algorithms like LRTDP.
  *
@@ -27,12 +27,11 @@ public:
     virtual ~SuccessorSampler() = default;
 
     /**
-     * @brief Samples a successor from the successor distribution of a
-     * transition.
+     * @brief Samples a successor from the successor PMF of a transition.
      *
      * @param state - The source state of the transition.
      * @param action - The action of the transition.
-     * @param successor_dist - The successor distribution of the transition.
+     * @param successor_pmf - The successor PMF of the transition.
      * @param properties - The interface to the heuristic search algorithm.
      * Can be used to query additional information about the involved states and
      * actions.
@@ -40,7 +39,7 @@ public:
     virtual StateID sample(
         StateID state,
         Action action,
-        const SuccessorDistribution& successor_dist,
+        const SuccessorPMF& successor_pmf,
         StateProperties& properties) = 0;
 
     /**

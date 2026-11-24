@@ -73,15 +73,15 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
 
         unsigned min_order = std::numeric_limits<unsigned>::max();
 
-        for (const auto& [op, dist] : transitions_) {
-            for (auto& [succid, prob] : dist.non_source_successor_dist) {
+        for (const auto& [op, pmf] : transitions_) {
+            for (auto& [succid, prob] : pmf.non_source_successor_pmf) {
                 auto& succ_info = this->state_infos_[succid];
                 if (succ_info.is_solved()) continue;
 
                 open_list_->push(
                     stateid,
                     op,
-                    prob / dist.non_source_probability,
+                    prob / pmf.non_source_probability,
                     succid);
 
                 if (succ_info.is_marked()) continue;
@@ -101,8 +101,8 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
         }
 
         for (const auto& transition : transitions_) {
-            for (StateID succ_id : transition.successor_dist
-                                       .non_source_successor_dist.support()) {
+            for (StateID succ_id :
+                 transition.successor_pmf.non_source_successor_pmf.support()) {
                 this->state_infos_[succ_id].unmark();
             }
         }
@@ -123,7 +123,7 @@ template <typename State, typename Action, bool UseInterval>
 bool ExhaustiveAOSearch<State, Action, UseInterval>::update_value_check_solved(
     MDPType& mdp,
     ParamType<State> state,
-    std::vector<LabelledSuccessorDistribution<Action>> transitions,
+    std::vector<LabelledSuccessorPMF<Action>> transitions,
     StateInfo& info)
 {
     assert(!info.is_solved());

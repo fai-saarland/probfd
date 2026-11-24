@@ -4,7 +4,7 @@
 #include "probfd/merge_and_shrink/factored_transition_system.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
-#include "probfd/distribution.h"
+#include "probfd/pmf.h"
 
 #include "downward/utils/collections.h"
 #include "downward/utils/exceptions.h"
@@ -32,7 +32,7 @@ namespace {
    successor). The bisimulation algorithm requires that the vector is
    sorted and uniquified. */
 
-using LabelTargetClassesPair = pair<int, Distribution<int>>;
+using LabelTargetClassesPair = pair<int, PMF<int>>;
 using SuccessorSignature = set<LabelTargetClassesPair>;
 
 /*
@@ -142,14 +142,14 @@ static void compute_signatures(
         for (const auto& [src, targets] : local_label_info.get_transitions()) {
             assert(signatures[src].state == src);
 
-            Distribution<int> successor_dist;
+            PMF<int> successor_pmf;
             for (const auto& [target, probability] :
                  zip(targets, probabilities)) {
-                successor_dist.add_probability(target, probability);
+                successor_pmf.add_probability(target, probability);
             }
             signatures[src].succ_signature.emplace(
                 label_group_counter,
-                std::move(successor_dist));
+                std::move(successor_pmf));
         }
         ++label_group_counter;
     }

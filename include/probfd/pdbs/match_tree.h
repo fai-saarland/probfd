@@ -20,7 +20,7 @@ class OperatorCostFunction;
 
 namespace probfd {
 template <typename>
-struct LabelledSuccessorDistribution;
+struct LabelledSuccessorPMF;
 }
 
 namespace probfd::enumeration {
@@ -73,7 +73,7 @@ public:
      */
     void generate_all_transitions(
         StateRank abstract_state,
-        std::vector<LabelledSuccessorDistribution<const ProjectionOperator*>>&
+        std::vector<LabelledSuccessorPMF<const ProjectionOperator*>>&
             transitions,
         ProjectionStateSpace& state_space) const;
 

@@ -72,7 +72,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::
     DFSExplorationState::next_transition(MDPType& mdp)
 {
     aops.pop_back();
-    successor_dist.clear();
+    successor_pmf.clear();
 
     assert(q_value.scc_successors.empty());
 
@@ -87,20 +87,20 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::
         const State& state)
 {
     do {
-        mdp.generate_action_transitions(state, aops.back(), successor_dist);
+        mdp.generate_action_transitions(state, aops.back(), successor_pmf);
 
-        if (!successor_dist.non_source_successor_dist.empty()) {
-            successor = successor_dist.non_source_successor_dist.begin();
+        if (!successor_pmf.non_source_successor_pmf.empty()) {
+            successor = successor_pmf.non_source_successor_pmf.begin();
 
             const auto cost = mdp.get_action_cost(aops.back());
             if (cost != 0.0_vt) has_all_zero = false;
             q_value.conv_part = AlgorithmValueType(cost);
-            q_value.normalization = 1 / successor_dist.non_source_probability;
+            q_value.normalization = 1 / successor_pmf.non_source_probability;
             return true;
         }
 
         aops.pop_back();
-        successor_dist.clear();
+        successor_pmf.clear();
     } while (!aops.empty());
 
     return false;
@@ -110,7 +110,7 @@ template <typename State, typename Action, bool UseInterval>
 bool TATopologicalValueIteration<State, Action, UseInterval>::
     DFSExplorationState::next_successor()
 {
-    if (++successor != successor_dist.non_source_successor_dist.end()) {
+    if (++successor != successor_pmf.non_source_successor_pmf.end()) {
         return true;
     }
 
@@ -133,7 +133,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::
         }
     } else {
         const bool leaves_scc =
-            num_scc_succs != successor_dist.non_source_successor_dist.size();
+            num_scc_succs != successor_pmf.non_source_successor_pmf.size();
 
         if (leaves_scc || q_value.conv_part != AlgorithmValueType(0_vt)) {
             // Only some exiting or cost is non-zero ->

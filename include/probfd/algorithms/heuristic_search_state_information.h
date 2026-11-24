@@ -6,7 +6,7 @@
 
 #include "probfd/storage/per_state_storage.h"
 
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
 #include "probfd/state_id.h"
 
 #include <cassert>
@@ -36,7 +36,7 @@ struct StatesPolicy<Action, true> {
     }
 
     bool update_policy(
-        const std::optional<LabelledSuccessorDistribution<Action>>& transition)
+        const std::optional<LabelledSuccessorPMF<Action>>& transition)
     {
         return update_policy(
             transition.transform([](auto& t) { return t.action; }));

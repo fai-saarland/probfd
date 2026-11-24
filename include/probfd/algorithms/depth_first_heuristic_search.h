@@ -126,9 +126,9 @@ private:
     std::vector<StateID> visited_states_;
 
     // Re-used buffer
-    std::vector<LabelledSuccessorDistribution<Action>> transitions_;
+    std::vector<LabelledSuccessorPMF<Action>> transitions_;
     std::vector<AlgorithmValueType> qvalues_;
-    SuccessorDistribution successor_dist_;
+    SuccessorPMF successor_pmf_;
 
     Statistics statistics_;
 

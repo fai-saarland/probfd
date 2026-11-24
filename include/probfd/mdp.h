@@ -51,7 +51,7 @@ public:
  */
 template <typename State, typename Action>
 struct CompositeMDP : MDP<State, Action> {
-    using LDistType = LabelledSuccessorDistribution<Action>;
+    using LPMFType = LabelledSuccessorPMF<Action>;
 
     StateSpace<State, Action>& state_space;
     ActionCostFunction<Action>& action_cost_function;
@@ -94,37 +94,37 @@ struct CompositeMDP : MDP<State, Action> {
     }
 
     /**
-     * @brief Generates the successor distribution for a given state and action.
+     * @brief Generates the successor PMF for a given state and action.
      */
     void generate_action_transitions(
         ParamType<State> state,
         ParamType<Action> action,
-        SuccessorDistribution& successor_dist) final
+        SuccessorPMF& successor_pmf) final
     {
         return state_space.generate_action_transitions(
             state,
             action,
-            successor_dist);
+            successor_pmf);
     }
 
     /**
      * @brief Generates all applicable actions and their corresponding successor
-     * distributions for a given state.
+     * PMFs for a given state.
      */
     void generate_all_transitions(
         ParamType<State> state,
         std::vector<Action>& aops,
-        std::vector<SuccessorDistribution>& successor_dist) final
+        std::vector<SuccessorPMF>& successor_pmf) final
     {
         return state_space.generate_all_transitions(
             state,
             aops,
-            successor_dist);
+            successor_pmf);
     }
 
     void generate_all_transitions(
         ParamType<State> state,
-        std::vector<LDistType>& transitions) final
+        std::vector<LPMFType>& transitions) final
     {
         return state_space.generate_all_transitions(state, transitions);
     }

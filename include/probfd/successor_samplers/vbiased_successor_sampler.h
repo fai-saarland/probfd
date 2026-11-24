@@ -3,7 +3,7 @@
 
 #include "probfd/algorithms/successor_sampler.h"
 
-#include "probfd/distribution.h"
+#include "probfd/pmf.h"
 
 #include <memory>
 
@@ -16,7 +16,7 @@ namespace probfd::successor_samplers {
 
 template <typename Action>
 class VBiasedSuccessorSampler : public algorithms::SuccessorSampler<Action> {
-    Distribution<StateID> biased_;
+    PMF<StateID> biased_;
     std::shared_ptr<downward::utils::RandomNumberGenerator> rng_;
 
 public:
@@ -28,7 +28,7 @@ public:
     StateID sample(
         StateID state,
         Action action,
-        const SuccessorDistribution& successors,
+        const SuccessorPMF& successors,
         algorithms::StateProperties& properties) override;
 };
 

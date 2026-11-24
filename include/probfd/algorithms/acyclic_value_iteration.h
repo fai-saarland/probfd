@@ -3,9 +3,9 @@
 
 #include "probfd/storage/per_state_storage.h"
 
-#include "probfd/distribution.h"
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
 #include "probfd/mdp_algorithm.h"
+#include "probfd/pmf.h"
 
 #include "probfd/algorithms/events.h"
 #include "probfd/utils/observer.h"
@@ -44,8 +44,8 @@ struct DFSExplorationState {
     std::vector<Action> remaining_aops;
 
     // The current transition and transition successor
-    SuccessorDistribution successor_dist;
-    Distribution<StateID>::const_iterator successor;
+    SuccessorPMF successor_pmf;
+    PMF<StateID>::const_iterator successor;
 
     // The current transition Q-value
     value_t t_value;

@@ -3,7 +3,7 @@
 
 #include "probfd/algorithms/successor_sampler.h"
 
-#include "probfd/distribution.h"
+#include "probfd/pmf.h"
 
 #include <memory>
 
@@ -19,7 +19,7 @@ class VDiffSuccessorSampler : public algorithms::SuccessorSampler<Action> {
     const std::shared_ptr<downward::utils::RandomNumberGenerator> rng_;
     const bool prefer_large_gaps_;
 
-    Distribution<StateID> biased_;
+    PMF<StateID> biased_;
 
 public:
     explicit VDiffSuccessorSampler(int random_seed, bool prefer_large_gaps);
@@ -31,7 +31,7 @@ public:
     StateID sample(
         StateID state,
         Action action,
-        const SuccessorDistribution& successors,
+        const SuccessorPMF& successors,
         algorithms::StateProperties& properties) override;
 };
 

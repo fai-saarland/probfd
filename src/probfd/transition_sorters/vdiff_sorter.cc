@@ -2,9 +2,9 @@
 
 #include "probfd/algorithms/state_properties.h"
 
-#include "probfd/distribution.h"
 #include "probfd/interval.h"
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
+#include "probfd/pmf.h"
 
 #include <algorithm>
 #include <functional>
@@ -23,7 +23,7 @@ VDiffSorter::VDiffSorter(value_t favor_large_gaps)
 void VDiffSorter::sort(
     const State&,
     const std::vector<OperatorID>&,
-    std::vector<SuccessorDistribution>& successor_dists,
+    std::vector<SuccessorPMF>& successor_pmfs,
     algorithms::StateProperties& properties)
 {
     auto rv = [this, &properties](StateID succ) {
@@ -31,16 +31,16 @@ void VDiffSorter::sort(
     };
 
     std::vector<double> k0;
-    k0.reserve(successor_dists.size());
+    k0.reserve(successor_pmfs.size());
 
-    for (const auto& [non_source_successor_dist, non_source_probability] :
-         successor_dists) {
+    for (const auto& [non_source_successor_pmf, non_source_probability] :
+         successor_pmfs) {
         k0.emplace_back(
-            non_source_successor_dist.expectation(rv) / non_source_probability);
+            non_source_successor_pmf.expectation(rv) / non_source_probability);
     }
 
     std::ranges::sort(
-        std::views::zip(successor_dists, k0),
+        std::views::zip(successor_pmfs, k0),
         {},
         [](const auto& p) { return std::get<1>(p); });
 }

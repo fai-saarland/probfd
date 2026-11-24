@@ -5,7 +5,7 @@
 
 #include "probfd/storage/per_state_storage.h"
 
-#include "probfd/distribution.h"
+#include "probfd/pmf.h"
 
 #include <memory>
 #include <string>
@@ -27,7 +27,7 @@ namespace probfd::pdbs::cegar {
 class SamplingFlawFinder : public FlawFindingStrategy {
     struct ExplorationInfo {
         bool explored = false;
-        Distribution<StateID> successors;
+        PMF<StateID> successors;
     };
 
     std::vector<downward::State> stk_;

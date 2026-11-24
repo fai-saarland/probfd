@@ -11,7 +11,7 @@
 #include "probfd/utils/language.h"
 
 #include "probfd/heuristic.h"
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
 #include "probfd/mdp.h"
 
 #include "downward/utils/collections.h"
@@ -71,7 +71,7 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::was_visited(
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman(
     ParamType<State> source_state,
-    const std::vector<LDistType>& ldists,
+    const std::vector<LPMFType>& lpmfs,
     ActionCostFunction<Action>& action_cost_function,
     TerminationCostFunction<State>& term_cost_function) const
     -> AlgorithmValueType
@@ -83,8 +83,8 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman(
     AlgorithmValueType best_value(
         term_cost_function.get_termination_cost(source_state));
 
-    for (auto& ldist : ldists) {
-        set_min(best_value, compute_qvalue(ldist, action_cost_function));
+    for (auto& lpmf : lpmfs) {
+        set_min(best_value, compute_qvalue(lpmf, action_cost_function));
     }
 
     return best_value;
@@ -94,19 +94,19 @@ template <typename State, typename Action, typename StateInfoT>
 template <typename CostFunctionType>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman(
     ParamType<State> source_state,
-    const std::vector<LDistType>& ldists,
+    const std::vector<LPMFType>& lpmfs,
     CostFunctionType& cost_function) const -> AlgorithmValueType
     requires std::derived_from<CostFunctionType, ActionCostFunctionType> &&
              std::derived_from<CostFunctionType, TerminationCostFunctionType>
 {
     return this
-        ->compute_bellman(source_state, ldists, cost_function, cost_function);
+        ->compute_bellman(source_state, lpmfs, cost_function, cost_function);
 }
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_and_greedy(
     ParamType<State> source_state,
-    std::vector<LDistType>& ldists,
+    std::vector<LPMFType>& lpmfs,
     ActionCostFunction<Action>& action_cost_function,
     TerminationCostFunction<State>& term_cost_function,
     std::vector<AlgorithmValueType>& qvalues) const -> AlgorithmValueType
@@ -115,24 +115,24 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_and_greedy(
     TimerScope scoped_upd_timer(statistics_.update_time);
 #endif
 
-    if (ldists.empty()) {
+    if (lpmfs.empty()) {
         return AlgorithmValueType(
             term_cost_function.get_termination_cost(source_state));
     }
 
     AlgorithmValueType best_value =
-        compute_q_values(ldists, action_cost_function, qvalues);
+        compute_q_values(lpmfs, action_cost_function, qvalues);
 
     const value_t termination_cost =
         term_cost_function.get_termination_cost(source_state);
 
     if (as_lower_bound(best_value) >= termination_cost) {
-        ldists.clear();
+        lpmfs.clear();
         qvalues.clear();
         return AlgorithmValueType(termination_cost);
     }
 
-    filter_greedy_transitions(ldists, qvalues, best_value);
+    filter_greedy_transitions(lpmfs, qvalues, best_value);
 
     return best_value;
 }
@@ -141,7 +141,7 @@ template <typename State, typename Action, typename StateInfoT>
 template <typename CostFunctionType>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_and_greedy(
     ParamType<State> source_state,
-    std::vector<LDistType>& ldists,
+    std::vector<LPMFType>& lpmfs,
     CostFunctionType& cost_function,
     std::vector<AlgorithmValueType>& qvalues) const -> AlgorithmValueType
     requires std::derived_from<CostFunctionType, ActionCostFunctionType> &&
@@ -149,7 +149,7 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_and_greedy(
 {
     return compute_bellman_and_greedy(
         source_state,
-        ldists,
+        lpmfs,
         cost_function,
         cost_function,
         qvalues);
@@ -159,23 +159,23 @@ template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::select_greedy_transition(
     MDPType& mdp,
     std::optional<Action> previous_greedy,
-    std::vector<LDistType>& ldists) -> std::optional<LDistType>
+    std::vector<LPMFType>& lpmfs) -> std::optional<LPMFType>
 {
 #if defined(EXPENSIVE_STATISTICS)
     TimerScope scoped(statistics_.policy_selection_time);
 #endif
 
-    if (ldists.empty()) return std::nullopt;
+    if (lpmfs.empty()) return std::nullopt;
 
     const int index = this->policy_chooser_->pick_index(
         mdp,
         previous_greedy,
-        ldists,
+        lpmfs,
         state_infos_);
 
-    assert(downward::utils::in_bounds(index, ldists));
+    assert(downward::utils::in_bounds(index, lpmfs));
 
-    return std::move(ldists[index]);
+    return std::move(lpmfs[index]);
 }
 
 template <typename State, typename Action, typename StateInfoT>
@@ -193,11 +193,11 @@ ValueUpdateResult HeuristicSearchBase<State, Action, StateInfoT>::update_value(
 template <typename State, typename Action, typename StateInfoT>
 bool HeuristicSearchBase<State, Action, StateInfoT>::update_policy(
     StateInfo& state_info,
-    const std::optional<LDistType>& ldist)
+    const std::optional<LPMFType>& lpmf)
     requires(StorePolicy)
 {
     ++statistics_.policy_updates;
-    const bool b = state_info.update_policy(ldist);
+    const bool b = state_info.update_policy(lpmf);
     if (b) ++statistics_.policy_changes;
     return b;
 }
@@ -223,36 +223,36 @@ void HeuristicSearchBase<State, Action, StateInfoT>::expand_and_initialize(
     HeuristicType& h,
     ParamType<State> state,
     StateInfo& state_info,
-    std::vector<LDistType>& ldists)
+    std::vector<LPMFType>& lpmfs)
 {
     assert(!state_info.is_termination_optimal());
-    assert(ldists.empty());
+    assert(lpmfs.empty());
     assert(state_info.is_on_fringe());
 
     ++statistics_.expanded_states;
     state_info.removed_from_fringe();
 
-    mdp.generate_all_transitions(state, ldists);
+    mdp.generate_all_transitions(state, lpmfs);
 
-    if (ldists.empty()) {
+    if (lpmfs.empty()) {
         ++statistics_.terminal_states;
         state_info.set_termination_optimal();
         return;
     }
 
-    std::erase_if(ldists, [&](auto& transition) {
-        return transition.successor_dist.non_source_successor_dist.empty();
+    std::erase_if(lpmfs, [&](auto& transition) {
+        return transition.successor_pmf.non_source_successor_pmf.empty();
     });
 
-    if (ldists.empty()) {
+    if (lpmfs.empty()) {
         ++statistics_.self_loop_states;
         state_info.set_termination_optimal();
         return;
     }
 
-    for (auto& transition : ldists) {
+    for (auto& transition : lpmfs) {
         for (const auto& [succ_id, prob] :
-             transition.successor_dist.non_source_successor_dist) {
+             transition.successor_pmf.non_source_successor_pmf) {
             auto& succ_info = state_infos_[succ_id];
             if (succ_info.is_value_initialized()) continue;
             initialize(mdp, h, mdp.get_state(succ_id), succ_info);
@@ -265,14 +265,14 @@ void HeuristicSearchBase<State, Action, StateInfoT>::
     generate_non_tip_transitions(
         MDPType& mdp,
         ParamType<State> state,
-        std::vector<LDistType>& ldists) const
+        std::vector<LPMFType>& lpmfs) const
 {
-    assert(ldists.empty());
+    assert(lpmfs.empty());
 
-    mdp.generate_all_transitions(state, ldists);
+    mdp.generate_all_transitions(state, lpmfs);
 
-    std::erase_if(ldists, [&](auto& transition) {
-        return transition.successor_dist.non_source_successor_dist.empty();
+    std::erase_if(lpmfs, [&](auto& transition) {
+        return transition.successor_pmf.non_source_successor_pmf.empty();
     });
 }
 
@@ -320,34 +320,34 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize(
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_qvalue(
-    const LDistType& ldist,
+    const LPMFType& lpmf,
     ActionCostFunction<Action>& action_cost_function) const
     -> AlgorithmValueType
 {
     AlgorithmValueType t_value(
-        action_cost_function.get_action_cost(ldist.action));
+        action_cost_function.get_action_cost(lpmf.action));
 
     for (const auto& [succ_id, prob] :
-         ldist.successor_dist.non_source_successor_dist) {
+         lpmf.successor_pmf.non_source_successor_pmf) {
         t_value += prob * state_infos_[succ_id].value;
     }
 
-    assert(ldist.successor_dist.non_source_probability != 0_vt);
+    assert(lpmf.successor_pmf.non_source_probability != 0_vt);
 
-    return t_value / ldist.successor_dist.non_source_probability;
+    return t_value / lpmf.successor_pmf.non_source_probability;
 }
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_q_values(
-    std::vector<LDistType>& ldists,
+    std::vector<LPMFType>& lpmfs,
     ActionCostFunction<Action>& action_cost_function,
     std::vector<AlgorithmValueType>& qvalues) const -> AlgorithmValueType
 {
     AlgorithmValueType best_value(INFINITE_VALUE);
 
-    qvalues.reserve(ldists.size());
+    qvalues.reserve(lpmfs.size());
 
-    for (const auto& transition : ldists) {
+    for (const auto& transition : lpmfs) {
         auto q = compute_qvalue(transition, action_cost_function);
         set_min(best_value, q);
         qvalues.push_back(q);
@@ -358,11 +358,11 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_q_values(
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::filter_greedy_transitions(
-    std::vector<LDistType>& ldists,
+    std::vector<LPMFType>& lpmfs,
     std::vector<AlgorithmValueType>& qvalues,
     const AlgorithmValueType& best_value) const -> AlgorithmValueType
 {
-    auto view = std::views::zip(ldists, qvalues);
+    auto view = std::views::zip(lpmfs, qvalues);
     auto [it, end] = std::ranges::remove_if(
         view,
         [&](const AlgorithmValueType& value) {
@@ -371,7 +371,7 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::filter_greedy_transitions(
         project<1>);
 
     const size_t offset = std::distance(view.begin(), it);
-    ldists.erase(ldists.begin() + offset, ldists.end());
+    lpmfs.erase(lpmfs.begin() + offset, lpmfs.end());
 
     return best_value;
 }
@@ -427,7 +427,7 @@ auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
     queue.push_back(initial_state_id);
     visited.insert(initial_state_id);
 
-    std::vector<LDistType> ldists;
+    std::vector<LPMFType> lpmfs;
     std::vector<AlgorithmValueType> qvalues;
 
     do {
@@ -442,12 +442,12 @@ auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
         } else {
             const State state = mdp.get_state(state_id);
 
-            ClearGuard _(ldists, qvalues);
-            this->generate_non_tip_transitions(mdp, state, ldists);
+            ClearGuard _(lpmfs, qvalues);
+            this->generate_non_tip_transitions(mdp, state, lpmfs);
 
-            this->compute_bellman_and_greedy(state, ldists, mdp, qvalues);
+            this->compute_bellman_and_greedy(state, lpmfs, mdp, qvalues);
 
-            action = this->select_greedy_transition(mdp, std::nullopt, ldists)
+            action = this->select_greedy_transition(mdp, std::nullopt, lpmfs)
                          .transform([](const auto& t) { return t.action; });
         }
 
@@ -463,11 +463,11 @@ auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
         // Push the successor traps.
         const State state = mdp.get_state(state_id);
 
-        SuccessorDistribution successor_dist;
-        mdp.generate_action_transitions(state, *action, successor_dist);
+        SuccessorPMF successor_pmf;
+        mdp.generate_action_transitions(state, *action, successor_pmf);
 
         for (const StateID succ_id :
-             successor_dist.non_source_successor_dist.support()) {
+             successor_pmf.non_source_successor_pmf.support()) {
             if (visited.insert(succ_id).second) {
                 queue.push_back(succ_id);
             }

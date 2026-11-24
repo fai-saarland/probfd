@@ -10,9 +10,9 @@
 // Forward Declarations
 namespace probfd {
 template <typename>
-class Distribution;
+class PMF;
 template <typename>
-struct LabelledSuccessorDistribution;
+struct LabelledSuccessorPMF;
 template <typename, typename>
 class MDP;
 } // namespace probfd
@@ -43,7 +43,7 @@ protected:
         StateID,
         OperatorID,
         const std::vector<OperatorID>&,
-        const std::vector<Distribution<StateID>>&,
+        const std::vector<PMF<StateID>>&,
         StateProperties&) override
     {
         return 0; // Always choose the first greedy action in the list
@@ -72,8 +72,7 @@ public:
     virtual int pick_index(
         MDP<State, Action>& mdp,
         std::optional<Action> incumbent_greedy,
-        const std::vector<LabelledSuccessorDistribution<Action>>&
-            greedy_transitions,
+        const std::vector<LabelledSuccessorPMF<Action>>& greedy_transitions,
         StateProperties& properties) = 0;
 
     /**

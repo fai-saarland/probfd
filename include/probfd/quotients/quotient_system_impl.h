@@ -3,8 +3,8 @@
 #endif
 
 #include "probfd/aliases.h"
-#include "probfd/distribution.h"
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
+#include "probfd/pmf.h"
 
 #include "downward/utils/collections.h"
 
@@ -270,21 +270,21 @@ template <typename State, typename Action>
 void QuotientSystem<State, Action>::generate_action_transitions(
     ParamType<QState> source,
     QAction a,
-    SuccessorDistribution& successor_dist)
+    SuccessorPMF& successor_pmf)
 {
     const auto q_source_id = get_state_id(source);
 
     const State state = this->mdp_.get_state(a.state_id);
 
-    SuccessorDistribution orig;
+    SuccessorPMF orig;
     mdp_.generate_action_transitions(state, a.action, orig);
 
-    successor_dist.non_source_probability = 0_vt;
+    successor_pmf.non_source_probability = 0_vt;
 
-    for (const auto& [succ_id, probability] : orig.non_source_successor_dist) {
+    for (const auto& [succ_id, probability] : orig.non_source_successor_pmf) {
         const auto successor = get_masked_state_id(succ_id) & MASK;
         if (successor == q_source_id) continue;
-        successor_dist.add_non_source_probability(successor, probability);
+        successor_pmf.add_non_source_probability(successor, probability);
     }
 }
 
@@ -292,13 +292,13 @@ template <typename State, typename Action>
 void QuotientSystem<State, Action>::generate_all_transitions(
     ParamType<QState> state,
     std::vector<QAction>& aops,
-    std::vector<SuccessorDistribution>& successor_dists)
+    std::vector<SuccessorPMF>& successor_pmfs)
 {
     std::visit(
         overloaded{
             [&](const QuotientInformationType* info) {
                 aops.reserve(info->total_num_outer_acts_);
-                successor_dists.reserve(info->total_num_outer_acts_);
+                successor_pmfs.reserve(info->total_num_outer_acts_);
 
                 auto aop = info->aops_.begin();
 
@@ -310,13 +310,13 @@ void QuotientSystem<State, Action>::generate_all_transitions(
                         generate_action_transitions(
                             state,
                             a,
-                            successor_dists.emplace_back());
+                            successor_pmfs.emplace_back());
                     }
                     aop += sinfo.num_inner_acts; // Skip inner actions
                 }
 
                 assert(aops.size() == info->total_num_outer_acts_);
-                assert(successor_dists.size() == info->total_num_outer_acts_);
+                assert(successor_pmfs.size() == info->total_num_outer_acts_);
             },
             [&](ParamType<State> s) {
                 std::vector<Action> orig_a;
@@ -324,21 +324,21 @@ void QuotientSystem<State, Action>::generate_all_transitions(
 
                 const StateID state_id = mdp_.get_state_id(s);
                 aops.reserve(orig_a.size());
-                successor_dists.reserve(orig_a.size());
+                successor_pmfs.reserve(orig_a.size());
 
                 for (Action oa : orig_a) {
                     aops.emplace_back(state_id, oa);
-                    auto& dist = successor_dists.emplace_back();
+                    auto& pmf = successor_pmfs.emplace_back();
 
-                    SuccessorDistribution orig;
+                    SuccessorPMF orig;
                     mdp_.generate_action_transitions(s, oa, orig);
 
                     for (const auto& [succ_id, probability] :
-                         orig.non_source_successor_dist) {
+                         orig.non_source_successor_pmf) {
                         const auto successor =
                             get_masked_state_id(succ_id) & MASK;
                         if (state_id == successor) continue;
-                        dist.add_non_source_probability(successor, probability);
+                        pmf.add_non_source_probability(successor, probability);
                     }
                 }
             }},
@@ -365,7 +365,7 @@ void QuotientSystem<State, Action>::generate_all_transitions(
                         generate_action_transitions(
                             state,
                             qa,
-                            t.successor_dist);
+                            t.successor_pmf);
                     }
                     aop += sinfo.num_inner_acts; // Skip inner actions
                 }
@@ -383,15 +383,15 @@ void QuotientSystem<State, Action>::generate_all_transitions(
                     QAction qa(state_id, a);
                     QTransitionTail& t = transitions.emplace_back(qa);
 
-                    SuccessorDistribution orig;
+                    SuccessorPMF orig;
                     mdp_.generate_action_transitions(s, a, orig);
 
                     for (const auto& [succ_id, probability] :
-                         orig.non_source_successor_dist) {
+                         orig.non_source_successor_pmf) {
                         const auto successor =
                             get_masked_state_id(succ_id) & MASK;
                         if (state_id == successor) continue;
-                        t.successor_dist.add_non_source_probability(
+                        t.successor_pmf.add_non_source_probability(
                             successor,
                             probability);
                     }

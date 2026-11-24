@@ -1,6 +1,6 @@
 #include "probfd/pdbs/saturation.h"
 
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
 #include "probfd/pdbs/projection_operator.h"
 #include "probfd/pdbs/projection_state_space.h"
 
@@ -32,13 +32,13 @@ void compute_saturated_costs(
         for (const ProjectionOperator* op : aops) {
             const int oid = op->operator_id.get_index();
 
-            SuccessorDistribution successor_dist;
-            state_space.generate_action_transitions(s, op, successor_dist);
+            SuccessorPMF successor_pmf;
+            state_space.generate_action_transitions(s, op, successor_pmf);
 
             value_t h_succ = 0;
 
             for (const auto& [t, prob] :
-                 successor_dist.non_source_successor_dist) {
+                 successor_pmf.non_source_successor_pmf) {
                 const auto succ_val = value_table[t];
 
                 if (succ_val == INFINITE_VALUE) {
@@ -51,7 +51,7 @@ void compute_saturated_costs(
 
             {
                 const auto diff =
-                    successor_dist.non_source_probability * value - h_succ;
+                    successor_pmf.non_source_probability * value - h_succ;
                 saturated_costs[oid] = std::max(saturated_costs[oid], diff);
             }
 

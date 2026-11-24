@@ -27,7 +27,7 @@ class Evaluator;
 
 namespace probfd {
 template <typename>
-class Distribution;
+class PMF;
 } // namespace probfd
 
 namespace probfd {
@@ -78,16 +78,16 @@ public:
     void generate_action_transitions(
         const downward::State& state,
         downward::OperatorID operator_id,
-        SuccessorDistribution& successor_dist) override;
+        SuccessorPMF& successor_pmf) override;
 
     void generate_all_transitions(
         const downward::State& state,
         std::vector<downward::OperatorID>& aops,
-        std::vector<SuccessorDistribution>& successor_dist) override;
+        std::vector<SuccessorPMF>& successor_pmf) override;
 
     void generate_all_transitions(
         const downward::State& state,
-        std::vector<LDistType>& transitions) override;
+        std::vector<LPMFType>& transitions) override;
 
     const downward::State& get_initial_state();
 
@@ -95,10 +95,10 @@ public:
 
     virtual void print_statistics(std::ostream& out) const;
 
-    void compute_successor_dist(
+    void compute_successor_pmf(
         const downward::State& state,
         downward::OperatorID op_id,
-        SuccessorDistribution& successor_dist);
+        SuccessorPMF& successor_pmf);
 
 protected:
     void compute_applicable_operators(

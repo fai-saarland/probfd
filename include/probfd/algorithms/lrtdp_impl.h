@@ -157,7 +157,7 @@ bool LRTDP<State, Action, UseInterval>::trial(
         auto next = sample_->sample(
             state_id,
             transition->action,
-            transition->successor_dist,
+            transition->successor_pmf,
             this->state_infos_);
 
         current_trial_.push_back(next);
@@ -261,8 +261,8 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
                 rv = false;
             }
 
-            for (const auto& d = transition->successor_dist;
-                 StateID succ_id : d.non_source_successor_dist.support()) {
+            for (const auto& d = transition->successor_pmf;
+                 StateID succ_id : d.non_source_successor_pmf.support()) {
                 StateInfo& succ_info = this->state_infos_[succ_id];
                 if (!succ_info.is_on_trial() && !succ_info.is_solved()) {
                     succ_info.set_on_trial();

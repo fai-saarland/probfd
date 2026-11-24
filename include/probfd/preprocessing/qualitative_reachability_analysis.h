@@ -117,9 +117,9 @@ class QualitativeReachabilityAnalysis {
 
         // Mutable info
         std::vector<Action> aops;             // Remaining unexpanded operators
-        SuccessorDistribution successor_dist; // Currently expanded transition
+        SuccessorPMF successor_pmf;           // Currently expanded transition
         // Next state to expand
-        Distribution<StateID>::const_iterator successor;
+        PMF<StateID>::const_iterator successor;
 
         explicit ExpansionInfo(
             StateID state_id,

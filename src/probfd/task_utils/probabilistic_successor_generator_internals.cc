@@ -2,7 +2,7 @@
 
 #include "downward/state.h"
 
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
 #include "probfd/task_state_space.h"
 
 #include <cassert>
@@ -98,7 +98,7 @@ void ProbabilisticGeneratorForkBinary::generate_applicable_ops(
 
 void ProbabilisticGeneratorForkBinary::generate_transitions(
     const State& state,
-    std::vector<LabelledSuccessorDistribution<OperatorID>>& transitions,
+    std::vector<LabelledSuccessorPMF<OperatorID>>& transitions,
     TaskStateSpace& task_state_space) const
 {
     generator_1_->generate_transitions(state, transitions, task_state_space);
@@ -126,7 +126,7 @@ void ProbabilisticGeneratorForkMulti::generate_applicable_ops(
 
 void ProbabilisticGeneratorForkMulti::generate_transitions(
     const State& state,
-    std::vector<LabelledSuccessorDistribution<OperatorID>>& transitions,
+    std::vector<LabelledSuccessorPMF<OperatorID>>& transitions,
     TaskStateSpace& task_state_space) const
 {
     for (const auto& generator : children_)
@@ -155,7 +155,7 @@ void ProbabilisticGeneratorSwitchVector::generate_applicable_ops(
 
 void ProbabilisticGeneratorSwitchVector::generate_transitions(
     const State& state,
-    std::vector<LabelledSuccessorDistribution<OperatorID>>& transitions,
+    std::vector<LabelledSuccessorPMF<OperatorID>>& transitions,
     TaskStateSpace& task_state_space) const
 {
     const int val = state.get_unpacked_values()[switch_var_id_];
@@ -193,7 +193,7 @@ void ProbabilisticGeneratorSwitchHash::generate_applicable_ops(
 
 void ProbabilisticGeneratorSwitchHash::generate_transitions(
     const State& state,
-    std::vector<LabelledSuccessorDistribution<OperatorID>>& transitions,
+    std::vector<LabelledSuccessorPMF<OperatorID>>& transitions,
     TaskStateSpace& task_state_space) const
 {
     const int val = state.get_unpacked_values()[switch_var_id_];
@@ -229,7 +229,7 @@ void ProbabilisticGeneratorSwitchSingle::generate_applicable_ops(
 
 void ProbabilisticGeneratorSwitchSingle::generate_transitions(
     const State& state,
-    std::vector<LabelledSuccessorDistribution<OperatorID>>& transitions,
+    std::vector<LabelledSuccessorPMF<OperatorID>>& transitions,
     TaskStateSpace& task_state_space) const
 {
     if (value_ == state.get_unpacked_values()[switch_var_id_]) {
@@ -264,12 +264,12 @@ void ProbabilisticGeneratorLeafVector::generate_applicable_ops(
 
 void ProbabilisticGeneratorLeafVector::generate_transitions(
     const State& state,
-    std::vector<LabelledSuccessorDistribution<OperatorID>>& transitions,
+    std::vector<LabelledSuccessorPMF<OperatorID>>& transitions,
     TaskStateSpace& task_state_space) const
 {
     for (OperatorID id : applicable_operators_) {
-        auto& successor_dist = transitions.emplace_back(id).successor_dist;
-        task_state_space.compute_successor_dist(state, id, successor_dist);
+        auto& successor_pmf = transitions.emplace_back(id).successor_pmf;
+        task_state_space.compute_successor_pmf(state, id, successor_pmf);
     }
 }
 
@@ -288,15 +288,15 @@ void ProbabilisticGeneratorLeafSingle::generate_applicable_ops(
 
 void ProbabilisticGeneratorLeafSingle::generate_transitions(
     const State& state,
-    std::vector<LabelledSuccessorDistribution<OperatorID>>& transitions,
+    std::vector<LabelledSuccessorPMF<OperatorID>>& transitions,
     TaskStateSpace& task_state_space) const
 {
-    auto& successor_dist =
-        transitions.emplace_back(applicable_operator_).successor_dist;
-    task_state_space.compute_successor_dist(
+    auto& successor_pmf =
+        transitions.emplace_back(applicable_operator_).successor_pmf;
+    task_state_space.compute_successor_pmf(
         state,
         applicable_operator_,
-        successor_dist);
+        successor_pmf);
 }
 
 } // namespace probfd::successor_generator

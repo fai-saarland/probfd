@@ -8,9 +8,9 @@
 
 // Forward Declarations
 namespace probfd {
-struct SuccessorDistribution;
+struct SuccessorPMF;
 template <typename>
-struct LabelledSuccessorDistribution;
+struct LabelledSuccessorPMF;
 } // namespace probfd
 
 namespace probfd {
@@ -42,7 +42,7 @@ namespace probfd {
 template <typename State, typename Action>
 class StateSpace {
 protected:
-    using LDistType = LabelledSuccessorDistribution<Action>;
+    using LPMFType = LabelledSuccessorPMF<Action>;
 
 public:
     virtual ~StateSpace() = default;
@@ -65,29 +65,29 @@ public:
         std::vector<Action>& applicable_actions) = 0;
 
     /**
-     * @brief Generates the successor distribution for a given state and action.
+     * @brief Generates the successor PMF for a given state and action.
      */
     virtual void generate_action_transitions(
         ParamType<State> state,
         ParamType<Action> action,
-        SuccessorDistribution& successor_dist) = 0;
+        SuccessorPMF& successor_pmf) = 0;
 
     /**
      * @brief Generates all applicable actions and their corresponding successor
-     * distributions for a given state.
+     * PMFs for a given state.
      */
     virtual void generate_all_transitions(
         ParamType<State> state,
         std::vector<Action>& applicable_actions,
-        std::vector<SuccessorDistribution>& successor_dists) = 0;
+        std::vector<SuccessorPMF>& successor_pmfs) = 0;
 
     /**
      * @brief Generates all applicable actions and their corresponding successor
-     * distributions for a given state.
+     * PMFs for a given state.
      */
     virtual void generate_all_transitions(
         ParamType<State> state,
-        std::vector<LDistType>& transitions) = 0;
+        std::vector<LPMFType>& transitions) = 0;
 };
 
 } // namespace probfd

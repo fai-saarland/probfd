@@ -15,21 +15,20 @@
 namespace probfd {
 
 template <typename T>
-Distribution<T>::Distribution() = default;
+PMF<T>::PMF() = default;
 
 template <typename T>
-Distribution<T>::Distribution(
-    std::initializer_list<ItemProbabilityPair<T>> list)
-    : distribution_(list)
+PMF<T>::PMF(std::initializer_list<ItemProbabilityPair<T>> list)
+    : graph_(list)
 {
     normalize();
 }
 
 template <typename T>
-Distribution<T>::Distribution(
+PMF<T>::PMF(
     std::initializer_list<ItemProbabilityPair<T>> list,
     NoNormalizeTagType)
-    : distribution_(list)
+    : graph_(list)
 {
 }
 
@@ -38,8 +37,8 @@ template <std::ranges::input_range R>
     requires(std::convertible_to<
              std::ranges::range_reference_t<R>,
              ItemProbabilityPair<T>>)
-Distribution<T>::Distribution(std::from_range_t, R&& pair_range)
-    : distribution_(std::from_range, std::forward<R>(pair_range))
+PMF<T>::PMF(std::from_range_t, R&& pair_range)
+    : graph_(std::from_range, std::forward<R>(pair_range))
 {
     normalize();
 }
@@ -49,46 +48,42 @@ template <std::ranges::input_range R>
     requires(std::convertible_to<
              std::ranges::range_reference_t<R>,
              ItemProbabilityPair<T>>)
-Distribution<T>::Distribution(
-    std::from_range_t,
-    NoNormalizeTagType,
-    R&& pair_range)
+PMF<T>::PMF(std::from_range_t, NoNormalizeTagType, R&& pair_range)
 #ifdef __cpp_lib_containers_ranges
-    : distribution_(std::from_range, std::forward<R>(pair_range))
+    : graph_(std::from_range, std::forward<R>(pair_range))
 #else
-    : distribution_(
-          std::ranges::begin(pair_range),
+    : graph_(std::ranges::begin(pair_range),
           std::ranges::end(pair_range))
 #endif
 {
 }
 
 template <typename T>
-void Distribution<T>::reserve(size_t capacity)
+void PMF<T>::reserve(size_t capacity)
 {
-    distribution_.reserve(capacity);
+    graph_.reserve(capacity);
 }
 
 template <typename T>
-bool Distribution<T>::empty() const
+bool PMF<T>::empty() const
 {
-    return distribution_.empty();
+    return graph_.empty();
 }
 
 template <typename T>
-size_t Distribution<T>::size() const
+size_t PMF<T>::size() const
 {
-    return distribution_.size();
+    return graph_.size();
 }
 
 template <typename T>
-void Distribution<T>::clear()
+void PMF<T>::clear()
 {
-    distribution_.clear();
+    graph_.clear();
 }
 
 template <typename T>
-void Distribution<T>::add_probability(T t, value_t prob)
+void PMF<T>::add_probability(T t, value_t prob)
 {
     assert(prob > 0.0);
 
@@ -99,14 +94,14 @@ void Distribution<T>::add_probability(T t, value_t prob)
         return;
     }
 
-    distribution_.emplace(it, std::move(t), prob);
+    graph_.emplace(it, std::move(t), prob);
 }
 
 template <typename T>
-auto Distribution<T>::find(this auto&& self, const T& t)
+auto PMF<T>::find(this auto&& self, const T& t)
 {
     auto it = std::ranges::lower_bound(
-        self.distribution_,
+        self.graph_,
         t,
         std::less{},
         &ItemProbabilityPair<T>::item);
@@ -119,23 +114,23 @@ auto Distribution<T>::find(this auto&& self, const T& t)
 }
 
 template <typename T>
-bool Distribution<T>::is_dirac(const T& t) const
+bool PMF<T>::is_dirac(const T& t) const
 {
-    return size() == 1 && distribution_.front().item == t;
+    return size() == 1 && graph_.front().item == t;
 }
 
 template <typename T>
-bool Distribution<T>::is_dirac() const
+bool PMF<T>::is_dirac() const
 {
     return size() == 1;
 }
 
 template <typename T>
 template <downward::InvocableRV<value_t, T> RandomVariable>
-value_t Distribution<T>::expectation(RandomVariable&& rv) const
+value_t PMF<T>::expectation(RandomVariable&& rv) const
 {
     value_t ex = 0_vt;
-    for (const auto [succ, prob] : distribution_) {
+    for (const auto [succ, prob] : graph_) {
         const value_t v = std::invoke(rv, succ);
         ex += prob * v;
     }
@@ -144,10 +139,10 @@ value_t Distribution<T>::expectation(RandomVariable&& rv) const
 
 template <typename T>
 template <downward::SubscriptableRV<value_t, T> RandomVariable>
-value_t Distribution<T>::expectation(RandomVariable&& rv) const
+value_t PMF<T>::expectation(RandomVariable&& rv) const
 {
     value_t ex = 0_vt;
-    for (const auto [succ, prob] : distribution_) {
+    for (const auto [succ, prob] : graph_) {
         const value_t v = rv[succ];
         ex += prob * v;
     }
@@ -155,28 +150,28 @@ value_t Distribution<T>::expectation(RandomVariable&& rv) const
 }
 
 template <typename T>
-void Distribution<T>::normalize(value_t scale)
+void PMF<T>::normalize(value_t scale)
 {
-    for (auto& pair : distribution_) {
+    for (auto& pair : graph_) {
         pair.probability *= scale;
     }
 }
 
 template <typename T>
-void Distribution<T>::normalize()
+void PMF<T>::normalize()
 {
     if (empty()) {
         return;
     }
     value_t sum = 0;
-    for (auto& pair : distribution_) {
+    for (auto& pair : graph_) {
         sum += pair.probability;
     }
     normalize(1_vt / sum);
 }
 
 template <typename T>
-auto Distribution<T>::sample(downward::utils::RandomNumberGenerator& rng)
+auto PMF<T>::sample(downward::utils::RandomNumberGenerator& rng)
 {
     assert(!empty());
 
@@ -185,7 +180,7 @@ auto Distribution<T>::sample(downward::utils::RandomNumberGenerator& rng)
 
     const value_t r = rng.random();
 
-    auto it = distribution_.begin();
+    auto it = graph_.begin();
     value_t sum = it->probability;
 
     while (sum <= r) {
@@ -196,33 +191,32 @@ auto Distribution<T>::sample(downward::utils::RandomNumberGenerator& rng)
 }
 
 template <typename T>
-auto Distribution<T>::erase(iterator it) -> iterator
+auto PMF<T>::erase(iterator it) -> iterator
 {
-    return distribution_.erase(it);
+    return graph_.erase(it);
 }
 
 template <typename T>
-auto Distribution<T>::erase(iterator it, iterator last) -> iterator
+auto PMF<T>::erase(iterator it, iterator last) -> iterator
 {
-    return distribution_.erase(it, last);
-}
-
-template <typename T>
-template <std::predicate<const ItemProbabilityPair<T>&> P>
-size_t Distribution<T>::remove_if(P&& pred)
-{
-    return std::erase_if(distribution_, std::forward<P>(pred));
+    return graph_.erase(it, last);
 }
 
 template <typename T>
 template <std::predicate<const ItemProbabilityPair<T>&> P>
-value_t Distribution<T>::remove_if_normalize(P&& pred)
+size_t PMF<T>::remove_if(P&& pred)
+{
+    return std::erase_if(graph_, std::forward<P>(pred));
+}
+
+template <typename T>
+template <std::predicate<const ItemProbabilityPair<T>&> P>
+value_t PMF<T>::remove_if_normalize(P&& pred)
 {
     value_t normalize_factor = 0_vt;
 
     std::erase_if(
-        this->distribution_,
-        [&pred, &normalize_factor](auto& target) {
+        this->graph_, [&pred, &normalize_factor](auto& target) {
             if (std::forward<P>(pred)(target)) {
                 normalize_factor += target.probability;
                 return true;
@@ -238,36 +232,35 @@ value_t Distribution<T>::remove_if_normalize(P&& pred)
 }
 
 template <typename T>
-value_t Distribution<T>::remove_normalize(const T& t)
+value_t PMF<T>::remove_normalize(const T& t)
 {
     return remove_if_normalize(
         [&](const auto& elem) { return elem.item == t; });
 }
 
 template <typename T>
-auto Distribution<T>::begin(this auto&& self)
+auto PMF<T>::begin(this auto&& self)
 {
-    return self.distribution_.begin();
+    return self.graph_.begin();
 }
 
 template <typename T>
-auto Distribution<T>::end(this auto&& self)
+auto PMF<T>::end(this auto&& self)
 {
-    return self.distribution_.end();
+    return self.graph_.end();
 }
 
 template <typename T>
-auto Distribution<T>::support(this auto&& self)
+auto PMF<T>::support(this auto&& self)
 {
     return std::views::transform(
-        self.distribution_,
-        &ItemProbabilityPair<T>::item);
+        self.graph_, &ItemProbabilityPair<T>::item);
 }
 
 template <typename T>
-void swap(Distribution<T>& left, Distribution<T>& right) noexcept
+void swap(PMF<T>& left, PMF<T>& right) noexcept
 {
-    std::swap(left.distribution_, right.distribution_);
+    std::swap(left.graph_, right.graph_);
 }
 
 } // namespace probfd

@@ -25,7 +25,7 @@ public:
     int pick_index(
         FDRMDP& mdp,
         std::optional<downward::OperatorID> prev_policy,
-        const std::vector<LabelledSuccessorDistribution<downward::OperatorID>>&
+        const std::vector<LabelledSuccessorPMF<downward::OperatorID>>&
             greedy_transitions,
         algorithms::StateProperties& properties) override;
 };

@@ -6,9 +6,9 @@
 
 #include "probfd/heuristics/constant_heuristic.h"
 
-#include "probfd/distribution.h"
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
 #include "probfd/mdp.h"
+#include "probfd/pmf.h"
 
 #include "downward/utils/logging.h"
 #include "probfd/merge_and_shrink/labels.h"
@@ -41,7 +41,7 @@ static void compute_liveness(
 namespace {
 struct ProbabilisticTransition {
     value_t cost;
-    Distribution<int> successor_dist;
+    PMF<int> successor_pmf;
 };
 
 class ExplicitMDP : public MDP<int, const ProbabilisticTransition*> {
@@ -61,11 +61,11 @@ public:
             const auto& probabilities = labels.get_label_probabilities(
                 label_info.get_label_group().front());
             for (const auto& [src, targets] : label_info.get_transitions()) {
-                auto& [_, successor_dist] =
+                auto& [_, successor_pmf] =
                     transitions_[src].emplace_back(label_cost);
                 for (const auto& [item, prob] :
                      vws::zip(targets, probabilities)) {
-                    successor_dist.add_probability(item, prob);
+                    successor_pmf.add_probability(item, prob);
                 }
             }
         }
@@ -100,9 +100,9 @@ public:
     void generate_action_transitions(
         int state,
         const ProbabilisticTransition* action,
-        SuccessorDistribution& result) override
+        SuccessorPMF& result) override
     {
-        for (auto [succ, prob] : action->successor_dist) {
+        for (auto [succ, prob] : action->successor_pmf) {
             if (succ == state) continue;
             result.add_non_source_probability(StateID(succ), prob);
         }
@@ -111,30 +111,30 @@ public:
     void generate_all_transitions(
         int state,
         std::vector<const ProbabilisticTransition*>& aops,
-        std::vector<SuccessorDistribution>& successors) override
+        std::vector<SuccessorPMF>& successors) override
     {
         aops.reserve(transitions_[state].size());
         successors.reserve(transitions_[state].size());
         for (const ProbabilisticTransition& t : transitions_[state]) {
             aops.push_back(&t);
-            auto& dist = successors.emplace_back();
-            for (auto [succ, prob] : t.successor_dist) {
+            auto& successor_pmf = successors.emplace_back();
+            for (auto [succ, prob] : t.successor_pmf) {
                 if (succ == state) continue;
-                dist.add_non_source_probability(StateID(succ), prob);
+                successor_pmf.add_non_source_probability(StateID(succ), prob);
             }
         }
     }
 
     void
-    generate_all_transitions(int state, std::vector<LDistType>& transitions)
+    generate_all_transitions(int state, std::vector<LPMFType>& transitions)
         override
     {
         transitions.reserve(transitions_[state].size());
         for (const ProbabilisticTransition& t : transitions_[state]) {
-            auto& [action, successor_dist] = transitions.emplace_back(&t);
-            for (auto [succ, prob] : t.successor_dist) {
+            auto& [action, successor_pmf] = transitions.emplace_back(&t);
+            for (auto [succ, prob] : t.successor_pmf) {
                 if (succ == state) continue;
-                successor_dist.add_non_source_probability(StateID(succ), prob);
+                successor_pmf.add_non_source_probability(StateID(succ), prob);
             }
         }
     }

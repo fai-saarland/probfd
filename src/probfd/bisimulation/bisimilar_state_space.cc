@@ -2,8 +2,8 @@
 
 #include "probfd/task_utils/task_properties.h"
 
-#include "probfd/distribution.h"
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
+#include "probfd/pmf.h"
 
 #include "downward/merge_and_shrink/distances.h"
 #include "downward/merge_and_shrink/factored_transition_system.h"
@@ -142,7 +142,7 @@ void BisimilarStateSpace::generate_applicable_actions(
 void BisimilarStateSpace::generate_action_transitions(
     QuotientState state,
     OperatorID op_id,
-    SuccessorDistribution& successor_dist)
+    SuccessorPMF& successor_pmf)
 {
     const auto& operators = get_operators(task_);
 
@@ -159,50 +159,50 @@ void BisimilarStateSpace::generate_action_transitions(
     const ProbabilisticOperatorProxy& op = operators[op_id];
     const ProbabilisticOutcomesProxy& outcomes = op.get_outcomes();
 
-    successor_dist.non_source_probability = 0_vt;
+    successor_pmf.non_source_probability = 0_vt;
 
     for (unsigned i = 0; i < outcomes.size(); ++i) {
         const ProbabilisticOutcomeProxy outcome = outcomes[i];
         const value_t probability = outcome.get_probability();
         const StateID id = it->successors[i];
         if (std::to_underlying(state) == static_cast<int>(id)) continue;
-        successor_dist.add_non_source_probability(id, probability);
+        successor_pmf.add_non_source_probability(id, probability);
     }
 }
 
 void BisimilarStateSpace::generate_all_transitions(
     QuotientState state,
     std::vector<OperatorID>& aops,
-    std::vector<SuccessorDistribution>& successor_dists)
+    std::vector<SuccessorPMF>& successor_pmfs)
 {
     const auto& operators = get_operators(task_);
 
     const auto& cache = transitions_[std::to_underlying(state)];
     aops.reserve(cache.size());
-    successor_dists.reserve(cache.size());
+    successor_pmfs.reserve(cache.size());
 
     for (const auto [op_id, successors] : cache) {
         aops.push_back(op_id);
-        SuccessorDistribution& successor_dist = successor_dists.emplace_back();
+        SuccessorPMF& successor_pmf = successor_pmfs.emplace_back();
 
         const ProbabilisticOperatorProxy& op = operators[op_id];
         const ProbabilisticOutcomesProxy& outcomes = op.get_outcomes();
 
-        successor_dist.non_source_probability = 0_vt;
+        successor_pmf.non_source_probability = 0_vt;
 
         for (unsigned i = 0; i < outcomes.size(); ++i) {
             const ProbabilisticOutcomeProxy outcome = outcomes[i];
             const value_t probability = outcome.get_probability();
             const StateID id = successors[i];
             if (std::to_underlying(state) == static_cast<int>(id)) continue;
-            successor_dist.add_non_source_probability(id, probability);
+            successor_pmf.add_non_source_probability(id, probability);
         }
     }
 }
 
 void BisimilarStateSpace::generate_all_transitions(
     QuotientState state,
-    std::vector<LDistType>& transitions)
+    std::vector<LPMFType>& transitions)
 {
     const auto& operators = get_operators(task_);
 
@@ -210,19 +210,19 @@ void BisimilarStateSpace::generate_all_transitions(
     transitions.reserve(cache.size());
 
     for (const auto [op_id, successors] : cache) {
-        auto& [action, successor_dist] = transitions.emplace_back(op_id);
+        auto& [action, successor_pmf] = transitions.emplace_back(op_id);
 
         const ProbabilisticOperatorProxy& op = operators[op_id];
         const ProbabilisticOutcomesProxy& outcomes = op.get_outcomes();
 
-        successor_dist.non_source_probability = 0_vt;
+        successor_pmf.non_source_probability = 0_vt;
 
         for (unsigned i = 0; i < outcomes.size(); ++i) {
             const ProbabilisticOutcomeProxy outcome = outcomes[i];
             const value_t probability = outcome.get_probability();
             const StateID id = successors[i];
             if (std::to_underlying(state) == static_cast<int>(id)) continue;
-            successor_dist.add_non_source_probability(id, probability);
+            successor_pmf.add_non_source_probability(id, probability);
         }
     }
 }

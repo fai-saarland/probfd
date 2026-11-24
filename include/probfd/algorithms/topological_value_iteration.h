@@ -6,8 +6,8 @@
 
 #include "probfd/storage/per_state_storage.h"
 
-#include "probfd/distribution.h"
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
+#include "probfd/pmf.h"
 
 #include <deque>
 #include <limits>
@@ -131,8 +131,8 @@ class TopologicalValueIteration : public IterativeMDPAlgorithm<State, Action> {
     struct DFSExplorationState {
         // Exploration State
         std::vector<Action> aops;             // Remaining unexpanded operators
-        SuccessorDistribution successor_dist; // Currently expanded transition
-        Distribution<StateID>::const_iterator successor; // Current successor
+        SuccessorPMF successor_pmf;           // Currently expanded transition
+        PMF<StateID>::const_iterator successor; // Current successor
 
         // Immutable info
         StateID state_id; // State this information belongs to

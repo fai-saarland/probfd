@@ -9,8 +9,8 @@
 
 #include "probfd/utils/guards.h"
 
-#include "probfd/distribution.h"
 #include "probfd/multi_policy.h"
+#include "probfd/pmf.h"
 #include "probfd/probabilistic_operator_space.h"
 #include "probfd/probabilistic_task.h"
 

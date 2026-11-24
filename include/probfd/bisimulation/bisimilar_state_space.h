@@ -27,7 +27,7 @@ struct Factor;
 
 namespace probfd {
 template <typename>
-class Distribution;
+class PMF;
 } // namespace probfd
 
 namespace probfd::bisimulation {
@@ -70,16 +70,16 @@ public:
     void generate_action_transitions(
         QuotientState state,
         downward::OperatorID op_id,
-        SuccessorDistribution& successor_dist) override;
+        SuccessorPMF& successor_pmf) override;
 
     void generate_all_transitions(
         QuotientState state,
         std::vector<downward::OperatorID>& aops,
-        std::vector<SuccessorDistribution>& successor_dists) override;
+        std::vector<SuccessorPMF>& successor_pmfs) override;
 
     void generate_all_transitions(
         QuotientState state,
-        std::vector<LDistType>& transitions) override;
+        std::vector<LPMFType>& transitions) override;
 
     value_t get_termination_cost(QuotientState state) override;
 

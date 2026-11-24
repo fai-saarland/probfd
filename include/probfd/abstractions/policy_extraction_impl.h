@@ -7,8 +7,8 @@
 
 #include "probfd/policies/vector_multi_policy.h"
 
-#include "probfd/distribution.h"
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
+#include "probfd/pmf.h"
 
 #include "downward/utils/rng.h"
 
@@ -54,24 +54,23 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_optimal_projection_policy(
         }
 
         // Generate operators...
-        std::vector<LabelledSuccessorDistribution<Action>> transitions;
+        std::vector<LabelledSuccessorPMF<Action>> transitions;
         mdp.generate_all_transitions(state, transitions);
 
         // Select the greedy operators and add their successors
-        for (const auto& [op, successor_dist] : transitions) {
+        for (const auto& [op, successor_pmf] : transitions) {
             const value_t op_value =
                 mdp.get_action_cost(op) +
-                successor_dist.non_source_successor_dist.expectation(
-                    value_table);
+                successor_pmf.non_source_successor_pmf.expectation(value_table);
 
             if (!is_approx_equal(
-                    successor_dist.non_source_probability * value,
+                    successor_pmf.non_source_probability * value,
                     op_value,
                     greedy_epsilon))
                 continue;
 
             for (const StateID succ :
-                 successor_dist.non_source_successor_dist.support()) {
+                 successor_pmf.non_source_successor_pmf.support()) {
                 if (closed.insert(succ).second) { open.push_back(succ); }
 
                 predecessors[succ].emplace_back(s, op);
@@ -111,16 +110,16 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_optimal_projection_policy(
 
             // Collect all equivalent greedy operators
             const value_t cost_sel_op = mdp.get_action_cost(sel_op);
-            SuccessorDistribution sel_successor_dist;
-            mdp.generate_action_transitions(pstate, sel_op, sel_successor_dist);
+            SuccessorPMF sel_successor_pmf;
+            mdp.generate_action_transitions(pstate, sel_op, sel_successor_pmf);
 
             std::vector<PolicyDecision<Action>> decisions;
 
-            std::vector<LabelledSuccessorDistribution<Action>> transitions;
+            std::vector<LabelledSuccessorPMF<Action>> transitions;
             mdp.generate_all_transitions(pstate, transitions);
 
-            for (const auto& [op, successor_dist] : transitions) {
-                if (successor_dist == sel_successor_dist &&
+            for (const auto& [op, successor_pmf] : transitions) {
+                if (successor_pmf == sel_successor_pmf &&
                     mdp.get_action_cost(op) == cost_sel_op) {
                     decisions.emplace_back(op, Interval(parent_cost));
                 }
@@ -168,7 +167,7 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_greedy_projection_policy(
         if (value == term_cost) { continue; }
 
         // Generate operators...
-        std::vector<LabelledSuccessorDistribution<Action>> transitions;
+        std::vector<LabelledSuccessorPMF<Action>> transitions;
         mdp.generate_all_transitions(state, transitions);
 
         if (transitions.empty()) { continue; }
@@ -178,9 +177,9 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_greedy_projection_policy(
 
         // Find first greedy transition
         auto it = std::ranges::find(transitions, [&](const auto& transition) {
-            const auto& [op, successor_dist] = transition;
+            const auto& [op, successor_pmf] = transition;
             const value_t op_value = mdp.get_action_cost(op) +
-                                     successor_dist.expectation(value_table);
+                                     successor_pmf.expectation(value_table);
 
             return is_approx_equal(value, op_value, greedy_epsilon);
         });
@@ -190,7 +189,7 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_greedy_projection_policy(
         const value_t cost_greedy = mdp.get_action_cost(it->action);
 
         // Generate successors
-        for (const StateID succ : it->successor_dist.support()) {
+        for (const StateID succ : it->successor_pmf.support()) {
             if (!closed.insert(succ).second) continue;
             open.push_back(succ);
         }
@@ -199,12 +198,11 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_greedy_projection_policy(
         std::vector<PolicyDecision<Action>> decisions;
         decisions.emplace_back(it->action, Interval(value));
 
-        for (const auto& [op, successor_dist] :
+        for (const auto& [op, successor_pmf] :
              std::ranges::subrange(std::next(it), transitions.end())) {
             const value_t cost_op = mdp.get_action_cost(op);
 
-            if (successor_dist == it->successor_dist &&
-                cost_op == cost_greedy) {
+            if (successor_pmf == it->successor_pmf && cost_op == cost_greedy) {
                 decisions.emplace_back(op, Interval(value));
             }
         }

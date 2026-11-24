@@ -1,7 +1,7 @@
 #include "probfd/successor_samplers/most_likely_sampler.h"
 
-#include "probfd/distribution.h"
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
+#include "probfd/pmf.h"
 
 namespace probfd::successor_samplers {
 
@@ -9,7 +9,7 @@ template <typename Action>
 StateID MostLikelySuccessorSampler<Action>::sample(
     StateID state_id,
     Action,
-    const SuccessorDistribution& successors,
+    const SuccessorPMF& successors,
     algorithms::StateProperties&)
 {
     if (successors.non_source_probability == 0_vt) return state_id;
@@ -19,7 +19,7 @@ StateID MostLikelySuccessorSampler<Action>::sample(
     StateID res;
 
     for (const auto& [item, probability] :
-         successors.non_source_successor_dist) {
+         successors.non_source_successor_pmf) {
         if (probability > max) {
             max = probability;
             res = item;

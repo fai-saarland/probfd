@@ -4,7 +4,7 @@
 
 #include "probfd/caching_task_state_space.h"
 #include "probfd/heuristic.h"
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
 #include "probfd/mdp_algorithm.h"
 #include "probfd/policy.h"
 #include "probfd/probabilistic_operator_space.h"
@@ -65,14 +65,14 @@ void print_policy(
             state_fmt(state),
             action_fmt(decision->action));
 
-        SuccessorDistribution successor_dist;
+        SuccessorPMF successor_pmf;
         mdp.generate_action_transitions(
             state,
             decision->action,
-            successor_dist);
+            successor_pmf);
 
         for (const probfd::StateID succ_id :
-             successor_dist.non_source_successor_dist.support()) {
+             successor_pmf.non_source_successor_pmf.support()) {
             if (visited.insert(succ_id).second) {
                 queue.push_back(succ_id);
             }

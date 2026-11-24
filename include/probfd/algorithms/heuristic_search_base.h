@@ -23,9 +23,9 @@
 // Forward Declarations
 namespace probfd {
 template <typename>
-class Distribution;
+class PMF;
 template <typename>
-struct LabelledSuccessorDistribution;
+struct LabelledSuccessorPMF;
 template <typename>
 class ActionCostFunction;
 template <typename>
@@ -132,7 +132,7 @@ protected:
     using ActionCostFunctionType = ActionCostFunction<Action>;
     using TerminationCostFunctionType = TerminationCostFunction<State>;
     using HeuristicType = Heuristic<State>;
-    using LDistType = LabelledSuccessorDistribution<Action>;
+    using LPMFType = LabelledSuccessorPMF<Action>;
 
     using PolicyPickerType = PolicyPicker<State, Action>;
 
@@ -178,14 +178,14 @@ public:
      */
     AlgorithmValueType compute_bellman(
         ParamType<State> source_state,
-        const std::vector<LDistType>& ldists,
+        const std::vector<LPMFType>& lpmfs,
         ActionCostFunctionType& action_cost_function,
         TerminationCostFunctionType& term_cost_function) const;
 
     template <typename CostFunctionType>
     AlgorithmValueType compute_bellman(
         ParamType<State> source_state,
-        const std::vector<LDistType>& ldists,
+        const std::vector<LPMFType>& lpmfs,
         CostFunctionType& cost_function) const
         requires std::derived_from<CostFunctionType, ActionCostFunctionType> &&
                  std::
@@ -198,7 +198,7 @@ public:
      *
      * Additionally stores all greedy transition Q-values into a list.
      *
-     * @param[in, out] ldists The set of transition tails to compute
+     * @param[in, out] lpmfs The set of transition tails to compute
      * the Bellman operator for. The greedy transition tails are returned
      * through this parameter by erasing all non-greedy transitions.
      * All greedy transition tails will maintain their relative order.
@@ -207,13 +207,13 @@ public:
      *
      * @param[out] qvalues The greedy transition Q-values are added to this
      * list, which must be empty prior to the call, in the order that matches
-     * the greedy transition tails returned in @p ldists .
+     * the greedy transition tails returned in @p lpmfs .
      * Note that all Q-value lower bounds will match the minimal Q-value lower
      * bound.
      */
     AlgorithmValueType compute_bellman_and_greedy(
         ParamType<State> source_state,
-        std::vector<LDistType>& ldists,
+        std::vector<LPMFType>& lpmfs,
         ActionCostFunctionType& action_cost_function,
         TerminationCostFunctionType& term_cost_function,
         std::vector<AlgorithmValueType>& qvalues) const;
@@ -221,7 +221,7 @@ public:
     template <typename CostFunctionType>
     AlgorithmValueType compute_bellman_and_greedy(
         ParamType<State> source_state,
-        std::vector<LDistType>& ldists,
+        std::vector<LPMFType>& lpmfs,
         CostFunctionType& cost_function,
         std::vector<AlgorithmValueType>& qvalues) const
         requires std::derived_from<CostFunctionType, ActionCostFunctionType> &&
@@ -239,10 +239,10 @@ public:
      * @attention The selected transition is moved from the transition list
      * to avoid a copy.
      */
-    std::optional<LDistType> select_greedy_transition(
+    std::optional<LPMFType> select_greedy_transition(
         MDPType& mdp,
         std::optional<Action> previous_greedy,
-        std::vector<LDistType>& ldists);
+        std::vector<LPMFType>& lpmfs);
 
     /**
      * @brief Updates the value of the state associated with the given storage.
@@ -263,7 +263,7 @@ public:
      * Returns true if the greedy action has changed and false otherwise.
      */
     bool
-    update_policy(StateInfo& state_info, const std::optional<LDistType>& ldist)
+    update_policy(StateInfo& state_info, const std::optional<LPMFType>& lpmf)
         requires(StorePolicy);
 
 protected:
@@ -277,12 +277,12 @@ protected:
         HeuristicType& h,
         ParamType<State> state,
         StateInfo& state_info,
-        std::vector<LDistType>& ldists);
+        std::vector<LPMFType>& lpmfs);
 
     void generate_non_tip_transitions(
         MDPType& mdp,
         ParamType<State> state,
-        std::vector<LDistType>& ldists) const;
+        std::vector<LPMFType>& lpmfs) const;
 
     void print_statistics(std::ostream& out) const;
 
@@ -294,16 +294,16 @@ private:
         StateInfo& state_info);
 
     AlgorithmValueType compute_qvalue(
-        const LDistType& ldist,
+        const LPMFType& lpmf,
         ActionCostFunctionType& action_cost_function) const;
 
     AlgorithmValueType compute_q_values(
-        std::vector<LDistType>& ldists,
+        std::vector<LPMFType>& lpmfs,
         ActionCostFunctionType& action_cost_function,
         std::vector<AlgorithmValueType>& qvalues) const;
 
     AlgorithmValueType filter_greedy_transitions(
-        std::vector<LDistType>& ldists,
+        std::vector<LPMFType>& lpmfs,
         std::vector<AlgorithmValueType>& qvalues,
         const AlgorithmValueType& best_value) const;
 
@@ -327,7 +327,7 @@ class HeuristicSearchAlgorithm
     using HSBase = HeuristicSearchAlgorithm::HeuristicSearchBase;
 
 public:
-    using LDistType = HSBase::LDistType;
+    using LPMFType = HSBase::LPMFType;
     using AlgorithmValueType = HSBase::AlgorithmValueType;
 
 protected:

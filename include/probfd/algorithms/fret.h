@@ -216,7 +216,7 @@ class ValueGraph {
         NestedAlgorithm::HeuristicSearchBase::AlgorithmValueType;
 
     std::unordered_set<StateID> ids_;
-    std::vector<LabelledSuccessorDistribution<QAction>> opt_transitions_;
+    std::vector<LabelledSuccessorPMF<QAction>> opt_transitions_;
     std::vector<AlgorithmValueType> q_values;
 
 public:
@@ -237,7 +237,7 @@ class PolicyGraph {
 
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
 
-    SuccessorDistribution t_;
+    SuccessorPMF t_;
 
 public:
     bool get_successors(

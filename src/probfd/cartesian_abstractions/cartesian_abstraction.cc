@@ -4,8 +4,8 @@
 #include "probfd/cartesian_abstractions/probabilistic_transition.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition_system.h"
 
-#include "probfd/distribution.h"
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
+#include "probfd/pmf.h"
 #include "probfd/probabilistic_task.h"
 
 #include "downward/cartesian_abstractions/refinement_hierarchy.h"
@@ -68,9 +68,9 @@ void CartesianAbstraction::generate_applicable_actions(
 void CartesianAbstraction::generate_action_transitions(
     int state,
     const ProbabilisticTransition* action,
-    SuccessorDistribution& successor_dist)
+    SuccessorPMF& successor_pmf)
 {
-    successor_dist.non_source_probability = 0_vt;
+    successor_pmf.non_source_probability = 0_vt;
 
     for (size_t i = 0; i != action->target_ids.size(); ++i) {
         const auto succ = action->target_ids[i];
@@ -79,30 +79,30 @@ void CartesianAbstraction::generate_action_transitions(
 
         const value_t probability =
             transition_system_->get_probability(action->op_id, i);
-        successor_dist.add_non_source_probability(succ, probability);
+        successor_pmf.add_non_source_probability(succ, probability);
     }
 }
 
 void CartesianAbstraction::generate_all_transitions(
     int state,
     std::vector<const ProbabilisticTransition*>& aops,
-    std::vector<SuccessorDistribution>& successor_dists)
+    std::vector<SuccessorPMF>& successor_pmfs)
 {
     for (const auto* t :
          transition_system_->get_outgoing_transitions()[state]) {
         aops.push_back(t);
-        generate_action_transitions(state, t, successor_dists.emplace_back());
+        generate_action_transitions(state, t, successor_pmfs.emplace_back());
     }
 }
 
 void CartesianAbstraction::generate_all_transitions(
     int state,
-    std::vector<LDistType>& transitions)
+    std::vector<LPMFType>& transitions)
 {
     for (const auto* t :
          transition_system_->get_outgoing_transitions()[state]) {
-        auto& [action, successor_dist] = transitions.emplace_back(t);
-        generate_action_transitions(state, t, successor_dist);
+        auto& [action, successor_pmf] = transitions.emplace_back(t);
+        generate_action_transitions(state, t, successor_pmf);
     }
 }
 

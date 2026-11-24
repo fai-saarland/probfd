@@ -58,9 +58,9 @@ class AOStar
     const std::shared_ptr<SuccessorSamplerType> outcome_selection_;
 
     // Re-used buffers
-    std::vector<LabelledSuccessorDistribution<Action>> transitions_;
+    std::vector<LabelledSuccessorPMF<Action>> transitions_;
     std::vector<AlgorithmValueType> qvalues_;
-    SuccessorDistribution successor_dist_;
+    SuccessorPMF successor_pmf_;
 
 public:
     AOStar(
@@ -82,7 +82,7 @@ private:
     bool update_value_check_solved(
         MDPType& mdp,
         ParamType<State> state,
-        std::vector<LabelledSuccessorDistribution<Action>> transitions,
+        std::vector<LabelledSuccessorPMF<Action>> transitions,
         StateInfo& info);
 };
 

@@ -32,14 +32,14 @@ template <typename Action>
 StateID VDiffSuccessorSampler<Action>::sample(
     StateID,
     Action,
-    const SuccessorDistribution& successors,
+    const SuccessorPMF& successors,
     algorithms::StateProperties& properties)
 {
     biased_.clear();
 
     value_t sum = 0;
     for (const auto& [item, probability] :
-         successors.non_source_successor_dist) {
+         successors.non_source_successor_pmf) {
         const value_t error = properties.lookup_bounds(item).length();
         const value_t p =
             probability * (prefer_large_gaps_ ? error : 1_vt - error);

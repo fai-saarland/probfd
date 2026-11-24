@@ -78,7 +78,7 @@ bool QualitativeReachabilityAnalysis<State, Action>::ExpansionInfo::next_action(
     exits_scc = false;
 
     aops.pop_back();
-    successor_dist.clear();
+    successor_pmf.clear();
 
     return !aops.empty() && forward_non_self_loop(mdp, mdp.get_state(state_id));
 }
@@ -88,15 +88,15 @@ bool QualitativeReachabilityAnalysis<State, Action>::ExpansionInfo::
     forward_non_self_loop(MDPType& mdp, const State& state)
 {
     do {
-        mdp.generate_action_transitions(state, aops.back(), successor_dist);
+        mdp.generate_action_transitions(state, aops.back(), successor_pmf);
 
-        if (!successor_dist.non_source_successor_dist.empty()) {
-            successor = successor_dist.non_source_successor_dist.begin();
+        if (!successor_pmf.non_source_successor_pmf.empty()) {
+            successor = successor_pmf.non_source_successor_pmf.begin();
             return true;
         }
 
         aops.pop_back();
-        successor_dist.clear();
+        successor_pmf.clear();
     } while (!aops.empty());
 
     return false;
@@ -106,7 +106,7 @@ template <typename State, typename Action>
 bool QualitativeReachabilityAnalysis<State, Action>::ExpansionInfo::
     next_successor()
 {
-    if (++successor != successor_dist.non_source_successor_dist.end()) {
+    if (++successor != successor_pmf.non_source_successor_pmf.end()) {
         return true;
     }
 

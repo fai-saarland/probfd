@@ -4,7 +4,7 @@
 #include "probfd/storage/per_state_storage.h"
 
 #include "probfd/heuristic.h"
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
 #include "probfd/mdp.h"
 
 #include <cassert>
@@ -353,20 +353,20 @@ void dump_state_space_dot_graph(
 
         open.pop_front();
 
-        std::vector<LabelledSuccessorDistribution<Action>> transitions;
+        std::vector<LabelledSuccessorPMF<Action>> transitions;
         mdp->generate_all_transitions(state, transitions);
 
         std::ranges::sort(
             transitions,
             {},
-            &LabelledSuccessorDistribution<Action>::successor_dist);
+            &LabelledSuccessorPMF<Action>::successor_pmf);
         const auto [it, end] = std::ranges::unique(
             transitions,
             {},
-            &LabelledSuccessorDistribution<Action>::successor_dist);
+            &LabelledSuccessorPMF<Action>::successor_pmf);
         transitions.erase(it, end);
 
-        for (const auto& [act, successor_dist] : transitions) {
+        for (const auto& [act, successor_pmf] : transitions) {
             const auto a_cost = mdp->get_action_cost(act);
             if (a_cost != 0_vt) {
                 std::print(ss, R"({:.{}f}\n)", a_cost, precision);
@@ -375,12 +375,11 @@ void dump_state_space_dot_graph(
             std::string label_text = ss.str();
             ss.str("");
 
-            if (successor_dist.is_dirac()) {
+            if (successor_pmf.is_dirac()) {
                 const StateID succ_id =
-                    successor_dist.non_source_probability == 0_vt
+                    successor_pmf.non_source_probability == 0_vt
                         ? mdp->get_state_id(state)
-                        : successor_dist.non_source_successor_dist.begin()
-                              ->item;
+                        : successor_pmf.non_source_successor_pmf.begin()->item;
                 auto [succ_node, inserted] = builder.insert_node(succ_id);
 
                 auto& direct_edge = builder.create_edge(*node, *succ_node);
@@ -397,12 +396,12 @@ void dump_state_space_dot_graph(
                 continue;
             }
 
-            Distribution<internal::GraphBuilder::Node*> successor_nodes;
+            PMF<internal::GraphBuilder::Node*> successor_nodes;
             int my_rank = node->get_rank();
             int max_rank = 0;
 
             for (const auto& [succ_id, prob] :
-                 successor_dist.non_source_successor_dist) {
+                 successor_pmf.non_source_successor_pmf) {
                 auto [succ_node, inserted] =
                     builder.insert_state_node(succ_id, my_rank + 2);
                 max_rank = std::max(max_rank, succ_node->get_rank());

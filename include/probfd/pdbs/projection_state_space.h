@@ -14,7 +14,7 @@
 
 namespace probfd {
 template <typename>
-class Distribution;
+class PMF;
 class TerminationCosts;
 } // namespace probfd
 
@@ -53,16 +53,16 @@ public:
     void generate_action_transitions(
         StateRank state,
         const ProjectionOperator* op,
-        SuccessorDistribution& successor_dist) override;
+        SuccessorPMF& successor_pmf) override;
 
     void generate_all_transitions(
         StateRank state,
         std::vector<const ProjectionOperator*>& aops,
-        std::vector<SuccessorDistribution>& successor_dist) override;
+        std::vector<SuccessorPMF>& successor_pmf) override;
 
     void generate_all_transitions(
         StateRank state,
-        std::vector<LDistType>& transitions) override;
+        std::vector<LPMFType>& transitions) override;
 
     [[nodiscard]]
     bool is_goal(StateRank state) const override;

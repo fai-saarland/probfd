@@ -28,12 +28,12 @@ template <typename State, typename Action>
 void DFSExplorationState<State, Action>::setup_transition(
     MDP<State, Action>& mdp)
 {
-    assert(successor_dist.non_source_successor_dist.empty());
+    assert(successor_pmf.non_source_successor_pmf.empty());
     auto& next_action = remaining_aops.back();
     t_value = mdp.get_action_cost(next_action);
     const State state = mdp.get_state(state_id);
-    mdp.generate_action_transitions(state, next_action, successor_dist);
-    successor = successor_dist.non_source_successor_dist.begin();
+    mdp.generate_action_transitions(state, next_action, successor_pmf);
+    successor = successor_pmf.non_source_successor_pmf.begin();
 }
 
 template <typename State, typename Action>
@@ -57,8 +57,8 @@ bool DFSExplorationState<State, Action>::advance(
 template <typename State, typename Action>
 bool DFSExplorationState<State, Action>::next_successor()
 {
-    assert(successor != successor_dist.non_source_successor_dist.end());
-    if (++successor != successor_dist.non_source_successor_dist.end()) {
+    assert(successor != successor_pmf.non_source_successor_pmf.end());
+    if (++successor != successor_pmf.non_source_successor_pmf.end()) {
         return true;
     }
 
@@ -80,7 +80,7 @@ bool DFSExplorationState<State, Action>::next_transition(
         return false;
     }
 
-    successor_dist.clear();
+    successor_pmf.clear();
     setup_transition(mdp);
 
     return true;
@@ -89,8 +89,8 @@ bool DFSExplorationState<State, Action>::next_transition(
 template <typename State, typename Action>
 void DFSExplorationState<State, Action>::finalize_transition()
 {
-    if (successor_dist.non_source_probability != 0_vt) {
-        t_value = (1 / successor_dist.non_source_probability) * t_value;
+    if (successor_pmf.non_source_probability != 0_vt) {
+        t_value = (1 / successor_pmf.non_source_probability) * t_value;
     }
 
     // Minimum Q-value

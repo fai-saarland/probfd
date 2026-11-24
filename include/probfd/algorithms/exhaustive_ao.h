@@ -59,7 +59,7 @@ class ExhaustiveAOSearch
     const std::shared_ptr<OpenListType> open_list_;
 
     // Re-used buffers
-    std::vector<LabelledSuccessorDistribution<Action>> transitions_;
+    std::vector<LabelledSuccessorPMF<Action>> transitions_;
 
 public:
     ExhaustiveAOSearch(
@@ -79,7 +79,7 @@ private:
     bool update_value_check_solved(
         MDPType& mdp,
         ParamType<State> state,
-        std::vector<LabelledSuccessorDistribution<Action>> transitions,
+        std::vector<LabelledSuccessorPMF<Action>> transitions,
         StateInfo& info);
 };
 

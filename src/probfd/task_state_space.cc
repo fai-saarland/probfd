@@ -1,7 +1,7 @@
 #include "probfd/task_state_space.h"
 
-#include "probfd/distribution.h"
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
+#include "probfd/pmf.h"
 #include "probfd/probabilistic_task.h"
 #include "probfd/type_traits.h"
 
@@ -74,22 +74,22 @@ void TaskStateSpace::generate_applicable_actions(
 void TaskStateSpace::generate_action_transitions(
     const State& state,
     OperatorID operator_id,
-    SuccessorDistribution& successor_dist)
+    SuccessorPMF& successor_pmf)
 {
-    compute_successor_dist(state, operator_id, successor_dist);
+    compute_successor_pmf(state, operator_id, successor_pmf);
     ++statistics_.single_transition_generator_calls;
 }
 
 void TaskStateSpace::generate_all_transitions(
     const State& state,
     std::vector<OperatorID>& aops,
-    std::vector<SuccessorDistribution>& successor_dist)
+    std::vector<SuccessorPMF>& successor_pmf)
 {
     compute_applicable_operators(state, aops);
-    successor_dist.reserve(aops.size());
+    successor_pmf.reserve(aops.size());
 
     for (const auto& op : aops) {
-        compute_successor_dist(state, op, successor_dist.emplace_back());
+        compute_successor_pmf(state, op, successor_pmf.emplace_back());
     }
 
     ++statistics_.all_transitions_generator_calls;
@@ -98,7 +98,7 @@ void TaskStateSpace::generate_all_transitions(
 
 void TaskStateSpace::generate_all_transitions(
     const State& state,
-    std::vector<LDistType>& transitions)
+    std::vector<LPMFType>& transitions)
 {
     gen_.generate_transitions(state, transitions, *this);
 
@@ -124,18 +124,18 @@ void TaskStateSpace::print_statistics(std::ostream& out) const
     statistics_.print(out);
 }
 
-void TaskStateSpace::compute_successor_dist(
+void TaskStateSpace::compute_successor_pmf(
     const State& state,
     OperatorID op_id,
-    SuccessorDistribution& successor_dist)
+    SuccessorPMF& successor_pmf)
 {
     const auto& op = (*operators_)[op_id];
 
     const auto outcomes = op.get_outcomes();
     const size_t num_outcomes = outcomes.size();
-    successor_dist.non_source_successor_dist.reserve(num_outcomes);
+    successor_pmf.non_source_successor_pmf.reserve(num_outcomes);
 
-    successor_dist.non_source_probability = 0_vt;
+    successor_pmf.non_source_probability = 0_vt;
 
     for (const ProbabilisticOutcomeProxy outcome : outcomes) {
         const value_t probability = outcome.get_probability();
@@ -149,13 +149,13 @@ void TaskStateSpace::compute_successor_dist(
             h->notify_state_transition(state, det_op_id, succ);
         }
 
-        successor_dist.add_non_source_probability(succ.get_id(), probability);
+        successor_pmf.add_non_source_probability(succ.get_id(), probability);
     }
 
     ++statistics_.transition_computations;
     statistics_.computed_successors += num_outcomes;
     statistics_.generated_states +=
-        successor_dist.non_source_successor_dist.size();
+        successor_pmf.non_source_successor_pmf.size();
 }
 
 void TaskStateSpace::compute_applicable_operators(

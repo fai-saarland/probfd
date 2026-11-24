@@ -1,6 +1,6 @@
 #include "probfd/successor_samplers/random_successor_sampler.h"
 
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
 
 #include "downward/utils/rng.h"
 
@@ -23,7 +23,7 @@ template <typename Action>
 StateID RandomSuccessorSampler<Action>::sample(
     StateID,
     Action,
-    const SuccessorDistribution& successors,
+    const SuccessorPMF& successors,
     algorithms::StateProperties&)
 {
     return successors.sample(*rng_)->item;

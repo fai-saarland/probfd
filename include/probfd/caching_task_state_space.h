@@ -26,7 +26,7 @@ class LogProxy;
 }
 
 namespace probfd {
-struct SuccessorDistribution;
+struct SuccessorPMF;
 } // namespace probfd
 
 namespace probfd {
@@ -66,16 +66,16 @@ public:
     void generate_action_transitions(
         const downward::State& state,
         downward::OperatorID operator_id,
-        SuccessorDistribution& successor_dist) final;
+        SuccessorPMF& successor_pmf) final;
 
     void generate_all_transitions(
         const downward::State& state,
         std::vector<downward::OperatorID>& aops,
-        std::vector<SuccessorDistribution>& successor_dists) final;
+        std::vector<SuccessorPMF>& successor_pmfs) final;
 
     void generate_all_transitions(
         const downward::State& state,
-        std::vector<LDistType>& transitions) final;
+        std::vector<LPMFType>& transitions) final;
 
     void print_statistics(std::ostream& out) const final;
 

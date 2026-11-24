@@ -19,7 +19,7 @@ public:
     void sort(
         const downward::State& state,
         const std::vector<downward::OperatorID>& action_choices,
-        std::vector<SuccessorDistribution>& successor_dists,
+        std::vector<SuccessorPMF>& successor_pmfs,
         algorithms::StateProperties& properties) override;
 };
 

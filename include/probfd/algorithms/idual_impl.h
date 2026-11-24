@@ -7,9 +7,9 @@
 
 #include "probfd/utils/not_implemented.h"
 
-#include "probfd/distribution.h"
 #include "probfd/heuristic.h"
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
+#include "probfd/pmf.h"
 
 #include "downward/utils/countdown_timer.h"
 #include "probfd/policies/map_policy.h"
@@ -139,11 +139,11 @@ auto IDual<State, Action>::compute_policy(
         unsigned int i = 0;
         for (const Action& action : aops) {
             if (dual_solution[constraint_index + i] > fp_epsilon_) {
-                SuccessorDistribution distribution;
-                mdp.generate_action_transitions(state, action, distribution);
+                SuccessorPMF pmf;
+                mdp.generate_action_transitions(state, action, pmf);
 
                 for (const StateID succ_id :
-                     distribution.non_source_successor_dist.support()) {
+                     pmf.non_source_successor_pmf.support()) {
                     predecessor_edges[succ_id].emplace_back(state_id, action);
                     if (!visited.insert(succ_id).second) continue;
                     queue.push_back(succ_id);
@@ -235,7 +235,7 @@ Interval IDual<State, Action>::solve(
         frontier.push_back(prev_state);
     }
 
-    std::vector<LabelledSuccessorDistribution<Action>> transitions;
+    std::vector<LabelledSuccessorPMF<Action>> transitions;
 
     value_t objective = 0_vt;
 
@@ -267,8 +267,8 @@ Interval IDual<State, Action>::solve(
             ClearGuard _(transitions);
             mdp.generate_all_transitions(state, transitions);
 
-            for (const auto& [action, successor_dist] : transitions) {
-                if (successor_dist.non_source_successor_dist.empty()) continue;
+            for (const auto& [action, successor_pmf] : transitions) {
+                if (successor_pmf.non_source_successor_pmf.empty()) continue;
 
                 int next_constraint_id = lp_solver_.get_num_constraints();
                 LPConstraint c(-inf, inf);
@@ -277,7 +277,7 @@ Interval IDual<State, Action>::solve(
                 StateID next_prev_state = prev_state;
 
                 for (const auto& [succ_id, prob] :
-                     successor_dist.non_source_successor_dist) {
+                     successor_pmf.non_source_successor_pmf) {
                     PerStateInfo& succ_info = state_infos_[succ_id];
 
                     if (succ_id > prev_state) {
@@ -330,7 +330,7 @@ Interval IDual<State, Action>::solve(
 
                 prev_state = next_prev_state;
 
-                c.insert(var_id, successor_dist.non_source_probability);
+                c.insert(var_id, successor_pmf.non_source_probability);
                 c.set_upper_bound(base_val);
                 lp_solver_.add_constraint(c);
             }

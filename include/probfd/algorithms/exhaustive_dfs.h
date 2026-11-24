@@ -7,8 +7,8 @@
 
 #include "probfd/storage/per_state_storage.h"
 
-#include "probfd/distribution.h"
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
+#include "probfd/pmf.h"
 #include "probfd/progress_report.h"
 
 #include <deque>
@@ -49,8 +49,8 @@ struct ExpansionInformation {
     {
     }
 
-    std::vector<SuccessorDistribution> successors;
-    Distribution<StateID>::const_iterator succ;
+    std::vector<SuccessorPMF> successors;
+    PMF<StateID>::const_iterator succ;
     unsigned stack_index;
 
     bool all_successors_are_dead = true;
@@ -63,7 +63,7 @@ struct ExpansionInformation {
 };
 
 struct SCCTransition {
-    Distribution<StateID> successors;
+    PMF<StateID> successors;
     value_t closed_value = 0_vt;
     value_t normalization = 0_vt;
 };

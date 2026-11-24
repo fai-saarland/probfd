@@ -26,16 +26,16 @@ template <typename Action>
 StateID VBiasedSuccessorSampler<Action>::sample(
     StateID,
     Action,
-    const SuccessorDistribution& successors,
+    const SuccessorPMF& successors,
     algorithms::StateProperties& properties)
 {
-    assert(!successors.non_source_successor_dist.empty());
+    assert(!successors.non_source_successor_pmf.empty());
 
     biased_.clear();
 
     value_t sum = 0;
     for (const auto& [item, probability] :
-         successors.non_source_successor_dist) {
+         successors.non_source_successor_pmf) {
         const auto p = probability * properties.lookup_value(item);
         if (p > 0_vt) {
             sum += p;

@@ -3,7 +3,7 @@
 #include "probfd/pdbs/projection_operator.h"
 #include "probfd/pdbs/state_ranking_function.h"
 
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
 #include "probfd/probabilistic_task.h"
 #include "probfd/termination_cost_function.h"
 
@@ -314,32 +314,32 @@ void ProjectionStateSpace::generate_applicable_actions(
 void ProjectionStateSpace::generate_action_transitions(
     StateRank state,
     const ProjectionOperator* op,
-    SuccessorDistribution& successor_dist)
+    SuccessorPMF& successor_pmf)
 {
-    successor_dist.non_source_probability = 0_vt;
+    successor_pmf.non_source_probability = 0_vt;
 
-    for (const auto& [offset, probability] : op->outcome_offsets_) {
+    for (const auto& [offset, probability] : op->outcome_offset_pmf_) {
         const auto successor = state + offset;
         if (successor == state) continue;
-        successor_dist.add_non_source_probability(successor, probability);
+        successor_pmf.add_non_source_probability(successor, probability);
     }
 }
 
 void ProjectionStateSpace::generate_all_transitions(
     StateRank state,
     std::vector<const ProjectionOperator*>& aops,
-    std::vector<SuccessorDistribution>& successor_dist)
+    std::vector<SuccessorPMF>& successor_pmf)
 {
     generate_applicable_actions(state, aops);
-    successor_dist.reserve(aops.size());
+    successor_pmf.reserve(aops.size());
     for (const ProjectionOperator* op : aops) {
-        generate_action_transitions(state, op, successor_dist.emplace_back());
+        generate_action_transitions(state, op, successor_pmf.emplace_back());
     }
 }
 
 void ProjectionStateSpace::generate_all_transitions(
     StateRank state,
-    std::vector<LDistType>& transitions)
+    std::vector<LPMFType>& transitions)
 {
     match_tree_.generate_all_transitions(state, transitions, *this);
 }

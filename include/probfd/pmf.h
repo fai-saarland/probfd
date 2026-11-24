@@ -1,5 +1,5 @@
-#ifndef PROBFD_DISTRIBUTION_H
-#define PROBFD_DISTRIBUTION_H
+#ifndef PROBFD_PMF_H
+#define PROBFD_PMF_H
 
 #include "probfd/concepts.h"
 #include "probfd/item_probability_pair.h"
@@ -21,58 +21,55 @@ namespace probfd {
 /// Disambiguator tag type.
 struct NoNormalizeTagType {};
 
-/// Disambiguator tag  for Distribution constructor to indicate that
+/// Disambiguator tag for PMF constructor to indicate that
 /// the probabilities are already normalized to one.
 inline constexpr auto no_normalize = NoNormalizeTagType{};
 
 template <typename T>
-class Distribution;
+class PMF;
 
 template <typename T>
-void swap(Distribution<T>& left, Distribution<T>& right) noexcept;
+void swap(PMF<T>& left, PMF<T>& right) noexcept;
 
 /**
- * @brief A convenience class that represents a finite probability
- * distribution.
+ * @brief Represents a probability mass function (PMF).
  *
- * @tparam T - The item type.
+ * @tparam T - The sample space type.
  */
 template <typename T>
-class Distribution {
-    std::vector<ItemProbabilityPair<T>> distribution_;
+class PMF {
+    std::vector<ItemProbabilityPair<T>> graph_;
 
 public:
     using iterator = std::vector<ItemProbabilityPair<T>>::iterator;
     using const_iterator = std::vector<ItemProbabilityPair<T>>::const_iterator;
 
-    Distribution();
+    PMF();
 
-    Distribution(std::initializer_list<ItemProbabilityPair<T>> list);
+    PMF(std::initializer_list<ItemProbabilityPair<T>> list);
 
-    Distribution(
-        std::initializer_list<ItemProbabilityPair<T>> list,
-        NoNormalizeTagType);
+    PMF(std::initializer_list<ItemProbabilityPair<T>> list, NoNormalizeTagType);
 
     template <std::ranges::input_range R>
         requires(std::convertible_to<
                  std::ranges::range_reference_t<R>,
                  ItemProbabilityPair<T>>)
-    Distribution(std::from_range_t, R&& pair_range);
+    PMF(std::from_range_t, R&& pair_range);
 
     template <std::ranges::input_range R>
         requires(std::convertible_to<
                  std::ranges::range_reference_t<R>,
                  ItemProbabilityPair<T>>)
-    Distribution(std::from_range_t, NoNormalizeTagType, R&& pair_range);
+    PMF(std::from_range_t, NoNormalizeTagType, R&& pair_range);
 
     /**
      * @brief Reserves space for \p capacity number of elements in
-     * the support of the distribution.
+     * the support of the PMF.
      */
     void reserve(size_t capacity);
 
     /**
-     * @brief Checks if the distribution is in an empty state.
+     * @brief Checks if the PMF is in an empty state.
      */
     bool empty() const;
 
@@ -117,27 +114,25 @@ public:
 
     auto support(this auto&& self);
 
-    friend bool
-    operator==(const Distribution&, const Distribution&) = default;
+    friend bool operator==(const PMF&, const PMF&) = default;
 
-    friend auto
-    operator<=>(const Distribution&, const Distribution&) = default;
+    friend auto operator<=>(const PMF&, const PMF&) = default;
 
-    friend void swap<T>(Distribution& left, Distribution& right) noexcept;
+    friend void swap<T>(PMF& left, PMF& right) noexcept;
 };
 
 template <std::ranges::input_range R>
     requires(downward::Specialization<
              std::ranges::range_value_t<R>,
              ItemProbabilityPair>)
-Distribution(std::from_range_t, R&&)
-    -> Distribution<std::tuple_element_t<0, std::ranges::range_value_t<R>>>;
+PMF(std::from_range_t, R&&)
+    -> PMF<std::tuple_element_t<0, std::ranges::range_value_t<R>>>;
 
 } // namespace probfd
 
 template <typename T, typename Char>
     requires std::formattable<T, Char>
-struct std::formatter<probfd::Distribution<T>, Char> {
+struct std::formatter<probfd::PMF<T>, Char> {
     std::range_formatter<std::pair<T, probfd::value_t>, Char> underlying_;
 
     constexpr formatter()
@@ -155,8 +150,7 @@ struct std::formatter<probfd::Distribution<T>, Char> {
     }
 
     template <class FmtContext>
-    FmtContext::iterator
-    format(const probfd::Distribution<T>& p, FmtContext& ctx) const
+    FmtContext::iterator format(const probfd::PMF<T>& p, FmtContext& ctx) const
     {
         return underlying_.format(
             p | downward::views::convert<std::pair<T, probfd::value_t>>,
@@ -164,6 +158,6 @@ struct std::formatter<probfd::Distribution<T>, Char> {
     }
 };
 
-#include "probfd/distribution-impl.h"
+#include "probfd/pmf-impl.h"
 
-#endif // PROBFD_DISTRIBUTION_H
+#endif

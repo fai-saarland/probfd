@@ -9,7 +9,7 @@
 
 // Forward Declarations
 namespace probfd {
-struct SuccessorDistribution;
+struct SuccessorPMF;
 }
 
 namespace probfd::algorithms {
@@ -33,7 +33,7 @@ public:
      *
      * @param state - The common source state for all transitions
      * @param aops - The transition actions
-     * @param successor_dist - The successor distributions of the transitions.
+     * @param successor_pmf - The successor PMFs of the transitions.
      * To be sorted.
      * @param properties - The interface to the heuristic search algorithm.
      * Can be used to query additional information about the involved states and
@@ -42,7 +42,7 @@ public:
     virtual void sort(
         ParamType<State> state,
         const std::vector<Action>& aops,
-        std::vector<SuccessorDistribution>& successor_dist,
+        std::vector<SuccessorPMF>& successor_pmf,
         StateProperties& properties) = 0;
 };
 

@@ -353,16 +353,16 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
         }
 
         einfo.successors = std::ranges::to<std::vector>(
-            transition->successor_dist.non_source_successor_dist.support());
+            transition->successor_pmf.non_source_successor_pmf.support());
     } else {
         const auto action = sinfo.get_policy();
         if (!action.has_value()) return false;
 
-        ClearGuard _(successor_dist_.non_source_successor_dist);
-        mdp.generate_action_transitions(state, *action, successor_dist_);
+        ClearGuard _(successor_pmf_.non_source_successor_pmf);
+        mdp.generate_action_transitions(state, *action, successor_pmf_);
 
         einfo.successors = std::ranges::to<std::vector>(
-            successor_dist_.non_source_successor_dist.support());
+            successor_pmf_.non_source_successor_pmf.support());
     }
 
     return true;

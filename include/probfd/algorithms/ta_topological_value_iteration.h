@@ -6,10 +6,10 @@
 #include "probfd/storage/per_state_storage.h"
 
 #include "iterative_mdp_algorithm.h"
-#include "probfd/distribution.h"
+#include "probfd/pmf.h"
 
 #include "downward/utils/timer.h"
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
 
 #include <deque>
 #include <limits>
@@ -126,8 +126,8 @@ class TATopologicalValueIteration
         std::vector<Action> aops;
 
         // Exploration State -- Currently expanded transition and successor
-        SuccessorDistribution successor_dist;
-        Distribution<StateID>::const_iterator successor;
+        SuccessorPMF successor_pmf;
+        PMF<StateID>::const_iterator successor;
 
         // Exploration state -- Current Q value info
         QValueInfo q_value;

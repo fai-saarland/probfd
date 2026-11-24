@@ -4,7 +4,7 @@
 #include "probfd/storage/per_state_storage.h"
 
 #include "probfd/fdr_types.h"
-#include "probfd/labelled_successor_distribution.h"
+#include "probfd/labelled_successor_pmf.h"
 #include "probfd/mdp_algorithm.h"
 #include "probfd/probabilistic_task.h"
 #include "probfd/value_type.h"
@@ -64,7 +64,7 @@ class I2Dual : public MDPAlgorithm<downward::State, downward::OperatorID> {
     Statistics statistics_;
 
     std::vector<downward::OperatorID> aops_;
-    SuccessorDistribution succs_;
+    SuccessorPMF succs_;
 
 public:
     I2Dual(

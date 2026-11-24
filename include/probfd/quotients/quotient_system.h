@@ -126,7 +126,7 @@ class QuotientSystem
     using QuotientInformationType = QuotientInformation<Action>;
     using QState = QuotientState<State, Action>;
     using QAction = QuotientAction<Action>;
-    using QTransitionTail = LabelledSuccessorDistribution<QAction>;
+    using QTransitionTail = LabelledSuccessorPMF<QAction>;
 
     using MDPType = MDP<State, Action>;
 
@@ -158,12 +158,12 @@ public:
     void generate_action_transitions(
         ParamType<QState>,
         QAction a,
-        SuccessorDistribution& successor_dist) override;
+        SuccessorPMF& successor_pmf) override;
 
     void generate_all_transitions(
         ParamType<QState> state,
         std::vector<QAction>& aops,
-        std::vector<SuccessorDistribution>& successor_dists) override;
+        std::vector<SuccessorPMF>& successor_pmfs) override;
 
     void generate_all_transitions(
         ParamType<QState> state,
