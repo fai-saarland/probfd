@@ -195,9 +195,48 @@ public:
             std::make_shared<PHOConstraintGeneratorFactory>(
                 options.get<std::shared_ptr<PatternCollectionGenerator>>(
                     context,
-                    "patterns")));
+                    "patterns"),
+                false));
     }
 };
+
+class HSPHOFactoryFeature : public SharedTypedFeature<TaskHeuristicFactory> {
+public:
+    HSPHOFactoryFeature()
+        : TypedFeature("spho")
+    {
+        document_title("Saturated Post-hoc Optimization Heuristic");
+
+        document_language_support("conditional effects", "not supported");
+        document_language_support("axioms", "not supported");
+
+        document_property("admissible", "yes");
+        document_property("consistent", "yes");
+
+        add_log_options_to_feature(*this);
+        add_lp_solver_option_to_feature(*this);
+
+        add_option<std::shared_ptr<probfd::pdbs::PatternCollectionGenerator>>(
+            "patterns",
+            "The pattern generator used to construct the PDB collection which "
+            "is subject to post-hoc optimization.",
+            "psystematic(pattern_max_size=2)");
+    }
+
+    std::shared_ptr<TaskHeuristicFactory>
+    create_component(const Options& options, const Context& context)
+        const override
+    {
+        return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
+            get_lp_solver_arguments_from_options(context, options),
+            std::make_shared<PHOConstraintGeneratorFactory>(
+                options.get<std::shared_ptr<PatternCollectionGenerator>>(
+                    context,
+                    "patterns"),
+                true));
+    }
+};
+
 } // namespace
 
 namespace probfd::cli::occupation_measures {
@@ -208,6 +247,7 @@ void add_occupation_measure_heuristics_features(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<HPOMFactoryFeature>();
     raw_registry.insert_feature_plugin<HOHPOMFactoryFeature>();
     raw_registry.insert_feature_plugin<HPHOFactoryFeature>();
+    raw_registry.insert_feature_plugin<HSPHOFactoryFeature>();
 }
 
 } // namespace probfd::cli::occupation_measures

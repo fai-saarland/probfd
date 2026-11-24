@@ -26,9 +26,12 @@ namespace probfd::occupation_measures {
 
 class PHOConstraintGenerator : public ConstraintGenerator {
     pdbs::PPDBCollection pdbs_;
+    bool use_saturated_costs;
 
 public:
-    explicit PHOConstraintGenerator(pdbs::PPDBCollection pdbs);
+    explicit PHOConstraintGenerator(
+        pdbs::PPDBCollection pdbs,
+        bool use_saturated_costs);
 
     void initialize_constraints(
         const SharedProbabilisticTask& task,
@@ -44,10 +47,12 @@ public:
 
 class PHOConstraintGeneratorFactory : public ConstraintGeneratorFactory {
     std::shared_ptr<pdbs::PatternCollectionGenerator> generator_;
+    bool use_saturated_costs;
 
 public:
     explicit PHOConstraintGeneratorFactory(
-        std::shared_ptr<pdbs::PatternCollectionGenerator> generator);
+        std::shared_ptr<pdbs::PatternCollectionGenerator> generator,
+        bool use_saturated_costs);
 
     std::unique_ptr<ConstraintGenerator> construct_constraint_generator(
         const SharedProbabilisticTask& task) override;

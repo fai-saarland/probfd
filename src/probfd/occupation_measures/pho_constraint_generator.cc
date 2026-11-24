@@ -9,6 +9,8 @@
 #include "downward/utils/collections.h"
 
 #include "downward/lp/lp_solver.h"
+#include "probfd/pdbs/projection_state_space.h"
+#include "probfd/pdbs/saturation.h"
 #include "probfd/probabilistic_operator_space.h"
 
 #include <iterator>
@@ -23,8 +25,11 @@ namespace probfd::occupation_measures {
 
 using namespace pdbs;
 
-PHOConstraintGenerator::PHOConstraintGenerator(pdbs::PPDBCollection pdbs)
+PHOConstraintGenerator::PHOConstraintGenerator(
+    PPDBCollection pdbs,
+    bool use_saturated_costs)
     : pdbs_(std::move(pdbs))
+    , use_saturated_costs(use_saturated_costs)
 {
 }
 
@@ -49,19 +54,35 @@ void PHOConstraintGenerator::initialize_constraints(
             std::inserter(var_set, var_set.begin()));
     }
 
+    std::vector<value_t> operator_costs(operators.size());
+
+    for (const ProbabilisticOperatorProxy op : operators) {
+        operator_costs[op.get_id()] =
+            cost_function.get_operator_cost(op.get_id());
+    }
+
     for (const auto& pdb : pdbs_) {
         auto& pdb_constraint = lp_constraints.emplace_back(0.0, lp_infinity);
 
+        if (use_saturated_costs) {
+            ProjectionStateSpace state_space(
+                task,
+                pdb->ranking_function,
+                false);
+            compute_saturated_costs(
+                state_space,
+                pdb->value_table,
+                operator_costs);
+        }
+
         for (const ProbabilisticOperatorProxy op : operators) {
             const int op_id = op.get_id();
+            const auto cost = operator_costs[op.get_id()];
             const bool affects_pdb = utils::have_common_element(
                 pdb->get_pattern(),
                 affected_vars[op_id]);
 
-            pdb_constraint.insert(
-                op_id,
-                affects_pdb ? cost_function.get_operator_cost(op.get_id())
-                            : 0.0);
+            pdb_constraint.insert(op_id, affects_pdb ? cost : 0.0);
         }
     }
 }
@@ -81,8 +102,10 @@ void PHOConstraintGenerator::reset_constraints(const State&, lp::LPSolver&)
 }
 
 PHOConstraintGeneratorFactory::PHOConstraintGeneratorFactory(
-    std::shared_ptr<pdbs::PatternCollectionGenerator> generator)
+    std::shared_ptr<pdbs::PatternCollectionGenerator> generator,
+    bool use_saturated_costs)
     : generator_(std::move(generator))
+    , use_saturated_costs(use_saturated_costs)
 {
 }
 
@@ -91,7 +114,9 @@ PHOConstraintGeneratorFactory::construct_constraint_generator(
     const SharedProbabilisticTask& task)
 {
     auto r = generator_->generate(task);
-    return std::make_unique<PHOConstraintGenerator>(r.get_pdbs());
+    return std::make_unique<PHOConstraintGenerator>(
+        r.get_pdbs(),
+        use_saturated_costs);
 }
 
 } // namespace probfd::occupation_measures
