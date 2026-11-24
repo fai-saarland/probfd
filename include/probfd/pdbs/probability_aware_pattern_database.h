@@ -8,6 +8,7 @@
 #include "probfd/heuristics/constant_heuristic.h"
 
 #include "probfd/fdr_types.h"
+#include "probfd/probabilistic_task.h"
 
 #include "downward/utils/timer.h"
 

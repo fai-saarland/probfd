@@ -2,15 +2,13 @@
 
 #include "probfd/algorithms/open_list.h"
 
-#include "probfd/heuristics/constant_heuristic.h"
+#include "probfd/heuristics/blind_heuristic.h"
 
 #include "probfd/bisimulation/bisimilar_state_space.h"
 
 #include "probfd/policies/empty_policy.h"
 
 #include "probfd/tasks/determinization_task.h"
-
-#include "probfd/utils/not_implemented.h"
 
 #include "downward/merge_and_shrink/factored_transition_system.h"
 #include "downward/merge_and_shrink/merge_and_shrink_representation.h"

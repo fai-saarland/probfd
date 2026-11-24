@@ -28,8 +28,8 @@ create_library(
         probfd/task_action_cost_function
         probfd/task_termination_cost_function
 
-        # Constant heuristic (default)
-        probfd/heuristics/constant_heuristic
+    # Blind heuristic (default)
+    probfd/heuristics/blind_heuristic
 
         # Task Utils
         probfd/task_utils/assignment_enumerator

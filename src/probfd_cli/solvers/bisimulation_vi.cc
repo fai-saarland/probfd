@@ -10,12 +10,14 @@
 #include "probfd/algorithms/interval_iteration.h"
 #include "probfd/algorithms/topological_value_iteration.h"
 
-#include "probfd/heuristics/constant_heuristic.h"
+#include "probfd/heuristics/blind_heuristic.h"
 
 #include "probfd/tasks/root_task.h"
 
 #include "probfd/progress_report.h"
+
 #include "probfd/task_termination_cost_function.h"
+#include "probfd/termination_cost_function.h"
 
 #include "probfd/tasks/determinization_task.h"
 
@@ -27,8 +29,8 @@
 
 #include "downward/task_utils/task_properties.h"
 
-#include "downward/utils/timer.h"
 #include "downward/utils/system.h"
+#include "downward/utils/timer.h"
 
 #include "downward/initial_state_values.h"
 

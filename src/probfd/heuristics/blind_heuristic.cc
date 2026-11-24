@@ -1,4 +1,4 @@
-#include "probfd/heuristics/constant_heuristic.h"
+#include "probfd/heuristics/blind_heuristic.h"
 
 #include "probfd/probabilistic_operator_space.h"
 #include "probfd/probabilistic_task.h"

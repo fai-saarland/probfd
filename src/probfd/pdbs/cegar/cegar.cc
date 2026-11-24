@@ -9,14 +9,16 @@
 
 #include "probfd/abstractions/policy_extraction.h"
 
+#include "probfd/heuristics/blind_heuristic.h"
+
 #include "probfd/multi_policy.h"
+#include "probfd/probabilistic_task.h"
 
 #include "downward/utils/collections.h"
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/math.h"
 #include "downward/utils/rng.h"
-#include "probfd/probabilistic_task.h"
 
 #include <cassert>
 #include <ostream>
@@ -334,7 +336,9 @@ void CEGAR::generate_trivial_solution_collection(
         log.print("CEGAR initial collection: ");
         print_collection(log);
 
-        if (log.is_at_least_verbose()) { log.println(); }
+        if (log.is_at_least_verbose()) {
+            log.println();
+        }
     }
 }
 
@@ -674,7 +678,9 @@ void CEGAR::generate_pdbs(
         log.println("  blacklisted variables: {}", blacklisted_variables_);
     }
 
-    if (log.is_at_least_normal()) { log.println(); }
+    if (log.is_at_least_normal()) {
+        log.println();
+    }
 
     utils::CountdownTimer timer(max_time);
 
@@ -744,7 +750,9 @@ void CEGAR::generate_pdbs(
                 print_collection(log);
             }
 
-            if (log.is_at_least_verbose()) { log.println(); }
+            if (log.is_at_least_verbose()) {
+                log.println();
+            }
         }
     } catch (utils::TimeoutException&) {
         if (log.is_at_least_normal()) {
@@ -752,7 +760,9 @@ void CEGAR::generate_pdbs(
         }
     }
 
-    if (log.is_at_least_normal()) { log.println(); }
+    if (log.is_at_least_normal()) {
+        log.println();
+    }
 
     if (solution_it != unsolved_end) {
         auto& info = *solution_it;
