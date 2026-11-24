@@ -137,7 +137,7 @@
 #include "probfd_cli/cost_partitioning/pattern_collection_sorter_random.h"
 
 #include "probfd_cli/heuristics/additive_cartesian_heuristic.h"
-#include "probfd_cli/heuristics/constant_heuristic.h"
+#include "probfd_cli/heuristics/blind_heuristic.h"
 #include "probfd_cli/heuristics/dead_end_pruning_heuristic.h"
 #include "probfd_cli/heuristics/determinization_cost_heuristic.h"
 #include "probfd_cli/heuristics/gzocp_heuristic.h"

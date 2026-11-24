@@ -1,4 +1,4 @@
-#include "probfd_cli/heuristics/constant_heuristic.h"
+#include "probfd_cli/heuristics/blind_heuristic.h"
 
 #include "language/plugins/plugin.h"
 #include "language/plugins/raw_registry.h"
