@@ -8,9 +8,6 @@
 #include "probfd/pdbs/probability_aware_pattern_database.h"
 #include "probfd/pdbs/projection_operator.h"
 #include "probfd/pdbs/projection_state_space.h"
-#include "probfd/pdbs/saturation.h"
-
-#include "probfd/tasks/range_operator_cost_function.h"
 
 #include "probfd/labelled_successor_pmf.h"
 #include "probfd/probabilistic_operator_space.h"
@@ -21,10 +18,7 @@
 
 #include "downward/utils/rng.h"
 
-#include "downward/initial_state_values.h"
-
 #include <algorithm>
-#include <cassert>
 #include <utility>
 
 using namespace downward;
