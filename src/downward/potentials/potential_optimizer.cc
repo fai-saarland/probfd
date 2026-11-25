@@ -2,7 +2,7 @@
 
 #include "downward/operator_cost_function.h"
 #include "downward/operator_cost_function_fwd.h"
-#include "downward/potentials/potential_function.h"
+#include "downward/potentials/fact_potential_function.h"
 
 #include "downward/task_utils/task_properties.h"
 #include "downward/utils/collections.h"
@@ -32,11 +32,7 @@ PotentialOptimizer::PotentialOptimizer(
 {
     task_properties::verify_no_axioms(get_axioms(task));
     task_properties::verify_no_conditional_effects(get_operators(task));
-    initialize();
-}
 
-void PotentialOptimizer::initialize()
-{
     const auto& variables = get_variables(task);
 
     lp_var_ids.resize(variables.size());
@@ -57,9 +53,9 @@ bool PotentialOptimizer::has_optimal_solution() const
     return lp_solver.has_optimal_solution();
 }
 
-void PotentialOptimizer::optimize_for_state(const State& state)
+FactPotentialFunction PotentialOptimizer::optimize_for_state(const State& state)
 {
-    optimize_for_samples({state});
+    return optimize_for_samples({state});
 }
 
 int PotentialOptimizer::get_lp_var_id(const FactPair& fact) const
@@ -69,7 +65,7 @@ int PotentialOptimizer::get_lp_var_id(const FactPair& fact) const
     return lp_var_ids[fact.var][fact.value];
 }
 
-void PotentialOptimizer::optimize_for_all_states()
+FactPotentialFunction PotentialOptimizer::optimize_for_all_states()
 {
     if (!potentials_are_bounded()) {
         throw utils::CriticalError(
@@ -83,15 +79,20 @@ void PotentialOptimizer::optimize_for_all_states()
         coefficients[get_lp_var_id(fact.get_pair())] =
             1.0 / fact.get_variable().get_domain_size();
     }
+
     lp_solver.set_objective_coefficients(coefficients);
+
     solve_and_extract();
     if (!has_optimal_solution()) {
         throw utils::CriticalError(
             "all-states LP unbounded even though potentials are bounded.");
     }
+
+    return FactPotentialFunction(std::move(fact_potentials));
 }
 
-void PotentialOptimizer::optimize_for_samples(const vector<State>& samples)
+FactPotentialFunction
+PotentialOptimizer::optimize_for_samples(const vector<State>& samples)
 {
     vector<double> coefficients(num_lp_vars, 0.0);
     for (const State& state : samples) {
@@ -99,8 +100,11 @@ void PotentialOptimizer::optimize_for_samples(const vector<State>& samples)
             coefficients[get_lp_var_id(fact)] += 1.0;
         }
     }
+
     lp_solver.set_objective_coefficients(coefficients);
     solve_and_extract();
+
+    return FactPotentialFunction(std::move(fact_potentials));
 }
 
 const SharedAbstractTask& PotentialOptimizer::get_task() const
@@ -148,8 +152,8 @@ void PotentialOptimizer::construct_lp()
 
             // Set pre to pre(op) if defined, otherwise to u = |dom(var)|.
             int pre = -1;
-            auto it = var_to_precondition.find(var_id);
-            if (it == var_to_precondition.end()) {
+            if (auto it = var_to_precondition.find(var_id);
+                it == var_to_precondition.end()) {
                 pre = get_undefined_value(variables[var_id]);
             } else {
                 pre = it->second;
@@ -171,7 +175,9 @@ void PotentialOptimizer::construct_lp()
     /* Create full goal state. Use value |dom(V)| as "undefined" value
        for variables V undefined in the goal. */
     vector<int> goal(variables.size(), -1);
-    for (const auto [var, value] : goals) { goal[var] = value; }
+    for (const auto [var, value] : goals) {
+        goal[var] = value;
+    }
     for (VariableProxy var : variables) {
         if (goal[var.get_id()] == -1)
             goal[var.get_id()] = get_undefined_value(var);
@@ -204,6 +210,7 @@ void PotentialOptimizer::construct_lp()
             lp_constraints.push_back(constraint);
         }
     }
+
     lp::LinearProgram lp(
         lp::LPObjectiveSense::MAXIMIZE,
         std::move(lp_variables),
@@ -215,24 +222,17 @@ void PotentialOptimizer::construct_lp()
 void PotentialOptimizer::solve_and_extract()
 {
     lp_solver.solve();
-    if (has_optimal_solution()) { extract_lp_solution(); }
-}
 
-void PotentialOptimizer::extract_lp_solution()
-{
-    const auto& variables = get_variables(task);
+    if (has_optimal_solution()) {
+        const auto& variables = get_variables(task);
 
-    assert(has_optimal_solution());
-    const vector<double> solution = lp_solver.extract_solution();
-    for (FactProxy fact : variables.get_facts()) {
-        fact_potentials[fact.get_variable().get_id()][fact.get_value()] =
-            solution[get_lp_var_id(fact.get_pair())];
+        assert(has_optimal_solution());
+        const vector<double> solution = lp_solver.extract_solution();
+        for (FactProxy fact : variables.get_facts()) {
+            fact_potentials[fact.get_variable().get_id()][fact.get_value()] =
+                solution[get_lp_var_id(fact.get_pair())];
+        }
     }
 }
 
-unique_ptr<PotentialFunction> PotentialOptimizer::get_potential_function() const
-{
-    assert(has_optimal_solution());
-    return std::make_unique<PotentialFunction>(fact_potentials);
-}
 } // namespace downward::potentials

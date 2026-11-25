@@ -8,7 +8,7 @@
 #include "downward_cli/utils/rng_options.h"
 
 #include "downward/potentials/diverse_potential_heuristics.h"
-#include "downward/potentials/potential_function.h"
+#include "downward/potentials/fact_potential_function.h"
 #include "downward/potentials/potential_max_heuristic.h"
 
 #include "downward/utils/logging.h"

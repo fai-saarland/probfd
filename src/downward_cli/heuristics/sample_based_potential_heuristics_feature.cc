@@ -6,7 +6,7 @@
 #include "downward_cli/potentials/potential_options.h"
 #include "downward_cli/utils/rng_options.h"
 
-#include "downward/potentials/potential_function.h"
+#include "downward/potentials/fact_potential_function.h"
 #include "downward/potentials/potential_max_heuristic.h"
 #include "downward/potentials/potential_optimizer.h"
 #include "downward/potentials/util.h"
@@ -77,7 +77,7 @@ public:
     {
         auto transformation_result = transformation->transform(task);
 
-        vector<unique_ptr<PotentialFunction>> functions;
+        vector<FactPotentialFunction> functions;
         PotentialOptimizer optimizer(
             transformation_result.transformed_task,
             lp_solver,
@@ -86,6 +86,7 @@ public:
         for (int i = 0; i < num_heuristics; ++i) {
             vector<State> samples =
                 sample_without_dead_end_detection(optimizer, num_samples, *rng);
+
             if (!optimizer.potentials_are_bounded()) {
                 assert(!optimizer.potentials_are_bounded());
                 vector<State> non_dead_end_samples;
@@ -96,8 +97,8 @@ public:
                 }
                 swap(samples, non_dead_end_samples);
             }
-            optimizer.optimize_for_samples(samples);
-            functions.push_back(optimizer.get_potential_function());
+
+            functions.push_back(optimizer.optimize_for_samples(samples));
         }
 
         return std::make_unique<PotentialMaxHeuristic>(

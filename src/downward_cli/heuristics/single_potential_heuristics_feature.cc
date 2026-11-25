@@ -5,7 +5,7 @@
 
 #include "downward_cli/potentials/potential_options.h"
 
-#include "downward/potentials/potential_function.h"
+#include "downward/potentials/fact_potential_function.h"
 #include "downward/potentials/potential_heuristic.h"
 #include "downward/potentials/potential_optimizer.h"
 
@@ -33,7 +33,7 @@ enum class OptimizeFor {
     ALL_STATES,
 };
 
-unique_ptr<PotentialFunction> create_potential_function(
+FactPotentialFunction create_potential_function(
     const SharedAbstractTask& task,
     lp::LPSolverType lpsolver,
     double max_potential,
@@ -43,13 +43,15 @@ unique_ptr<PotentialFunction> create_potential_function(
     switch (opt_func) {
     case OptimizeFor::INITIAL_STATE: {
         const State& initial_state = get_init(task).get_initial_state();
-        optimizer.optimize_for_state(initial_state);
-        break;
+        return optimizer.optimize_for_state(initial_state);
     }
-    case OptimizeFor::ALL_STATES: optimizer.optimize_for_all_states(); break;
-    default: throw utils::CriticalError("Unknown optimization function");
+    case OptimizeFor::ALL_STATES: {
+        return optimizer.optimize_for_all_states();
     }
-    return optimizer.get_potential_function();
+    default: {
+        throw utils::CriticalError("Unknown optimization function");
+    }
+    }
 }
 
 class PotentialHeuristicFactory : public TaskDependentFactory<Evaluator> {

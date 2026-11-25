@@ -1,6 +1,6 @@
 #include "downward/potentials/util.h"
 
-#include "downward/potentials/potential_function.h"
+#include "downward/potentials/fact_potential_function.h"
 #include "downward/potentials/potential_optimizer.h"
 
 #include "downward/task_utils/sampling.h"
@@ -11,6 +11,7 @@
 using namespace std;
 
 namespace downward::potentials {
+
 vector<State> sample_without_dead_end_detection(
     PotentialOptimizer& optimizer,
     int num_samples,
@@ -24,12 +25,13 @@ vector<State> sample_without_dead_end_detection(
     const auto& init_vals = get_init(task);
     const auto& cost_function = get_cost_function(task);
 
-    State initial_state = init_vals.get_initial_state();
-    optimizer.optimize_for_state(initial_state);
-    int init_h = optimizer.get_potential_function()->get_value(initial_state);
+    const State initial_state = init_vals.get_initial_state();
+    const int init_h =
+        optimizer.optimize_for_state(initial_state).get_value(initial_state);
     AxiomEvaluator& evaluator = g_axiom_evaluators[variables, axioms];
-    sampling::RandomWalkSampler
+    const sampling::RandomWalkSampler
         sampler(evaluator, variables, operators, cost_function, rng);
+
     vector<State> samples;
     samples.reserve(num_samples);
     for (int i = 0; i < num_samples; ++i) {

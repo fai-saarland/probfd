@@ -9,7 +9,7 @@
 #include <vector>
 
 namespace downward::potentials {
-class PotentialFunction;
+class FactPotentialFunction;
 
 /*
   Add admissible potential constraints to LP and allow optimizing for
@@ -45,29 +45,25 @@ class PotentialOptimizer {
     std::vector<std::vector<int>> lp_var_ids;
     std::vector<std::vector<double>> fact_potentials;
 
-    int get_lp_var_id(const FactPair& fact) const;
-    void initialize();
-    void construct_lp();
-    void solve_and_extract();
-    void extract_lp_solution();
-
 public:
     PotentialOptimizer(
         const SharedAbstractTask& transform,
         lp::LPSolverType lpsolver,
         double max_potential);
-    ~PotentialOptimizer() = default;
 
     const SharedAbstractTask& get_task() const;
     bool potentials_are_bounded() const;
 
-    void optimize_for_state(const State& state);
-    void optimize_for_all_states();
-    void optimize_for_samples(const std::vector<State>& samples);
+    FactPotentialFunction optimize_for_state(const State& state);
+    FactPotentialFunction optimize_for_all_states();
+    FactPotentialFunction optimize_for_samples(const std::vector<State>& samples);
 
     bool has_optimal_solution() const;
 
-    std::unique_ptr<PotentialFunction> get_potential_function() const;
+private:
+    int get_lp_var_id(const FactPair& fact) const;
+    void construct_lp();
+    void solve_and_extract();
 };
 } // namespace potentials
 

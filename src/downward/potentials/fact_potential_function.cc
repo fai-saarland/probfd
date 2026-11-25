@@ -1,4 +1,4 @@
-#include "downward/potentials/potential_function.h"
+#include "downward/potentials/fact_potential_function.h"
 
 #include "downward/state.h"
 
@@ -9,13 +9,14 @@
 using namespace std;
 
 namespace downward::potentials {
-PotentialFunction::PotentialFunction(
-    const vector<vector<double>>& fact_potentials)
-    : fact_potentials(fact_potentials)
+
+FactPotentialFunction::FactPotentialFunction(
+    vector<vector<double>> fact_potentials)
+    : fact_potentials(std::move(fact_potentials))
 {
 }
 
-int PotentialFunction::get_value(const State& state) const
+int FactPotentialFunction::get_value(const State& state) const
 {
     double heuristic_value = 0.0;
     for (const auto [var_id, value] : state | as_fact_pair_set) {
@@ -23,7 +24,9 @@ int PotentialFunction::get_value(const State& state) const
         assert(utils::in_bounds(value, fact_potentials[var_id]));
         heuristic_value += fact_potentials[var_id][value];
     }
-    const double epsilon = 0.01;
+
+    constexpr double epsilon = 0.01;
     return static_cast<int>(ceil(heuristic_value - epsilon));
 }
-} // namespace potentials
+
+} // namespace downward::potentials

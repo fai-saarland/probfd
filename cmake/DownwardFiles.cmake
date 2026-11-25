@@ -719,7 +719,7 @@ create_library(
     HELP "Potential heuristics"
     SOURCES
         downward/potentials/diverse_potential_heuristics
-        downward/potentials/potential_function
+        downward/potentials/fact_potential_function
         downward/potentials/potential_heuristic
         downward/potentials/potential_max_heuristic
         downward/potentials/potential_optimizer

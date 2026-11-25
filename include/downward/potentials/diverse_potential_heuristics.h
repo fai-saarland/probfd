@@ -14,8 +14,8 @@ class RandomNumberGenerator;
 }
 
 namespace downward::potentials {
-using SamplesToFunctionsMap =
-    utils::HashMap<State, std::unique_ptr<PotentialFunction>>;
+
+using SamplesToFunctionsMap = utils::HashMap<State, FactPotentialFunction>;
 
 /*
   Factory class that finds diverse potential functions.
@@ -28,26 +28,7 @@ class DiversePotentialHeuristics {
     const int num_samples;
     std::shared_ptr<utils::RandomNumberGenerator> rng;
     utils::LogProxy log;
-    std::vector<std::unique_ptr<PotentialFunction>> diverse_functions;
-
-    /* Filter dead end samples and duplicates. Store potential heuristics
-       for remaining samples. */
-    SamplesToFunctionsMap
-    filter_samples_and_compute_functions(const std::vector<State>& samples);
-
-    // Remove all samples for which the function achieves maximal values.
-    void remove_covered_samples(
-        const PotentialFunction& chosen_function,
-        SamplesToFunctionsMap& samples_to_functions) const;
-
-    /* Return potential function optimized for remaining samples or a
-       precomputed heuristic if the former does not cover additional samples. */
-    std::unique_ptr<PotentialFunction> find_function_and_remove_covered_samples(
-        SamplesToFunctionsMap& samples_to_functions);
-
-    /* Iteratively try to find potential functions that achieve maximal values
-       for as many samples as possible. */
-    void cover_samples(SamplesToFunctionsMap& samples_to_functions);
+    std::vector<FactPotentialFunction> diverse_functions;
 
 public:
     DiversePotentialHeuristics(
@@ -58,11 +39,26 @@ public:
         const SharedAbstractTask& transform,
         std::shared_ptr<utils::RandomNumberGenerator> rng,
         utils::Verbosity verbosity);
-    
+
     ~DiversePotentialHeuristics();
 
     // Sample states, then cover them.
-    std::vector<std::unique_ptr<PotentialFunction>> find_functions();
+    std::vector<FactPotentialFunction> find_functions();
+
+private:
+    /* Filter dead end samples and duplicates. Store potential heuristics
+       for remaining samples. */
+    SamplesToFunctionsMap
+    filter_samples_and_compute_functions(const std::vector<State>& samples);
+
+    /* Return potential function optimized for remaining samples or a
+       precomputed heuristic if the former does not cover additional samples. */
+    FactPotentialFunction find_function_and_remove_covered_samples(
+        SamplesToFunctionsMap& samples_to_functions);
+
+    /* Iteratively try to find potential functions that achieve maximal values
+       for as many samples as possible. */
+    void cover_samples(SamplesToFunctionsMap& samples_to_functions);
 };
-} // namespace potentials
+} // namespace downward::potentials
 #endif

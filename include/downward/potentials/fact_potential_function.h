@@ -8,22 +8,23 @@ class State;
 }
 
 namespace downward::potentials {
+
 /*
   A potential function calculates the sum of potentials in a given state.
 
   We decouple potential functions from potential heuristics to avoid the
   overhead that is induced by evaluating heuristics whenever possible.
 */
-class PotentialFunction {
-    const std::vector<std::vector<double>> fact_potentials;
+class FactPotentialFunction {
+    std::vector<std::vector<double>> fact_potentials;
 
 public:
-    explicit PotentialFunction(
-        const std::vector<std::vector<double>> &fact_potentials);
-    ~PotentialFunction() = default;
+    explicit FactPotentialFunction(
+        std::vector<std::vector<double>> fact_potentials);
 
-    int get_value(const State &state) const;
+    int get_value(const State& state) const;
 };
-}
+
+} // namespace downward::potentials
 
 #endif

@@ -1,6 +1,6 @@
 #include "downward/potentials/potential_max_heuristic.h"
 
-#include "downward/potentials/potential_function.h"
+#include "downward/potentials/fact_potential_function.h"
 
 #include "downward/task_transformation.h"
 
@@ -11,7 +11,7 @@ using namespace std;
 namespace downward::potentials {
 
 PotentialMaxHeuristic::PotentialMaxHeuristic(
-    vector<unique_ptr<PotentialFunction>>&& functions,
+    vector<FactPotentialFunction>&& functions,
     SharedAbstractTask original_task,
     const shared_ptr<TaskTransformation>& transformation,
     bool cache_estimates,
@@ -28,7 +28,7 @@ PotentialMaxHeuristic::PotentialMaxHeuristic(
 }
 
 PotentialMaxHeuristic::PotentialMaxHeuristic(
-    std::vector<std::unique_ptr<PotentialFunction>>&& functions,
+    std::vector<FactPotentialFunction>&& functions,
     SharedAbstractTask original_task,
     TaskTransformationResult transformation_result,
     bool cache_estimates,
@@ -48,7 +48,7 @@ PotentialMaxHeuristic::PotentialMaxHeuristic(
 }
 
 PotentialMaxHeuristic::PotentialMaxHeuristic(
-    std::vector<std::unique_ptr<PotentialFunction>>&& functions,
+    std::vector<FactPotentialFunction>&& functions,
     SharedAbstractTask original_task,
     SharedAbstractTask transformed_task,
     std::shared_ptr<StateMapping> state_mapping,
@@ -72,11 +72,14 @@ PotentialMaxHeuristic::~PotentialMaxHeuristic() = default;
 
 int PotentialMaxHeuristic::compute_heuristic(const State& ancestor_state)
 {
-    State state = convert_ancestor_state(ancestor_state);
+    const State state = convert_ancestor_state(ancestor_state);
+
     int value = 0;
+
     for (auto& function : functions) {
-        value = max(value, function->get_value(state));
+        value = max(value, function.get_value(state));
     }
+
     return value;
 }
 } // namespace potentials

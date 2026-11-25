@@ -1,6 +1,6 @@
 #include "downward/potentials/potential_heuristic.h"
 
-#include "downward/potentials/potential_function.h"
+#include "downward/potentials/fact_potential_function.h"
 
 #include "downward/task_transformation.h"
 
@@ -10,7 +10,7 @@ using namespace std;
 
 namespace downward::potentials {
 PotentialHeuristic::PotentialHeuristic(
-    unique_ptr<PotentialFunction> function,
+    FactPotentialFunction function,
     SharedAbstractTask original_task,
     const shared_ptr<TaskTransformation>& transformation,
     bool cache_estimates,
@@ -27,7 +27,7 @@ PotentialHeuristic::PotentialHeuristic(
 }
 
 PotentialHeuristic::PotentialHeuristic(
-    std::unique_ptr<PotentialFunction> function,
+    FactPotentialFunction function,
     SharedAbstractTask original_task,
     TaskTransformationResult transformation_result,
     bool cache_estimates,
@@ -47,7 +47,7 @@ PotentialHeuristic::PotentialHeuristic(
 }
 
 PotentialHeuristic::PotentialHeuristic(
-    std::unique_ptr<PotentialFunction> function,
+    FactPotentialFunction function,
     SharedAbstractTask original_task,
     SharedAbstractTask transformed_task,
     std::shared_ptr<StateMapping> state_mapping,
@@ -71,7 +71,7 @@ PotentialHeuristic::~PotentialHeuristic() = default;
 
 int PotentialHeuristic::compute_heuristic(const State& ancestor_state)
 {
-    State state = convert_ancestor_state(ancestor_state);
-    return max(0, function->get_value(state));
+    const State state = convert_ancestor_state(ancestor_state);
+    return max(0, function.get_value(state));
 }
 } // namespace potentials

@@ -3,24 +3,23 @@
 
 #include "downward/heuristic.h"
 
-#include <memory>
 #include <vector>
 
 namespace downward::potentials {
-class PotentialFunction;
+class FactPotentialFunction;
+}
+
+namespace downward::potentials {
 
 /*
   Maximize over multiple potential functions.
 */
 class PotentialMaxHeuristic : public Heuristic {
-    std::vector<std::unique_ptr<PotentialFunction>> functions;
-
-protected:
-    virtual int compute_heuristic(const State& ancestor_state) override;
+    std::vector<FactPotentialFunction> functions;
 
 public:
     PotentialMaxHeuristic(
-        std::vector<std::unique_ptr<PotentialFunction>>&& functions,
+        std::vector<FactPotentialFunction>&& functions,
         SharedAbstractTask original_task,
         const std::shared_ptr<TaskTransformation>& transform,
         bool cache_estimates,
@@ -28,7 +27,7 @@ public:
         utils::Verbosity verbosity);
 
     PotentialMaxHeuristic(
-        std::vector<std::unique_ptr<PotentialFunction>>&& functions,
+        std::vector<FactPotentialFunction>&& functions,
         SharedAbstractTask original_task,
         TaskTransformationResult transformation_result,
         bool cache_estimates,
@@ -36,7 +35,7 @@ public:
         utils::Verbosity verbosity);
 
     PotentialMaxHeuristic(
-        std::vector<std::unique_ptr<PotentialFunction>>&& functions,
+        std::vector<FactPotentialFunction>&& functions,
         SharedAbstractTask original_task,
         SharedAbstractTask transformed_task,
         std::shared_ptr<StateMapping> state_mapping,
@@ -46,7 +45,11 @@ public:
         utils::Verbosity verbosity);
 
     ~PotentialMaxHeuristic() override;
+    
+protected:
+    int compute_heuristic(const State& ancestor_state) override;
 };
+
 } // namespace potentials
 
 #endif
