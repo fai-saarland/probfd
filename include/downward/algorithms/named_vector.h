@@ -36,6 +36,18 @@ public:
         elements.push_back(std::move(element));
     }
 
+    void append(const NamedVector& other)
+    {
+        elements.append_range(other.elements);
+        names.append_range(other.names);
+    }
+
+    void append(NamedVector&& other)
+    {
+        elements.append_range(std::move(other.elements));
+        names.append_range(std::move(other.names));
+    }
+
     T& operator[](std::size_t index)
     {
         return elements[index];
